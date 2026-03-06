@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+@layer base {
+  :root {
+    --background: #FAFAF9;
+    --foreground: #1C1917;
+  }
+  
+  .dark {
+    --background: #111d21;
+    --foreground: #f1f5f9;
+  }
+  
+  body {
+    @apply bg-background-light text-text-main antialiased dark:bg-background-dark dark:text-slate-100;
+  }
+}
