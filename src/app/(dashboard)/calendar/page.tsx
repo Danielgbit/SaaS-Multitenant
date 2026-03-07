@@ -148,13 +148,13 @@ export default async function CalendarPage() {
             </p>
             
             {servicesCount === 0 ? (
-              <button
-                type="button"
-                disabled
-                className="w-full px-5 py-3.5 min-h-[44px] rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-sm font-semibold cursor-not-allowed border border-slate-200 dark:border-slate-700/50"
+              <Link
+                href="/services"
+                className="group flex items-center justify-between w-full px-5 py-3.5 min-h-[44px] rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] text-white text-sm font-semibold transition-all duration-200 active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] focus-visible:ring-offset-2"
               >
-                Próximamente disponible
-              </button>
+                Agregar servicios
+                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+              </Link>
             ) : (
               <div className="px-5 py-3.5 rounded-xl bg-emerald-100/50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-sm font-semibold flex justify-center border border-emerald-200/50 dark:border-emerald-800/30">
                 Paso completado
