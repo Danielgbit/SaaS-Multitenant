@@ -8,7 +8,7 @@ export const metadata = {
 export default function RegisterPage() {
   return (
     <main className="flex-1 flex items-center justify-center p-6 sm:p-12 relative min-h-screen overflow-hidden">
-      
+
       <div className="absolute inset-0 z-0 pointer-events-none opacity-20 dark:opacity-5">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/30 blur-[100px]"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-[120px]"></div>
@@ -17,8 +17,7 @@ export default function RegisterPage() {
       <div className="z-10 w-full max-w-[540px]">
         <header className="flex flex-col items-center justify-center mb-8 gap-3">
           <div className="flex items-center gap-2 text-primary dark:text-primary">
-            <span className="material-symbols-outlined text-3xl">spa</span>
-            <h2 className="text-xl font-bold tracking-wide uppercase text-text-main dark:text-slate-100 font-display">Wellness SaaS</h2>
+            <h2 className="text-xl font-bold tracking-wide uppercase text-text-main dark:text-slate-100 font-display">Prugressy</h2>
           </div>
         </header>
 

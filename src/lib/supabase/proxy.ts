@@ -16,7 +16,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -28,26 +28,27 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
+  // IMPORTANTE: No ejecutar código entre createServerClient y supabase.auth.getUser()
+  // Un error simple puede causar que los usuarios sean deslogueados aleatoriamente.
 
-  // IMPORTANT: DO NOT use supabase.auth.getSession() here!
-  // It is insecure as it pulls from local storage. Always use getUser().
+  // CRÍTICO: No usar supabase.auth.getSession() aquí — no es seguro (usa localStorage).
+  // Siempre usar getUser() para verificar autenticación en el servidor.
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')
-  
+  const isAuthRoute =
+    request.nextUrl.pathname.startsWith('/login') ||
+    request.nextUrl.pathname.startsWith('/register')
+
+  // Usuario no autenticado intentando acceder a rutas protegidas → redirigir a login
   if (!user && !isAuthRoute && request.nextUrl.pathname !== '/') {
-    // Check if it's protecting dashboard routes or others
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // If user is authenticated and tries to access login or register, redirect them to calendar or dashboard
+  // Usuario autenticado intentando acceder a rutas de auth → redirigir al calendario
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/calendar'
