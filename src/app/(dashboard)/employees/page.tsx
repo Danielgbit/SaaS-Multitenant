@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getEmployees } from '@/services/employees/getEmployees'
+import { getAvailabilitySummaryForEmployees } from '@/services/availability/getAvailability'
 import { EmployeesClient } from './EmployeesClient'
 import type { Metadata } from 'next'
 
@@ -37,5 +38,14 @@ export default async function EmployeesPage() {
   // 3. Obtener empleados de la organización
   const employees = await getEmployees(orgMember.organization_id)
 
-  return <EmployeesClient employees={employees} />
+  // 4. Obtener resumen de disponibilidad
+  const employeeIds = employees.map(e => e.id)
+  const availabilitySummary = await getAvailabilitySummaryForEmployees(employeeIds)
+
+  // 5. Crear mapa para acceso rápido
+  const availabilityMap = new Map(
+    availabilitySummary.map(a => [a.employee_id, a])
+  )
+
+  return <EmployeesClient employees={employees} availabilityMap={availabilityMap} />
 }

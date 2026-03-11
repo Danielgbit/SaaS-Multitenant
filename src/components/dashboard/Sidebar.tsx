@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, Users, Scissors, LogOut, Settings, LayoutDashboard } from 'lucide-react'
+import { CalendarDays, Users, Scissors, LogOut, Settings, LayoutDashboard, UserCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface SidebarProps {
@@ -42,6 +42,12 @@ export function Sidebar({ role }: SidebarProps) {
       label: 'Servicios',
       icon: Scissors,
       active: pathname.startsWith('/services'),
+    },
+    {
+      href: '/clients',
+      label: 'Clientes',
+      icon: UserCircle,
+      active: pathname.startsWith('/clients'),
     },
   ]
 

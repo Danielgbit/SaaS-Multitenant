@@ -1,17 +1,20 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Pencil, ToggleLeft, ToggleRight, Phone, UserCircle2, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { Pencil, ToggleLeft, ToggleRight, Phone, UserCircle2, Loader2, Clock, Calendar, AlertCircle } from 'lucide-react'
 import { toggleEmployeeStatus } from '@/actions/employees/toggleEmployeeStatus'
 import { EditEmployeeModal } from './EditEmployeeModal'
 import type { Employee } from '@/types/employees'
+import type { AvailabilitySummary } from '@/services/availability/getAvailability'
 
 interface EmployeeListProps {
   employees: Employee[]
   allEmpty: boolean
+  availabilityMap: Map<string, AvailabilitySummary>
 }
 
-export function EmployeeList({ employees, allEmpty }: EmployeeListProps) {
+export function EmployeeList({ employees, allEmpty, availabilityMap }: EmployeeListProps) {
   const [editTarget, setEditTarget] = useState<Employee | null>(null)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [, startTransition] = useTransition()
@@ -87,9 +90,40 @@ export function EmployeeList({ employees, allEmpty }: EmployeeListProps) {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className={`text-sm font-semibold truncate transition-colors duration-150 ${employee.active ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500 line-through decoration-1'}`}>
-                {employee.name}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className={`text-sm font-semibold truncate transition-colors duration-150 ${employee.active ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500 line-through decoration-1'}`}>
+                  {employee.name}
+                </p>
+                
+                {/* Availability Badge */}
+                {(() => {
+                  const avail = availabilityMap.get(employee.id)
+                  if (!avail || avail.count === 0) {
+                    return (
+                      <span 
+                        className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800/40"
+                        title="Sin disponibilidad configurada"
+                      >
+                        <AlertCircle className="w-2.5 h-2.5" />
+                        <span className="hidden sm:inline">Sin config.</span>
+                      </span>
+                    )
+                  }
+                  return (
+                    <span 
+                      className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                        avail.is_complete 
+                          ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800/40'
+                          : 'bg-slate-100 text-slate-500 dark:bg-slate-700/60 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-600/40'
+                      }`}
+                      title={avail.day_labels.join(', ')}
+                    >
+                      <Calendar className="w-2.5 h-2.5" />
+                      <span>{avail.count}/7</span>
+                    </span>
+                  )
+                })()}
+              </div>
               {employee.phone ? (
                 <p className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5">
                   <Phone className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
@@ -133,6 +167,23 @@ export function EmployeeList({ employees, allEmpty }: EmployeeListProps) {
               >
                 <Pencil className="w-3.5 h-3.5" />
               </button>
+
+              {/* Availability button */}
+              <Link
+                href={`/employees/${employee.id}/availability`}
+                aria-label={`Configurar disponibilidad de ${employee.name}`}
+                className="
+                  p-2 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center
+                  text-slate-300 dark:text-slate-600
+                  hover:text-[#0F4C5C] dark:hover:text-[#38BDF8]
+                  hover:bg-slate-100 dark:hover:bg-slate-700
+                  opacity-0 group-hover:opacity-100
+                  transition-all duration-150 cursor-pointer
+                  focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C]/40
+                "
+              >
+                <Clock className="w-3.5 h-3.5" />
+              </Link>
 
               {/* Toggle button */}
               <button

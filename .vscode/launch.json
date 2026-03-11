@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Minimax MCP Server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/.mcp/minimax/server.js",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "MINIMAX_API_KEY": "sk-cp-G076VjwzGNxuP58MbVXpaUsBbYMQ52iedoa3JTYQT1bnpSROYGBRdGALa9j2iOSUM8LwZXSpyXhm5IlBTxvP4s-uDXPjl4htwDahvUikhoa600ZQPT_sZHY"
+      }
+    }
+  ],
+  "compounds": []
+}

@@ -1,40 +1,10 @@
 {
   "version": 1,
   "skills": {
-    "frontend-design": {
-      "source": "anthropics/skills",
+    "roadmap-planning": {
+      "source": "deanpeters/product-manager-skills",
       "sourceType": "github",
-      "computedHash": "516bd2154eb843a8240e43d5b285229129853114ad7075a5e141e1c08e408c84"
-    },
-    "nextjs-best-practices": {
-      "source": "sickn33/antigravity-awesome-skills",
-      "sourceType": "github",
-      "computedHash": "f57b0625e5e9e64dc9f3d7333c81e73f445fd9c65fe7cd0fd99a779a2e78dffd"
-    },
-    "nextjs-supabase-auth": {
-      "source": "sickn33/antigravity-awesome-skills",
-      "sourceType": "github",
-      "computedHash": "8bb779c17e0e13fb3bbd5ec622ecc1a6a7131f241a8f064953fca95f4f3d4bdf"
-    },
-    "seo-audit": {
-      "source": "coreyhaines31/marketingskills",
-      "sourceType": "github",
-      "computedHash": "1c7e3a6fb4173f4e505d69cb4c3861af3287d0eeca7a6797a60a0707b5961a96"
-    },
-    "server-actions": {
-      "source": "davepoon/buildwithclaude",
-      "sourceType": "github",
-      "computedHash": "225742d6f554fe75b6687b7c1c090200dd920e7430997ad9b64ec717ddefd2cc"
-    },
-    "supabase-postgres-best-practices": {
-      "source": "supabase/agent-skills",
-      "sourceType": "github",
-      "computedHash": "e3ba3d760c5f4cc43b02a91fb8924f726c7818f95cc35d79d0a606ca622b72f5"
-    },
-    "ui-ux-pro-max": {
-      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
-      "sourceType": "github",
-      "computedHash": "4cfe5e95a230616c17d92b44e3cd37bae543ce087a7756a446a62f77d7c58a37"
+      "computedHash": "c00261ab88f619056d3008cd51563591cdfb2653233f36e80f565895ee77d897"
     }
   }
 }

@@ -1,0 +1,16 @@
+{
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "mcpServers": {
+    "minimax": {
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/.mcp/minimax/server.js"
+      ],
+      "env": {
+        "MINIMAX_API_KEY": "sk-cp-G076VjwzGNxuP58MbVXpaUsBbYMQ52iedoa3JTYQT1bnpSROYGBRdGALa9j2iOSUM8LwZXSpyXhm5IlBTxvP4s-uDXPjl4htwDahvUikhoa600ZQPT_sZHY"
+      }
+    }
+  }
+}

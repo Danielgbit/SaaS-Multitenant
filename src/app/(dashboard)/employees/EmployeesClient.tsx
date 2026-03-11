@@ -5,12 +5,14 @@ import { Plus, Users, Search } from 'lucide-react'
 import { CreateEmployeeModal } from './CreateEmployeeModal'
 import { EmployeeList } from './EmployeeList'
 import type { Employee } from '@/types/employees'
+import type { AvailabilitySummary } from '@/services/availability/getAvailability'
 
 interface EmployeesClientProps {
   employees: Employee[]
+  availabilityMap: Map<string, AvailabilitySummary>
 }
 
-export function EmployeesClient({ employees }: EmployeesClientProps) {
+export function EmployeesClient({ employees, availabilityMap }: EmployeesClientProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [query, setQuery] = useState('')
 
@@ -114,7 +116,7 @@ export function EmployeesClient({ employees }: EmployeesClientProps) {
           </div>
         )}
 
-        <EmployeeList employees={filtered} allEmpty={employees.length === 0} />
+        <EmployeeList employees={filtered} allEmpty={employees.length === 0} availabilityMap={availabilityMap} />
       </div>
 
       {/* ── Create modal ── */}
