@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Users, Scissors, ArrowRight, CalendarDays, CheckCircle2 } from 'lucide-react'
+import { CalendarView } from '@/components/dashboard/CalendarView'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -185,17 +186,10 @@ export default async function CalendarPage() {
          </p>
       </div>
       
-      <div className="bg-white dark:bg-[#1E293B] rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm min-h-[500px] flex items-center justify-center">
-        <div className="text-center p-8 max-w-sm">
-          <CalendarDays className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-          <p className="text-lg font-bold text-slate-900 dark:text-slate-100 font-serif mb-2">
-            El calendario inteligente
-          </p>
-          <p className="text-base text-slate-500 dark:text-slate-400 leading-relaxed">
-            Se construirá en el próximo ciclo de producto, integrando las citas, empleados y notificaciones WhatsApp automáticas.
-          </p>
-        </div>
-      </div>
+      {/* Calendario semanal */}
+      {organizationId && (
+        <CalendarView organizationId={organizationId} />
+      )}
     </div>
   )
 }

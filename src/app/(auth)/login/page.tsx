@@ -1,11 +1,15 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { LoginForm } from '@/components/auth/LoginForm'
 import Link from 'next/link'
 
-export const metadata = {
-  title: 'Iniciar Sesión - SpaConnect',
-}
+export default async function LoginPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-export default function LoginPage() {
+  if (user) {
+    redirect('/calendar')
+  }
   return (
     <main className="flex-1 flex items-center justify-center p-4 sm:p-8 relative min-h-screen">
       <header className="flex items-center justify-between px-8 py-6 w-full absolute top-0 left-0 z-10">

@@ -202,6 +202,7 @@ export async function generateSlots({
 
   if (!availability) {
     // No hay disponibilidad configurada para este día
+    console.warn('[generateSlots] No availability for day', dayOfWeek, 'employee', employeeId)
     return []
   }
 

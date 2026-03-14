@@ -1,0 +1,1756 @@
+'use client'
+
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Calendar, 
+  Clock, 
+  User, 
+  Building2,
+  Loader2,
+  Plus,
+  X,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+  Circle,
+  Phone,
+  Mail,
+  FileText
+} from 'lucide-react'
+
+// Types
+interface Appointment {
+  id: string
+  organization_id: string
+  client_id: string
+  employee_id: string
+  service_id?: string
+  start_time: string
+  end_time: string
+  status: string
+  notes?: string
+  created_at: string
+}
+
+interface Employee {
+  id: string
+  organization_id: string
+  name: string
+  phone: string | null
+  active: boolean
+  created_at: string
+}
+
+interface Client {
+  id: string
+  organization_id: string
+  name: string
+  phone: string | null
+  email: string | null
+  notes: string | null
+  created_at: string
+}
+
+interface Service {
+  id: string
+  organization_id: string
+  name: string
+  duration: number
+  price: number
+  active: boolean
+  created_at: string
+}
+
+interface CalendarViewProps {
+  organizationId: string
+}
+
+type AppointmentWithDetails = Appointment & {
+  client?: Client
+  employee?: Employee
+  service?: Service
+}
+
+// Design System Tokens
+const COLORS = {
+  primary: '#0F4C5C',
+  primaryLight: '#1A6B7C',
+  surface: '#FFFFFF',
+  surfaceSubtle: '#F8FAFB',
+  border: '#E8ECEE',
+  borderLight: '#F0F3F4',
+  textPrimary: '#1A2B32',
+  textSecondary: '#5A6B70',
+  textMuted: '#8A9A9E',
+  success: '#059669',
+  successLight: '#D1FAE5',
+  warning: '#D97706',
+  warningLight: '#FEF3C7',
+  error: '#DC2626',
+  errorLight: '#FEE2E2',
+}
+
+const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }> = {
+  confirmed: { 
+    color: COLORS.success, 
+    bg: COLORS.successLight, 
+    label: 'Confirmada',
+    icon: <CheckCircle2 className="w-3.5 h-3.5" />
+  },
+  pending: { 
+    color: COLORS.warning, 
+    bg: COLORS.warningLight, 
+    label: 'Pendiente',
+    icon: <AlertCircle className="w-3.5 h-3.5" />
+  },
+  cancelled: { 
+    color: COLORS.error, 
+    bg: COLORS.errorLight, 
+    label: 'Cancelada',
+    icon: <XCircle className="w-3.5 h-3.5" />
+  },
+  completed: { 
+    color: COLORS.textSecondary, 
+    bg: COLORS.borderLight, 
+    label: 'Completada',
+    icon: <CheckCircle2 className="w-3.5 h-3.5" />
+  },
+}
+
+export function CalendarView({ organizationId }: CalendarViewProps) {
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([])
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [clients, setClients] = useState<Client[]>([])
+  const [services, setServices] = useState<Service[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentWithDetails | null>(null)
+  const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false)
+  const [wizardStep, setWizardStep] = useState(1)
+  const [newAppointmentData, setNewAppointmentData] = useState({
+    clientId: '',
+    serviceId: '',
+    employeeId: '',
+    date: '',
+    time: '',
+    notes: ''
+  })
+  const [clientSearch, setClientSearch] = useState('')
+  const [serviceSearch, setServiceSearch] = useState('')
+  const [employeeSearch, setEmployeeSearch] = useState('')
+  const [showClientDropdown, setShowClientDropdown] = useState(false)
+  const [showServiceDropdown, setShowServiceDropdown] = useState(false)
+  const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false)
+  const [availableSlots, setAvailableSlots] = useState<{start_time: string, end_time: string, available: boolean}[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  
+  // Edit mode states
+  const [isEditing, setIsEditing] = useState(false)
+  const [editAppointmentData, setEditAppointmentData] = useState({
+    clientId: '',
+    serviceId: '',
+    employeeId: '',
+    date: '',
+    time: '',
+    notes: ''
+  })
+  const [editClientSearch, setEditClientSearch] = useState('')
+  const [editServiceSearch, setEditServiceSearch] = useState('')
+  const [editEmployeeSearch, setEditEmployeeSearch] = useState('')
+  const [showEditClientDropdown, setShowEditClientDropdown] = useState(false)
+  const [showEditServiceDropdown, setShowEditServiceDropdown] = useState(false)
+  const [showEditEmployeeDropdown, setShowEditEmployeeDropdown] = useState(false)
+  const [editAvailableSlots, setEditAvailableSlots] = useState<{start_time: string, end_time: string, available: boolean}[]>([])
+  const [loadingEditSlots, setLoadingEditSlots] = useState(false)
+  const [isSavingEdit, setIsSavingEdit] = useState(false)
+  const [showTimeChangeWarning, setShowTimeChangeWarning] = useState(false)
+  
+  // Delete mode states
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const supabase = createClient()
+
+  // Calculate week dates (Monday to Sunday)
+  const weekDates = useMemo(() => {
+    const start = new Date(currentDate)
+    const day = start.getDay()
+    const diff = start.getDate() - day + (day === 0 ? -6 : 1)
+    const monday = new Date(start.setDate(diff))
+    
+    const dates: Date[] = []
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(monday)
+      date.setDate(monday.getDate() + i)
+      dates.push(date)
+    }
+    return dates
+  }, [currentDate])
+
+  const formatDateKey = (date: Date): string => {
+    return date.toISOString().split('T')[0]
+  }
+
+  const formatTime = (dateString: string): string => {
+    const date = new Date(dateString)
+    return date.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false
+    })
+  }
+
+  const formatDateTimeFull = (dateString: string): string => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-ES', { 
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  // Fetch data
+  useEffect(() => {
+    async function fetchData() {
+      if (!organizationId) return
+
+      setLoading(true)
+      setError(null)
+
+      try {
+        const startDate = formatDateKey(weekDates[0])
+        const endDate = formatDateKey(weekDates[6])
+
+        // Fetch appointments
+        const { data: appointmentsData, error: appointmentsError } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('organization_id', organizationId)
+          .gte('start_time', `${startDate}T00:00:00.000Z`)
+          .lte('start_time', `${endDate}T23:59:59.999Z`)
+          .order('start_time', { ascending: true })
+
+        if (appointmentsError) throw appointmentsError
+
+        // Fetch employees
+        const { data: employeesData, error: employeesError } = await supabase
+          .from('employees')
+          .select('*')
+          .eq('organization_id', organizationId)
+
+        if (employeesError) throw employeesError
+
+        // Fetch clients
+        const { data: clientsData, error: clientsError } = await supabase
+          .from('clients')
+          .select('*')
+          .eq('organization_id', organizationId)
+
+        if (clientsError) throw clientsError
+
+        // Fetch services
+        const { data: servicesData, error: servicesError } = await supabase
+          .from('services')
+          .select('*')
+          .eq('organization_id', organizationId)
+
+        if (servicesError) throw servicesError
+
+        // Create lookup maps
+        const employeeMap = new Map<string, Employee>()
+        employeesData?.forEach(emp => employeeMap.set(emp.id, emp))
+
+        const clientMap = new Map<string, Client>()
+        clientsData?.forEach(client => clientMap.set(client.id, client))
+
+        const serviceMap = new Map<string, Service>()
+        servicesData?.forEach(service => serviceMap.set(service.id, service))
+
+        // Combine appointment data with employee, client and service details
+        const appointmentsWithDetails: AppointmentWithDetails[] = (appointmentsData ?? []).map((apt: any) => ({
+          ...apt,
+          employee: employeeMap.get(apt.employee_id),
+          client: clientMap.get(apt.client_id),
+          service: apt.service_id ? serviceMap.get(apt.service_id) : undefined
+        }))
+
+        setAppointments(appointmentsWithDetails)
+        setEmployees(employeesData ?? [])
+        setClients(clientsData ?? [])
+        setServices(servicesData ?? [])
+      } catch (err) {
+        console.error('Error fetching calendar data:', err)
+        setError('Error al cargar las citas')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [organizationId, currentDate, supabase, weekDates])
+
+  // Group appointments by day
+  const appointmentsByDay = useMemo(() => {
+    const grouped: Record<string, AppointmentWithDetails[]> = {}
+    
+    weekDates.forEach(date => {
+      const key = formatDateKey(date)
+      grouped[key] = []
+    })
+
+    appointments.forEach(apt => {
+      const dayKey = formatDateKey(new Date(apt.start_time))
+      if (grouped[dayKey]) {
+        grouped[dayKey].push(apt)
+      }
+    })
+
+    return grouped
+  }, [appointments, weekDates])
+
+  // Navigation handlers
+  const goToPreviousWeek = useCallback(() => {
+    const newDate = new Date(currentDate)
+    newDate.setDate(newDate.getDate() - 7)
+    setCurrentDate(newDate)
+  }, [currentDate])
+
+  const goToNextWeek = useCallback(() => {
+    const newDate = new Date(currentDate)
+    newDate.setDate(newDate.getDate() + 7)
+    setCurrentDate(newDate)
+  }, [currentDate])
+
+  const goToToday = useCallback(() => {
+    setCurrentDate(new Date())
+  }, [])
+
+  const formatMonthYear = (): string => {
+    return currentDate.toLocaleDateString('es-ES', { 
+      month: 'long', 
+      year: 'numeric'
+    })
+  }
+
+  const isToday = (date: Date): boolean => {
+    const today = new Date()
+    return formatDateKey(date) === formatDateKey(today)
+  }
+
+  const getWeekRange = (): string => {
+    const first = weekDates[0]
+    const last = weekDates[6]
+    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
+    return `${first.toLocaleDateString('es-ES', options)} - ${last.toLocaleDateString('es-ES', options)}`
+  }
+
+  const handleAppointmentClick = (appointment: AppointmentWithDetails) => {
+    setSelectedAppointment(appointment)
+  }
+
+  const closeModal = () => {
+    setSelectedAppointment(null)
+  }
+
+  const openNewAppointmentModal = () => {
+    setShowNewAppointmentModal(true)
+  }
+
+  const closeNewAppointmentModal = () => {
+    setShowNewAppointmentModal(false)
+    setWizardStep(1)
+    setNewAppointmentData({ clientId: '', serviceId: '', employeeId: '', date: '', time: '', notes: '' })
+    setClientSearch('')
+    setServiceSearch('')
+    setEmployeeSearch('')
+    setShowClientDropdown(false)
+    setShowServiceDropdown(false)
+    setShowEmployeeDropdown(false)
+    setAvailableSlots([])
+  }
+
+  const nextWizardStep = () => {
+    if (wizardStep < 3) setWizardStep(wizardStep + 1)
+  }
+
+  const prevWizardStep = () => {
+    if (wizardStep > 1) setWizardStep(wizardStep - 1)
+  }
+
+  const canProceedToStep2 = newAppointmentData.clientId !== ''
+  const canProceedToStep3 = newAppointmentData.serviceId !== '' && newAppointmentData.employeeId !== ''
+
+  const categorizeSlots = (slots: {start_time: string, end_time: string, available: boolean}[]) => {
+    const morning: {start_time: string, end_time: string, available: boolean}[] = []
+    const afternoon: {start_time: string, end_time: string, available: boolean}[] = []
+    
+    slots.forEach(slot => {
+      const hour = parseInt(slot.start_time.split('T')[1].slice(0, 2), 10)
+      if (hour < 13) {
+        morning.push(slot)
+      } else {
+        afternoon.push(slot)
+      }
+    })
+    
+    return { morning, afternoon }
+  }
+
+  const { morning: morningSlots, afternoon: afternoonSlots } = categorizeSlots(availableSlots)
+
+  const fetchAvailableSlots = async () => {
+    if (!newAppointmentData.employeeId || !newAppointmentData.serviceId || !newAppointmentData.date) return
+    
+    setLoadingSlots(true)
+    try {
+      const response = await fetch(
+        `/api/slots?employeeId=${newAppointmentData.employeeId}&serviceId=${newAppointmentData.serviceId}&date=${newAppointmentData.date}&organizationId=${organizationId}`
+      )
+      const data = await response.json()
+      if (data.slots) {
+        setAvailableSlots(data.slots)
+      }
+    } catch (err) {
+      console.error('Error fetching slots:', err)
+    } finally {
+      setLoadingSlots(false)
+    }
+  }
+
+  const handleCreateAppointment = async () => {
+    if (!newAppointmentData.clientId || !newAppointmentData.serviceId || !newAppointmentData.employeeId || !newAppointmentData.time) {
+      return
+    }
+
+    const startTime = `${newAppointmentData.date}T${newAppointmentData.time}:00.000Z`
+    
+    setIsCreating(true)
+    try {
+      const response = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: newAppointmentData.employeeId,
+          client_id: newAppointmentData.clientId,
+          service_id: newAppointmentData.serviceId,
+          start_time: startTime,
+          organization_id: organizationId,
+          notes: newAppointmentData.notes || null
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.error) {
+        alert(result.error)
+        return
+      }
+
+      closeNewAppointmentModal()
+      setCurrentDate(new Date(currentDate))
+    } catch (err) {
+      console.error('Error creating appointment:', err)
+      alert('Error al crear la cita')
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  const handleCancelAppointment = async () => {
+    if (!selectedAppointment) return
+    
+    if (!confirm('¿Estás seguro de que quieres cancelar esta cita?')) return
+
+    setUpdatingStatus(true)
+    try {
+      const response = await fetch('/api/appointments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appointment_id: selectedAppointment.id,
+          status: 'cancelled'
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.error) {
+        alert(result.error)
+        return
+      }
+
+      closeModal()
+      setCurrentDate(new Date(currentDate))
+    } catch (err) {
+      console.error('Error canceling appointment:', err)
+      alert('Error al cancelar la cita')
+    } finally {
+      setUpdatingStatus(false)
+    }
+  }
+
+  const handleConfirmAppointment = async () => {
+    if (!selectedAppointment) return
+
+    setUpdatingStatus(true)
+    try {
+      const response = await fetch('/api/appointments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appointment_id: selectedAppointment.id,
+          status: 'confirmed'
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.error) {
+        alert(result.error)
+        return
+      }
+
+      closeModal()
+      setCurrentDate(new Date(currentDate))
+    } catch (err) {
+      console.error('Error confirming appointment:', err)
+      alert('Error al confirmar la cita')
+    } finally {
+      setUpdatingStatus(false)
+    }
+  }
+
+  const openEditModal = () => {
+    if (!selectedAppointment) return
+    
+    const aptService = selectedAppointment as any
+    const serviceId = aptService?.service?.id || ''
+    
+    setEditAppointmentData({
+      clientId: selectedAppointment.client_id,
+      serviceId: serviceId,
+      employeeId: selectedAppointment.employee_id,
+      date: selectedAppointment.start_time.split('T')[0],
+      time: selectedAppointment.start_time.split('T')[1].slice(0, 5),
+      notes: selectedAppointment.notes || ''
+    })
+    setEditClientSearch(selectedAppointment.client?.name || '')
+    setEditServiceSearch(selectedAppointment.service?.name || '')
+    setEditEmployeeSearch(selectedAppointment.employee?.name || '')
+    setIsEditing(true)
+    setShowTimeChangeWarning(false)
+  }
+
+  const closeEditModal = () => {
+    setIsEditing(false)
+    setEditAppointmentData({ clientId: '', serviceId: '', employeeId: '', date: '', time: '', notes: '' })
+    setEditClientSearch('')
+    setEditServiceSearch('')
+    setEditEmployeeSearch('')
+    setShowEditClientDropdown(false)
+    setShowEditServiceDropdown(false)
+    setShowEditEmployeeDropdown(false)
+    setEditAvailableSlots([])
+    setShowTimeChangeWarning(false)
+  }
+
+  const fetchEditSlots = async () => {
+    if (!editAppointmentData.employeeId || !editAppointmentData.serviceId || !editAppointmentData.date) return
+    
+    setLoadingEditSlots(true)
+    try {
+      const response = await fetch(
+        `/api/slots?employeeId=${editAppointmentData.employeeId}&serviceId=${editAppointmentData.serviceId}&date=${editAppointmentData.date}&organizationId=${organizationId}`
+      )
+      const data = await response.json()
+      if (data.slots) {
+        setEditAvailableSlots(data.slots)
+      }
+    } catch (err) {
+      console.error('Error fetching edit slots:', err)
+    } finally {
+      setLoadingEditSlots(false)
+    }
+  }
+
+  const handleSaveEdit = async () => {
+    if (!selectedAppointment || !editAppointmentData.clientId || !editAppointmentData.serviceId || !editAppointmentData.employeeId) {
+      return
+    }
+
+    const originalTime = selectedAppointment.start_time.split('T')[1].slice(0, 5)
+    const newTime = editAppointmentData.time
+    const hasTimeChanged = originalTime !== newTime
+
+    if (hasTimeChanged && !showTimeChangeWarning) {
+      setShowTimeChangeWarning(true)
+      return
+    }
+
+    const startTime = `${editAppointmentData.date}T${editAppointmentData.time}:00.000Z`
+    
+    setIsSavingEdit(true)
+    try {
+      const response = await fetch('/api/appointments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appointment_id: selectedAppointment.id,
+          employee_id: editAppointmentData.employeeId,
+          client_id: editAppointmentData.clientId,
+          service_id: editAppointmentData.serviceId,
+          start_time: startTime,
+          notes: editAppointmentData.notes || null,
+          ignoreAvailability: hasTimeChanged ? false : undefined
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.error) {
+        if (result.code === 'SLOT_UNAVAILABLE') {
+          alert(result.error)
+          return
+        }
+        alert(result.error)
+        return
+      }
+
+      closeEditModal()
+      closeModal()
+      setCurrentDate(new Date(currentDate))
+    } catch (err) {
+      console.error('Error saving appointment:', err)
+      alert('Error al guardar la cita')
+    } finally {
+      setIsSavingEdit(false)
+      setShowTimeChangeWarning(false)
+    }
+  }
+
+  const handleDeleteAppointment = async () => {
+    if (!selectedAppointment) return
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch('/api/appointments', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appointment_id: selectedAppointment.id
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.error) {
+        alert(result.error)
+        return
+      }
+
+      setShowDeleteConfirm(false)
+      closeModal()
+      setCurrentDate(new Date(currentDate))
+    } catch (err) {
+      console.error('Error deleting appointment:', err)
+      alert('Error al eliminar la cita')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const categorizeEditSlots = (slots: {start_time: string, end_time: string, available: boolean}[]) => {
+    const morning: {start_time: string, end_time: string, available: boolean}[] = []
+    const afternoon: {start_time: string, end_time: string, available: boolean}[] = []
+    
+    slots.forEach(slot => {
+      const hour = parseInt(slot.start_time.split('T')[1].slice(0, 2), 10)
+      if (hour < 13) {
+        morning.push(slot)
+      } else {
+        afternoon.push(slot)
+      }
+    })
+    
+    return { morning, afternoon }
+  }
+
+  const { morning: editMorningSlots, afternoon: editAfternoonSlots } = categorizeEditSlots(editAvailableSlots)
+
+  // Loading State
+  if (loading) {
+    return (
+      <div 
+        className="flex items-center justify-center h-[600px] rounded-2xl"
+        style={{ backgroundColor: COLORS.surface, boxShadow: '0 4px 24px rgba(15, 76, 92, 0.08)' }}
+      >
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div 
+              className="w-12 h-12 rounded-full"
+              style={{ backgroundColor: COLORS.primaryLight + '20' }}
+            />
+            <Loader2 
+              className="w-6 h-6 animate-spin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" 
+              style={{ color: COLORS.primary }} 
+            />
+          </div>
+          <p style={{ color: COLORS.textSecondary }} className="text-sm font-medium">
+            Cargando calendario...
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error State
+  if (error) {
+    return (
+      <div 
+        className="flex items-center justify-center h-[600px] rounded-2xl"
+        style={{ backgroundColor: COLORS.surface, boxShadow: '0 4px 24px rgba(15, 76, 92, 0.08)' }}
+      >
+        <div className="flex flex-col items-center gap-4 text-center px-6">
+          <div 
+            className="w-16 h-16 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: COLORS.errorLight }}
+          >
+            <Calendar className="w-8 h-8" style={{ color: COLORS.error }} />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-1" style={{ color: COLORS.textPrimary }}>
+              Error al cargar
+            </h3>
+            <p style={{ color: COLORS.textSecondary }} className="text-sm">
+              {error}
+            </p>
+          </div>
+          <button 
+            onClick={goToToday}
+            className="px-5 py-2.5 rounded-lg font-medium text-sm transition-all hover:opacity-90"
+            style={{ 
+              backgroundColor: COLORS.primary, 
+              color: '#FFFFFF',
+              boxShadow: '0 4px 12px rgba(15, 76, 92, 0.25)'
+            }}
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div 
+      className="rounded-2xl overflow-hidden"
+      style={{ 
+        backgroundColor: COLORS.surface, 
+        boxShadow: '0 4px 24px rgba(15, 76, 92, 0.08)',
+        fontFamily: 'Plus Jakarta Sans, sans-serif'
+      }}
+    >
+      {/* Premium Header */}
+      <div 
+        className="px-8 py-6 flex items-center justify-between"
+        style={{ 
+          borderBottom: `1px solid ${COLORS.border}`,
+          background: `linear-gradient(135deg, ${COLORS.surface} 0%, ${COLORS.surfaceSubtle} 100%)`
+        }}
+      >
+        <div className="flex items-center gap-6">
+          <div>
+            <h2 
+              className="text-2xl font-semibold capitalize"
+              style={{ 
+                color: COLORS.textPrimary,
+                fontFamily: 'Cormorant Garamond, serif'
+              }}
+            >
+              {formatMonthYear()}
+            </h2>
+            <p className="text-sm mt-1" style={{ color: COLORS.textMuted }}>
+              {getWeekRange()}
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <button
+            onClick={goToToday}
+            className="px-4 py-2.5 text-sm font-medium rounded-lg transition-all hover:scale-105"
+            style={{ 
+              color: COLORS.primary,
+              backgroundColor: COLORS.surface,
+              border: `1px solid ${COLORS.border}`,
+              boxShadow: '0 2px 8px rgba(15, 76, 92, 0.06)'
+            }}
+          >
+            Hoy
+          </button>
+          
+          <div 
+            className="flex items-center rounded-lg overflow-hidden"
+            style={{ 
+              border: `1px solid ${COLORS.border}`,
+              boxShadow: '0 2px 8px rgba(15, 76, 92, 0.06)'
+            }}
+          >
+            <button
+              onClick={goToPreviousWeek}
+              className="p-2.5 hover:opacity-70 transition-opacity"
+              style={{ backgroundColor: COLORS.surface }}
+              aria-label="Semana anterior"
+            >
+              <ChevronLeft className="w-5 h-5" style={{ color: COLORS.primary }} />
+            </button>
+            <div style={{ width: '1px', height: '24px', backgroundColor: COLORS.border }} />
+            <button
+              onClick={goToNextWeek}
+              className="p-2.5 hover:opacity-70 transition-opacity"
+              style={{ backgroundColor: COLORS.surface }}
+              aria-label="Semana siguiente"
+            >
+              <ChevronRight className="w-5 h-5" style={{ color: COLORS.primary }} />
+            </button>
+          </div>
+
+          <button
+            onClick={openNewAppointmentModal}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all hover:scale-105 hover:shadow-lg"
+            style={{ 
+              backgroundColor: COLORS.primary, 
+              color: '#FFFFFF',
+              boxShadow: '0 4px 12px rgba(15, 76, 92, 0.25)'
+            }}
+          >
+            <Plus className="w-4 h-4" />
+            Nueva cita
+          </button>
+        </div>
+      </div>
+
+      {/* Week days header */}
+      <div 
+        className="grid grid-cols-7"
+        style={{ borderBottom: `1px solid ${COLORS.border}` }}
+      >
+        {weekDates.map((date, index) => (
+          <div
+            key={index}
+            className={`py-4 text-center ${index !== 6 ? 'border-r' : ''}`}
+            style={{ 
+              borderColor: COLORS.border,
+              backgroundColor: isToday(date) ? COLORS.primary + '08' : COLORS.surfaceSubtle
+            }}
+          >
+            <p 
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{ 
+                color: isToday(date) ? COLORS.primary : COLORS.textMuted 
+              }}
+            >
+              {date.toLocaleDateString('es-ES', { weekday: 'short' })}
+            </p>
+            <p 
+              className="text-xl font-semibold mt-2 transition-colors"
+              style={{ 
+                color: isToday(date) ? COLORS.primary : COLORS.textPrimary,
+                fontFamily: 'Cormorant Garamond, serif'
+              }}
+            >
+              {date.getDate()}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 min-h-[500px]">
+        {weekDates.map((date, index) => {
+          const dayKey = formatDateKey(date)
+          const dayAppointments = appointmentsByDay[dayKey] || []
+
+          return (
+            <div
+              key={index}
+              className={`${index !== 6 ? 'border-r' : ''} p-3 transition-colors`}
+              style={{ 
+                borderColor: COLORS.border,
+                backgroundColor: isToday(date) ? COLORS.primary + '05' : COLORS.surface
+              }}
+            >
+              {dayAppointments.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full py-8">
+                  <div 
+                    className="w-10 h-10 rounded-full flex items-center justify-center mb-2"
+                    style={{ backgroundColor: COLORS.borderLight }}
+                  >
+                    <Calendar className="w-5 h-5" style={{ color: COLORS.textMuted }} />
+                  </div>
+                  <p className="text-xs" style={{ color: COLORS.textMuted }}>
+                    Sin citas
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {dayAppointments.map((apt) => {
+                    const statusConfig = STATUS_CONFIG[apt.status] || { 
+                      color: COLORS.textSecondary, 
+                      bg: COLORS.borderLight, 
+                      label: apt.status,
+                      icon: <Circle className="w-3.5 h-3.5" />
+                    }
+                    
+                    return (
+                      <button
+                        key={apt.id}
+                        onClick={() => handleAppointmentClick(apt)}
+                        className="w-full text-left p-3 rounded-xl transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer"
+                        style={{ 
+                          backgroundColor: statusConfig.bg,
+                          border: `1px solid ${statusConfig.color}30`,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                        }}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-3.5 h-3.5" style={{ color: statusConfig.color }} />
+                          <span 
+                            className="text-xs font-semibold"
+                            style={{ color: statusConfig.color }}
+                          >
+                            {formatTime(apt.start_time)} - {formatTime(apt.end_time)}
+                          </span>
+                        </div>
+                        
+                        <p 
+                          className="text-sm font-semibold truncate mb-1"
+                          style={{ color: COLORS.textPrimary }}
+                        >
+                          {apt.client?.name || 'Cliente'}
+                        </p>
+                        
+                        <div className="flex items-center gap-1.5">
+                          <Building2 className="w-3 h-3" style={{ color: COLORS.textMuted }} />
+                          <span 
+                            className="text-xs truncate"
+                            style={{ color: COLORS.textSecondary }}
+                          >
+                            {apt.employee?.name || 'Empleado'}
+                          </span>
+                        </div>
+
+                        {apt.service && (
+                          <div 
+                            className="mt-2 pt-2 border-t text-xs"
+                            style={{ borderColor: statusConfig.color + '40', color: COLORS.textMuted }}
+                          >
+                            {apt.service.name}
+                          </div>
+                        )}
+                      </button>
+  )
+}
+
+export default CalendarView
+                
+                return (
+                  <div className="space-y-6">
+                    {/* Status Badge */}
+                    <div className="flex items-center justify-between">
+                      <div 
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
+                        style={{ 
+                          backgroundColor: statusConfig.bg,
+                          color: statusConfig.color
+                        }}
+                      >
+                        {statusConfig.icon}
+                        {statusConfig.label}
+                      </div>
+                      <span className="text-sm" style={{ color: COLORS.textMuted }}>
+                        #{selectedAppointment.id.slice(0, 8)}
+                      </span>
+                    </div>
+
+                    {/* Date & Time */}
+                    <div 
+                      className="p-4 rounded-xl"
+                      style={{ backgroundColor: COLORS.surfaceSubtle }}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <Calendar className="w-5 h-5" style={{ color: COLORS.primary }} />
+                        <span className="font-semibold" style={{ color: COLORS.textPrimary }}>
+                          Fecha y hora
+                        </span>
+                      </div>
+                      <p className="text-sm pl-8" style={{ color: COLORS.textSecondary }}>
+                        {formatDateTimeFull(selectedAppointment.start_time)}
+                      </p>
+                      <p className="text-sm pl-8 mt-1" style={{ color: COLORS.textMuted }}>
+                        Duración: {selectedAppointment.service?.duration || 60} minutos
+                      </p>
+                    </div>
+
+                    {/* Client Info */}
+                    <div 
+                      className="p-4 rounded-xl"
+                      style={{ backgroundColor: COLORS.surfaceSubtle }}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <User className="w-5 h-5" style={{ color: COLORS.primary }} />
+                        <span className="font-semibold" style={{ color: COLORS.textPrimary }}>
+                          Cliente
+                        </span>
+                      </div>
+                      <div className="pl-8 space-y-2">
+                        <p className="font-medium" style={{ color: COLORS.textPrimary }}>
+                          {selectedAppointment.client?.name || 'Cliente no especificado'}
+                        </p>
+                        {selectedAppointment.client?.phone && (
+                          <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.textSecondary }}>
+                            <Phone className="w-4 h-4" />
+                            {selectedAppointment.client.phone}
+                          </div>
+                        )}
+                        {selectedAppointment.client?.email && (
+                          <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.textSecondary }}>
+                            <Mail className="w-4 h-4" />
+                            {selectedAppointment.client.email}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Employee & Service */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div 
+                        className="p-4 rounded-xl"
+                        style={{ backgroundColor: COLORS.surfaceSubtle }}
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <Building2 className="w-5 h-5" style={{ color: COLORS.primary }} />
+                          <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>
+                            Profesional
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium pl-8" style={{ color: COLORS.textSecondary }}>
+                          {selectedAppointment.employee?.name || 'No asignado'}
+                        </p>
+                      </div>
+
+                      <div 
+                        className="p-4 rounded-xl"
+                        style={{ backgroundColor: COLORS.surfaceSubtle }}
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <Clock className="w-5 h-5" style={{ color: COLORS.primary }} />
+                          <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>
+                            Servicio
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium pl-8" style={{ color: COLORS.textSecondary }}>
+                          {selectedAppointment.service?.name || 'No especificado'}
+                        </p>
+                        {selectedAppointment.service?.price && (
+                          <p className="text-sm pl-8 mt-1" style={{ color: COLORS.textMuted }}>
+                            ${selectedAppointment.service.price}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Notes */}
+                    {selectedAppointment.notes && (
+                      <div 
+                        className="p-4 rounded-xl"
+                        style={{ backgroundColor: COLORS.surfaceSubtle }}
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <FileText className="w-5 h-5" style={{ color: COLORS.primary }} />
+                          <span className="font-semibold" style={{ color: COLORS.textPrimary }}>
+                            Notas
+                          </span>
+                        </div>
+                        <p className="text-sm pl-8" style={{ color: COLORS.textSecondary }}>
+                          {selectedAppointment.notes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div 
+              className="px-6 py-4 flex items-center justify-between"
+              style={{ borderTop: `1px solid ${COLORS.border}` }}
+            >
+              <div className="flex gap-2">
+                {selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && (
+                  <>
+                    <button
+                      onClick={handleConfirmAppointment}
+                      disabled={updatingStatus || selectedAppointment.status === 'confirmed'}
+                      className="px-4 py-2.5 rounded-lg text-sm font-medium transition-all hover:opacity-90 disabled:opacity-50"
+                      style={{ 
+                        backgroundColor: COLORS.success,
+                        color: '#FFFFFF'
+                      }}
+                    >
+                      Confirmar
+                    </button>
+                    <button
+                      onClick={handleCancelAppointment}
+                      disabled={updatingStatus || selectedAppointment.status === 'cancelled'}
+                      className="px-4 py-2.5 rounded-lg text-sm font-medium transition-all hover:opacity-90 disabled:opacity-50"
+                      style={{ 
+                        backgroundColor: COLORS.error,
+                        color: '#FFFFFF'
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium transition-all hover:opacity-90 flex items-center gap-2"
+                  style={{ 
+                    color: COLORS.error,
+                    backgroundColor: COLORS.errorLight
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                  Eliminar
+                </button>
+                <button
+                  onClick={closeModal}
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium transition-all hover:opacity-90"
+                  style={{ 
+                    color: COLORS.textSecondary,
+                    backgroundColor: COLORS.surfaceSubtle,
+                    border: `1px solid ${COLORS.border}`
+                  }}
+                >
+                  Cerrar
+                </button>
+                <button
+                  onClick={openEditModal}
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium transition-all hover:opacity-90 hover:shadow-lg"
+                  style={{ 
+                    backgroundColor: COLORS.primary,
+                    color: '#FFFFFF',
+                    boxShadow: '0 4px 12px rgba(15, 76, 92, 0.25)'
+                  }}
+                >
+                  Editar cita
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Appointment Modal - Wizard */}
+      {showNewAppointmentModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(26, 43, 50, 0.5)', backdropFilter: 'blur(4px)' }}
+          onClick={closeNewAppointmentModal}
+        >
+          <div 
+            className="w-full max-w-md rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            style={{ 
+              backgroundColor: COLORS.surface,
+              boxShadow: '0 24px 48px rgba(15, 76, 92, 0.2)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header with Progress */}
+            <div 
+              className="px-6 py-4 sticky top-0 z-10"
+              style={{ 
+                backgroundColor: COLORS.primary,
+                color: '#FFFFFF'
+              }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 
+                  className="text-xl font-semibold"
+                  style={{ fontFamily: 'Cormorant Garamond, serif' }}
+                >
+                  Nueva Cita
+                </h3>
+                <button
+                  onClick={closeNewAppointmentModal}
+                  className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
+                  aria-label="Cerrar modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              {/* Progress Steps */}
+              <div className="flex items-center justify-between">
+                {[1, 2, 3].map((step) => (
+                  <div key={step} className="flex items-center">
+                    <div 
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
+                        wizardStep >= step 
+                          ? 'bg-white text-[#0F4C5C]' 
+                          : 'bg-white/20 text-white'
+                      }`}
+                    >
+                      {wizardStep > step ? (
+                        <CheckCircle2 className="w-5 h-5" />
+                      ) : (
+                        step
+                      )}
+                    </div>
+                    {step < 3 && (
+                      <div 
+                        className={`w-12 h-0.5 mx-2 transition-all duration-300 ${
+                          wizardStep > step ? 'bg-white' : 'bg-white/30'
+                        }`}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between mt-2 text-xs text-white/70">
+                <span>Cliente</span>
+                <span>Servicio</span>
+                <span>Horario</span>
+              </div>
+            </div>
+
+            {/* Step Content */}
+            <div className="p-6">
+              {/* Step 1: Cliente */}
+              {wizardStep === 1 && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="text-center mb-6">
+                    <User className="w-12 h-12 mx-auto mb-3" style={{ color: COLORS.primary }} />
+                    <h4 className="text-lg font-semibold" style={{ color: COLORS.textPrimary }}>
+                      ¿Para quién es la cita?
+                    </h4>
+                    <p className="text-sm" style={{ color: COLORS.textSecondary }}>
+                      Selecciona un cliente existente o contacta
+                    </p>
+                  </div>
+
+                  {/* Searchable Client Dropdown */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Buscar cliente..."
+                      value={clientSearch}
+                      onChange={(e) => {
+                        setClientSearch(e.target.value)
+                        setShowClientDropdown(true)
+                      }}
+                      onFocus={() => setShowClientDropdown(true)}
+                      className="w-full px-4 py-3 pl-12 rounded-xl border focus:ring-2 focus:ring-offset-2 focus:ring-[#0F4C5C]/20"
+                      style={{ 
+                        borderColor: showClientDropdown ? COLORS.primary : COLORS.border,
+                        backgroundColor: COLORS.surface,
+                        color: COLORS.textPrimary
+                      }}
+                      aria-label="Buscar cliente"
+                    />
+                    <User className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: COLORS.textMuted }} />
+                    
+                    {showClientDropdown && (
+                      <div 
+                        className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden shadow-lg max-h-60 overflow-y-auto"
+                        style={{ 
+                          backgroundColor: COLORS.surface,
+                          borderColor: COLORS.border
+                        }}
+                      >
+                        {clients
+                          .filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()))
+                          .map(client => (
+                            <button
+                              key={client.id}
+                              onClick={() => {
+                                setNewAppointmentData({ ...newAppointmentData, clientId: client.id })
+                                setClientSearch(client.name)
+                                setShowClientDropdown(false)
+                                nextWizardStep()
+                              }}
+                              className={`w-full px-4 py-3 text-left hover:bg-[#0F4C5C]/5 flex items-center justify-between transition-colors ${
+                                newAppointmentData.clientId === client.id ? 'bg-[#0F4C5C]/10' : ''
+                              }`}
+                            >
+                              <span style={{ color: COLORS.textPrimary }}>{client.name}</span>
+                              {client.phone && (
+                                <span className="text-xs" style={{ color: COLORS.textMuted }}>{client.phone}</span>
+                              )}
+                            </button>
+                          ))}
+                        {clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                          <div className="px-4 py-3 text-center" style={{ color: COLORS.textMuted }}>
+                            No se encontraron clientes
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Servicio y Profesional */}
+              {wizardStep === 2 && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="text-center mb-6">
+                    <Clock className="w-12 h-12 mx-auto mb-3" style={{ color: COLORS.primary }} />
+                    <h4 className="text-lg font-semibold" style={{ color: COLORS.textPrimary }}>
+                      ¿Qué servicio y quién lo atiende?
+                    </h4>
+                    <p className="text-sm" style={{ color: COLORS.textSecondary }}>
+                      Selecciona el tratamiento y el profesional
+                    </p>
+                  </div>
+
+                  {/* Service Selection */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>
+                      Servicio
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Buscar servicio..."
+                        value={serviceSearch}
+                        onChange={(e) => {
+                          setServiceSearch(e.target.value)
+                          setShowServiceDropdown(true)
+                        }}
+                        onFocus={() => setShowServiceDropdown(true)}
+                        className="w-full px-4 py-3 pl-12 rounded-xl border focus:ring-2 focus:ring-offset-2 focus:ring-[#0F4C5C]/20"
+                        style={{ 
+                          borderColor: showServiceDropdown ? COLORS.primary : COLORS.border,
+                          backgroundColor: COLORS.surface,
+                          color: COLORS.textPrimary
+                        }}
+                        aria-label="Buscar servicio"
+                      />
+                      <Clock className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: COLORS.textMuted }} />
+                      
+                      {showServiceDropdown && (
+                        <div 
+                          className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden shadow-lg max-h-48 overflow-y-auto"
+                          style={{ 
+                            backgroundColor: COLORS.surface,
+                            borderColor: COLORS.border
+                          }}
+                        >
+                          {services
+                            .filter(s => s.name.toLowerCase().includes(serviceSearch.toLowerCase()))
+                            .map(service => (
+                              <button
+                                key={service.id}
+                                onClick={() => {
+                                  setNewAppointmentData({ ...newAppointmentData, serviceId: service.id, time: '' })
+                                  setServiceSearch(service.name)
+                                  setShowServiceDropdown(false)
+                                  setAvailableSlots([])
+                                }}
+                                className={`w-full px-4 py-3 text-left hover:bg-[#0F4C5C]/5 flex items-center justify-between transition-colors ${
+                                  newAppointmentData.serviceId === service.id ? 'bg-[#0F4C5C]/10' : ''
+                                }`}
+                              >
+                                <span style={{ color: COLORS.textPrimary }}>{service.name}</span>
+                                <span className="text-xs" style={{ color: COLORS.textMuted }}>{service.duration} min</span>
+                              </button>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Employee Selection */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>
+                      Profesional
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Buscar profesional..."
+                        value={employeeSearch}
+                        onChange={(e) => {
+                          setEmployeeSearch(e.target.value)
+                          setShowEmployeeDropdown(true)
+                        }}
+                        onFocus={() => setShowEmployeeDropdown(true)}
+                        className="w-full px-4 py-3 pl-12 rounded-xl border focus:ring-2 focus:ring-offset-2 focus:ring-[#0F4C5C]/20"
+                        style={{ 
+                          borderColor: showEmployeeDropdown ? COLORS.primary : COLORS.border,
+                          backgroundColor: COLORS.surface,
+                          color: COLORS.textPrimary
+                        }}
+                        aria-label="Buscar profesional"
+                      />
+                      <Building2 className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: COLORS.textMuted }} />
+                      
+                      {showEmployeeDropdown && (
+                        <div 
+                          className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden shadow-lg max-h-48 overflow-y-auto"
+                          style={{ 
+                            backgroundColor: COLORS.surface,
+                            borderColor: COLORS.border
+                          }}
+                        >
+                          {employees
+                            .filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase()))
+                            .map(emp => (
+                              <button
+                                key={emp.id}
+                                onClick={() => {
+                                  setNewAppointmentData({ ...newAppointmentData, employeeId: emp.id, time: '' })
+                                  setEmployeeSearch(emp.name)
+                                  setShowEmployeeDropdown(false)
+                                  setAvailableSlots([])
+                                }}
+                                className={`w-full px-4 py-3 text-left hover:bg-[#0F4C5C]/5 flex items-center transition-colors ${
+                                  newAppointmentData.employeeId === emp.id ? 'bg-[#0F4C5C]/10' : ''
+                                }`}
+                              >
+                                <span style={{ color: COLORS.textPrimary }}>{emp.name}</span>
+                              </button>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Fecha y Hora */}
+              {wizardStep === 3 && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="text-center mb-6">
+                    <Calendar className="w-12 h-12 mx-auto mb-3" style={{ color: COLORS.primary }} />
+                    <h4 className="text-lg font-semibold" style={{ color: COLORS.textPrimary }}>
+                      ¿Cuándo?
+                    </h4>
+                    <p className="text-sm" style={{ color: COLORS.textSecondary }}>
+                      Selecciona la fecha y el horario disponible
+                    </p>
+                  </div>
+
+                  {/* Date Selection */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>
+                      Fecha
+                    </label>
+                    <input
+                      type="date"
+                      value={newAppointmentData.date}
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => {
+                        setNewAppointmentData({ ...newAppointmentData, date: e.target.value, time: '' })
+                        setAvailableSlots([])
+                      }}
+                      className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-offset-2 focus:ring-[#0F4C5C]/20"
+                      style={{ 
+                        borderColor: COLORS.border,
+                        backgroundColor: COLORS.surface,
+                        color: COLORS.textPrimary
+                      }}
+                      aria-label="Seleccionar fecha"
+                    />
+                  </div>
+
+                  {/* Time Slots */}
+                  {newAppointmentData.date && newAppointmentData.employeeId && newAppointmentData.serviceId && (
+                    <div>
+                      <label className="block text-sm font-medium mb-3" style={{ color: COLORS.textPrimary }}>
+                        Horarios disponibles
+                      </label>
+                      
+                      {/* Auto-fetch cuando se selecciona fecha */}
+                      {!loadingSlots && availableSlots.length === 0 && (
+                        <button
+                          onClick={fetchAvailableSlots}
+                          className="w-full px-5 py-4 rounded-xl text-sm font-semibold transition-all hover:opacity-90 hover:shadow-lg active:scale-[0.98]"
+                          style={{ 
+                            backgroundColor: COLORS.primary,
+                            color: '#FFFFFF',
+                            boxShadow: '0 4px 14px rgba(15, 76, 92, 0.3)'
+                          }}
+                        >
+                          Ver horarios disponibles
+                        </button>
+                      )}
+
+                      {/* Skeleton Loading */}
+                      {loadingSlots && (
+                        <div className="space-y-4">
+                          {/* Morning skeleton */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-2 h-2 rounded-full bg-amber-400" />
+                              <span className="text-sm font-medium" style={{ color: COLORS.textSecondary }}>Mañana</span>
+                            </div>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                              {[1, 2, 3, 4].map(i => (
+                                <div 
+                                  key={i}
+                                  className="h-12 rounded-xl animate-pulse"
+                                  style={{ backgroundColor: COLORS.borderLight }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          {/* Afternoon skeleton */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-2 h-2 rounded-full bg-indigo-400" />
+                              <span className="text-sm font-medium" style={{ color: COLORS.textSecondary }}>Tarde</span>
+                            </div>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                              {[1, 2, 3, 4].map(i => (
+                                <div 
+                                  key={i}
+                                  className="h-12 rounded-xl animate-pulse"
+                                  style={{ backgroundColor: COLORS.borderLight }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Slots with Morning/Afternoon separation */}
+                      {availableSlots.length > 0 && (
+                        <div className="space-y-5">
+                          {/* Morning */}
+                          {morningSlots.length > 0 && (
+                            <div>
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
+                                <span className="text-sm font-semibold" style={{ color: COLORS.textPrimary }}>Mañana</span>
+                                <span className="text-xs" style={{ color: COLORS.textMuted }}>({morningSlots.filter(s => s.available).length} disponibles)</span>
+                              </div>
+                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                {morningSlots.map(slot => {
+                                  const timeStr = slot.start_time.split('T')[1].slice(0, 5)
+                                  const isSelected = newAppointmentData.time === timeStr
+                                  const isAvailable = slot.available
+                                  
+                                  return (
+                                    <button
+                                      key={slot.start_time}
+                                      onClick={() => isAvailable && setNewAppointmentData({ 
+                                        ...newAppointmentData, 
+                                        time: timeStr 
+                                      })}
+                                      disabled={!isAvailable}
+                                      className={`
+                                        px-3 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 ease-out
+                                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F4C5C]/30
+                                        ${isSelected ? 'ring-2 ring-offset-1' : ''}
+                                        ${!isAvailable ? 'cursor-not-allowed opacity-40' : 'hover:scale-105 hover:shadow-md cursor-pointer'}
+                                      `}
+                                      style={{ 
+                                        backgroundColor: isSelected ? COLORS.primary : (isAvailable ? COLORS.surface : COLORS.borderLight),
+                                        color: isSelected ? '#FFFFFF' : (isAvailable ? COLORS.textPrimary : COLORS.textMuted),
+                                        border: `1.5px solid ${isSelected ? COLORS.primary : (isAvailable ? COLORS.border : 'transparent')}`,
+                                        boxShadow: isSelected ? '0 4px 14px rgba(15, 76, 92, 0.3)' : 'none'
+                                      }}
+                                    >
+                                      {timeStr}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Afternoon */}
+                          {afternoonSlots.length > 0 && (
+                            <div>
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.5)]" />
+                                <span className="text-sm font-semibold" style={{ color: COLORS.textPrimary }}>Tarde</span>
+                                <span className="text-xs" style={{ color: COLORS.textMuted }}>({afternoonSlots.filter(s => s.available).length} disponibles)</span>
+                              </div>
+                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                {afternoonSlots.map(slot => {
+                                  const timeStr = slot.start_time.split('T')[1].slice(0, 5)
+                                  const isSelected = newAppointmentData.time === timeStr
+                                  const isAvailable = slot.available
+                                  
+                                  return (
+                                    <button
+                                      key={slot.start_time}
+                                      onClick={() => isAvailable && setNewAppointmentData({ 
+                                        ...newAppointmentData, 
+                                        time: timeStr 
+                                      })}
+                                      disabled={!isAvailable}
+                                      className={`
+                                        px-3 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 ease-out
+                                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F4C5C]/30
+                                        ${isSelected ? 'ring-2 ring-offset-1' : ''}
+                                        ${!isAvailable ? 'cursor-not-allowed opacity-40' : 'hover:scale-105 hover:shadow-md cursor-pointer'}
+                                      `}
+                                      style={{ 
+                                        backgroundColor: isSelected ? COLORS.primary : (isAvailable ? COLORS.surface : COLORS.borderLight),
+                                        color: isSelected ? '#FFFFFF' : (isAvailable ? COLORS.textPrimary : COLORS.textMuted),
+                                        border: `1.5px solid ${isSelected ? COLORS.primary : (isAvailable ? COLORS.border : 'transparent')}`,
+                                        boxShadow: isSelected ? '0 4px 14px rgba(15, 76, 92, 0.3)' : 'none'
+                                      }}
+                                    >
+                                      {timeStr}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* No slots available */}
+                      {availableSlots.length > 0 && availableSlots.filter(slot => slot.available).length === 0 && (
+                        <div className="text-center py-6 rounded-2xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+                          <Calendar className="w-10 h-10 mx-auto mb-2" style={{ color: COLORS.textMuted }} />
+                          <p className="text-sm font-medium" style={{ color: COLORS.textSecondary }}>
+                            No hay horarios disponibles
+                          </p>
+                          <p className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
+                            Intenta con otra fecha o profesional
+                          </p>
+                          <button 
+                            onClick={fetchAvailableSlots}
+                            className="mt-3 px-4 py-2 text-sm font-medium rounded-lg transition-all hover:opacity-90"
+                            style={{ 
+                              backgroundColor: COLORS.primaryLight + '20',
+                              color: COLORS.primary
+                            }}
+                          >
+                            Reintentar
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Notes */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>
+                      Notas (opcional)
+                    </label>
+                    <textarea
+                      value={newAppointmentData.notes}
+                      onChange={(e) => setNewAppointmentData({ ...newAppointmentData, notes: e.target.value })}
+                      placeholder="Notas adicionales para la cita..."
+                      className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-offset-2 focus:ring-[#0F4C5C]/20 resize-none"
+                      style={{ 
+                        borderColor: COLORS.border,
+                        backgroundColor: COLORS.surface,
+                        color: COLORS.textPrimary
+                      }}
+                      rows={2}
+                      aria-label="Notas de la cita"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer with Navigation */}
+            <div 
+              className="px-6 py-4 flex items-center justify-between sticky bottom-0"
+              style={{ borderTop: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surface }}
+            >
+              {wizardStep > 1 ? (
+                <button
+                  onClick={prevWizardStep}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium transition-all hover:opacity-90 flex items-center gap-2"
+                  style={{ 
+                    color: COLORS.textSecondary,
+                    backgroundColor: COLORS.surfaceSubtle,
+                    border: `1px solid ${COLORS.border}`
+                  }}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Atrás
+                </button>
+              ) : (
+                <button
+                  onClick={closeNewAppointmentModal}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium transition-all hover:opacity-90"
+                  style={{ 
+                    color: COLORS.textSecondary,
+                    backgroundColor: COLORS.surfaceSubtle,
+                    border: `1px solid ${COLORS.border}`
+                  }}
+                >
+                  Cancelar
+                </button>
+              )}
+
+              {wizardStep < 3 ? (
+                <button
+                  onClick={nextWizardStep}
+                  disabled={(wizardStep === 1 && !newAppointmentData.clientId) || (wizardStep === 2 && (!newAppointmentData.serviceId || !newAppointmentData.employeeId))}
+                  className="px-6 py-2.5 rounded-xl text-sm font-medium transition-all hover:opacity-90 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  style={{ 
+                    backgroundColor: COLORS.primary,
+                    color: '#FFFFFF',
+                    boxShadow: '0 4px 12px rgba(15, 76, 92, 0.25)'
+                  }}
+                >
+                  Siguiente
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleCreateAppointment}
+                  disabled={!newAppointmentData.time || isCreating}
+                  className="px-6 py-2.5 rounded-xl text-sm font-medium transition-all hover:opacity-90 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  style={{ 
+                    backgroundColor: COLORS.primary,
+                    color: '#FFFFFF',
+                    boxShadow: '0 4px 12px rgba(15, 76, 92, 0.25)'
+                  }}
+                >
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      Crear cita
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+    </div>
+  )
+}
+
+export default CalendarView

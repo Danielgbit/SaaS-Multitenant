@@ -26,11 +26,11 @@
 | **Now** | Employee Availability | Configuración de horarios por empleado | % empleados con agenda completa | ✅ Completado |
 | **Now** | **Slots Engine** | **Generación de slots disponibles en tiempo real** | **Slots calculados correctamente** | **✅ Completado** |
 | **Now** | **Client Management** | **CRUD de clientes con grid UI** | **# clientes registrados** | **✅ Completado** |
-| **Next** | Calendar View | Vista de calendario con citas del día/semana | Citas visualizadas | En progreso |
-| **Next** | Appointment Booking | Crear/cancelar/reschedule citas | Citas creadas exitosamente | - |
-| **Later** | Public Booking Page | Página de reservas pública para clientes | Reservas desde web | - |
+| **Now** | **Calendar View** | **Vista de calendario con citas del día/semana + CRUD completo** | **Citas visualizadas** | **✅ Completado** |
+| **Now** | **Appointment Booking** | **Crear/cancelar/reschedule citas** | **Citas creadas exitosamente** | **✅ Completado** |
+| **Now** | **Public Booking Page** | **Página de reservas pública (/reservar/[slug])** | **Reservas desde web** | **✅ Completado** |
 | **Later** | WhatsApp Integration | Recordatorios automáticos por WhatsApp | Tasa de asistencia | - |
-| **Later** | Billing & Subscriptions | Planes y pagos mensuales | MRR | - |
+| **Now** | **Billing & Subscriptions** | **Planes, pagos Stripe, portal facturación** | **MRR** | **✅ Completado** |
 
 ---
 
@@ -74,6 +74,75 @@
 
 ---
 
+## Calendar View - Detalle de Implementación
+
+| Componente | Archivo | Estado |
+|------------|---------||
+| UI Component (`CalendarView`) | `src/components/dashboard/CalendarView.tsx` | ✅ |
+| API Route (`POST /api/appointments`) | `src/app/api/appointments/route.ts` | ✅ |
+| API Route (`PATCH /api/appointments`) | `src/app/api/appointments/route.ts` | ✅ |
+| API Route (`PUT /api/appointments`) | `src/app/api/appointments/route.ts` | ✅ |
+| API Route (`DELETE /api/appointments`) | `src/app/api/appointments/route.ts` | ✅ |
+| Modal de nueva cita | Integrada en CalendarView | ✅ |
+| Cancelar cita | Integrada en modal de detalles | ✅ |
+| Confirmar cita | Integrada en modal de detalles | ✅ |
+| Editar cita | Integrada en modal de edición con advertencia de cambio de horario | ✅ |
+| Eliminar cita | Integrada en modal de confirmación | ✅ |
+
+### Características implementadas
+- Vista de calendario semanal
+- Navegación entre semanas (anterior, siguiente, hoy)
+- Carga de citas, empleados, clientes y servicios
+- Modal de detalles de cita
+- Modal de nueva cita con selector de cliente, servicio, empleado y fecha/hora
+- Wizard de 3 pasos para nueva cita (Cliente → Servicio/Empleado → Fecha/Hora)
+- Botón de cancelar cita
+- Botón de confirmar cita
+- Verificación de disponibilidad antes de crear cita
+- **Editar cita** - con detección de cambio de horario y advertencia
+- **Eliminar cita** - con confirmación
+
+---
+
+## Appointment Booking - Detalle de Implementación
+
+| Componente | Archivo | Estado |
+|------------|---------||
+| Server Action (`createAppointment`) | `src/actions/appointments/createAppointment.ts` | ✅ |
+| Server Action (`updateAppointmentStatus`) | `src/actions/appointments/createAppointment.ts` | ✅ |
+| API Route (`POST /api/appointments`) | `src/app/api/appointments/route.ts` | ✅ |
+| API Route (`PATCH /api/appointments`) | `src/app/api/appointments/route.ts` | ✅ |
+
+### Características implementadas
+- Crear cita con verificación de disponibilidad
+- Cancelar cita
+- Confirmar cita
+- Estados: pending, confirmed, completed, cancelled, no_show
+- Revalidación automática del calendario
+
+---
+
+## Public Booking Page - Detalle de Implementación
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Server Action (`createPublicBooking`) | `src/actions/public/createPublicBooking.ts` | ✅ |
+| Página pública (`/reservar/[slug]`) | `src/app/(public)/reservar/[slug]/page.tsx` | ✅ |
+| Wizard de reservas | `src/components/public/BookingWizard.tsx` | ✅ |
+
+### Características implementadas
+- Página pública accesible sin autenticación
+- Wizard de 3 pasos: Servicio → Fecha/Hora → Datos del cliente
+- Selector de servicio con precio y duración
+- Selector de empleado con disponibilidad
+- Selector de fecha y horarios disponibles (mañana/tarde)
+- Formulario de cliente (nombre, teléfono, email, notas)
+- Creación automática de cliente si no existe
+- Verificación de disponibilidad antes de confirmar
+- Pantalla de confirmación con resumen de la cita
+
+---
+
 ## Riesgos y Dependencias
 
 - **Dependencia:** Tabla `appointments` debe existir en Supabase
@@ -82,8 +151,34 @@
 
 ---
 
+## Billing & Subscriptions - Detalle de Implementación
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Migración DB | `supabase/migrations/20260314180000_billing_subscriptions.sql` | ✅ |
+| Stripe config | `src/lib/stripe.ts` | ✅ |
+| Resend config | `src/lib/resend.ts` | ✅ |
+| Billing utils | `src/lib/billing/utils.ts` | ✅ |
+| Server Actions | `src/actions/billing/` (8 actions) | ✅ |
+| UI Billing | `src/components/dashboard/billing/BillingClient.tsx` | ✅ |
+| Página billing | `src/app/(dashboard)/billing/page.tsx` | ✅ |
+| Página precios (SEO) | `src/app/precios/page.tsx` | ✅ |
+| Webhook Stripe | `src/app/api/webhooks/stripe/route.ts` | ✅ |
+
+### Características implementadas
+- Planes: Básico (0€), Profesional (29.99€), Enterprise (79.99€)
+- Trial de 30 días
+- Checkout Session Stripe
+- Customer Portal Stripe
+- Cancelación al final del período
+- Reactivación de suscripción
+- Solicitud de activación de WhatsApp (formulario interno)
+- Historial de facturas
+- Página pública de precios con SEO
+
+---
+
 ## Próximos Pasos Inmediatos
 
-1. **Calendario** → Vista visual de citas por día/semana
-2. **Reservas** → Integrar SlotsPicker en flujo de reservas
-3. **Public Booking Page** → Página de reservas pública para clientes
+1. **WhatsApp Integration** → Recordatorios automáticos por WhatsApp
+2. **Email Automation** → Emails transaccionales (recordatorios, confirmaciones)

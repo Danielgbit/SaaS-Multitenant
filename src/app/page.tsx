@@ -1,10 +1,15 @@
 import React from 'react'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import LoginPage from './(auth)/login/page'
 
-const page = () => {
-    return (
-        <LoginPage />
-    )
-}
+export default async function HomePage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-export default page
+  if (user) {
+    redirect('/calendar')
+  }
+
+  return <LoginPage />
+}

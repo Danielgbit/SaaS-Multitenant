@@ -26,6 +26,8 @@ export async function GET(request: NextRequest) {
     const organizationId = searchParams.get('organizationId')
     const employeeIdsParam = searchParams.get('employeeIds')
 
+    console.log('[API/SLOTS] Params:', { employeeId, serviceId, date, organizationId })
+
     // Validación de parámetros requeridos
     if (!serviceId || !date || !organizationId) {
       return NextResponse.json(
