@@ -19,20 +19,29 @@
 ## Roadmap (Now / Next / Later)
 
 | Stage | Initiative | Outcome | Metric | Notes |
-|---|---|---|---|---|
+|-------|------------|---------|--------|-------|
 | **Now** | Authentication & Organization | Sistema de auth funcional con organizaciones | # usuarios registrados | ✅ Completado |
 | **Now** | Employee Management | CRUD de empleados por organización | # empleados activos | ✅ Completado |
 | **Now** | Service Management | CRUD de servicios con duración y precio | # servicios configurados | ✅ Completado |
 | **Now** | Employee Availability | Configuración de horarios por empleado | % empleados con agenda completa | ✅ Completado |
-| **Now** | **Slots Engine** | **Generación de slots disponibles en tiempo real** | **Slots calculados correctamente** | **✅ Completado** |
-| **Now** | **Client Management** | **CRUD de clientes con grid UI** | **# clientes registrados** | **✅ Completado** |
-| **Now** | **Calendar View** | **Vista de calendario con citas del día/semana + CRUD completo** | **Citas visualizadas** | **✅ Completado** |
-| **Now** | **Appointment Booking** | **Crear/cancelar/reschedule citas** | **Citas creadas exitosamente** | **✅ Completado** |
-| **Now** | **Public Booking Page** | **Página de reservas pública (/reservar/[slug])** | **Reservas desde web** | **✅ Completado** |
-| **Now** | **WhatsApp Integration** | **Recordatorios automáticos por WhatsApp via N8N** | **Tasa de asistencia** | **✅ Completado + UI mejorada** |
-| **Now** | **Billing & Subscriptions** | **Planes, pagos Stripe, portal facturación** | **MRR** | **✅ Completado** |
-| **Now** | **Landing Page** | **Página principal con pricing SEO** | **Tráfico orgánico** | **✅ Completado** |
-| **Now** | **Employee Availability** | **Configuración de horarios por empleado** | **% empleados configurados** | **✅ Completado** |
+| **Now** | Slots Engine | Generación de slots disponibles en tiempo real | Slots calculados correctamente | ✅ Completado |
+| **Now** | Client Management | CRUD de clientes con grid UI | # clientes registrados | ✅ Completado |
+| **Now** | Calendar View | Vista de calendario con citas del día/semana + CRUD completo | Citas visualizadas | ✅ Completado |
+| **Now** | Appointment Booking | Crear/cancelar/reschedule citas | Citas creadas exitosamente | ✅ Completado |
+| **Now** | Public Booking Page | Página de reservas pública (/reservar/[slug]) | Reservas desde web | ✅ Completado |
+| **Now** | WhatsApp Integration | Recordatorios automáticos por WhatsApp via N8N | Tasa de asistencia | ✅ Completado |
+| **Now** | Billing & Subscriptions | Planes, pagos Stripe, portal facturación | MRR | ✅ Completado |
+| **Now** | Landing Page & Pricing | Página principal con pricing SEO | Tráfico orgánico | ✅ Completado |
+| **Now** | Email Automation | Confirmaciones y recordatorios via Resend | Tasa de apertura | ✅ Completado |
+| **Now** | Dashboard Analytics | KPIs, gráficos de tendencia, servicios populares | Visibilidad del negocio | ✅ Completado |
+| **Now** | Dark Mode | Toggle modo oscuro (Header) | Usuarios que usan dark mode | ✅ Completado |
+| **Now** | Settings Page | Página centralizada de configuración | Configuración completada | ✅ Completado |
+
+---
+
+## Fase Actual: Review & Testing
+
+- Tests unitarios y de integración
 
 ---
 
@@ -365,9 +374,68 @@
 
 ---
 
+## Dashboard Analytics - Detalle de Implementación
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Migration DB | `supabase/migrations/20260317000000_daily_analytics.sql` | ✅ |
+| Dependencias | `recharts`, `date-fns` | ✅ |
+| Server Action (getOverviewStats) | `src/actions/analytics/getOverviewStats.ts` | ✅ |
+| Server Action (getAppointmentsTrend) | `src/actions/analytics/getAppointmentsTrend.ts` | ✅ |
+| Server Action (getTopServices) | `src/actions/analytics/getTopServices.ts` | ✅ |
+| Server Action (getDashboardData) | `src/actions/analytics/getDashboardData.ts` | ✅ |
+| UI StatsCard | `src/components/dashboard/analytics/StatsCard.tsx` | ✅ |
+| UI TrendChart | `src/components/dashboard/analytics/TrendChart.tsx` | ✅ |
+| UI TopServicesList | `src/components/dashboard/analytics/TopServicesList.tsx` | ✅ |
+| UI PeriodSelector | `src/components/dashboard/analytics/PeriodSelector.tsx` | ✅ |
+| UI DashboardClient | `src/components/dashboard/analytics/DashboardClient.tsx` | ✅ |
+| Página /dashboard | `src/app/(dashboard)/dashboard/page.tsx` | ✅ |
+| Sidebar | `src/components/dashboard/Sidebar.tsx` | ✅ |
+
+### Características implementadas
+- KPIs: Citas, Ingresos, Clientes, Tasa de completado
+- Gráfico de tendencia de citas (Recharts)
+- Lista de servicios populares
+- Selector de período (hoy/semana/mes/año/últimos 7/30 días)
+- Comparación con período anterior (%)
+- Diseño minimalista premium
+- Tipografía: Cormorant Garamond + Plus Jakarta Sans
+- Metadata SEO básica
+
+---
+
+## Settings Page - Detalle de Implementación
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Página settings | `src/app/(dashboard)/settings/page.tsx` | ✅ |
+| SettingsClient | `src/app/(dashboard)/settings/SettingsClient.tsx` | ✅ |
+| Server Action getBookingSettings | `src/actions/settings/getBookingSettings.ts` | ✅ |
+| Server Action updateBookingSettings | `src/actions/settings/updateBookingSettings.ts` | ✅ |
+| Server Action updateOrganization | `src/actions/settings/updateOrganization.ts` | ✅ |
+| Ruta en Sidebar | `src/components/dashboard/Sidebar.tsx` | ✅ |
+
+### Características implementadas
+- Configuración general: intervalo de cita, buffer, anticipación mínima
+- Configuración de organización: nombre, slug (URL pública)
+- Zona horaria
+- Toggle reservas online
+- Links a WhatsApp y Email
+- Diseño responsive con dark mode
+
+---
+
 ## Próximos Pasos Inmediatos
 
 1. ~~**Email Automation**~~ → ✅ Completado
-2. **Google Calendar Integration** → Sincronización de citas con Google Calendar
-3. **Dashboard Analytics** → Estadísticas y métricas del negocio
-4. **Review & Testing** → Tests unitarios y de integración
+2. ~~**Dashboard Analytics**~~ → ✅ Completado
+3. ~~**Dark Mode**~~ → ✅ Completado
+4. ~~**Settings Page**~~ → ✅ Completado
+5. **Review & Testing** → Tests unitarios y de integración
+
+---
+
+## v2 - Pendiente
+
+- **Google Calendar Integration** → Sincronización de citas con Google Calendar
+- **Review & Testing** → Tests unitarios y de integración

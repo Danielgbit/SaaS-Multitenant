@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans, Cormorant_Garamond } from 'next/font/google'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import './globals.css'
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -16,8 +17,8 @@ const cormorantGaramond = Cormorant_Garamond({
 })
 
 export const metadata: Metadata = {
-  title: 'SpaConnect - Health & Wellness SaaS',
-  description: 'Gestión integral para negocios de bienestar',
+  title: 'Prügressy - Gestión para negocios de bienestar',
+  description: 'Gestión integral para barberías, spas y negocios de bienestar',
 }
 
 export default function RootLayout({
@@ -26,11 +27,18 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className="light">
+    <html lang="es" suppressHydrationWarning>
       <body
         className={`${plusJakartaSans.variable} ${cormorantGaramond.variable} font-display min-h-screen flex flex-col`}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )

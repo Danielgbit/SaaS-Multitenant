@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useTheme } from 'next-themes'
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -18,87 +19,60 @@ import {
   Circle,
   Phone,
   Mail,
-  FileText
+  FileText,
+  HelpCircle,
+  Sparkles
 } from 'lucide-react'
+import { 
+  Appointment, 
+  Employee, 
+  Client, 
+  Service, 
+  AppointmentWithDetails, 
+  CalendarViewProps,
+  TimeSlot,
+  NewAppointmentData,
+  EditAppointmentData,
+  CalendarColors
+} from '@/types/calendar'
+import React from 'react'
 
-interface Appointment {
-  id: string
-  organization_id: string
-  client_id: string
-  employee_id: string
-  service_id?: string
-  start_time: string
-  end_time: string
-  status: string
-  notes?: string
-  created_at: string
-}
-
-interface Employee {
-  id: string
-  organization_id: string
-  name: string
-  phone: string | null
-  active: boolean
-  created_at: string
-}
-
-interface Client {
-  id: string
-  organization_id: string
-  name: string
-  phone: string | null
-  email: string | null
-  notes: string | null
-  created_at: string
-}
-
-interface Service {
-  id: string
-  organization_id: string
-  name: string
-  duration: number
-  price: number
-  active: boolean
-  created_at: string
-}
-
-interface CalendarViewProps {
-  organizationId: string
-}
-
-type AppointmentWithDetails = Appointment & {
-  client?: Client
-  employee?: Employee
-  service?: Service
-}
-
-const COLORS = {
-  primary: '#0F4C5C',
-  primaryLight: '#1A6B7C',
-  surface: '#FFFFFF',
-  surfaceSubtle: '#F8FAFB',
-  border: '#E8ECEE',
-  borderLight: '#F0F3F4',
-  textPrimary: '#1A2B32',
-  textSecondary: '#5A6B70',
-  textMuted: '#8A9A9E',
-  success: '#059669',
-  successLight: '#D1FAE5',
-  warning: '#D97706',
-  warningLight: '#FEF3C7',
-  error: '#DC2626',
-  errorLight: '#FEE2E2',
-}
-
-const STATUS_CONFIG: Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }> = {
-  confirmed: { color: COLORS.success, bg: COLORS.successLight, label: 'Confirmada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
-  pending: { color: COLORS.warning, bg: COLORS.warningLight, label: 'Pendiente', icon: <AlertCircle className="w-3.5 h-3.5" /> },
-  cancelled: { color: COLORS.error, bg: COLORS.errorLight, label: 'Cancelada', icon: <XCircle className="w-3.5 h-3.5" /> },
-  completed: { color: COLORS.textSecondary, bg: COLORS.borderLight, label: 'Completada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+function useColors(): CalendarColors {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  
+  return {
+    primary: isDark ? '#38BDF8' : '#0F4C5C',
+    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
+    surface: isDark ? '#0F172A' : '#FFFFFF',
+    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFB',
+    surfaceHover: isDark ? '#334155' : '#F1F5F9',
+    border: isDark ? '#334155' : '#E8ECEE',
+    borderLight: isDark ? '#1E293B' : '#F0F3F4',
+    textPrimary: isDark ? '#F1F5F9' : '#1A2B32',
+    textSecondary: isDark ? '#94A3B8' : '#5A6B70',
+    textMuted: isDark ? '#64748B' : '#8A9A9E',
+    success: '#059669',
+    successLight: isDark ? '#064E3B' : '#D1FAE5',
+    warning: '#D97706',
+    warningLight: isDark ? '#451A03' : '#FEF3C7',
+    error: '#DC2626',
+    errorLight: isDark ? '#450A0A' : '#FEE2E2',
+    overlay: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(15,23,42,0.5)',
+    glass: isDark ? 'rgba(15,23,42,0.8)' : 'rgba(255,255,255,0.9)',
+  }
 }
 
 export function CalendarView({ organizationId }: CalendarViewProps) {
+  const COLORS = useColors()
+  
+  const STATUS_CONFIG = useMemo(() => ({
+    confirmed: { color: COLORS.success, bg: COLORS.successLight, label: 'Confirmada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+    pending: { color: COLORS.warning, bg: COLORS.warningLight, label: 'Pendiente', icon: <AlertCircle className="w-3.5 h-3.5" /> },
+    cancelled: { color: COLORS.error, bg: COLORS.errorLight, label: 'Cancelada', icon: <XCircle className="w-3.5 h-3.5" /> },
+    completed: { color: COLORS.textSecondary, bg: COLORS.borderLight, label: 'Completada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+  }), [COLORS])
+
   const [currentDate, setCurrentDate] = useState(new Date())
   const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([])
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -278,9 +252,19 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
     const startTime = `${newAppointmentData.date}T${newAppointmentData.time}:00.000Z`
     setIsCreating(true)
     try {
+      const payload: Record<string, string> = {
+        employee_id: newAppointmentData.employeeId,
+        client_id: newAppointmentData.clientId,
+        service_id: newAppointmentData.serviceId,
+        start_time: startTime,
+        organization_id: organizationId,
+      }
+      if (newAppointmentData.notes?.trim()) {
+        payload.notes = newAppointmentData.notes.trim()
+      }
       const res = await fetch('/api/appointments', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employee_id: newAppointmentData.employeeId, client_id: newAppointmentData.clientId, service_id: newAppointmentData.serviceId, start_time: startTime, organization_id: organizationId, notes: newAppointmentData.notes || null })
+        body: JSON.stringify(payload)
       })
       const data = await res.json()
       if (data.error) { alert(data.error); return }
@@ -477,56 +461,95 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
 
       {/* New Appointment Modal - Wizard */}
       {showNewAppointmentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }} onClick={closeNewModal}>
-          <div className="w-full max-w-md rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto" style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }} onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}>
-              <div className="flex items-center justify-between mb-4"><h3 className="text-xl font-semibold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Nueva Cita</h3><button onClick={closeNewModal} className="p-1.5 rounded-lg hover:bg-white/20"><X className="w-5 h-5" /></button></div>
-              <div className="flex items-center justify-between">
-                {[1,2,3].map(s => {
-                  const isCompleted = wizardStep > s
-                  const isActive = wizardStep >= s
-                  return (
-                    <div key={s} className="flex items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${isActive ? 'bg-white text-[#0F4C5C]' : 'bg-white/20 text-white'}`}>
-                        {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : s}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: COLORS.overlay, backdropFilter: 'blur(8px)' }} onClick={closeNewModal}>
+          <div className="w-full max-w-md rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto transition-all duration-300" style={{ backgroundColor: COLORS.surface, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }} onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-5 relative overflow-hidden" style={{ 
+              background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`, 
+              color: '#FFF' 
+            }}>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Nueva Cita</h3>
+                  <button onClick={closeNewModal} className="p-2 rounded-xl hover:bg-white/20 transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between mb-3">
+                  {[1,2,3].map(s => {
+                    const isCompleted = wizardStep > s
+                    const isActive = wizardStep >= s
+                    return (
+                      <div key={s} className="flex items-center">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${isActive ? 'bg-white text-[#0F4C5C] shadow-lg' : 'bg-white/20 text-white'}`}>
+                          {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : s}
+                        </div>
+                        {s < 3 && <div className={`w-16 h-0.5 mx-2 transition-colors duration-300 ${isCompleted ? 'bg-white' : 'bg-white/30'}`} />}
                       </div>
-                      {s < 3 && <div className={`w-12 h-0.5 mx-2 ${isCompleted ? 'bg-white' : 'bg-white/30'}`} />}
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
+                <div className="flex justify-between text-xs text-white/70">
+                  <span className={wizardStep >= 1 ? 'text-white font-medium' : ''}>Cliente</span>
+                  <span className={wizardStep >= 2 ? 'text-white font-medium' : ''}>Servicio</span>
+                  <span className={wizardStep >= 3 ? 'text-white font-medium' : ''}>Horario</span>
+                </div>
               </div>
-              <div className="flex justify-between mt-2 text-xs text-white/70"><span>Cliente</span><span>Servicio</span><span>Horario</span></div>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-6">
               {wizardStep === 1 && (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className="text-center mb-6">
-                    <User className="w-12 h-12 mx-auto mb-3" style={{ color: COLORS.primary }} />
-                    <h4 className="text-lg font-semibold" style={{ color: COLORS.textPrimary }}>¿Para quién?</h4>
-                    <p className="text-sm" style={{ color: COLORS.textSecondary }}>Selecciona un cliente</p>
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
+                      <User className="w-8 h-8" style={{ color: COLORS.primary }} />
+                    </div>
+                    <h4 className="text-xl font-semibold mb-2" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>¿Para quién?</h4>
+                    <p className="text-sm" style={{ color: COLORS.textSecondary }}>Selecciona el cliente que realizará la reserva</p>
                   </div>
+                  
                   <div className="relative">
+                    <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: COLORS.textPrimary }}>
+                      Cliente
+                      <div className="group relative">
+                        <HelpCircle className="w-4 h-4 cursor-help" style={{ color: COLORS.textMuted }} />
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ backgroundColor: COLORS.textPrimary, color: COLORS.surface }}>
+                          Selecciona el cliente que reservó
+                        </div>
+                      </div>
+                    </label>
                     <input 
                       type="text" 
-                      placeholder="Buscar..." 
+                      placeholder="Buscar cliente..." 
                       value={clientSearch} 
                       onChange={e => { setClientSearch(e.target.value); setShowClientDropdown(true) }} 
                       onFocus={() => setShowClientDropdown(true)} 
-                      className="w-full px-4 py-3 pl-12 rounded-xl border focus:ring-2" 
-                      style={{ borderColor: showClientDropdown ? COLORS.primary : COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} 
+                      className="w-full px-4 py-3.5 pl-12 rounded-xl border-2 transition-all duration-200 focus:ring-2 focus:ring-offset-2" 
+                      style={{ 
+                        borderColor: showClientDropdown ? COLORS.primary : COLORS.border, 
+                        backgroundColor: COLORS.surface, 
+                        color: COLORS.textPrimary,
+                        boxShadow: showClientDropdown ? `0 0 0 3px ${COLORS.primary}20` : 'none'
+                      }} 
                     />
                     <User className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: COLORS.textMuted }} />
                   </div>
-                  {showClientDropdown && (
-                    <div className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden shadow-lg max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface, borderColor: COLORS.border }}>
+                  {showClientDropdown && clients.length > 0 && (
+                    <div className="relative z-20 mt-2 rounded-xl border-2 overflow-hidden shadow-xl max-h-56 overflow-y-auto" style={{ backgroundColor: COLORS.surface, borderColor: COLORS.border }}>
                       {clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
                         <button 
                           key={c.id} 
                           onClick={() => { setNewAppointmentData({...newAppointmentData, clientId: c.id }); setClientSearch(c.name); setShowClientDropdown(false); nextStep() }} 
-                          className="w-full px-4 py-3 text-left hover:bg-[#0F4C5C]/5" 
-                          style={{ color: COLORS.textPrimary }}
+                          className="w-full px-4 py-3.5 text-left flex items-center gap-3 transition-colors duration-150 hover:opacity-80" 
+                          style={{ backgroundColor: COLORS.surface, color: COLORS.textPrimary }}
                         >
-                          {c.name}
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium" style={{ backgroundColor: COLORS.primary + '20', color: COLORS.primary }}>
+                            {c.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium">{c.name}</p>
+                            {c.phone && <p className="text-xs" style={{ color: COLORS.textMuted }}>{c.phone}</p>}
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -534,58 +557,86 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
                 </div>
               )}
               {wizardStep === 2 && (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className="text-center mb-6">
-                    <Clock className="w-12 h-12 mx-auto mb-3" style={{ color: COLORS.primary }} />
-                    <h4 className="text-lg font-semibold" style={{ color: COLORS.textPrimary }}>¿Qué y quién?</h4>
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
+                      <Sparkles className="w-8 h-8" style={{ color: COLORS.primary }} />
+                    </div>
+                    <h4 className="text-xl font-semibold mb-2" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>¿Qué y quién?</h4>
+                    <p className="text-sm" style={{ color: COLORS.textSecondary }}>Selecciona el servicio y el profesional</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Servicio</label>
-                    <input 
-                      type="text" 
-                      placeholder="Buscar..." 
-                      value={serviceSearch} 
-                      onChange={e => { setServiceSearch(e.target.value); setShowServiceDropdown(true) }} 
-                      onFocus={() => setShowServiceDropdown(true)} 
-                      className="w-full px-4 py-3 rounded-xl border" 
-                      style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} 
-                    />
+                  
+                  <div className="relative">
+                    <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: COLORS.textPrimary }}>
+                      Servicio
+                      <div className="group relative">
+                        <HelpCircle className="w-4 h-4 cursor-help" style={{ color: COLORS.textMuted }} />
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ backgroundColor: COLORS.textPrimary, color: COLORS.surface }}>
+                          Elige el tratamiento o servicio
+                        </div>
+                      </div>
+                    </label>
+                    <div className="relative">
+                      <input 
+                        type="text" 
+                        placeholder="Buscar servicio..." 
+                        value={serviceSearch} 
+                        onChange={e => { setServiceSearch(e.target.value); setShowServiceDropdown(true) }} 
+                        onFocus={() => setShowServiceDropdown(true)} 
+                        className="w-full px-4 py-3.5 pl-12 rounded-xl border-2 transition-all duration-200 focus:ring-2" 
+                        style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} 
+                      />
+                      <Sparkles className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: COLORS.textMuted }} />
+                    </div>
                     {showServiceDropdown && (
-                      <div className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface }}>
+                      <div className="absolute z-20 w-full mt-2 rounded-xl border-2 overflow-hidden shadow-xl max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface, borderColor: COLORS.border }}>
                         {services.filter(s => s.name.toLowerCase().includes(serviceSearch.toLowerCase())).map(s => (
                           <button 
                             key={s.id} 
                             onClick={() => { setNewAppointmentData({...newAppointmentData, serviceId: s.id, time: ''}); setServiceSearch(s.name); setShowServiceDropdown(false); setAvailableSlots([]) }} 
-                            className="w-full px-4 py-3 text-left" 
+                            className="w-full px-4 py-3.5 text-left flex items-center justify-between hover:opacity-80 transition-colors" 
                             style={{ color: COLORS.textPrimary }}
                           >
-                            {s.name} ({s.duration} min)
+                            <span className="font-medium">{s.name}</span>
+                            <span className="text-sm px-2 py-1 rounded-lg" style={{ backgroundColor: COLORS.primary + '15', color: COLORS.primary }}>{s.duration} min</span>
                           </button>
                         ))}
                       </div>
                     )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Profesional</label>
+                  <div className="relative">
+                    <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: COLORS.textPrimary }}>
+                      Profesional
+                      <div className="group relative">
+                        <HelpCircle className="w-4 h-4 cursor-help" style={{ color: COLORS.textMuted }} />
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ backgroundColor: COLORS.textPrimary, color: COLORS.surface }}>
+                          Selecciona quién atenderá
+                        </div>
+                      </div>
+                    </label>
                     <input 
                       type="text" 
-                      placeholder="Buscar..." 
+                      placeholder="Buscar profesional..." 
                       value={employeeSearch} 
                       onChange={e => { setEmployeeSearch(e.target.value); setShowEmployeeDropdown(true) }} 
                       onFocus={() => setShowEmployeeDropdown(true)} 
-                      className="w-full px-4 py-3 rounded-xl border" 
+                      className="w-full px-4 py-3.5 pl-12 rounded-xl border-2 transition-all duration-200 focus:ring-2" 
                       style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} 
                     />
+                    <Building2 className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: COLORS.textMuted }} />
                     {showEmployeeDropdown && (
-                      <div className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface }}>
+                      <div className="absolute z-20 w-full mt-2 rounded-xl border-2 overflow-hidden shadow-xl max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface, borderColor: COLORS.border }}>
                         {employees.filter(e => e.name.toLowerCase().includes(employeeSearch.toLowerCase())).map(e => (
                           <button 
                             key={e.id} 
                             onClick={() => { setNewAppointmentData({...newAppointmentData, employeeId: e.id, time: ''}); setEmployeeSearch(e.name); setShowEmployeeDropdown(false); setAvailableSlots([]) }} 
-                            className="w-full px-4 py-3 text-left" 
+                            className="w-full px-4 py-3.5 text-left flex items-center gap-3 hover:opacity-80 transition-colors" 
                             style={{ color: COLORS.textPrimary }}
                           >
-                            {e.name}
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium" style={{ backgroundColor: COLORS.primary + '20', color: COLORS.primary }}>
+                              {e.name.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="font-medium">{e.name}</span>
                           </button>
                         ))}
                       </div>
@@ -594,11 +645,15 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
                 </div>
               )}
               {wizardStep === 3 && (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className="text-center mb-6">
-                    <Calendar className="w-12 h-12 mx-auto mb-3" style={{ color: COLORS.primary }} />
-                    <h4 className="text-lg font-semibold" style={{ color: COLORS.textPrimary }}>¿Cuándo?</h4>
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
+                      <Calendar className="w-8 h-8" style={{ color: COLORS.primary }} />
+                    </div>
+                    <h4 className="text-xl font-semibold mb-2" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>¿Cuándo?</h4>
+                    <p className="text-sm" style={{ color: COLORS.textSecondary }}>Selecciona el horario disponible</p>
                   </div>
+                  
                   <div>
                     <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Fecha</label>
                     <input 
@@ -606,7 +661,7 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
                       value={newAppointmentData.date} 
                       min={new Date().toISOString().split('T')[0]} 
                       onChange={e => { setNewAppointmentData({...newAppointmentData, date: e.target.value, time: ''}); setAvailableSlots([]) }} 
-                      className="w-full px-4 py-3 rounded-xl border" 
+                      className="w-full px-4 py-3.5 rounded-xl border-2 transition-all duration-200" 
                       style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} 
                     />
                   </div>
@@ -615,10 +670,10 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
                       {!loadingSlots && availableSlots.length === 0 && (
                         <button 
                           onClick={fetchSlots} 
-                          className="w-full px-4 py-3 rounded-xl text-sm font-medium" 
-                          style={{ backgroundColor: COLORS.primaryLight + '20', color: COLORS.primary }}
+                          className="w-full px-5 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 hover:opacity-90" 
+                          style={{ backgroundColor: COLORS.primary, color: '#FFF', boxShadow: `0 4px 12px ${COLORS.primary}40` }}
                         >
-                          Ver horarios
+                          Ver horarios disponibles
                         </button>
                       )}
                       {loadingSlots && (
@@ -627,34 +682,43 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
                         </div>
                       )}
                       {slotsError && (
-                        <div className="p-4 rounded-xl bg-red-50 border border-red-200">
-                          <p className="text-sm font-medium text-red-600">Error: {slotsError}</p>
-                          <p className="text-xs text-red-400 mt-1">Abre la consola (F12) para ver detalles</p>
+                        <div className="p-4 rounded-xl border-2" style={{ backgroundColor: COLORS.errorLight, borderColor: COLORS.error }}>
+                          <p className="text-sm font-medium" style={{ color: COLORS.error }}>No hay disponibilidad</p>
+                          <p className="text-xs mt-1" style={{ color: COLORS.textSecondary }}>{slotsError}</p>
                           <button 
                             onClick={fetchSlots} 
-                            className="mt-2 text-xs text-red-500 underline"
+                            className="mt-3 text-xs font-medium underline"
+                            style={{ color: COLORS.primary }}
                           >
                             Reintentar
                           </button>
                         </div>
                       )}
                       {availableSlots.length > 0 && (
-                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                        <div className="space-y-4 max-h-72 overflow-y-auto">
                           {mornSlots.length > 0 && (
                             <div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="w-2 h-2 rounded-full bg-amber-400" />
-                                <span className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>Mañana</span>
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                                <span className="text-sm font-semibold" style={{ color: COLORS.textPrimary }}>Mañana</span>
+                                <div className="group relative">
+                                  <HelpCircle className="w-3.5 h-3.5 cursor-help" style={{ color: COLORS.textMuted }} />
+                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ backgroundColor: COLORS.textPrimary, color: COLORS.surface }}>
+                                    Antes de las 13:00
+                                  </div>
+                                </div>
                               </div>
                               <div className="grid grid-cols-4 gap-2">
                                 {mornSlots.filter(s => s.available).map(s => (
                                   <button 
                                     key={s.start_time} 
                                     onClick={() => setNewAppointmentData({...newAppointmentData, time: s.start_time.split('T')[1].slice(0, 5)})}
-                                    className={`px-2 py-2 rounded-lg text-sm font-medium ${newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? 'ring-2 ring-offset-1' : ''}`}
+                                    className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 ${newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? 'ring-2 ring-offset-2' : ''}`}
                                     style={{ 
                                       backgroundColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : COLORS.surfaceSubtle,
-                                      color: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? '#FFF' : COLORS.textPrimary
+                                      color: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? '#FFF' : COLORS.textPrimary,
+                                      borderColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : 'transparent',
+                                      boxShadow: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? `0 4px 12px ${COLORS.primary}30` : 'none'
                                     }}
                                   >
                                     {s.start_time.split('T')[1].slice(0, 5)}
@@ -665,19 +729,27 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
                           )}
                           {aftSlots.length > 0 && (
                             <div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="w-2 h-2 rounded-full bg-indigo-400" />
-                                <span className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>Tarde</span>
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-2.5 h-2.5 rounded-full bg-indigo-400" />
+                                <span className="text-sm font-semibold" style={{ color: COLORS.textPrimary }}>Tarde</span>
+                                <div className="group relative">
+                                  <HelpCircle className="w-3.5 h-3.5 cursor-help" style={{ color: COLORS.textMuted }} />
+                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ backgroundColor: COLORS.textPrimary, color: COLORS.surface }}>
+                                    Desde las 13:00 en adelante
+                                  </div>
+                                </div>
                               </div>
                               <div className="grid grid-cols-4 gap-2">
                                 {aftSlots.filter(s => s.available).map(s => (
                                   <button 
                                     key={s.start_time} 
                                     onClick={() => setNewAppointmentData({...newAppointmentData, time: s.start_time.split('T')[1].slice(0, 5)})}
-                                    className={`px-2 py-2 rounded-lg text-sm font-medium ${newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? 'ring-2 ring-offset-1' : ''}`}
+                                    className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 ${newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? 'ring-2 ring-offset-2' : ''}`}
                                     style={{ 
                                       backgroundColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : COLORS.surfaceSubtle,
-                                      color: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? '#FFF' : COLORS.textPrimary
+                                      color: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? '#FFF' : COLORS.textPrimary,
+                                      borderColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : 'transparent',
+                                      boxShadow: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? `0 4px 12px ${COLORS.primary}30` : 'none'
                                     }}
                                   >
                                     {s.start_time.split('T')[1].slice(0, 5)}
@@ -691,21 +763,64 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
                     </div>
                   )}
                   <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Notas</label>
+                    <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: COLORS.textPrimary }}>
+                      Notas
+                      <div className="group relative">
+                        <HelpCircle className="w-4 h-4 cursor-help" style={{ color: COLORS.textMuted }} />
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ backgroundColor: COLORS.textPrimary, color: COLORS.surface }}>
+                          Información adicional (opcional)
+                        </div>
+                      </div>
+                    </label>
                     <textarea 
                       value={newAppointmentData.notes} 
                       onChange={e => setNewAppointmentData({...newAppointmentData, notes: e.target.value})} 
-                      className="w-full px-4 py-3 rounded-xl border resize-none" 
-                      rows={2} 
+                      className="w-full px-4 py-3.5 rounded-xl border-2 resize-none transition-all duration-200" 
+                      rows={3}
+                      placeholder="Alguna nota adicional..."
                       style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} 
                     />
                   </div>
                 </div>
               )}
             </div>
-            <div className="px-6 py-4 flex items-center justify-between sticky bottom-0" style={{ borderTop: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surface }}>
-              {wizardStep > 1 ? <button onClick={prevStep} className="px-4 py-2.5 rounded-xl text-sm font-medium" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}><ChevronLeft className="w-4 h-4 inline" /> Atrás</button> : <button onClick={closeNewModal} className="px-4 py-2.5 rounded-xl text-sm font-medium" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle }}>Cancelar</button>}
-              {wizardStep < 3 ? <button onClick={nextStep} disabled={(wizardStep === 1 && !newAppointmentData.clientId) || (wizardStep === 2 && (!newAppointmentData.serviceId || !newAppointmentData.employeeId))} className="px-6 py-2.5 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.primary, color: '#FFF', opacity: ((wizardStep === 1 && !newAppointmentData.clientId) || (wizardStep === 2 && (!newAppointmentData.serviceId || !newAppointmentData.employeeId))) ? 0.5 : 1 }}>Siguiente <ChevronRight className="w-4 h-4 inline" /></button> : <button onClick={handleCreate} disabled={!newAppointmentData.time || isCreating} className="px-6 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2" style={{ backgroundColor: COLORS.primary, color: '#FFF', opacity: !newAppointmentData.time || isCreating ? 0.5 : 1 }}>{isCreating ? <><Loader2 className="w-4 h-4 animate-spin" />Creando...</> : <><CheckCircle2 className="w-4 h-4" />Crear</>}</button>}
+            <div className="px-6 py-5 flex items-center justify-between sticky bottom-0" style={{ borderTop: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surface }}>
+              {wizardStep > 1 ? (
+                <button 
+                  onClick={prevStep} 
+                  className="px-5 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:opacity-80 flex items-center gap-2"
+                  style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
+                >
+                  <ChevronLeft className="w-4 h-4" /> Atrás
+                </button>
+              ) : (
+                <button 
+                  onClick={closeNewModal} 
+                  className="px-5 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:opacity-80"
+                  style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle }}
+                >
+                  Cancelar
+                </button>
+              )}
+              {wizardStep < 3 ? (
+                <button 
+                  onClick={nextStep} 
+                  disabled={(wizardStep === 1 && !newAppointmentData.clientId) || (wizardStep === 2 && (!newAppointmentData.serviceId || !newAppointmentData.employeeId))} 
+                  className="px-6 py-3 rounded-xl text-sm font-medium flex items-center gap-2 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: COLORS.primary, color: '#FFF', boxShadow: `0 4px 12px ${COLORS.primary}40` }}
+                >
+                  Siguiente <ChevronRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <button 
+                  onClick={handleCreate} 
+                  disabled={!newAppointmentData.time || isCreating} 
+                  className="px-6 py-3 rounded-xl text-sm font-medium flex items-center gap-2 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: COLORS.primary, color: '#FFF', boxShadow: `0 4px 12px ${COLORS.primary}40` }}
+                >
+                  {isCreating ? <><Loader2 className="w-4 h-4 animate-spin" />Creando...</> : <><CheckCircle2 className="w-4 h-4" />Crear Cita</>}
+                </button>
+              )}
             </div>
           </div>
         </div>
