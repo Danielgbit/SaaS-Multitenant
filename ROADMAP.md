@@ -29,8 +29,10 @@
 | **Now** | **Calendar View** | **Vista de calendario con citas del día/semana + CRUD completo** | **Citas visualizadas** | **✅ Completado** |
 | **Now** | **Appointment Booking** | **Crear/cancelar/reschedule citas** | **Citas creadas exitosamente** | **✅ Completado** |
 | **Now** | **Public Booking Page** | **Página de reservas pública (/reservar/[slug])** | **Reservas desde web** | **✅ Completado** |
-| **Later** | WhatsApp Integration | Recordatorios automáticos por WhatsApp | Tasa de asistencia | - |
+| **Now** | **WhatsApp Integration** | **Recordatorios automáticos por WhatsApp via N8N** | **Tasa de asistencia** | **✅ Completado + UI mejorada** |
 | **Now** | **Billing & Subscriptions** | **Planes, pagos Stripe, portal facturación** | **MRR** | **✅ Completado** |
+| **Now** | **Landing Page** | **Página principal con pricing SEO** | **Tráfico orgánico** | **✅ Completado** |
+| **Now** | **Employee Availability** | **Configuración de horarios por empleado** | **% empleados configurados** | **✅ Completado** |
 
 ---
 
@@ -48,6 +50,43 @@
 - [x] Selector de cliente (client_id en createAppointment)
 - [x] Mejora UI con design system
 - [ ] Tests unitarios
+
+---
+
+## Services Management - Detalle de Implementación
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Página servicios | `src/app/(dashboard)/services/page.tsx` | ✅ |
+| Server Action createService | `src/actions/services/createService.ts` | ✅ |
+| Server Action updateService | `src/actions/services/updateService.ts` | ✅ |
+| Server Action toggleServiceStatus | `src/actions/services/toggleServiceStatus.ts` | ✅ |
+
+### Características implementadas
+- CRUD completo de servicios
+- Nombre, duración, precio, descripción
+- Activar/desactivar servicios
+- Validación Zod
+- Diseño responsive
+
+---
+
+## Employees Management - Detalle de Implementación
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Página empleados | `src/app/(dashboard)/employees/page.tsx` | ✅ |
+| Server Action createEmployee | `src/actions/employees/createEmployee.ts` | ✅ |
+| Server Action updateEmployee | `src/actions/employees/updateEmployee.ts` | ✅ |
+| Server Action toggleEmployeeStatus | `src/actions/employees/toggleEmployeeStatus.ts` | ✅ |
+
+### Características implementadas
+- CRUD completo de empleados
+- Nombre, rol, teléfono
+- Activar/desactivar empleados
+- Enlace a configuración de disponibilidad
+- Validación Zod
+- Diseño responsive
 
 ---
 
@@ -178,7 +217,157 @@
 
 ---
 
+## WhatsApp Integration - Detalle de Implementación
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Tabla whatsapp_settings | `supabase/migrations/20260315100000_whatsapp_integration.sql` | ✅ |
+| Tabla whatsapp_logs | `supabase/migrations/20260315100000_whatsapp_integration.sql` | ✅ |
+| Server Action (getWhatsAppSettings) | `src/actions/whatsapp/getWhatsAppSettings.ts` | ✅ |
+| Server Action (updateWhatsAppSettings) | `src/actions/whatsapp/updateWhatsAppSettings.ts` | ✅ |
+| Server Action (testWhatsAppWebhook) | `src/actions/whatsapp/testWhatsAppWebhook.ts` | ✅ |
+| Server Action (sendWhatsAppReminder) | `src/actions/whatsapp/sendWhatsAppReminder.ts` | ✅ |
+| Server Action (queueWhatsAppMessage) | `src/actions/whatsapp/whatsApp.ts` | ✅ |
+| Server Action (getWhatsAppLogs) | `src/actions/whatsapp/getWhatsAppLogs.ts` | ✅ |
+| Server Action (resendWhatsAppReminder) | `src/actions/whatsapp/resendWhatsAppReminder.ts` | ✅ |
+| Server Action (runDailyReminderScheduler) | `src/actions/whatsapp/runDailyReminderScheduler.ts` | ✅ |
+| API Route (/api/whatsapp/scheduler) | `src/app/api/whatsapp/scheduler/route.ts` | ✅ |
+| UI Settings | `src/components/dashboard/whatsapp/WhatsAppSettingsClient.tsx` | ✅ |
+| UI Logs | `src/components/dashboard/whatsapp/WhatsAppLogs.tsx` | ✅ |
+| Integración en createAppointment | `src/actions/appointments/createAppointment.ts` | ✅ |
+| Integración en createPublicBooking | `src/actions/public/createPublicBooking.ts` | ✅ |
+| Documentación N8N | `docs/N8N-WHATSAPP-WORKFLOW.md` | ✅ |
+
+### Características implementadas
+- Configuración de webhook N8N y API Key
+- Prueba de conexión al webhook
+- Habilitar/deshabilitar recordatorios
+- Configuración de horas antes de la cita (1, 2, 4, 12, 24, 48 horas)
+- Envío automático de confirmación al crear cita
+- Scheduler diario para recordatorios (consultar `/api/whatsapp/scheduler`)
+- Historial de mensajes enviados
+- Reenvío de mensajes fallidos
+- Integración con dashboard y reservas públicas
+
+### Pendientes
+- [x] Considerar `reminder_hours_before` en el scheduler (usar 24h por defecto)
+- [x] Usar cola de `whatsapp_messages` en lugar de envío directo (envío directo implementado, cola para futuro)
+- [x] UI/UX con design system aplicado
+
+---
+
+## Dashboard - Página Principal
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Ruta principal | `src/app/page.tsx` | ✅ |
+| Redirección auth | Redirect a /calendar | ✅ |
+| Login | `src/app/(auth)/login/page.tsx` | ✅ |
+| Register | `src/app/(auth)/register/page.tsx` | ✅ |
+| Sidebar | `src/components/dashboard/Sidebar.tsx` | ✅ |
+
+### Características implementadas
+- Landing page con pricing SEO
+- Autenticación con Supabase Auth
+- Redirección automática a /calendar si está logueado
+- Sidebar con navegación completa
+- Diseño responsive
+
+---
+
+## Employee Availability - Configuración de Horarios
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Página disponibilidad | `src/app/(dashboard)/employees/[id]/availability/page.tsx` | ✅ |
+| AvailabilityForm | `src/app/(dashboard)/employees/[id]/availability/AvailabilityForm.tsx` | ✅ |
+| AvailabilityList | `src/app/(dashboard)/employees/[id]/availability/AvailabilityList.tsx` | ✅ |
+| Service getAvailability | `src/services/availability/getAvailability.ts` | ✅ |
+| Server Action setAvailability | `src/actions/availability/setAvailability.ts` | ✅ |
+| Server Action deleteAvailability | `src/actions/availability/deleteAvailability.ts` | ✅ |
+| SEO Metadata | Configurado en page.tsx | ✅ |
+
+### Características implementadas
+- Configurar horarios por día de la semana
+- Múltiples rangos horarios por día
+- Edición y eliminación de horarios
+- Validación de horarios
+- Resumen de días configurados
+- Diseño responsive con dark mode
+
+---
+
+## Landing Page & Pricing - Detalle de Implementación
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Página precios | `src/app/precios/page.tsx` | ✅ |
+| SEO Metadata | title, description, keywords, OG | ✅ |
+| Canonical URL | https://prugressy.com/precios | ✅ |
+| Planes (Básico, Profesional, Enterprise) | getPlans() | ✅ |
+| Feature cards | Listado de features | ✅ |
+| Links a registro | /register | ✅ |
+
+### Características implementadas
+- Página pública de precios (SEO optimizado)
+- 3 planes: Básico (0€), Profesional (29.99€), Enterprise (79.99€)
+- Lista de features por plan
+- Links a página de registro
+- Diseño responsive
+- Metadata para SEO
+
+---
+
+## Email Automation - Detalle de Implementación
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Migration DB | `supabase/migrations/20260316100000_email_integration.sql` | ✅ |
+| Plantillas HTML | `src/lib/email/templates.ts` | ✅ |
+| Server Action (getEmailSettings) | `src/actions/email/getEmailSettings.ts` | ✅ |
+| Server Action (updateEmailSettings) | `src/actions/email/updateEmailSettings.ts` | ✅ |
+| Server Action (queueEmailMessage) | `src/actions/email/queueEmailMessage.ts` | ✅ |
+| Server Action (getEmailLogs) | `src/actions/email/getEmailLogs.ts` | ✅ |
+| Server Action (runEmailReminderScheduler) | `src/actions/email/runEmailReminderScheduler.ts` | ✅ |
+| API Route (/api/email/scheduler) | `src/app/api/email/scheduler/route.ts` | ✅ |
+| UI Settings | `src/components/dashboard/email/EmailSettingsClient.tsx` | ✅ |
+| UI Logs | `src/components/dashboard/email/EmailLogs.tsx` | ✅ |
+| Página /email | `src/app/(dashboard)/email/page.tsx` | ✅ |
+| Integración createAppointment | `src/actions/appointments/createAppointment.ts` | ✅ |
+| Integración createPublicBooking | `src/actions/public/createPublicBooking.ts` | ✅ |
+| Integración updateAppointmentStatus | `src/actions/appointments/createAppointment.ts` | ✅ |
+
+### Características implementadas
+- Configuración de emails por organización
+- Envío de confirmación al crear cita (dashboard y booking público)
+- Envío de recordatorio 24h antes (scheduler)
+- Envío de email al cancelar/completar/no-show
+- Historial de emails enviados
+- Plantillas HTML con diseño premium
+- Integración con Resend (3,000 emails/mes gratis)
+- Configuración de horas de recordatorio (1-168 horas)
+
+### UI/UX Implementado
+- Diseño premium con colores de marca (#0F4C5C)
+- Tipografía: Cormorant Garamond (headings) + Plus Jakarta Sans (body)
+- Sección de estadísticas en tiempo real
+- Tooltips de ayuda contextuales
+- Cards con sombras y gradientes
+- Toggle switches animados
+- Estado vacío (empty states) profesionales
+- Tabla de logs con paginación
+- Metadata SEO (OpenGraph, Twitter Cards)
+
+### Configuración N8N
+- Endpoint: `POST /api/email/scheduler`
+- Frecuencia recomendada: cada hora
+- Auth: Bearer token (CRON_SECRET)
+
+---
+
 ## Próximos Pasos Inmediatos
 
-1. **WhatsApp Integration** → Recordatorios automáticos por WhatsApp
-2. **Email Automation** → Emails transaccionales (recordatorios, confirmaciones)
+1. ~~**Email Automation**~~ → ✅ Completado
+2. **Google Calendar Integration** → Sincronización de citas con Google Calendar
+3. **Dashboard Analytics** → Estadísticas y métricas del negocio
+4. **Review & Testing** → Tests unitarios y de integración

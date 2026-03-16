@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { generateSlots } from '@/services/slots/generateSlots'
+import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
+import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 
 // =============================================================================
 // SCHEMA DE VALIDACIÓN
@@ -175,7 +177,97 @@ export async function createAppointment(
     // No fallamos por esto, la cita ya fue creada
   }
 
-  // 11. Revalidar paths relevantes
+  // 11. Encolar mensaje de WhatsApp si está configurado
+  try {
+    const { data: clientData } = await supabase
+      .from('clients')
+      .select('name, phone, email')
+      .eq('id', client_id)
+      .single()
+
+    const { data: serviceData } = await supabase
+      .from('services')
+      .select('name, duration, price')
+      .eq('id', service_id)
+      .single()
+
+    const { data: employeeData } = await supabase
+      .from('employees')
+      .select('name')
+      .eq('id', employee_id)
+      .single()
+
+    const { data: orgData } = await supabase
+      .from('organizations')
+      .select('name')
+      .eq('id', organization_id)
+      .single()
+
+    const { data: whatsappSettings } = await (supabase as any)
+      .from('whatsapp_settings')
+      .select('enabled')
+      .eq('organization_id', organization_id)
+      .single()
+
+    if (whatsappSettings?.enabled && clientData?.phone) {
+      await queueWhatsAppMessage({
+        organizationId: organization_id,
+        appointmentId: appointment.id,
+        phone: clientData.phone,
+        template: 'appointment_confirmation',
+        variables: {
+          name: clientData.name,
+          date: startDate.toLocaleDateString('es-ES', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+          }),
+          time: startDate.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+        },
+      })
+    }
+
+    const { data: emailSettings } = await (supabase as any)
+      .from('email_settings')
+      .select('enabled, send_confirmation')
+      .eq('organization_id', organization_id)
+      .single()
+
+    if (emailSettings?.enabled && emailSettings?.send_confirmation && clientData?.email) {
+      const duration = serviceData?.duration || 30
+      await queueEmailMessage({
+        organizationId: organization_id,
+        appointmentId: appointment.id,
+        clientId: client_id,
+        emailType: 'appointment_confirmation',
+        to: clientData.email,
+        variables: {
+          businessName: orgData?.name || 'Negocio',
+          clientName: clientData.name,
+          serviceName: serviceData?.name || 'Servicio',
+          employeeName: employeeData?.name || 'Profesional',
+          date: startDate.toLocaleDateString('es-ES', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+          }),
+          time: startDate.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          duration: `${duration} min`,
+          price: serviceData?.price ? `${serviceData.price}€` : undefined,
+        },
+      })
+    }
+  } catch (notificationError) {
+    console.error('Error sending notifications:', notificationError)
+  }
+
+  // 12. Revalidar paths relevantes
   revalidatePath('/calendar')
   revalidatePath('/employees')
 
@@ -245,6 +337,88 @@ export async function updateAppointmentStatus(
   if (updateError) {
     console.error('Error updating appointment:', updateError)
     return { error: 'Error al actualizar la cita.' }
+  }
+
+  // Enviar email de cancelación si aplica
+  if (status === 'canceled' || status === 'completed' || status === 'no_show') {
+    try {
+      const { data: appointmentData } = await supabase
+        .from('appointments')
+        .select('client_id, employee_id, start_time')
+        .eq('id', appointment_id)
+        .single()
+
+      if (!appointmentData?.client_id) {
+        return { success: true }
+      }
+
+      const { data: clientData } = await supabase
+        .from('clients')
+        .select('name, email')
+        .eq('id', appointmentData.client_id)
+        .single()
+
+      if (!clientData?.email) {
+        return { success: true }
+      }
+
+      const { data: employeeData } = await supabase
+        .from('employees')
+        .select('name')
+        .eq('id', appointmentData.employee_id)
+        .single()
+
+      const { data: emailSettings } = await (supabase as any)
+        .from('email_settings')
+        .select('enabled')
+        .eq('organization_id', appointment.organization_id)
+        .single()
+
+      if (emailSettings?.enabled && clientData.email) {
+        const { data: orgData } = await supabase
+          .from('organizations')
+          .select('name')
+          .eq('id', appointment.organization_id)
+          .single()
+
+        const startDate = new Date(appointmentData.start_time)
+        
+        let emailType: 'appointment_cancelled' | 'appointment_completed' | 'appointment_no_show'
+        if (status === 'canceled') {
+          emailType = 'appointment_cancelled'
+        } else if (status === 'completed') {
+          emailType = 'appointment_completed'
+        } else {
+          emailType = 'appointment_no_show'
+        }
+
+        await queueEmailMessage({
+          organizationId: appointment.organization_id,
+          appointmentId: appointment_id,
+          clientId: appointmentData.client_id,
+          emailType,
+          to: clientData.email,
+          variables: {
+            businessName: orgData?.name || 'Negocio',
+            clientName: clientData.name,
+            serviceName: 'Servicio',
+            employeeName: employeeData?.name || 'Profesional',
+            date: startDate.toLocaleDateString('es-ES', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            }),
+            time: startDate.toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            duration: '30 min',
+          },
+        })
+      }
+    } catch (emailError) {
+      console.error('Error sending status email:', emailError)
+    }
   }
 
   revalidatePath('/calendar')

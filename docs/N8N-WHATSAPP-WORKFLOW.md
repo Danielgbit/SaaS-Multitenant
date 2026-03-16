@@ -114,3 +114,54 @@ Tu cita de {{ $json.variables.service }} con {{ $json.variables.employee }} es e
 1. **Webhook no responde**: Verifica que el endpoint esté activo y público
 2. **Error 401**: Verifica que la API Key sea correcta
 3. **WhatsApp no llega**: Revisa los logs de tu proveedor de WhatsApp
+
+---
+
+## Workflow de Scheduler (Envío automático)
+
+Este workflow ejecuta el scheduler de recordatorios diariamente para enviar mensajes automáticamente.
+
+### Estructura del Endpoint
+
+- **URL**: `https://tu-dominio.com/api/whatsapp/scheduler`
+- **Método**: POST
+- **Autenticación**: Header `Authorization: Bearer CRON_SECRET`
+
+### Configuración en N8N
+
+#### 1. Trigger: Schedule
+
+Configura un nodo Schedule:
+- **Trigger**: "Every Day"
+- **Hour**: 9 (o la hora que prefieras)
+- **Minute**: 0
+
+#### 2. HTTP Request
+
+Nodo HTTP Request para llamar al scheduler:
+- **Method**: POST
+- **URL**: `https://tu-dominio.com/api/whatsapp/scheduler`
+- **Headers**:
+  - Key: `Authorization`
+  - Value: `Bearer TU_CRON_SECRET`
+- **Send Body**: No (empty body)
+
+#### 3. Ejemplo de Flow
+
+```
+[Schedule (Daily at 9:00)] → [HTTP Request (POST to /api/whatsapp/scheduler)] → [Log Output]
+```
+
+### Variables de Entorno
+
+En tu `.env.local`:
+```
+CRON_SECRET=tu-secret-seguro-para-el-cron
+```
+
+### Notas
+
+1. **Frecuencia**: Configura el schedule según tus necesidades (diario, cada hora, etc.)
+2. **Logging**: Los resultados del scheduler se guardan en la tabla `whatsapp_logs`
+3. **Monitoreo**: Revisa los logs en Prügressy (`/dashboard/whatsapp` → pestaña Historial)
+4. **Error handling**: Si el scheduler falla, revisa los logs de N8N y los registros en Prügressy

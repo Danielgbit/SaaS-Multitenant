@@ -1,13 +1,31 @@
 import { Resend } from 'resend'
 
-if (!process.env.RESEND_API_KEY) {
-  console.warn('RESEND_API_KEY is not set')
+const getResendApiKey = () => {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.warn('RESEND_API_KEY is not set - emails will fail to send')
+    return 're_dummy_key_for_build'
+  }
+  return apiKey
 }
 
-export const resend = new Resend(process.env.RESEND_API_KEY || '')
+let resendInstance: Resend | null = null
+
+function getResend(): Resend {
+  if (!resendInstance) {
+    resendInstance = new Resend(getResendApiKey())
+  }
+  return resendInstance
+}
+
+export const resend = {
+  get instance() {
+    return getResend()
+  }
+}
 
 export function getResendInstance() {
-  return resend
+  return getResend()
 }
 
 export const EMAIL_FROM = process.env.EMAIL_FROM || 'Prügressy <norespond@prugressy.com>'
@@ -22,8 +40,13 @@ export async function sendEmail({
   subject: string
   html: string
 }) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY not configured - email not sent')
+    return { success: false, error: 'RESEND_API_KEY not configured' }
+  }
+  
   try {
-    const data = await resend.emails.send({
+    const data = await getResend().emails.send({
       from: EMAIL_FROM,
       to,
       subject,

@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { generateSlots } from '@/services/slots/generateSlots'
+import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
+import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 
 // =============================================================================
 // SCHEMA DE VALIDACIÓN
@@ -140,7 +142,7 @@ export async function createPublicBooking(
   // 4. Verificar que el servicio existe y pertenece a la org
   const { data: service, error: serviceError } = await supabase
     .from('services')
-    .select('id, organization_id, active, name, duration')
+    .select('id, organization_id, active, name, duration, price')
     .eq('id', serviceId)
     .eq('organization_id', organizationId)
     .single()
@@ -223,7 +225,79 @@ export async function createPublicBooking(
       service_id: serviceId,
     })
 
-  // 10. Revalidar paths
+  // 10. Encolar mensaje de WhatsApp si está configurado
+  try {
+    const { data: whatsappSettings } = await (supabase as any)
+      .from('whatsapp_settings')
+      .select('enabled')
+      .eq('organization_id', organizationId)
+      .single()
+
+    if (whatsappSettings?.enabled && clientPhone) {
+      await queueWhatsAppMessage({
+        organizationId,
+        appointmentId: appointment.id,
+        phone: clientPhone,
+        template: 'appointment_confirmation',
+        variables: {
+          name: clientName,
+          date: startDate.toLocaleDateString('es-ES', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+          }),
+          time: startDate.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+        },
+      })
+    }
+
+    if (clientEmail) {
+      const { data: emailSettings } = await (supabase as any)
+        .from('email_settings')
+        .select('enabled, send_confirmation')
+        .eq('organization_id', organizationId)
+        .single()
+
+      if (emailSettings?.enabled && emailSettings?.send_confirmation) {
+        const { data: employeeData } = await supabase
+          .from('employees')
+          .select('name')
+          .eq('id', employeeId)
+          .single()
+
+        await queueEmailMessage({
+          organizationId,
+          appointmentId: appointment.id,
+          emailType: 'appointment_confirmation',
+          to: clientEmail,
+          variables: {
+            businessName: organization.name,
+            clientName: clientName,
+            serviceName: service?.name || 'Servicio',
+            employeeName: employeeData?.name || 'Profesional',
+            date: startDate.toLocaleDateString('es-ES', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            }),
+            time: startDate.toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            duration: `${service?.duration || 30} min`,
+            price: service?.price ? `${service.price}€` : undefined,
+          },
+        })
+      }
+    }
+  } catch (notificationError) {
+    console.error('Error sending notifications:', notificationError)
+  }
+
+  // 11. Revalidar paths
   revalidatePath('/calendar')
 
   return { 

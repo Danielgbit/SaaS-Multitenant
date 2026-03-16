@@ -1,24 +1,24 @@
 import { createClient } from '@/lib/supabase/server'
-import { WhatsAppSettingsClient } from '@/components/dashboard/whatsapp/WhatsAppSettingsClient'
+import { EmailSettingsClient } from '@/components/dashboard/email/EmailSettingsClient'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'WhatsApp Business | Prügressy',
-  description: 'Configura recordatorios automáticos de citas por WhatsApp. Integra con N8N y mejora la tasa de asistencia de tus clientes con Prügressy.',
+  title: 'Email Marketing | Prügressy',
+  description: 'Configura emails automáticos de confirmaciones y recordatorios de citas. Mejora la tasa de asistencia de tu negocio con Prügressy.',
   robots: 'noindex, nofollow',
   openGraph: {
-    title: 'WhatsApp Business | Prügressy',
-    description: 'Configura recordatorios automáticos por WhatsApp para tu negocio de wellness y salud',
+    title: 'Email Marketing | Prügressy',
+    description: 'Configura emails automáticos para tu negocio de wellness y salud',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'WhatsApp Business | Prügressy',
-    description: 'Configura recordatorios por WhatsApp para tu negocio',
+    title: 'Email Marketing | Prügressy',
+    description: 'Configura emails automáticos de confirmaciones y recordatorios',
   },
 }
 
-export default async function WhatsAppSettingsPage() {
+export default async function EmailSettingsPage() {
   const supabase = await createClient()
 
   const {
@@ -41,5 +41,5 @@ export default async function WhatsAppSettingsPage() {
     return <div>No tienes una organización asociada</div>
   }
 
-  return <WhatsAppSettingsClient organizationId={organizationId} />
+  return <EmailSettingsClient organizationId={organizationId} />
 }

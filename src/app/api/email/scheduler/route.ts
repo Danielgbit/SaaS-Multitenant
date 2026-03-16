@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { runDailyReminderScheduler } from '@/actions/whatsapp/runDailyReminderScheduler'
+import { runEmailReminderScheduler } from '@/actions/email/runEmailReminderScheduler'
 
 export async function POST(request: Request) {
   try {
@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const result = await runDailyReminderScheduler()
+    const result = await runEmailReminderScheduler()
 
     if (!result.success) {
       return NextResponse.json({
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       ...result,
     })
   } catch (error) {
-    console.error('WhatsApp scheduler error:', error)
+    console.error('Email scheduler error:', error)
     return NextResponse.json({
       success: false,
       error: 'Internal server error',
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
 export async function GET() {
   return NextResponse.json({ 
-    message: 'Use POST to trigger the WhatsApp reminder scheduler',
-    endpoint: '/api/whatsapp/scheduler',
+    message: 'Use POST to trigger the Email reminder scheduler',
+    endpoint: '/api/email/scheduler',
   })
 }

@@ -69,7 +69,7 @@ const QueueMessageSchema = z.object({
   appointmentId: z.string().uuid().optional(),
   phone: z.string().min(8),
   template: z.enum(['appointment_reminder', 'appointment_confirmation', 'appointment_cancelled', 'appointment_completed']),
-  variables: z.record(z.string()).optional(),
+  variables: z.record(z.string(), z.string()).optional(),
 })
 
 export async function queueWhatsAppMessage(
@@ -86,7 +86,7 @@ export async function queueWhatsAppMessage(
 
   try {
     const templateData = WHATSAPP_TEMPLATES[template]
-    let message = templateData.template
+    let message: string = templateData.template
 
     if (variables) {
       Object.entries(variables).forEach(([key, value]) => {
