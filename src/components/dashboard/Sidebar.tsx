@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, Users, Scissors, LayoutDashboard, UserCircle, CreditCard, MessageSquare, Mail } from 'lucide-react'
+import { CalendarDays, Users, Scissors, LayoutDashboard, UserCircle, CreditCard, MessageSquare, Mail, Package } from 'lucide-react'
 
 interface SidebarProps {
   role: string | null
@@ -41,6 +41,12 @@ export function Sidebar({ role }: SidebarProps) {
       label: 'Clientes',
       icon: UserCircle,
       active: pathname.startsWith('/clients'),
+    },
+    {
+      href: '/inventory',
+      label: 'Inventario',
+      icon: Package,
+      active: pathname.startsWith('/inventory'),
     },
     {
       href: '/billing',

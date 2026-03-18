@@ -85,6 +85,7 @@ export interface Plan {
   price: number
   max_employees: number
   max_services: number
+  max_inventory_items: number
   whatsapp_enabled: boolean
   stripe_price_id: string | null
   description: string | null
@@ -117,4 +118,10 @@ export function hasReachedServiceLimit(currentCount: number, plan: Plan | null):
   if (!plan) return true
   if (isPlanUnlimited(plan.max_services)) return false
   return currentCount >= plan.max_services
+}
+
+export function hasReachedInventoryLimit(currentCount: number, plan: Plan | null): boolean {
+  if (!plan) return true
+  if (isPlanUnlimited(plan.max_inventory_items)) return false
+  return currentCount >= plan.max_inventory_items
 }
