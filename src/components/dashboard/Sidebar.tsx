@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, Users, Scissors, LayoutDashboard, UserCircle, CreditCard, MessageSquare, Mail, Package } from 'lucide-react'
+import { CalendarDays, Users, Scissors, LayoutDashboard, UserCircle, CreditCard, MessageSquare, Mail, Package, CheckCircle, Settings } from 'lucide-react'
 
 interface SidebarProps {
   role: string | null
@@ -11,7 +11,9 @@ interface SidebarProps {
 export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname()
 
-  const routes = [
+  const isEmployee = role === 'employee'
+
+  const allRoutes = [
     {
       href: '/dashboard',
       label: 'Dashboard',
@@ -29,6 +31,7 @@ export function Sidebar({ role }: SidebarProps) {
       label: 'Equipo',
       icon: Users,
       active: pathname.startsWith('/employees'),
+      hideForEmployee: true,
     },
     {
       href: '/services',
@@ -47,26 +50,50 @@ export function Sidebar({ role }: SidebarProps) {
       label: 'Inventario',
       icon: Package,
       active: pathname.startsWith('/inventory'),
+      hideForEmployee: true,
+    },
+    {
+      href: '/confirmations',
+      label: 'Confirmaciones',
+      icon: CheckCircle,
+      active: pathname.startsWith('/confirmations'),
     },
     {
       href: '/billing',
       label: 'Pagos',
       icon: CreditCard,
       active: pathname.startsWith('/billing'),
+      hideForEmployee: true,
     },
     {
       href: '/whatsapp',
       label: 'WhatsApp',
       icon: MessageSquare,
       active: pathname.startsWith('/whatsapp'),
+      hideForEmployee: true,
     },
     {
       href: '/email',
       label: 'Email',
       icon: Mail,
       active: pathname.startsWith('/email'),
+      hideForEmployee: true,
+    },
+    {
+      href: '/settings',
+      label: 'Ajustes',
+      icon: Settings,
+      active: pathname.startsWith('/settings'),
+      hideForEmployee: true,
     },
   ]
+
+  const routes = allRoutes.filter(route => {
+    if (isEmployee && route.hideForEmployee) {
+      return false
+    }
+    return true
+  })
 
   return (
     <aside className="w-72 hidden md:flex flex-col bg-white dark:bg-[#1E293B] border-r border-slate-200 dark:border-slate-800/60 z-30 transition-colors duration-200 flex-shrink-0">
