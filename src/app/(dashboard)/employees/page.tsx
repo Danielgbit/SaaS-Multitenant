@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getEmployees } from '@/services/employees/getEmployees'
 import { getAvailabilitySummaryForEmployees } from '@/services/availability/getAvailability'
+import { getPendingInvitations } from '@/actions/invitations/getInvitations'
 import { EmployeesClient } from './EmployeesClient'
 import type { Metadata } from 'next'
 
@@ -47,5 +48,19 @@ export default async function EmployeesPage() {
     availabilitySummary.map(a => [a.employee_id, a])
   )
 
-  return <EmployeesClient employees={employees} availabilityMap={availabilityMap} />
+  // 6. Obtener invitaciones pendientes
+  const { invitations } = await getPendingInvitations(orgMember.organization_id)
+  const invitationMap = new Map<string, any>()
+  if (invitations) {
+    for (const inv of invitations) {
+      invitationMap.set(inv.employee_id, inv)
+    }
+  }
+
+  return <EmployeesClient 
+    employees={employees} 
+    availabilityMap={availabilityMap} 
+    invitationMap={invitationMap}
+    organizationId={orgMember.organization_id}
+  />
 }

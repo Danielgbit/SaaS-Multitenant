@@ -2,19 +2,34 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { Pencil, ToggleLeft, ToggleRight, Phone, UserCircle2, Loader2, Clock, Calendar, AlertCircle } from 'lucide-react'
+import { Pencil, ToggleLeft, ToggleRight, Phone, UserCircle2, Loader2, Clock, Calendar, AlertCircle, MailPlus, X, RefreshCw } from 'lucide-react'
 import { toggleEmployeeStatus } from '@/actions/employees/toggleEmployeeStatus'
 import { EditEmployeeModal } from './EditEmployeeModal'
+import { resendInvitation } from '@/actions/invitations/resendInvitation'
+import { cancelInvitation } from '@/actions/invitations/cancelInvitation'
+import { revokeAccess } from '@/actions/invitations/revokeAccess'
+import { updateMemberRole } from '@/actions/invitations/updateMemberRole'
 import type { Employee } from '@/types/employees'
 import type { AvailabilitySummary } from '@/services/availability/getAvailability'
+import type { Invitation, MemberRole } from '@/types/invitations'
 
 interface EmployeeListProps {
   employees: Employee[]
   allEmpty: boolean
   availabilityMap: Map<string, AvailabilitySummary>
+  invitationMap: Map<string, Invitation>
+  organizationId: string
+  onInvite: (employee: Employee) => void
 }
 
-export function EmployeeList({ employees, allEmpty, availabilityMap }: EmployeeListProps) {
+export function EmployeeList({ 
+  employees, 
+  allEmpty, 
+  availabilityMap,
+  invitationMap,
+  organizationId,
+  onInvite
+}: EmployeeListProps) {
   const [editTarget, setEditTarget] = useState<Employee | null>(null)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [, startTransition] = useTransition()
@@ -23,6 +38,38 @@ export function EmployeeList({ employees, allEmpty, availabilityMap }: EmployeeL
     setLoadingId(employee.id)
     startTransition(async () => {
       await toggleEmployeeStatus(employee.id, !employee.active)
+      setLoadingId(null)
+    })
+  }
+
+  function handleResendInvitation(invitationId: string) {
+    setLoadingId(invitationId)
+    startTransition(async () => {
+      await resendInvitation({ invitationId })
+      setLoadingId(null)
+    })
+  }
+
+  function handleCancelInvitation(invitationId: string) {
+    setLoadingId(invitationId)
+    startTransition(async () => {
+      await cancelInvitation({ invitationId })
+      setLoadingId(null)
+    })
+  }
+
+  function handleRevokeAccess(employeeId: string) {
+    setLoadingId(employeeId)
+    startTransition(async () => {
+      await revokeAccess({ employeeId })
+      setLoadingId(null)
+    })
+  }
+
+  function handleUpdateRole(employeeId: string, role: 'staff' | 'admin') {
+    setLoadingId(employeeId)
+    startTransition(async () => {
+      await updateMemberRole({ employeeId, role })
       setLoadingId(null)
     })
   }
@@ -91,9 +138,12 @@ export function EmployeeList({ employees, allEmpty, availabilityMap }: EmployeeL
             {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className={`text-sm font-semibold truncate transition-colors duration-150 ${employee.active ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500 line-through decoration-1'}`}>
+                <Link 
+                  href={`/employees/${employee.id}`}
+                  className={`text-sm font-semibold truncate transition-colors duration-150 hover:text-[#0F4C5C] dark:hover:text-[#38BDF8] ${employee.active ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500 line-through decoration-1'}`}
+                >
                   {employee.name}
-                </p>
+                </Link>
                 
                 {/* Availability Badge */}
                 {(() => {
@@ -136,78 +186,144 @@ export function EmployeeList({ employees, allEmpty, availabilityMap }: EmployeeL
 
             {/* Actions */}
             <div className="flex items-center gap-1 flex-shrink-0">
-              {/* Status badge */}
-              <span
-                className={`
-                  text-[11px] font-semibold px-2 py-0.5 rounded-full mr-2
-                  ${employee.active
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800/40'
-                    : 'bg-slate-100 text-slate-400 dark:bg-slate-700/60 dark:text-slate-500 ring-1 ring-slate-200 dark:ring-slate-600/40'
-                  }
-                `}
-                aria-label={`Estado: ${employee.active ? 'Activo' : 'Inactivo'}`}
-              >
-                {employee.active ? 'Activo' : 'Inactivo'}
-              </span>
+              {/* Invitation Status Badge */}
+              {employee.user_id ? (
+                <span
+                  className="text-[11px] font-semibold px-2 py-0.5 rounded-full mr-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800/40"
+                >
+                  Activo
+                </span>
+              ) : invitationMap.get(employee.id)?.status === 'pending' ? (
+                <span
+                  className="text-[11px] font-semibold px-2 py-0.5 rounded-full mr-2 bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800/40"
+                >
+                  Invitado
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onInvite(employee)}
+                  className="
+                    text-[11px] font-semibold px-2 py-0.5 rounded-full mr-2
+                    bg-slate-100 text-slate-500 dark:bg-slate-700/60 dark:text-slate-400
+                    ring-1 ring-slate-200 dark:ring-slate-600/40
+                    hover:bg-[#0F4C5C]/10 hover:text-[#0F4C5C] dark:hover:bg-[#38BDF8]/10 dark:hover:text-[#38BDF8]
+                    transition-colors cursor-pointer
+                  "
+                >
+                  Invitar
+                </button>
+              )}
 
-              {/* Edit button */}
-              <button
-                type="button"
-                onClick={() => setEditTarget(employee)}
-                aria-label={`Editar empleado ${employee.name}`}
-                className="
-                  p-2 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center
-                  text-slate-300 dark:text-slate-600
-                  hover:text-slate-600 dark:hover:text-slate-300
-                  hover:bg-slate-100 dark:hover:bg-slate-700
-                  opacity-0 group-hover:opacity-100
-                  transition-all duration-150 cursor-pointer
-                  focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C]/40
-                "
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </button>
+              {/* If has pending invitation, show resend/cancel */}
+              {employee.user_id && (
+                <>
+                  {/* Edit button */}
+                  <button
+                    type="button"
+                    onClick={() => setEditTarget(employee)}
+                    aria-label={`Editar empleado ${employee.name}`}
+                    className="
+                      p-2 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center
+                      text-slate-300 dark:text-slate-600
+                      hover:text-slate-600 dark:hover:text-slate-300
+                      hover:bg-slate-100 dark:hover:bg-slate-700
+                      opacity-0 group-hover:opacity-100
+                      transition-all duration-150 cursor-pointer
+                      focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C]/40
+                    "
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
 
-              {/* Availability button */}
-              <Link
-                href={`/employees/${employee.id}/availability`}
-                aria-label={`Configurar disponibilidad de ${employee.name}`}
-                className="
-                  p-2 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center
-                  text-slate-300 dark:text-slate-600
-                  hover:text-[#0F4C5C] dark:hover:text-[#38BDF8]
-                  hover:bg-slate-100 dark:hover:bg-slate-700
-                  opacity-0 group-hover:opacity-100
-                  transition-all duration-150 cursor-pointer
-                  focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C]/40
-                "
-              >
-                <Clock className="w-3.5 h-3.5" />
-              </Link>
+                  {/* Availability button */}
+                  <Link
+                    href={`/employees/${employee.id}/availability`}
+                    aria-label={`Configurar disponibilidad de ${employee.name}`}
+                    className="
+                      p-2 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center
+                      text-slate-300 dark:text-slate-600
+                      hover:text-[#0F4C5C] dark:hover:text-[#38BDF8]
+                      hover:bg-slate-100 dark:hover:bg-slate-700
+                      opacity-0 group-hover:opacity-100
+                      transition-all duration-150 cursor-pointer
+                      focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C]/40
+                    "
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                  </Link>
 
-              {/* Toggle button */}
-              <button
-                type="button"
-                onClick={() => handleToggle(employee)}
-                disabled={loadingId === employee.id}
-                aria-label={employee.active ? `Desactivar a ${employee.name}` : `Activar a ${employee.name}`}
-                aria-pressed={employee.active}
-                className="
-                  p-2 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center
-                  hover:bg-slate-100 dark:hover:bg-slate-700
-                  transition-all duration-150 cursor-pointer
-                  disabled:opacity-40 disabled:cursor-not-allowed
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C]/40
-                "
-              >
-                {loadingId === employee.id ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
-                ) : employee.active ? (
-                  <ToggleRight className="w-5 h-5 text-emerald-500" />
-                ) : (
-                  <ToggleLeft className="w-5 h-5 text-slate-300 dark:text-slate-600" />
-                )}
-              </button>
+                  {/* Toggle button */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggle(employee)}
+                    disabled={loadingId === employee.id}
+                    aria-label={employee.active ? `Desactivar a ${employee.name}` : `Activar a ${employee.name}`}
+                    aria-pressed={employee.active}
+                    className="
+                      p-2 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center
+                      hover:bg-slate-100 dark:hover:bg-slate-700
+                      transition-all duration-150 cursor-pointer
+                      disabled:opacity-40 disabled:cursor-not-allowed
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C]/40
+                    "
+                  >
+                    {loadingId === employee.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                    ) : employee.active ? (
+                      <ToggleRight className="w-5 h-5 text-emerald-500" />
+                    ) : (
+                      <ToggleLeft className="w-5 h-5 text-slate-300 dark:text-slate-600" />
+                    )}
+                  </button>
+                </>
+              )}
+
+              {/* If has pending invitation, show actions */}
+              {!employee.user_id && invitationMap.get(employee.id)?.status === 'pending' && (() => {
+                const invitation = invitationMap.get(employee.id)
+                if (!invitation) return null
+                return (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleResendInvitation(invitation.id)}
+                    disabled={loadingId === employee.id}
+                    aria-label={`Reenviar invitación a ${employee.name}`}
+                    className="
+                      p-2 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center
+                      text-slate-300 dark:text-slate-600
+                      hover:text-[#0F4C5C] dark:hover:text-[#38BDF8]
+                      hover:bg-slate-100 dark:hover:bg-slate-700
+                      opacity-0 group-hover:opacity-100
+                      transition-all duration-150 cursor-pointer
+                      disabled:opacity-40 disabled:cursor-not-allowed
+                      focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C]/40
+                    "
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCancelInvitation(invitation.id)}
+                    disabled={loadingId === employee.id}
+                    aria-label={`Cancelar invitación a ${employee.name}`}
+                    className="
+                      p-2 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center
+                      text-slate-300 dark:text-slate-600
+                      hover:text-red-500
+                      hover:bg-red-50 dark:hover:bg-red-900/20
+                      opacity-0 group-hover:opacity-100
+                      transition-all duration-150 cursor-pointer
+                      disabled:opacity-40 disabled:cursor-not-allowed
+                      focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40
+                    "
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </>
+                )
+              })()}
             </div>
           </li>
         ))}

@@ -36,6 +36,10 @@
 | **Now** | Dashboard Analytics | KPIs, gráficos de tendencia, servicios populares | Visibilidad del negocio | ✅ Completado |
 | **Now** | Dark Mode | Toggle modo oscuro (Header) | Usuarios que usan dark mode | ✅ Completado |
 | **Now** | Settings Page | Página centralizada de configuración | Configuración completada | ✅ Completado |
+| **Now** | Inventory Module | Gestión de inventario con límites por plan | Control de inventario | ✅ Completado |
+| **Now** | Service Confirmation | Sistema de confirmación de servicios | Flujo empleado→recepción | ✅ Completado |
+| **Now** | Employee Invitations | Sistema de invitaciones con link universal | Acceso de empleados | ✅ Completado |
+| **Now** | Employee Profile | Perfil de empleado con tabs integrados | Gestión completa | ✅ Completado |
 
 ---
 
@@ -422,6 +426,96 @@
 - Toggle reservas online
 - Links a WhatsApp y Email
 - Diseño responsive con dark mode
+
+---
+
+## Inventory Module - Gestión de Inventario
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Migración DB | `supabase/migrations/20260318000000_inventory.sql` | ✅ |
+| Server Actions | `src/actions/inventory/` (5 actions) | ✅ |
+| UI Inventory | `src/app/(dashboard)/inventory/` | ✅ |
+| Billing utils | `src/lib/billing/utils.ts` (hasReachedInventoryLimit) | ✅ |
+| Ruta Sidebar | `src/components/dashboard/Sidebar.tsx` | ✅ |
+
+### Características implementadas
+- CRUD de productos de inventario
+- Seguimiento de stock
+- Límites por plan (Basic=200, Professional=5000)
+- Validación en creación de citas
+- Diseño responsive con dark mode
+
+---
+
+## Service Confirmation System - Sistema de Confirmaciones
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Migración DB | `supabase/migrations/20260319000000_confirmations.sql` | ✅ |
+| Server Actions | `src/actions/confirmations/` (3 actions) | ✅ |
+| UI Employee | `src/app/(dashboard)/confirmations/EmployeeConfirmations.tsx` | ✅ |
+| UI Reception | `src/app/(dashboard)/confirmations/ReceptionConfirmations.tsx` | ✅ |
+| UI Walk-in | `src/app/(dashboard)/confirmations/walkin/WalkinForm.tsx` | ✅ |
+| API Route | `src/app/api/appointments/check-completed/route.ts` | ✅ |
+| Ruta Sidebar | `src/components/dashboard/Sidebar.tsx` | ✅ |
+
+### Flujo implementado
+1. **Empleado**: Selecciona servicios completados → envía a cola de recepción
+2. **Recepción**: Confirma servicio, registra cliente, cobra
+3. **Walk-in**: Formulario visual paso a paso
+4. **N8N**: Detecta citas terminadas cada 1-2 minutos
+
+### Características UX/UI
+- Header con gradiente y estadísticas
+- Selector visual de servicios
+- Filtros por estado
+- Selector de método de pago
+- Pantalla de éxito
+
+---
+
+## Employee Invitations - Sistema de Invitaciones
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Migración DB | `supabase/migrations/20260320000000_employee_invitations.sql` | ✅ |
+| Types | `src/types/invitations.ts` | ✅ |
+| Server Actions | `src/actions/invitations/` (8 actions) | ✅ |
+| UI Invite Modal | `src/app/(dashboard)/employees/InviteEmployeeModal.tsx` | ✅ |
+| Página pública | `src/app/(public)/invite/[token]/page.tsx` | ✅ |
+
+### Características implementadas
+- Invitaciones con email opcional
+- Link universal para compartir (WhatsApp)
+- Rate limit: 10 reenvíos/hora
+- Expiración: 7 días
+- Notificación por email al revocar acceso
+- Revocar acceso (despido)
+- Cambio de rol (staff/admin)
+
+---
+
+## Employee Profile - Perfil de Empleado con Tabs
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Página detalle | `src/app/(dashboard)/employees/[id]/page.tsx` | ✅ |
+| EmployeeTabs | `src/app/(dashboard)/employees/[id]/EmployeeTabs.tsx` | ✅ |
+| Tab Info | `src/app/(dashboard)/employees/[id]/EmployeeInfoTab.tsx` | ✅ |
+| Tab Horario | `src/app/(dashboard)/employees/[id]/EmployeeAvailabilityTab.tsx` | ✅ |
+| Tab Servicios | `src/app/(dashboard)/employees/[id]/EmployeeServicesTab.tsx` | ✅ |
+| Tab Acceso | `src/app/(dashboard)/employees/[id]/EmployeeAccessTab.tsx` | ✅ |
+| Services | `src/services/employees/` (2 files) | ✅ |
+| Actions | `src/actions/employees/updateEmployeeService.ts` | ✅ |
+
+### Características implementadas
+- 4 tabs integrados en una página
+- **Info**: Editar nombre, teléfono, estado activo/inactivo
+- **Horario**: Agregar/eliminar días y horarios de trabajo
+- **Servicios**: Toggle servicios + override duración/precio
+- **Acceso**: Invitar, reenviar, cancelar, revocar acceso
+- Navegación mejorada en lista de empleados
 
 ---
 

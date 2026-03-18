@@ -4,16 +4,26 @@ import { useState } from 'react'
 import { Plus, Users, Search } from 'lucide-react'
 import { CreateEmployeeModal } from './CreateEmployeeModal'
 import { EmployeeList } from './EmployeeList'
+import { InviteEmployeeModal } from './InviteEmployeeModal'
 import type { Employee } from '@/types/employees'
 import type { AvailabilitySummary } from '@/services/availability/getAvailability'
+import type { Invitation } from '@/types/invitations'
 
 interface EmployeesClientProps {
   employees: Employee[]
   availabilityMap: Map<string, AvailabilitySummary>
+  invitationMap: Map<string, Invitation>
+  organizationId: string
 }
 
-export function EmployeesClient({ employees, availabilityMap }: EmployeesClientProps) {
+export function EmployeesClient({ 
+  employees, 
+  availabilityMap, 
+  invitationMap,
+  organizationId 
+}: EmployeesClientProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [inviteTarget, setInviteTarget] = useState<Employee | null>(null)
   const [query, setQuery] = useState('')
 
   const filtered = employees.filter((e) =>
@@ -116,7 +126,14 @@ export function EmployeesClient({ employees, availabilityMap }: EmployeesClientP
           </div>
         )}
 
-        <EmployeeList employees={filtered} allEmpty={employees.length === 0} availabilityMap={availabilityMap} />
+        <EmployeeList 
+          employees={filtered} 
+          allEmpty={employees.length === 0} 
+          availabilityMap={availabilityMap} 
+          invitationMap={invitationMap}
+          organizationId={organizationId}
+          onInvite={(employee) => setInviteTarget(employee)}
+        />
       </div>
 
       {/* ── Create modal ── */}
@@ -124,6 +141,15 @@ export function EmployeesClient({ employees, availabilityMap }: EmployeesClientP
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
       />
+
+      {/* ── Invite modal ── */}
+      {inviteTarget && (
+        <InviteEmployeeModal
+          isOpen={!!inviteTarget}
+          employee={inviteTarget}
+          onClose={() => setInviteTarget(null)}
+        />
+      )}
     </>
   )
 }
