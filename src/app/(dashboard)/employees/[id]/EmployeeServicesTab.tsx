@@ -68,13 +68,14 @@ export function EmployeeServicesTab({
   const enabledCount = employeeServices.length
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center">
-          <Scissors className="w-5 h-5 text-[#0F4C5C] dark:text-[#38BDF8]" />
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0ea5e9] flex items-center justify-center shadow-lg shadow-[#0F4C5C]/25">
+          <Scissors className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
             Servicios disponibles
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -84,12 +85,15 @@ export function EmployeeServicesTab({
       </div>
 
       {allServices.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
-            <Scissors className="w-8 h-8 text-slate-400" />
+        <div className="text-center py-16">
+          <div className="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
+            <Scissors className="w-10 h-10 text-slate-400" />
           </div>
-          <p className="text-slate-600 dark:text-slate-400">
-            No hay servicios disponibles. Crea servicios primero.
+          <p className="text-slate-600 dark:text-slate-400 font-medium mb-2">
+            No hay servicios disponibles
+          </p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">
+            Crea servicios primero en la sección de servicios
           </p>
         </div>
       ) : (
@@ -105,8 +109,8 @@ export function EmployeeServicesTab({
                 className={`
                   rounded-xl border transition-all duration-200
                   ${isEnabled 
-                    ? 'bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700' 
-                    : 'bg-slate-50 dark:bg-slate-800/30 border-slate-100 dark:border-slate-700/50'
+                    ? 'bg-white/60 dark:bg-slate-800/40 border-slate-200/50 dark:border-slate-700/40 hover:shadow-lg' 
+                    : 'bg-slate-50/50 dark:bg-slate-800/20 border-slate-100/50 dark:border-slate-700/20'
                   }
                 `}
               >
@@ -116,10 +120,10 @@ export function EmployeeServicesTab({
                       onClick={() => handleToggleService(service.id, !isEnabled)}
                       disabled={isPending}
                       className={`
-                        w-6 h-6 rounded-md flex items-center justify-center
+                        w-6 h-6 rounded-lg flex items-center justify-center
                         transition-all duration-200
                         ${isEnabled 
-                          ? 'bg-[#0F4C5C] dark:bg-[#38BDF8]' 
+                          ? 'bg-gradient-to-br from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0ea5e9]' 
                           : 'border-2 border-slate-300 dark:border-slate-600 hover:border-[#0F4C5C] dark:hover:border-[#38BDF8]'
                         }
                         disabled:opacity-50
@@ -128,7 +132,7 @@ export function EmployeeServicesTab({
                       {isEnabled && <Check className="w-4 h-4 text-white" />}
                     </button>
                     <div>
-                      <p className={`font-medium ${isEnabled ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500'}`}>
+                      <p className={`font-semibold ${isEnabled ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>
                         {service.name}
                       </p>
                       <div className="flex items-center gap-3 text-xs text-slate-400 dark:text-slate-500 mt-0.5">
@@ -147,7 +151,7 @@ export function EmployeeServicesTab({
                   {isEnabled && (
                     <button
                       onClick={() => setExpandedService(isExpanded ? null : service.id)}
-                      className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+                      className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-700/50 transition-colors"
                     >
                       {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                     </button>
@@ -156,12 +160,12 @@ export function EmployeeServicesTab({
 
                 {/* Override Fields */}
                 {isEnabled && isExpanded && (
-                  <div className="px-4 pb-4 pt-2 border-t border-slate-100 dark:border-slate-700/50">
+                  <div className="px-4 pb-4 pt-2 border-t border-slate-100/60 dark:border-slate-700/40">
                     <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">
                       Personalizar para este empleado
                     </p>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
+                      <div className="space-y-1.5">
                         <label className="text-xs text-slate-600 dark:text-slate-400">Duración (min)</label>
                         <input
                           type="number"
@@ -171,10 +175,16 @@ export function EmployeeServicesTab({
                             const val = parseInt(e.target.value) || service.duration
                             handleUpdateOverrides(service.id, val, employeeService?.price_override || null)
                           }}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
+                          className="
+                            w-full px-3 py-2 rounded-lg 
+                            bg-white/80 dark:bg-slate-800/60
+                            border border-slate-200/50 dark:border-slate-700/50
+                            text-sm shadow-sm
+                            focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]/30
+                          "
                         />
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1.5">
                         <label className="text-xs text-slate-600 dark:text-slate-400">Precio ($)</label>
                         <input
                           type="number"
@@ -185,7 +195,13 @@ export function EmployeeServicesTab({
                             const val = parseFloat(e.target.value) || service.price
                             handleUpdateOverrides(service.id, employeeService?.duration_override || null, val)
                           }}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
+                          className="
+                            w-full px-3 py-2 rounded-lg 
+                            bg-white/80 dark:bg-slate-800/60
+                            border border-slate-200/50 dark:border-slate-700/50
+                            text-sm shadow-sm
+                            focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]/30
+                          "
                         />
                       </div>
                     </div>

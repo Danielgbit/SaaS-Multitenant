@@ -1,12 +1,11 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, X, AlertTriangle, Shield, Loader2 } from 'lucide-react'
+import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, X, AlertTriangle, Loader2 } from 'lucide-react'
 import { createInvitation } from '@/actions/invitations/createInvitation'
 import { resendInvitation } from '@/actions/invitations/resendInvitation'
 import { cancelInvitation } from '@/actions/invitations/cancelInvitation'
 import { revokeAccess } from '@/actions/invitations/revokeAccess'
-import { updateMemberRole } from '@/actions/invitations/updateMemberRole'
 import type { Employee } from '@/types/employees'
 import type { Invitation, MemberRole } from '@/types/invitations'
 
@@ -82,13 +81,14 @@ export function EmployeeAccessTab({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center">
-          <KeyRound className="w-5 h-5 text-[#0F4C5C] dark:text-[#38BDF8]" />
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0ea5e9] flex items-center justify-center shadow-lg shadow-[#0F4C5C]/25">
+          <KeyRound className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
             Acceso al sistema
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -99,37 +99,38 @@ export function EmployeeAccessTab({
 
       {/* Access Status Card */}
       <div className={`
-        p-6 rounded-xl border-2 
+        p-6 rounded-2xl border-2 
         ${hasAccess 
-          ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' 
-          : isLoading 
-            ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-            : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'
+          ? 'bg-emerald-50/60 dark:bg-emerald-900/20 border-emerald-200/50 dark:border-emerald-800/30' 
+          : hasPendingInvite 
+            ? 'bg-amber-50/60 dark:bg-amber-900/20 border-amber-200/50 dark:border-amber-800/30'
+            : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/50 dark:border-slate-700/40'
         }
       `}>
         <div className="flex items-center gap-4">
           <div className={`
-            w-12 h-12 rounded-xl flex items-center justify-center
+            w-14 h-14 rounded-2xl flex items-center justify-center
             ${hasAccess 
-              ? 'bg-emerald-500' 
-              : isLoading 
-                ? 'bg-amber-500'
-                : 'bg-slate-400'
+              ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' 
+              : hasPendingInvite 
+                ? 'bg-gradient-to-br from-amber-500 to-amber-600'
+                : 'bg-gradient-to-br from-slate-400 to-slate-500'
             }
+            shadow-lg
           `}>
             {hasAccess ? (
-              <Check className="w-6 h-6 text-white" />
-            ) : isLoading ? (
-              <Mail className="w-6 h-6 text-white" />
+              <Check className="w-7 h-7 text-white" />
+            ) : hasPendingInvite ? (
+              <Mail className="w-7 h-7 text-white" />
             ) : (
-              <KeyRound className="w-6 h-6 text-white" />
+              <KeyRound className="w-7 h-7 text-white" />
             )}
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg">
               {hasAccess 
                 ? 'Acceso activo' 
-                : isLoading 
+                : hasPendingInvite 
                   ? 'Invitación pendiente'
                   : 'Sin acceso al sistema'
               }
@@ -137,8 +138,8 @@ export function EmployeeAccessTab({
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {hasAccess 
                 ? 'Este empleado puede acceder al sistema' 
-                : isLoading 
-                  ? 'Esperando que accepte la invitación'
+                : hasPendingInvite 
+                  ? 'Esperando que acepte la invitación'
                   : 'Este empleado no tiene cuenta en el sistema'
               }
             </p>
@@ -147,29 +148,44 @@ export function EmployeeAccessTab({
 
         {/* Actions */}
         <div className="mt-6 flex flex-wrap gap-3">
-          {!hasAccess && !isLoading && (
+          {!hasAccess && !hasPendingInvite && (
             <button
               onClick={() => setShowInviteModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] text-white text-sm font-medium"
+              className="
+                group flex items-center gap-2 px-5 py-2.5 rounded-xl 
+                bg-gradient-to-r from-[#0F4C5C] to-[#0a3d4d] hover:from-[#0C3E4A] hover:to-[#083242]
+                text-white text-sm font-medium
+                shadow-lg shadow-[#0F4C5C]/20 hover:shadow-xl hover:shadow-[#0F4C5C]/30
+                transition-all duration-200
+              "
             >
               <UserPlus className="w-4 h-4" />
               Invitar al sistema
             </button>
           )}
 
-          {isLoading && (
+          {hasPendingInvite && (
             <>
               <button
                 onClick={handleResend}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0F4C5C]/10 hover:bg-[#0F4C5C]/20 text-[#0F4C5C] dark:text-[#38BDF8] text-sm font-medium"
+                className="
+                  flex items-center gap-2 px-4 py-2.5 rounded-xl 
+                  bg-[#0F4C5C]/10 hover:bg-[#0F4C5C]/20 dark:bg-[#38BDF8]/10 dark:hover:bg-[#38BDF8]/20 
+                  text-[#0F4C5C] dark:text-[#38BDF8] text-sm font-medium
+                  transition-colors
+                "
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                 Reenviar
               </button>
               <button
                 onClick={handleCancelInvite}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-sm font-medium"
+                className="
+                  flex items-center gap-2 px-4 py-2.5 rounded-xl 
+                  bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 
+                  text-red-600 dark:text-red-400 text-sm font-medium
+                  transition-colors
+                "
               >
                 <X className="w-4 h-4" />
                 Cancelar
@@ -180,7 +196,12 @@ export function EmployeeAccessTab({
           {hasAccess && isOwner && (
             <button
               onClick={handleRevoke}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-sm font-medium"
+              className="
+                flex items-center gap-2 px-4 py-2.5 rounded-xl 
+                bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 
+                text-red-600 dark:text-red-400 text-sm font-medium
+                transition-colors
+              "
             >
               <AlertTriangle className="w-4 h-4" />
               Revocar acceso
@@ -192,20 +213,20 @@ export function EmployeeAccessTab({
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
               Invitar a {employee.name}
             </h3>
 
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm mb-4">
+              <div className="p-3 rounded-lg bg-red-50/80 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm mb-4">
                 {error}
               </div>
             )}
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Email (opcional)
                 </label>
                 <input
@@ -213,17 +234,33 @@ export function EmployeeAccessTab({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="empleado@ejemplo.com"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                  className="
+                    w-full px-4 py-3 rounded-xl 
+                    bg-white/80 dark:bg-slate-800/60
+                    border border-slate-200/60 dark:border-slate-700/60
+                    text-slate-900 dark:text-slate-100
+                    shadow-md shadow-slate-200/20
+                    focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]/30
+                    transition-all duration-200
+                  "
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Rol
                 </label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as MemberRole)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                  className="
+                    w-full px-4 py-3 rounded-xl 
+                    bg-white/80 dark:bg-slate-800/60
+                    border border-slate-200/60 dark:border-slate-700/60
+                    text-slate-900 dark:text-slate-100
+                    shadow-md shadow-slate-200/20
+                    focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]/30
+                    transition-all duration-200
+                  "
                 >
                   <option value="staff">Staff (acceso básico)</option>
                   <option value="admin">Admin (acceso completo)</option>
@@ -234,14 +271,14 @@ export function EmployeeAccessTab({
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="flex-1 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCreateInvite}
                 disabled={isLoading}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] text-white"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] text-white font-medium shadow-lg shadow-[#0F4C5C]/20 disabled:opacity-50"
               >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
                 Enviar invitación
@@ -253,8 +290,8 @@ export function EmployeeAccessTab({
 
       {/* Copied Link Card */}
       {invitationUrl && (
-        <div className="p-4 rounded-xl bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 border border-[#0F4C5C]/20 dark:border-[#38BDF8]/20">
-          <p className="text-sm font-medium text-[#0F4C5C] dark:text-[#38BDF8] mb-2">
+        <div className="p-5 rounded-xl bg-gradient-to-r from-[#0F4C5C]/10 to-[#38BDF8]/10 dark:from-[#38BDF8]/10 dark:to-[#0F4C5C]/5 border border-[#0F4C5C]/20 dark:border-[#38BDF8]/20">
+          <p className="text-sm font-semibold text-[#0F4C5C] dark:text-[#38BDF8] mb-2">
             Link para compartir
           </p>
           <div className="flex gap-2">
@@ -262,7 +299,7 @@ export function EmployeeAccessTab({
               type="text"
               readOnly
               value={invitationUrl}
-              className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-slate-900 text-sm border border-slate-200 dark:border-slate-700"
+              className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 text-sm border border-slate-200/50 dark:border-slate-700/50"
             />
             <button
               onClick={handleCopyLink}
