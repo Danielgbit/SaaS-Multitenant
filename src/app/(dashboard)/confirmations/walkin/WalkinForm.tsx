@@ -8,8 +8,40 @@ import {
   CreditCard, Banknote, DollarSign, X, ShoppingCart,
   CheckCircle, AlertCircle
 } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { createConfirmation } from '@/actions/confirmations/createConfirmation'
 import type { ConfirmationService } from '@/actions/confirmations/types'
+
+function useColors() {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  
+  return {
+    primary: isDark ? '#38BDF8' : '#0F4C5C',
+    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
+    primaryGradient: isDark 
+      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
+      : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
+    surface: isDark ? '#1E293B' : '#FFFFFF',
+    surfaceSubtle: isDark ? '#0F172A' : '#F1F5F9',
+    surfaceGlass: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+    border: isDark ? '#334155' : '#CBD5E1',
+    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
+    textSecondary: isDark ? '#94A3B8' : '#475569',
+    textMuted: isDark ? '#64748B' : '#64748B',
+    success: '#16A34A',
+    successLight: isDark ? '#064E3B' : '#DCFCE7',
+    successDark: isDark ? '#6EE7B7' : '#059669',
+    warning: '#F59E0B',
+    warningLight: isDark ? '#451A03' : '#FEF3C7',
+    danger: '#DC2626',
+    dangerLight: isDark ? '#450A0A' : '#FEE2E2',
+    purple: '#8B5CF6',
+    purpleLight: isDark ? '#2E1065' : '#EDE9FE',
+    overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.5)',
+    isDark,
+  }
+}
 
 interface Service {
   id: string
@@ -22,31 +54,6 @@ interface WalkinFormProps {
   services: Service[]
   organizationId: string
   employeeId: string
-}
-
-const DS = {
-  primary: '#0F4C5C',
-  primaryHover: '#0C3E4A',
-  primaryLight: '#E0F2FE',
-  surface: '#FFFFFF',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textMuted: '#94A3B8',
-  border: '#E2E8F0',
-  success: '#10B981',
-  successLight: '#D1FAE5',
-  successDark: '#059669',
-  warning: '#F59E0B',
-  warningLight: '#FEF3C7',
-  danger: '#DC2626',
-  dangerLight: '#FEE2E2',
-  purple: '#8B5CF6',
-  purpleLight: '#EDE9FE',
-  radius: {
-    lg: '16px',
-    md: '10px',
-    sm: '8px',
-  },
 }
 
 type Step = 'services' | 'client' | 'confirm' | 'success'
@@ -68,6 +75,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [mounted, setMounted] = useState(false)
+  const COLORS = useColors()
 
   useEffect(() => {
     setMounted(true)
@@ -151,17 +159,17 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
         <div className="text-center animate-scaleIn">
           <div 
             className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: DS.successLight }}
+            style={{ backgroundColor: COLORS.successLight }}
           >
-            <CheckCircle className="w-12 h-12" style={{ color: DS.success }} />
+            <CheckCircle className="w-12 h-12" style={{ color: COLORS.success }} />
           </div>
           <h2 
             className="text-2xl font-bold mb-2"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: DS.textPrimary }}
+            style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}
           >
             Walk-in registrado
           </h2>
-          <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.textSecondary }}>
+          <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}>
             La confirmación llegó a recepción.
           </p>
         </div>
@@ -184,8 +192,8 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
       <div className="mb-8">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-sm mb-4 transition-colors"
-          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.textSecondary }}
+          className="flex items-center gap-2 text-sm mb-4 transition-colors cursor-pointer"
+          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}
         >
           <ArrowLeft className="w-4 h-4" />
           Volver
@@ -193,11 +201,11 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
         
         <h1 
           className="text-2xl font-bold"
-          style={{ fontFamily: "'Cormorant Garamond', serif", color: DS.textPrimary }}
+          style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}
         >
           Registrar Walk-in
         </h1>
-        <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.textSecondary }} className="text-sm mt-1">
+        <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }} className="text-sm mt-1">
           Registra un servicio sin cita previa
         </p>
       </div>
@@ -216,8 +224,8 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                   <div 
                     className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
                     style={{
-                      backgroundColor: isActive ? DS.primary : isCompleted ? DS.success : '#F1F5F9',
-                      color: isActive || isCompleted ? '#FFFFFF' : DS.textMuted,
+                      backgroundColor: isActive ? COLORS.primary : isCompleted ? COLORS.success : COLORS.surfaceSubtle,
+                      color: isActive || isCompleted ? '#FFFFFF' : COLORS.textMuted,
                     }}
                   >
                     {isCompleted ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
@@ -226,7 +234,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                     className="text-xs mt-2 font-medium"
                     style={{ 
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      color: isActive ? DS.primary : DS.textMuted 
+                      color: isActive ? COLORS.primary : COLORS.textMuted 
                     }}
                   >
                     {s.label}
@@ -236,7 +244,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                   <div 
                     className="w-16 h-0.5 mx-2"
                     style={{ 
-                      backgroundColor: isCompleted ? DS.success : DS.border 
+                      backgroundColor: isCompleted ? COLORS.success : COLORS.border 
                     }}
                   />
                 )}
@@ -250,25 +258,27 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
       <div 
         className="fixed bottom-6 right-6 z-40 animate-slideUp"
         style={{
-          backgroundColor: DS.surface,
-          borderRadius: DS.radius.lg,
+          backgroundColor: COLORS.surfaceGlass,
+          borderRadius: '16px',
           boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
           padding: '16px 20px',
           minWidth: '200px',
+          backdropFilter: 'blur(12px)',
+          border: `1px solid ${COLORS.border}`,
         }}
       >
         <div className="flex items-center gap-3">
           <div 
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: DS.primaryLight }}
+            style={{ backgroundColor: COLORS.primary + '20' }}
           >
-            <ShoppingCart className="w-5 h-5" style={{ color: DS.primary }} />
+            <ShoppingCart className="w-5 h-5" style={{ color: COLORS.primary }} />
           </div>
           <div className="flex-1">
-            <p className="text-xs" style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <p className="text-xs" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               {selectedCount} servicio{selectedCount !== 1 ? 's' : ''}
             </p>
-            <p className="text-lg font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: DS.primary }}>
+            <p className="text-lg font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.primary }}>
               ${total.toLocaleString('es-CO')}
             </p>
           </div>
@@ -283,7 +293,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
           <div className="animate-fadeIn">
             {/* Search */}
             <div className="relative mb-6">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: DS.textMuted }} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: COLORS.textMuted }} />
               <input
                 type="text"
                 placeholder="Buscar servicios..."
@@ -291,20 +301,21 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  borderRadius: DS.radius.md,
-                  borderColor: DS.border,
+                  borderRadius: '10px',
+                  borderColor: COLORS.border,
                   padding: '14px 14px 14px 48px',
-                  color: DS.textPrimary,
+                  color: COLORS.textPrimary,
+                  backgroundColor: COLORS.surface,
                 }}
-                className="w-full border-2 focus:outline-none focus:border-[#0F4C5C] transition-colors"
+                className={`w-full border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:border-sky-400' : 'focus:border-[#0F4C5C]'}`}
               />
             </div>
 
             {/* Services Grid */}
             {filteredServices.length === 0 ? (
-              <div className="text-center py-12">
-                <Package className="w-12 h-12 mx-auto mb-4" style={{ color: DS.textMuted, opacity: 0.5 }} />
-                <p style={{ color: DS.textMuted }}>No hay servicios disponibles</p>
+              <div className="text-center py-12 rounded-2xl" style={{ backgroundColor: COLORS.surfaceGlass, border: `1px solid ${COLORS.border}` }}>
+                <Package className="w-12 h-12 mx-auto mb-4" style={{ color: COLORS.textMuted, opacity: 0.5 }} />
+                <p style={{ color: COLORS.textMuted }}>No hay servicios disponibles</p>
               </div>
             ) : (
               <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
@@ -315,38 +326,38 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                       key={service.id}
                       type="button"
                       onClick={() => toggleService(service.id)}
-                      className="p-4 rounded-xl text-left transition-all duration-200 hover:shadow-md"
+                      className="p-4 rounded-xl text-left transition-all duration-200 hover:shadow-md cursor-pointer"
                       style={{
-                        backgroundColor: isSelected ? DS.primaryLight : DS.surface,
-                        border: `2px solid ${isSelected ? DS.primary : DS.border}`,
+                        backgroundColor: isSelected ? COLORS.primary + '15' : COLORS.surface,
+                        border: `2px solid ${isSelected ? COLORS.primary : COLORS.border}`,
                       }}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <span 
                           className="text-xs font-medium px-2 py-0.5 rounded-full"
                           style={{ 
-                            backgroundColor: isSelected ? DS.primary : '#F1F5F9',
-                            color: isSelected ? '#FFFFFF' : DS.textMuted,
+                            backgroundColor: isSelected ? COLORS.primary : COLORS.surfaceSubtle,
+                            color: isSelected ? '#FFFFFF' : COLORS.textMuted,
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
                           {service.duration} min
                         </span>
                         {isSelected && (
-                          <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: DS.primary }}>
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primary }}>
                             <Check className="w-3 h-3 text-white" />
                           </div>
                         )}
                       </div>
                       <p 
                         className="font-medium"
-                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.textPrimary }}
+                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}
                       >
                         {service.name}
                       </p>
                       <p 
                         className="text-lg font-bold mt-1"
-                        style={{ fontFamily: "'Cormorant Garamond', serif", color: DS.primary }}
+                        style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.primary }}
                       >
                         ${service.price.toLocaleString('es-CO')}
                       </p>
@@ -362,10 +373,10 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                 type="button"
                 onClick={() => setStep('client')}
                 disabled={!canProceedToClient}
-                className="py-3 px-6 rounded-xl font-medium transition-all flex items-center gap-2 disabled:opacity-50"
+                className="py-3 px-6 rounded-xl font-medium transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                 style={{ 
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  backgroundColor: DS.primary,
+                  background: COLORS.primaryGradient,
                   color: '#FFFFFF',
                 }}
               >
@@ -381,19 +392,19 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
           <div className="animate-fadeIn">
             <div 
               className="rounded-2xl p-6"
-              style={{ backgroundColor: DS.surface, border: `1px solid ${DS.border}` }}
+              style={{ backgroundColor: COLORS.surfaceGlass, border: `1px solid ${COLORS.border}`, backdropFilter: 'blur(12px)' }}
             >
-              <h3 className="text-lg font-semibold mb-6" style={{ fontFamily: "'Cormorant Garamond', serif", color: DS.textPrimary }}>
+              <h3 className="text-lg font-semibold mb-6" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
                 Datos del cliente
               </h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium block mb-2" style={{ color: DS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <label className="text-sm font-medium block mb-2" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Nombre del cliente *
                   </label>
                   <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: DS.textMuted }} />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: COLORS.textMuted }} />
                     <input
                       type="text"
                       value={clientName}
@@ -401,22 +412,23 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                       placeholder="Nombre completo"
                       style={{
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
-                        borderRadius: DS.radius.md,
-                        borderColor: error && !clientName.trim() ? DS.danger : DS.border,
+                        borderRadius: '10px',
+                        borderColor: error && !clientName.trim() ? COLORS.danger : COLORS.border,
                         padding: '14px 14px 14px 48px',
-                        color: DS.textPrimary,
+                        color: COLORS.textPrimary,
+                        backgroundColor: COLORS.surface,
                       }}
-                      className="w-full border-2 focus:outline-none focus:border-[#0F4C5C] transition-colors"
+                      className={`w-full border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:border-sky-400' : 'focus:border-[#0F4C5C]'}`}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium block mb-2" style={{ color: DS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <label className="text-sm font-medium block mb-2" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Teléfono (opcional)
                   </label>
                   <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: DS.textMuted }} />
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: COLORS.textMuted }} />
                     <input
                       type="tel"
                       value={clientPhone}
@@ -424,18 +436,19 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                       placeholder="Número de teléfono"
                       style={{
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
-                        borderRadius: DS.radius.md,
-                        borderColor: DS.border,
+                        borderRadius: '10px',
+                        borderColor: COLORS.border,
                         padding: '14px 14px 14px 48px',
-                        color: DS.textPrimary,
+                        color: COLORS.textPrimary,
+                        backgroundColor: COLORS.surface,
                       }}
-                      className="w-full border-2 focus:outline-none focus:border-[#0F4C5C] transition-colors"
+                      className={`w-full border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:border-sky-400' : 'focus:border-[#0F4C5C]'}`}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium block mb-2" style={{ color: DS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <label className="text-sm font-medium block mb-2" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Notas (opcional)
                   </label>
                   <textarea
@@ -445,20 +458,21 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                     rows={3}
                     style={{
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      borderRadius: DS.radius.md,
-                      borderColor: DS.border,
+                      borderRadius: '10px',
+                      borderColor: COLORS.border,
                       padding: '14px',
-                      color: DS.textPrimary,
+                      color: COLORS.textPrimary,
+                      backgroundColor: COLORS.surface,
                     }}
-                    className="w-full border-2 focus:outline-none focus:border-[#0F4C5C] transition-colors resize-none"
+                    className={`w-full border-2 focus:outline-none transition-colors resize-none ${COLORS.isDark ? 'focus:border-sky-400' : 'focus:border-[#0F4C5C]'}`}
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 mt-4 p-3 rounded-lg" style={{ backgroundColor: DS.dangerLight }}>
-                  <AlertCircle className="w-5 h-5" style={{ color: DS.danger }} />
-                  <span style={{ color: DS.danger, fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-sm">
+                <div className="flex items-center gap-2 mt-4 p-3 rounded-lg" style={{ backgroundColor: COLORS.dangerLight }}>
+                  <AlertCircle className="w-5 h-5" style={{ color: COLORS.danger }} />
+                  <span style={{ color: COLORS.danger, fontFamily: "'Plus Jakarta Sans', sans-serif" }} className="text-sm">
                     {error}
                   </span>
                 </div>
@@ -470,11 +484,12 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
               <button
                 type="button"
                 onClick={() => setStep('services')}
-                className="flex-1 py-3 rounded-xl font-medium transition-colors"
+                className="flex-1 py-3 rounded-xl font-medium transition-colors cursor-pointer"
                 style={{ 
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  border: `1px solid ${DS.border}`,
-                  color: DS.textSecondary,
+                  border: `1px solid ${COLORS.border}`,
+                  color: COLORS.textSecondary,
+                  backgroundColor: COLORS.surface,
                 }}
               >
                 Atrás
@@ -483,10 +498,10 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                 type="button"
                 onClick={() => setStep('confirm')}
                 disabled={!canSubmit}
-                className="flex-1 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 style={{ 
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  backgroundColor: DS.primary,
+                  background: COLORS.primaryGradient,
                   color: '#FFFFFF',
                 }}
               >
@@ -502,12 +517,12 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
           <div className="animate-fadeIn">
             <div 
               className="rounded-2xl overflow-hidden"
-              style={{ backgroundColor: DS.surface, border: `1px solid ${DS.border}` }}
+              style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}
             >
               {/* Header */}
               <div 
                 className="p-6"
-                style={{ background: `linear-gradient(135deg, ${DS.primary} 0%, ${DS.primaryHover} 100%)` }}
+                style={{ background: COLORS.primaryGradient }}
               >
                 <h3 className="text-xl font-semibold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                   Resumen del servicio
@@ -518,17 +533,17 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
               </div>
 
               {/* Client Info */}
-              <div className="p-6 border-b" style={{ borderColor: DS.border }}>
+              <div className="p-6 border-b" style={{ borderColor: COLORS.border }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: DS.primaryLight }}>
-                    <User className="w-5 h-5" style={{ color: DS.primary }} />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '20' }}>
+                    <User className="w-5 h-5" style={{ color: COLORS.primary }} />
                   </div>
                   <div>
-                    <p className="font-medium" style={{ color: DS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <p className="font-medium" style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       {clientName}
                     </p>
                     {clientPhone && (
-                      <p className="text-sm" style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      <p className="text-sm" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         {clientPhone}
                       </p>
                     )}
@@ -538,18 +553,18 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
 
               {/* Services */}
               <div className="p-6">
-                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   Servicios ({selectedCount})
                 </p>
                 <div className="space-y-2">
                   {Array.from(selectedServices).map(id => {
                     const service = services.find(s => s.id === id)
                     return (
-                      <div key={id} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: '#F8FAFC' }}>
-                        <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.textPrimary }}>
+                      <div key={id} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+                        <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}>
                           {service?.name}
                         </span>
-                        <span className="font-medium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.primary }}>
+                        <span className="font-medium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.primary }}>
                           ${service?.price.toLocaleString('es-CO')}
                         </span>
                       </div>
@@ -558,11 +573,11 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                 </div>
 
                 {/* Total */}
-                <div className="flex items-center justify-between mt-4 pt-4 border-t" style={{ borderColor: DS.border }}>
-                  <span className="font-semibold" style={{ color: DS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <div className="flex items-center justify-between mt-4 pt-4 border-t" style={{ borderColor: COLORS.border }}>
+                  <span className="font-semibold" style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Total a cobrar
                   </span>
-                  <span className="text-3xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: DS.primary }}>
+                  <span className="text-3xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.primary }}>
                     ${total.toLocaleString('es-CO')}
                   </span>
                 </div>
@@ -574,11 +589,12 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
               <button
                 type="button"
                 onClick={() => setStep('client')}
-                className="flex-1 py-3 rounded-xl font-medium transition-colors"
+                className="flex-1 py-3 rounded-xl font-medium transition-colors cursor-pointer"
                 style={{ 
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  border: `1px solid ${DS.border}`,
-                  color: DS.textSecondary,
+                  border: `1px solid ${COLORS.border}`,
+                  color: COLORS.textSecondary,
+                  backgroundColor: COLORS.surface,
                 }}
               >
                 Atrás
@@ -587,10 +603,10 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 style={{ 
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  backgroundColor: DS.primary,
+                  background: COLORS.primaryGradient,
                   color: '#FFFFFF',
                 }}
               >

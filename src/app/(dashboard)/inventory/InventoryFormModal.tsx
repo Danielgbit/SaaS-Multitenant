@@ -2,9 +2,40 @@
 
 import { useState, useEffect } from 'react'
 import { X, Package, Tag, DollarSign, Boxes, AlertCircle, CheckCircle, Loader2, HelpCircle } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { createInventoryItem } from '@/actions/inventory/createInventoryItem'
 import { updateInventoryItem } from '@/actions/inventory/updateInventoryItem'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
+
+function useColors() {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  
+  return {
+    primary: isDark ? '#38BDF8' : '#0F4C5C',
+    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
+    primaryGradient: isDark 
+      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
+      : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
+    surface: isDark ? '#0F172A' : '#FFFFFF',
+    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
+    surfaceGlass: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+    border: isDark ? '#334155' : '#E2E8F0',
+    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
+    textSecondary: isDark ? '#94A3B8' : '#475569',
+    textMuted: isDark ? '#64748B' : '#94A3B8',
+    success: '#16A34A',
+    successLight: isDark ? '#064E3B' : '#D1FAE5',
+    error: '#DC2626',
+    errorLight: isDark ? '#450A0A' : '#FEE2E2',
+    warning: '#F59E0B',
+    warningLight: isDark ? '#451A03' : '#FEF3C7',
+    danger: '#DC2626',
+    dangerLight: isDark ? '#450A0A' : '#FEE2E2',
+    overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.4)',
+    isDark,
+  }
+}
 
 interface InventoryFormModalProps {
   item: InventoryItem | null
@@ -13,27 +44,6 @@ interface InventoryFormModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
-}
-
-const DS = {
-  primary: '#0F4C5C',
-  primaryHover: '#0C3E4A',
-  surface: '#FFFFFF',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textMuted: '#94A3B8',
-  border: '#E2E8F0',
-  danger: '#DC2626',
-  dangerLight: '#FEE2E2',
-  warning: '#F59E0B',
-  warningLight: '#FEF3C7',
-  success: '#10B981',
-  successLight: '#D1FAE5',
-  radius: {
-    lg: '16px',
-    md: '10px',
-    sm: '8px',
-  },
 }
 
 interface FieldErrors {
@@ -60,6 +70,7 @@ export function InventoryFormModal({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [showTooltip, setShowTooltip] = useState<string | null>(null)
+  const COLORS = useColors()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -73,7 +84,6 @@ export function InventoryFormModal({
     unit: 'pieza',
   })
 
-  // Reset form when modal opens/closes or item changes
   useEffect(() => {
     if (isOpen) {
       setFormData({
@@ -145,7 +155,6 @@ export function InventoryFormModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validate all fields
     const errors: FieldErrors = {}
     Object.keys(formData).forEach((key) => {
       const error = validateField(key, formData[key as keyof typeof formData])
@@ -193,20 +202,21 @@ export function InventoryFormModal({
 
   const inputStyle = (hasError: boolean) => ({
     fontFamily: "'Plus Jakarta Sans', sans-serif",
-    borderRadius: DS.radius.md,
-    borderColor: hasError ? DS.danger : DS.border,
+    borderRadius: '10px',
+    borderColor: hasError ? COLORS.danger : COLORS.border,
     padding: '12px 16px',
-    color: DS.textPrimary,
+    color: COLORS.textPrimary,
     width: '100%' as const,
     outline: 'none',
     transition: 'border-color 0.2s, box-shadow 0.2s',
+    backgroundColor: COLORS.surface,
   })
 
   const labelStyle = {
     fontFamily: "'Plus Jakarta Sans', sans-serif",
     fontSize: '13px',
     fontWeight: 600 as const,
-    color: DS.textSecondary,
+    color: COLORS.textSecondary,
     marginBottom: '6px',
     display: 'flex' as const,
     alignItems: 'center' as const,
@@ -214,26 +224,26 @@ export function InventoryFormModal({
   }
 
   const SectionHeader = ({ icon: Icon, title, description }: { icon: any, title: string, description?: string }) => (
-    <div className="flex items-center gap-3 mb-4 pb-3 border-b" style={{ borderColor: DS.border }}>
+    <div className="flex items-center gap-3 mb-4 pb-3 border-b" style={{ borderColor: COLORS.border }}>
       <div 
         className="w-10 h-10 rounded-xl flex items-center justify-center"
-        style={{ backgroundColor: '#F0F9FF' }}
+        style={{ backgroundColor: COLORS.primary + '15' }}
       >
-        <Icon className="w-5 h-5" style={{ color: DS.primary }} />
+        <Icon className="w-5 h-5" style={{ color: COLORS.primary }} />
       </div>
       <div>
         <h3 
           className="font-semibold"
           style={{ 
             fontFamily: "'Cormorant Garamond', serif",
-            color: DS.textPrimary,
+            color: COLORS.textPrimary,
             fontSize: '18px'
           }}
         >
           {title}
         </h3>
         {description && (
-          <p className="text-xs" style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <p className="text-xs" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             {description}
           </p>
         )}
@@ -255,7 +265,7 @@ export function InventoryFormModal({
           <div className="relative">
             <HelpCircle 
               className="w-4 h-4 cursor-help"
-              style={{ color: DS.textMuted }}
+              style={{ color: COLORS.textMuted }}
               onMouseEnter={() => setShowTooltip(name)}
               onMouseLeave={() => setShowTooltip(null)}
             />
@@ -279,7 +289,7 @@ export function InventoryFormModal({
       {fieldErrors[name as keyof FieldErrors] && touched[name] && (
         <p 
           className="text-xs mt-1.5 flex items-center gap-1"
-          style={{ color: DS.danger, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{ color: COLORS.danger, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           <AlertCircle className="w-3 h-3" />
           {fieldErrors[name as keyof FieldErrors]}
@@ -288,7 +298,7 @@ export function InventoryFormModal({
       {helpText && !fieldErrors[name as keyof FieldErrors] && (
         <p 
           className="text-xs mt-1.5"
-          style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           {helpText}
         </p>
@@ -299,14 +309,16 @@ export function InventoryFormModal({
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(4px)' }}
+      style={{ backgroundColor: COLORS.overlay, backdropFilter: 'blur(4px)' }}
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scaleIn"
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         style={{ 
-          backgroundColor: DS.surface,
-          borderRadius: DS.radius.lg,
+          backgroundColor: COLORS.surface,
+          borderRadius: '16px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          border: `1px solid ${COLORS.border}`,
           animation: 'scaleIn 0.2s ease-out',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -324,21 +336,20 @@ export function InventoryFormModal({
           }
         `}</style>
 
-        {/* Header */}
+        {/* Header con gradiente */}
         <div 
-          className="flex items-center justify-between p-6 border-b sticky top-0 z-10"
+          className="relative flex items-center justify-between p-6 border-b sticky top-0 z-10 overflow-hidden"
           style={{ 
-            borderColor: DS.border,
-            backgroundColor: DS.surface,
-            borderRadius: `${DS.radius.lg} ${DS.radius.lg} 0 0`
+            borderColor: COLORS.border,
+            background: COLORS.primaryGradient,
+            borderRadius: '16px 16px 0 0'
           }}
         >
-          <div className="flex items-center gap-3">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          
+          <div className="relative flex items-center gap-3">
             <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center"
-              style={{ 
-                background: `linear-gradient(135deg, ${DS.primary} 0%, ${DS.primaryHover} 100%)`
-              }}
+              className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/20 backdrop-blur-sm"
             >
               <Package className="w-6 h-6 text-white" />
             </div>
@@ -347,7 +358,7 @@ export function InventoryFormModal({
                 className="text-xl font-bold"
                 style={{ 
                   fontFamily: "'Cormorant Garamond', serif",
-                  color: DS.textPrimary 
+                  color: '#FFFFFF' 
                 }}
               >
                 {item ? 'Editar producto' : 'Nuevo producto'}
@@ -356,7 +367,7 @@ export function InventoryFormModal({
                 className="text-sm"
                 style={{ 
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: DS.textSecondary 
+                  color: 'rgba(255,255,255,0.8)' 
                 }}
               >
                 {item ? 'Actualiza la información del producto' : 'Agrega un nuevo producto al inventario'}
@@ -366,9 +377,9 @@ export function InventoryFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-slate-100 transition-colors"
+            className="p-2 rounded-xl hover:bg-white/20 transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" style={{ color: DS.textSecondary }} />
+            <X className="w-5 h-5 text-white" />
           </button>
         </div>
 
@@ -377,8 +388,8 @@ export function InventoryFormModal({
             <div 
               className="p-4 rounded-xl text-sm mb-6 flex items-start gap-3"
               style={{ 
-                backgroundColor: DS.dangerLight,
-                color: DS.danger,
+                backgroundColor: COLORS.errorLight,
+                color: COLORS.danger,
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
               }}
             >
@@ -409,7 +420,7 @@ export function InventoryFormModal({
                   onBlur={() => handleBlur('name')}
                   placeholder="Ej: Shampoo fortalecedor"
                   style={inputStyle(!!fieldErrors.name && touched.name)}
-                  className="border-2 focus:border-[#0F4C5C] transition-colors"
+                  className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                 />
               )}
 
@@ -423,7 +434,7 @@ export function InventoryFormModal({
                   onBlur={() => handleBlur('sku')}
                   placeholder="Ej: SHM-001"
                   style={inputStyle(!!fieldErrors.sku && touched.sku)}
-                  className="border-2 focus:border-[#0F4C5C] transition-colors"
+                  className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                 />,
                 'Código interno de identificación'
               )}
@@ -444,7 +455,7 @@ export function InventoryFormModal({
                     }}
                     placeholder="Seleccionar o crear categoría"
                     style={inputStyle(false)}
-                    className="border-2 focus:border-[#0F4C5C] transition-colors"
+                    className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                   />
                   <datalist id="categories">
                     {categories.map((cat) => (
@@ -461,7 +472,7 @@ export function InventoryFormModal({
                   value={formData.unit}
                   onChange={(e) => handleChange('unit', e.target.value)}
                   style={inputStyle(false)}
-                  className="border-2 focus:border-[#0F4C5C] transition-colors bg-white"
+                  className={`border-2 focus:outline-none transition-colors bg-white dark:bg-slate-900 ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                 >
                   <option value="pieza">Pieza</option>
                   <option value="kg">Kilogramo (kg)</option>
@@ -482,7 +493,7 @@ export function InventoryFormModal({
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
                   style={{ ...inputStyle(false), minHeight: '80px', resize: 'vertical' as const }}
-                  className="border-2 focus:border-[#0F4C5C] transition-colors"
+                  className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                   placeholder="Descripción opcional del producto..."
                 />
               </div>
@@ -508,7 +519,7 @@ export function InventoryFormModal({
                   onChange={(e) => handleChange('quantity', e.target.value)}
                   onBlur={() => handleBlur('quantity')}
                   style={inputStyle(!!fieldErrors.quantity && touched.quantity)}
-                  className="border-2 focus:border-[#0F4C5C] transition-colors"
+                  className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                 />,
                 undefined,
                 'Cantidad actual disponible en inventario'
@@ -524,7 +535,7 @@ export function InventoryFormModal({
                   onChange={(e) => handleChange('min_quantity', e.target.value)}
                   onBlur={() => handleBlur('min_quantity')}
                   style={inputStyle(!!fieldErrors.min_quantity && touched.min_quantity)}
-                  className="border-2 focus:border-[#0F4C5C] transition-colors"
+                  className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                 />,
                 'Alerta cuando el stock llegue a este número',
                 'Recibirás una alerta cuando el stock alcance este nivel'
@@ -547,7 +558,7 @@ export function InventoryFormModal({
                 <div className="relative">
                   <span 
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium"
-                    style={{ color: DS.textMuted }}
+                    style={{ color: COLORS.textMuted }}
                   >
                     $
                   </span>
@@ -560,7 +571,7 @@ export function InventoryFormModal({
                     onBlur={() => handleBlur('price')}
                     placeholder="0.00"
                     style={{ ...inputStyle(!!fieldErrors.price && touched.price), paddingLeft: '32px' }}
-                    className="border-2 focus:border-[#0F4C5C] transition-colors"
+                    className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                   />
                 </div>,
                 'Precio al que venderás el producto'
@@ -572,7 +583,7 @@ export function InventoryFormModal({
                 <div className="relative">
                   <span 
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium"
-                    style={{ color: DS.textMuted }}
+                    style={{ color: COLORS.textMuted }}
                   >
                     $
                   </span>
@@ -585,29 +596,28 @@ export function InventoryFormModal({
                     onBlur={() => handleBlur('cost_price')}
                     placeholder="0.00"
                     style={{ ...inputStyle(!!fieldErrors.cost_price && touched.cost_price), paddingLeft: '32px' }}
-                    className="border-2 focus:border-[#0F4C5C] transition-colors"
+                    className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                   />
                 </div>,
                 'Cuánto te cuesta obtener el producto'
               )}
             </div>
 
-            {/* Margin preview */}
             {formData.price && formData.cost_price && (
               <div 
                 className="mt-4 p-4 rounded-xl flex items-center justify-between"
-                style={{ backgroundColor: '#F8FAFC' }}
+                style={{ backgroundColor: COLORS.surfaceSubtle }}
               >
                 <span 
                   className="text-sm"
-                  style={{ color: DS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                 >
                   Margen de ganancia:
                 </span>
                 <span 
                   className="font-bold text-lg"
                   style={{ 
-                    color: parseFloat(formData.price) > parseFloat(formData.cost_price) ? DS.success : DS.danger,
+                    color: parseFloat(formData.price) > parseFloat(formData.cost_price) ? COLORS.success : COLORS.danger,
                     fontFamily: "'Cormorant Garamond', serif"
                   }}
                 >
@@ -621,16 +631,17 @@ export function InventoryFormModal({
           {/* Actions */}
           <div 
             className="flex gap-3 pt-6 border-t"
-            style={{ borderColor: DS.border }}
+            style={{ borderColor: COLORS.border }}
           >
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3.5 px-4 rounded-xl font-medium transition-all hover:bg-slate-50"
+              className="flex-1 py-3.5 px-4 rounded-xl font-medium transition-all hover:opacity-90 cursor-pointer"
               style={{ 
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: DS.textSecondary,
-                border: `1px solid ${DS.border}`,
+                color: COLORS.textSecondary,
+                border: `1px solid ${COLORS.border}`,
+                backgroundColor: COLORS.surface,
               }}
             >
               Cancelar
@@ -638,10 +649,10 @@ export function InventoryFormModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-3.5 px-4 rounded-xl font-medium transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-3.5 px-4 rounded-xl font-medium transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               style={{ 
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                backgroundColor: DS.primary,
+                background: COLORS.primaryGradient,
                 color: '#FFFFFF',
               }}
             >

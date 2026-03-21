@@ -3,38 +3,46 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Package, Search, AlertTriangle, FolderOpen, ChevronDown, X, Loader2 } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { InventoryCard } from './InventoryCard'
 import { InventoryFormModal } from './InventoryFormModal'
 import { DeleteInventoryModal } from './DeleteInventoryModal'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
 
+function useColors() {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  
+  return {
+    primary: isDark ? '#38BDF8' : '#0F4C5C',
+    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
+    primaryGradient: isDark 
+      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
+      : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
+    surface: isDark ? '#0F172A' : '#FFFFFF',
+    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
+    surfaceGlass: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+    border: isDark ? '#334155' : '#E2E8F0',
+    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
+    textSecondary: isDark ? '#94A3B8' : '#475569',
+    textMuted: isDark ? '#64748B' : '#94A3B8',
+    success: '#16A34A',
+    successLight: isDark ? '#064E3B' : '#D1FAE5',
+    error: '#DC2626',
+    errorLight: isDark ? '#450A0A' : '#FEE2E2',
+    warning: '#F59E0B',
+    warningLight: isDark ? '#451A03' : '#FEF3C7',
+    danger: '#DC2626',
+    dangerLight: isDark ? '#450A0A' : '#FEE2E2',
+    overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.4)',
+    isDark,
+  }
+}
+
 interface InventoryClientProps {
   items: InventoryItem[]
   categories: string[]
   organizationId: string
-}
-
-const DS = {
-  primary: '#0F4C5C',
-  primaryHover: '#0C3E4A',
-  surface: '#FFFFFF',
-  surfaceDark: '#1E293B',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textMuted: '#94A3B8',
-  border: '#E2E8F0',
-  borderDark: '#334155',
-  danger: '#DC2626',
-  dangerLight: '#FEE2E2',
-  warning: '#F59E0B',
-  warningLight: '#FEF3C7',
-  success: '#10B981',
-  successLight: '#D1FAE5',
-  radius: {
-    lg: '16px',
-    md: '10px',
-    sm: '8px',
-  },
 }
 
 type FilterType = 'all' | 'lowStock' | 'criticalStock' | 'category'
@@ -46,6 +54,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
   const [selectedCategory, setSelectedCategory] = useState('')
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const COLORS = useColors()
 
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
   const [deletingItem, setDeletingItem] = useState<InventoryItem | null>(null)
@@ -53,12 +62,10 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
 
   const isModalOpen = isCreating || editingItem !== null
 
-  // Calcular estadísticas
   const totalItems = items.length
   const lowStockCount = items.filter((item) => item.quantity > 0 && item.quantity <= item.min_quantity).length
   const criticalStockCount = items.filter((item) => item.quantity === 0).length
 
-  // Filtrar items
   const filtered = items.filter((item) => {
     const matchesSearch = 
       item.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -81,7 +88,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
     return true
   })
 
-  // Debounce para búsqueda
   useEffect(() => {
     setIsLoading(true)
     const timer = setTimeout(() => setIsLoading(false), 300)
@@ -104,292 +110,281 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
 
   return (
     <>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-        <div>
-          <p 
-            className="text-xs font-semibold uppercase tracking-widest"
-            style={{ 
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: DS.primary 
-            }}
+      {/* Header con gradiente */}
+      <div 
+        className="relative overflow-hidden rounded-2xl p-6 md:p-8 mb-8"
+        style={{ background: COLORS.primaryGradient }}
+      >
+        <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+        
+        <div className="relative flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <Package className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Gestión de inventario</p>
+              <h1 
+                className="text-3xl font-bold tracking-tight text-white"
+                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              >
+                Inventario
+              </h1>
+              <p className="text-sm mt-1 text-white/80">
+                {totalItems} producto{totalItems !== 1 ? 's' : ''} registrado{totalItems !== 1 ? 's' : ''}
+                {lowStockCount > 0 && (
+                  <span className="ml-2">• {lowStockCount} con stock bajo</span>
+                )}
+                {criticalStockCount > 0 && (
+                  <span className="ml-2">• {criticalStockCount} sin stock</span>
+                )}
+              </p>
+            </div>
+          </div>
+          
+          <button
+            type="button"
+            onClick={() => setIsCreating(true)}
+            className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-sm font-semibold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
           >
-            Gestión de inventario
-          </p>
-          <h1 
-            className="text-3xl font-bold tracking-tight"
-            style={{ 
-              fontFamily: "'Cormorant Garamond', serif",
-              color: 'var(--text-primary, #0F172A)' 
-            }}
-          >
-            Inventario
-          </h1>
-          <p 
-            className="text-sm mt-1"
-            style={{ 
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: DS.textSecondary 
-            }}
-          >
-            {totalItems} producto{totalItems !== 1 ? 's' : ''} registrado{totalItems !== 1 ? 's' : ''}
-            {lowStockCount > 0 && (
-              <span className="ml-2 text-amber-600 font-medium">
-                • {lowStockCount} con stock bajo
-              </span>
-            )}
-            {criticalStockCount > 0 && (
-              <span className="ml-2 text-red-600 font-medium">
-                • {criticalStockCount} sin stock
-              </span>
-            )}
-          </p>
+            <Plus className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" />
+            Nuevo producto
+          </button>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setIsCreating(true)}
-          style={{
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
-            borderRadius: DS.radius.md,
-            backgroundColor: DS.primary,
-            color: '#FFFFFF',
-            padding: '12px 24px',
-          }}
-          className="font-semibold hover:opacity-90 transition-all duration-200 flex items-center gap-2 shadow-lg shadow-[#0F4C5C]/20 hover:shadow-xl hover:shadow-[#0F4C5C]/30 hover:-translate-y-0.5"
-        >
-          <Plus className="w-4 h-4" />
-          Nuevo producto
-        </button>
       </div>
 
-      {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search 
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors" 
-            style={{ color: query ? DS.primary : DS.textSecondary }} 
-          />
-          {query && (
-            <button
-              onClick={() => setQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-slate-100 transition-colors"
-            >
-              <X className="w-3 h-3" style={{ color: DS.textSecondary }} />
-            </button>
-          )}
-          <input
-            type="text"
-            placeholder="Buscar productos por nombre o SKU..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              borderRadius: DS.radius.md,
-              borderColor: query ? DS.primary : DS.border,
-              padding: '12px 40px 12px 44px',
-              color: DS.textPrimary,
-            }}
-            className="w-full border-2 focus:outline-none transition-all duration-200"
-          />
-        </div>
-
-        {/* Filter Pills */}
-        <div className="flex flex-wrap gap-2">
-          {/* All */}
-          <button
-            type="button"
-            onClick={() => handleFilterChange('all')}
-            style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              borderRadius: DS.radius.md,
-              padding: '10px 16px',
-              backgroundColor: filter === 'all' ? DS.primary : 'transparent',
-              color: filter === 'all' ? '#FFFFFF' : DS.textSecondary,
-              border: filter === 'all' ? 'none' : `1px solid ${DS.border}`,
-            }}
-            className="text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:border-slate-300"
-          >
-            <Package className="w-4 h-4" />
-            Todos
-            <span 
-              className="ml-1 px-1.5 py-0.5 rounded-full text-xs"
-              style={{ 
-                backgroundColor: filter === 'all' ? 'rgba(255,255,255,0.2)' : '#F1F5F9',
-                color: filter === 'all' ? '#FFFFFF' : DS.textSecondary
-              }}
-            >
-              {totalItems}
-            </span>
-          </button>
-
-          {/* Low Stock */}
-          <button
-            type="button"
-            onClick={() => handleFilterChange('lowStock')}
-            style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              borderRadius: DS.radius.md,
-              padding: '10px 16px',
-              backgroundColor: filter === 'lowStock' ? DS.warning : 'transparent',
-              color: filter === 'lowStock' ? '#FFFFFF' : DS.warning,
-              border: filter === 'lowStock' ? 'none' : `1px solid ${DS.warning}40`,
-            }}
-            className="text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:bg-amber-50"
-          >
-            <AlertTriangle className="w-4 h-4" />
-            Stock bajo
-            {lowStockCount > 0 && (
-              <span 
-                className="ml-1 px-1.5 py-0.5 rounded-full text-xs"
-                style={{ 
-                  backgroundColor: filter === 'lowStock' ? 'rgba(255,255,255,0.2)' : DS.warningLight,
-                  color: filter === 'lowStock' ? '#FFFFFF' : DS.warning
-                }}
+      {/* Search & Filters - Glassmorphism */}
+      <div 
+        className="p-4 rounded-2xl mb-6"
+        style={{ 
+          backgroundColor: COLORS.surfaceGlass,
+          backdropFilter: 'blur(12px)',
+          border: `1px solid ${COLORS.border}`
+        }}
+      >
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search 
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors" 
+              style={{ color: query ? COLORS.primary : COLORS.textMuted }} 
+            />
+            {query && (
+              <button
+                onClick={() => setQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
-                {lowStockCount}
-              </span>
+                <X className="w-3 h-3" style={{ color: COLORS.textMuted }} />
+              </button>
             )}
-          </button>
-
-          {/* Critical Stock */}
-          <button
-            type="button"
-            onClick={() => handleFilterChange('criticalStock')}
-            style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              borderRadius: DS.radius.md,
-              padding: '10px 16px',
-              backgroundColor: filter === 'criticalStock' ? DS.danger : 'transparent',
-              color: filter === 'criticalStock' ? '#FFFFFF' : DS.danger,
-              border: filter === 'criticalStock' ? 'none' : `1px solid ${DS.danger}40`,
-            }}
-            className="text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:bg-red-50"
-          >
-            <AlertTriangle className="w-4 h-4" />
-            Sin stock
-            {criticalStockCount > 0 && (
-              <span 
-                className="ml-1 px-1.5 py-0.5 rounded-full text-xs"
-                style={{ 
-                  backgroundColor: filter === 'criticalStock' ? 'rgba(255,255,255,0.2)' : DS.dangerLight,
-                  color: filter === 'criticalStock' ? '#FFFFFF' : DS.danger
-                }}
-              >
-                {criticalStockCount}
-              </span>
-            )}
-          </button>
-
-          {/* Category Dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+            <input
+              type="text"
+              placeholder="Buscar productos por nombre o SKU..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: DS.radius.md,
-                padding: '10px 16px',
-                backgroundColor: filter === 'category' ? DS.primary : 'transparent',
-                color: filter === 'category' ? '#FFFFFF' : DS.textSecondary,
-                border: filter === 'category' ? 'none' : `1px solid ${DS.border}`,
+                borderRadius: '10px',
+                borderColor: COLORS.border,
+                padding: '12px 40px 12px 44px',
+                color: COLORS.textPrimary,
+                backgroundColor: COLORS.surface,
               }}
-              className="text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:border-slate-300"
-            >
-              <FolderOpen className="w-4 h-4" />
-              {selectedCategory || 'Categoría'}
-              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCategoryOpen ? 'rotate-180' : ''}`} />
-            </button>
+              className="w-full border focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200"
+            />
+          </div>
 
-            {isCategoryOpen && (
-              <div 
-                className="absolute top-full left-0 mt-2 w-56 rounded-xl shadow-xl border z-50 overflow-hidden"
+          {/* Filter Pills */}
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => handleFilterChange('all')}
+              style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                borderRadius: '10px',
+                padding: '10px 16px',
+                backgroundColor: filter === 'all' ? COLORS.primary : 'transparent',
+                color: filter === 'all' ? '#FFFFFF' : COLORS.textSecondary,
+                border: filter === 'all' ? 'none' : `1px solid ${COLORS.border}`,
+              }}
+              className="text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:border-slate-300 dark:hover:border-slate-600"
+            >
+              <Package className="w-4 h-4" />
+              Todos
+              <span 
+                className="ml-1 px-1.5 py-0.5 rounded-full text-xs"
                 style={{ 
-                  backgroundColor: DS.surface,
-                  borderColor: DS.border,
+                  backgroundColor: filter === 'all' ? 'rgba(255,255,255,0.2)' : COLORS.surfaceSubtle,
+                  color: filter === 'all' ? '#FFFFFF' : COLORS.textSecondary
                 }}
               >
-                <div className="p-2">
-                  <button
-                    type="button"
-                    onClick={() => handleFilterChange('all', '')}
-                    className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-50 transition-colors"
-                    style={{ color: DS.textPrimary }}
-                  >
-                    Todas las categorías
-                  </button>
-                  {categories.length === 0 ? (
-                    <p 
-                      className="px-3 py-2 text-sm"
-                      style={{ color: DS.textMuted }}
+                {totalItems}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleFilterChange('lowStock')}
+              style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                borderRadius: '10px',
+                padding: '10px 16px',
+                backgroundColor: filter === 'lowStock' ? COLORS.warning : 'transparent',
+                color: filter === 'lowStock' ? '#FFFFFF' : COLORS.warning,
+                border: filter === 'lowStock' ? 'none' : `1px solid ${COLORS.warning}40`,
+              }}
+              className="text-sm font-medium transition-all duration-200 flex items-center gap-2"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              Stock bajo
+              {lowStockCount > 0 && (
+                <span 
+                  className="ml-1 px-1.5 py-0.5 rounded-full text-xs"
+                  style={{ 
+                    backgroundColor: filter === 'lowStock' ? 'rgba(255,255,255,0.2)' : COLORS.warningLight,
+                    color: filter === 'lowStock' ? '#FFFFFF' : COLORS.warning
+                  }}
+                >
+                  {lowStockCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleFilterChange('criticalStock')}
+              style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                borderRadius: '10px',
+                padding: '10px 16px',
+                backgroundColor: filter === 'criticalStock' ? COLORS.danger : 'transparent',
+                color: filter === 'criticalStock' ? '#FFFFFF' : COLORS.danger,
+                border: filter === 'criticalStock' ? 'none' : `1px solid ${COLORS.danger}40`,
+              }}
+              className="text-sm font-medium transition-all duration-200 flex items-center gap-2"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              Sin stock
+              {criticalStockCount > 0 && (
+                <span 
+                  className="ml-1 px-1.5 py-0.5 rounded-full text-xs"
+                  style={{ 
+                    backgroundColor: filter === 'criticalStock' ? 'rgba(255,255,255,0.2)' : COLORS.dangerLight,
+                    color: filter === 'criticalStock' ? '#FFFFFF' : COLORS.danger
+                  }}
+                >
+                  {criticalStockCount}
+                </span>
+              )}
+            </button>
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                style={{
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  borderRadius: '10px',
+                  padding: '10px 16px',
+                  backgroundColor: filter === 'category' ? COLORS.primary : 'transparent',
+                  color: filter === 'category' ? '#FFFFFF' : COLORS.textSecondary,
+                  border: filter === 'category' ? 'none' : `1px solid ${COLORS.border}`,
+                }}
+                className="text-sm font-medium transition-all duration-200 flex items-center gap-2"
+              >
+                <FolderOpen className="w-4 h-4" />
+                {selectedCategory || 'Categoría'}
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCategoryOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isCategoryOpen && (
+                <div 
+                  className="absolute top-full left-0 mt-2 w-56 rounded-xl shadow-xl border z-50 overflow-hidden"
+                  style={{ 
+                    backgroundColor: COLORS.surface,
+                    borderColor: COLORS.border,
+                  }}
+                >
+                  <div className="p-2">
+                    <button
+                      type="button"
+                      onClick={() => handleFilterChange('all', '')}
+                      className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      style={{ color: COLORS.textPrimary }}
                     >
-                      No hay categorías
-                    </p>
-                  ) : (
-                    categories.map((cat) => (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => handleFilterChange('category', cat)}
-                        className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-50 transition-colors flex items-center justify-between"
-                        style={{ 
-                          color: selectedCategory === cat ? DS.primary : DS.textPrimary,
-                          backgroundColor: selectedCategory === cat ? '#F0F9FF' : 'transparent'
-                        }}
+                      Todas las categorías
+                    </button>
+                    {categories.length === 0 ? (
+                      <p 
+                        className="px-3 py-2 text-sm"
+                        style={{ color: COLORS.textMuted }}
                       >
-                        {cat}
-                        <span 
-                          className="text-xs px-1.5 py-0.5 rounded-full"
+                        No hay categorías
+                      </p>
+                    ) : (
+                      categories.map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => handleFilterChange('category', cat)}
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-between"
                           style={{ 
-                            backgroundColor: DS.border,
-                            color: DS.textSecondary
+                            color: selectedCategory === cat ? COLORS.primary : COLORS.textPrimary,
+                            backgroundColor: selectedCategory === cat ? COLORS.primary + '10' : 'transparent'
                           }}
                         >
-                          {items.filter(i => i.category === cat).length}
-                        </span>
-                      </button>
-                    ))
-                  )}
+                          {cat}
+                          <span 
+                            className="text-xs px-1.5 py-0.5 rounded-full"
+                            style={{ 
+                              backgroundColor: COLORS.border,
+                              color: COLORS.textSecondary
+                            }}
+                          >
+                            {items.filter(i => i.category === cat).length}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Results count */}
       {query && (
-        <p className="text-sm mb-4" style={{ color: DS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <p className="text-sm mb-4" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           {filtered.length} resultado{filtered.length !== 1 ? 's' : ''} para "{query}"
         </p>
       )}
 
-      {/* Loading State */}
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin" style={{ color: DS.primary }} />
+          <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
         </div>
       ) : items.length === 0 ? (
-        /* Empty State - No products */
         <div 
-          className="text-center py-16 rounded-2xl"
+          className="text-center py-16 rounded-2xl animate-in fade-in duration-300"
           style={{ 
-            backgroundColor: DS.surface,
-            border: `1px solid ${DS.border}`
+            backgroundColor: COLORS.surfaceGlass,
+            border: `1px solid ${COLORS.border}`,
+            backdropFilter: 'blur(12px)'
           }}
         >
           <div 
-            className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: '#F0F9FF' }}
+            className="w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+            style={{ backgroundColor: COLORS.primary + '15' }}
           >
-            <Package className="w-10 h-10" style={{ color: DS.primary }} />
+            <Package className="w-10 h-10" style={{ color: COLORS.primary }} />
           </div>
           <h3 
             className="text-lg font-semibold mb-2"
             style={{ 
               fontFamily: "'Cormorant Garamond', serif",
-              color: DS.textPrimary 
+              color: COLORS.textPrimary 
             }}
           >
             Inventario vacío
@@ -397,7 +392,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
           <p 
             style={{ 
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: DS.textSecondary 
+              color: COLORS.textSecondary 
             }}
             className="text-sm mb-6 max-w-sm mx-auto"
           >
@@ -406,10 +401,10 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:shadow-lg"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:shadow-lg cursor-pointer"
             style={{ 
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              backgroundColor: DS.primary,
+              background: COLORS.primaryGradient,
               color: '#FFFFFF',
             }}
           >
@@ -418,23 +413,23 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
           </button>
         </div>
       ) : filtered.length === 0 ? (
-        /* Empty State - No results */
         <div 
-          className="text-center py-16 rounded-2xl"
+          className="text-center py-16 rounded-2xl animate-in fade-in duration-300"
           style={{ 
-            backgroundColor: DS.surface,
-            border: `1px solid ${DS.border}`
+            backgroundColor: COLORS.surfaceGlass,
+            border: `1px solid ${COLORS.border}`,
+            backdropFilter: 'blur(12px)'
           }}
         >
           <Search 
             className="w-12 h-12 mx-auto mb-4" 
-            style={{ color: DS.textMuted }} 
+            style={{ color: COLORS.textMuted }} 
           />
           <h3 
             className="text-lg font-semibold mb-2"
             style={{ 
               fontFamily: "'Cormorant Garamond', serif",
-              color: DS.textPrimary 
+              color: COLORS.textPrimary 
             }}
           >
             No se encontraron productos
@@ -442,7 +437,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
           <p 
             style={{ 
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: DS.textSecondary 
+              color: COLORS.textSecondary 
             }}
             className="text-sm mb-4"
           >
@@ -453,11 +448,11 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
                 style={{ 
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: DS.primary,
-                  border: `1px solid ${DS.primary}`
+                  color: COLORS.primary,
+                  border: `1px solid ${COLORS.primary}`
                 }}
               >
                 Limpiar búsqueda
@@ -466,10 +461,10 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
             <button
               type="button"
               onClick={() => handleFilterChange('all')}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
               style={{ 
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                backgroundColor: DS.primary,
+                background: COLORS.primaryGradient,
                 color: '#FFFFFF',
               }}
             >
@@ -478,7 +473,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
           </div>
         </div>
       ) : (
-        /* Products Grid */
         <div 
           className="grid gap-4"
           style={{ 
@@ -488,7 +482,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
           {filtered.map((item, index) => (
             <div 
               key={item.id}
-              className="animate-fadeIn"
+              className="animate-in fade-in slide-in-from-bottom-4"
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <InventoryCard
@@ -501,7 +495,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
         </div>
       )}
 
-      {/* Modals */}
       {(isCreating || editingItem) && (
         <InventoryFormModal
           item={editingItem}
@@ -526,7 +519,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
         />
       )}
 
-      {/* Click outside to close dropdown */}
       {isCategoryOpen && (
         <div 
           className="fixed inset-0 z-40" 

@@ -7,36 +7,50 @@ import {
   Loader2, Plus, DollarSign, Calendar, Sparkles, 
   ArrowRight, AlertCircle, Check
 } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { createConfirmation } from '@/actions/confirmations/createConfirmation'
 import type { AppointmentConfirmation, ConfirmationService } from '@/actions/confirmations/types'
+
+function useColors() {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  
+  return {
+    primary: isDark ? '#38BDF8' : '#0F4C5C',
+    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
+    primaryGradient: isDark 
+      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
+      : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
+    headerBg: isDark 
+      ? 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)'
+      : 'linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%)',
+    headerText: isDark ? '#FFFFFF' : '#0F172A',
+    headerTextMuted: isDark ? 'rgba(255,255,255,0.8)' : '#475569',
+    surface: isDark ? '#1E293B' : '#FFFFFF',
+    surfaceSubtle: isDark ? '#0F172A' : '#F1F5F9',
+    surfaceGlass: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+    border: isDark ? '#334155' : '#CBD5E1',
+    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
+    textSecondary: isDark ? '#94A3B8' : '#475569',
+    textMuted: isDark ? '#64748B' : '#64748B',
+    success: '#16A34A',
+    successLight: isDark ? '#064E3B' : '#DCFCE7',
+    successDark: isDark ? '#6EE7B7' : '#059669',
+    error: '#DC2626',
+    errorLight: isDark ? '#450A0A' : '#FEE2E2',
+    warning: '#F59E0B',
+    warningLight: isDark ? '#451A03' : '#FEF3C7',
+    purple: '#8B5CF6',
+    purpleLight: isDark ? '#2E1065' : '#EDE9FE',
+    overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.5)',
+    isDark,
+  }
+}
 
 interface EmployeeConfirmationsProps {
   confirmations: AppointmentConfirmation[]
   organizationId: string
   employeeId: string
-}
-
-const DS = {
-  primary: '#0F4C5C',
-  primaryHover: '#0C3E4A',
-  primaryLight: '#E0F2FE',
-  surface: '#FFFFFF',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textMuted: '#94A3B8',
-  border: '#E2E8F0',
-  success: '#10B981',
-  successLight: '#D1FAE5',
-  successDark: '#059669',
-  warning: '#F59E0B',
-  warningLight: '#FEF3C7',
-  purple: '#8B5CF6',
-  purpleLight: '#EDE9FE',
-  radius: {
-    lg: '16px',
-    md: '10px',
-    sm: '8px',
-  },
 }
 
 export function EmployeeConfirmations({ 
@@ -50,6 +64,7 @@ export function EmployeeConfirmations({
   const [selectedServices, setSelectedServices] = useState<Record<string, boolean>>({})
   const [showSuccess, setShowSuccess] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  const COLORS = useColors()
 
   useEffect(() => {
     setMounted(true)
@@ -57,7 +72,6 @@ export function EmployeeConfirmations({
 
   const pendingConfirmations = confirmations.filter(c => c.status === 'pending_employee')
   
-  // Stats
   const todayIncome = pendingConfirmations.reduce((sum, c) => sum + c.total_amount, 0)
   const scheduledCount = pendingConfirmations.filter(c => c.confirmation_type === 'scheduled').length
   const walkinCount = pendingConfirmations.filter(c => c.confirmation_type === 'walkin').length
@@ -116,8 +130,9 @@ export function EmployeeConfirmations({
         <div 
           className="absolute inset-0 rounded-3xl -z-10"
           style={{
-            background: `linear-gradient(135deg, ${DS.primary} 0%, ${DS.primaryHover} 100%)`,
-            height: '180px'
+            background: COLORS.headerBg,
+            height: '180px',
+            boxShadow: COLORS.isDark ? 'none' : '0 4px 20px rgba(15, 76, 92, 0.3)'
           }}
         />
         <div className="pt-8 px-8 pb-6">
@@ -125,19 +140,19 @@ export function EmployeeConfirmations({
             <div>
               <p 
                 className="text-xs font-semibold uppercase tracking-widest"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.8)' }}
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.headerTextMuted }}
               >
                 Gestión de servicios
               </p>
               <h1 
                 className="text-3xl font-bold tracking-tight mt-1"
-                style={{ fontFamily: "'Cormorant Garamond', serif", color: '#FFFFFF' }}
+                style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.headerText }}
               >
                 Mis Servicios
               </h1>
               <p 
                 className="text-sm mt-1"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.7)' }}
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.headerTextMuted }}
               >
                 {pendingConfirmations.length} servicio{pendingConfirmations.length !== 1 ? 's' : ''} pendiente{pendingConfirmations.length !== 1 ? 's' : ''} de confirmar
               </p>
@@ -148,12 +163,12 @@ export function EmployeeConfirmations({
               onClick={() => router.push('/confirmations/walkin')}
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: DS.radius.md,
+                borderRadius: '10px',
                 backgroundColor: '#FFFFFF',
-                color: DS.primary,
+                color: COLORS.primary,
                 padding: '14px 28px',
               }}
-              className="font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+              className="font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer"
             >
               <Sparkles className="w-5 h-5" />
               Nuevo Walk-in
@@ -164,17 +179,17 @@ export function EmployeeConfirmations({
           <div className="grid grid-cols-3 gap-4 mt-6">
             <div 
               className="rounded-xl p-4"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}
+              style={{ backgroundColor: COLORS.surfaceGlass, backdropFilter: 'blur(10px)', border: `1px solid ${COLORS.border}` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                  <Calendar className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '20' }}>
+                  <Calendar className="w-5 h-5" style={{ color: COLORS.primary }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#FFFFFF' }}>
+                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
                     {scheduledCount}
                   </p>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Citas
                   </p>
                 </div>
@@ -183,17 +198,17 @@ export function EmployeeConfirmations({
             
             <div 
               className="rounded-xl p-4"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}
+              style={{ backgroundColor: COLORS.surfaceGlass, backdropFilter: 'blur(10px)', border: `1px solid ${COLORS.border}` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                  <Sparkles className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.warning + '20' }}>
+                  <Sparkles className="w-5 h-5" style={{ color: COLORS.warning }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#FFFFFF' }}>
+                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
                     {walkinCount}
                   </p>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Walk-ins
                   </p>
                 </div>
@@ -202,17 +217,17 @@ export function EmployeeConfirmations({
 
             <div 
               className="rounded-xl p-4"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}
+              style={{ backgroundColor: COLORS.surfaceGlass, backdropFilter: 'blur(10px)', border: `1px solid ${COLORS.border}` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                  <DollarSign className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.success + '20' }}>
+                  <DollarSign className="w-5 h-5" style={{ color: COLORS.success }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#FFFFFF' }}>
+                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
                     ${todayIncome.toLocaleString('es-CO')}
                   </p>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Total
                   </p>
                 </div>
@@ -226,16 +241,29 @@ export function EmployeeConfirmations({
       <div className="px-8 -mt-4">
         {pendingConfirmations.length === 0 ? (
           <div 
-            className="text-center py-16 rounded-2xl"
-            style={{ backgroundColor: DS.surface, border: `1px solid ${DS.border}` }}
+            className="text-center py-16 rounded-2xl animate-in fade-in duration-300"
+            style={{ 
+              backgroundColor: COLORS.surfaceGlass,
+              border: `1px solid ${COLORS.border}`,
+              backdropFilter: 'blur(12px)'
+            }}
           >
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: DS.successLight }}>
-              <CheckCircle className="w-10 h-10" style={{ color: DS.success }} />
+            <div 
+              className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" 
+              style={{ backgroundColor: COLORS.successLight }}
+            >
+              <CheckCircle className="w-10 h-10" style={{ color: COLORS.success }} />
             </div>
-            <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", color: DS.textPrimary }}>
+            <h3 
+              className="text-xl font-semibold mb-2" 
+              style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}
+            >
               Todo al día
             </h3>
-            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.textSecondary }} className="max-w-sm mx-auto">
+            <p 
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }} 
+              className="max-w-sm mx-auto"
+            >
               No tienes servicios pendientes de confirmar. ¡Buen trabajo!
             </p>
           </div>
@@ -248,7 +276,7 @@ export function EmployeeConfirmations({
               return (
                 <div
                   key={conf.id}
-                  className="animate-fadeIn"
+                  className="animate-in fade-in slide-in-from-bottom-4"
                   style={{ 
                     animationDelay: `${index * 100}ms`,
                     opacity: isSuccess ? 0.5 : 1,
@@ -257,10 +285,11 @@ export function EmployeeConfirmations({
                 >
                   <div
                     style={{
-                      backgroundColor: DS.surface,
-                      borderRadius: DS.radius.lg,
-                      border: `1px solid ${DS.border}`,
+                      backgroundColor: COLORS.surfaceGlass,
+                      borderRadius: '16px',
+                      border: `1px solid ${COLORS.border}`,
                       overflow: 'hidden',
+                      backdropFilter: 'blur(12px)',
                     }}
                   >
                     {/* Header */}
@@ -268,21 +297,21 @@ export function EmployeeConfirmations({
                       className="px-6 py-4 flex items-center justify-between"
                       style={{
                         background: isScheduled 
-                          ? 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)'
-                          : 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+                          ? (COLORS.isDark ? 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)' : 'linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%)')
+                          : COLORS.warningLight,
                       }}
                     >
                       <div className="flex items-center gap-3">
                         <div 
                           className="w-10 h-10 rounded-xl flex items-center justify-center"
                           style={{ 
-                            backgroundColor: isScheduled ? DS.primaryLight : DS.warningLight 
+                            backgroundColor: isScheduled ? COLORS.primary + '20' : COLORS.warningLight
                           }}
                         >
                           {isScheduled ? (
-                            <Calendar className="w-5 h-5" style={{ color: DS.primary }} />
+                            <Calendar className="w-5 h-5" style={{ color: COLORS.primary }} />
                           ) : (
-                            <Sparkles className="w-5 h-5" style={{ color: DS.warning }} />
+                            <Sparkles className="w-5 h-5" style={{ color: COLORS.warning }} />
                           )}
                         </div>
                         <div>
@@ -291,25 +320,25 @@ export function EmployeeConfirmations({
                               className="text-sm font-semibold"
                               style={{ 
                                 fontFamily: "'Plus Jakarta Sans', sans-serif", 
-                                color: isScheduled ? DS.primary : '#B45309' 
+                                color: isScheduled ? COLORS.primary : COLORS.warning 
                               }}
                             >
                               {isScheduled ? 'Cita agendada' : 'Walk-in'}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <Clock className="w-3 h-3" style={{ color: DS.textMuted }} />
-                            <span className="text-xs" style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            <Clock className="w-3 h-3" style={{ color: COLORS.textMuted }} />
+                            <span className="text-xs" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                               {formatTimeAgo(conf.created_at)}
                             </span>
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs" style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-xs" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Total
                         </p>
-                        <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: DS.primary }}>
+                        <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.primary }}>
                           ${conf.total_amount.toLocaleString('es-CO')}
                         </p>
                       </div>
@@ -318,16 +347,16 @@ export function EmployeeConfirmations({
                     {/* Body */}
                     <div className="p-6">
                       {conf.client_name && (
-                        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl" style={{ backgroundColor: '#F8FAFC' }}>
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: DS.primaryLight }}>
-                            <User className="w-4 h-4" style={{ color: DS.primary }} />
+                        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '20' }}>
+                            <User className="w-4 h-4" style={{ color: COLORS.primary }} />
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.textPrimary }}>
+                            <p className="font-medium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}>
                               {conf.client_name}
                             </p>
                             {conf.client_phone && (
-                              <p className="text-xs" style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              <p className="text-xs" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                                 {conf.client_phone}
                               </p>
                             )}
@@ -337,7 +366,7 @@ export function EmployeeConfirmations({
 
                       {/* Services */}
                       <div className="space-y-2 mb-4">
-                        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Selecciona los servicios realizados:
                         </p>
                         {conf.services.map((service, idx) => {
@@ -347,13 +376,13 @@ export function EmployeeConfirmations({
                               key={idx}
                               className="flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all duration-200"
                               style={{ 
-                                backgroundColor: isSelected ? DS.successLight : '#F8FAFC',
-                                border: `1px solid ${isSelected ? DS.success : DS.border}`,
+                                backgroundColor: isSelected ? COLORS.successLight : COLORS.surfaceSubtle,
+                                border: `1px solid ${isSelected ? COLORS.success : COLORS.border}`,
                               }}
                             >
                               <div 
-                                className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${isSelected ? 'bg-green-500' : 'bg-white border-2'}`}
-                                style={{ borderColor: isSelected ? DS.success : DS.border }}
+                                className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${isSelected ? 'bg-green-500' : 'bg-white dark:bg-slate-800 border-2'}`}
+                                style={{ borderColor: isSelected ? COLORS.success : COLORS.border }}
                               >
                                 {isSelected && <Check className="w-4 h-4 text-white" />}
                               </div>
@@ -364,11 +393,11 @@ export function EmployeeConfirmations({
                                 className="sr-only"
                               />
                               <div className="flex-1">
-                                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.textPrimary }} className="font-medium">
+                                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }} className="font-medium">
                                   {service.service_name}
                                 </p>
                               </div>
-                              <span style={{ fontFamily: "'Cormorant Garamond', serif", color: DS.primary }} className="text-lg font-bold">
+                              <span style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.primary }} className="text-lg font-bold">
                                 ${service.price.toLocaleString('es-CO')}
                               </span>
                             </label>
@@ -381,10 +410,10 @@ export function EmployeeConfirmations({
                         type="button"
                         onClick={() => handleConfirm(conf)}
                         disabled={submitting === conf.id || isSuccess}
-                        className="w-full py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                        className="w-full py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer"
                         style={{ 
                           fontFamily: "'Plus Jakarta Sans', sans-serif",
-                          backgroundColor: isSuccess ? DS.success : DS.primary,
+                          backgroundColor: isSuccess ? COLORS.success : COLORS.primary,
                           color: '#FFFFFF',
                         }}
                       >
@@ -414,23 +443,6 @@ export function EmployeeConfirmations({
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.4s ease-out forwards;
-          opacity: 0;
-        }
-      `}</style>
     </>
   )
 }

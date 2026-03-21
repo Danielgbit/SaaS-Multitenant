@@ -8,37 +8,49 @@ import {
   Filter, TrendingUp, Users, Calendar, ArrowRight,
   Check, X, EyeOff
 } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { confirmByReception } from '@/actions/confirmations/confirmByReception'
 import type { AppointmentConfirmation } from '@/actions/confirmations/types'
+
+function useColors() {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  
+  return {
+    primary: isDark ? '#38BDF8' : '#0F4C5C',
+    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
+    primaryGradient: isDark 
+      ? 'linear-gradient(135deg, #38BDF8 0%, #8B5CF6 100%)'
+      : 'linear-gradient(135deg, #0F4C5C 0%, #1A6B7C 100%)',
+    headerBg: isDark 
+      ? 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)'
+      : 'linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%)',
+    headerText: isDark ? '#FFFFFF' : '#0F172A',
+    headerTextMuted: isDark ? 'rgba(255,255,255,0.8)' : '#475569',
+    surface: isDark ? '#1E293B' : '#FFFFFF',
+    surfaceSubtle: isDark ? '#0F172A' : '#F1F5F9',
+    surfaceGlass: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+    border: isDark ? '#334155' : '#CBD5E1',
+    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
+    textSecondary: isDark ? '#94A3B8' : '#475569',
+    textMuted: isDark ? '#64748B' : '#64748B',
+    success: '#16A34A',
+    successLight: isDark ? '#064E3B' : '#DCFCE7',
+    successDark: isDark ? '#6EE7B7' : '#059669',
+    warning: '#F59E0B',
+    warningLight: isDark ? '#451A03' : '#FEF3C7',
+    danger: '#DC2626',
+    dangerLight: isDark ? '#450A0A' : '#FEE2E2',
+    purple: '#8B5CF6',
+    purpleLight: isDark ? '#2E1065' : '#EDE9FE',
+    overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.5)',
+    isDark,
+  }
+}
 
 interface ReceptionConfirmationsProps {
   confirmations: AppointmentConfirmation[]
   organizationId: string
-}
-
-const DS = {
-  primary: '#0F4C5C',
-  primaryHover: '#0C3E4A',
-  primaryLight: '#E0F2FE',
-  surface: '#FFFFFF',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textMuted: '#94A3B8',
-  border: '#E2E8F0',
-  success: '#10B981',
-  successLight: '#D1FAE5',
-  successDark: '#059669',
-  warning: '#F59E0B',
-  warningLight: '#FEF3C7',
-  danger: '#DC2626',
-  dangerLight: '#FEE2E2',
-  purple: '#8B5CF6',
-  purpleLight: '#EDE9FE',
-  radius: {
-    lg: '16px',
-    md: '10px',
-    sm: '8px',
-  },
 }
 
 type FilterStatus = 'pending' | 'completed' | 'all'
@@ -50,6 +62,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
   const [selectedPayment, setSelectedPayment] = useState<Record<string, string>>({})
   const [showSuccess, setShowSuccess] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  const COLORS = useColors()
 
   useEffect(() => {
     setMounted(true)
@@ -93,17 +106,17 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending_employee':
-        return { label: 'Esperando empleado', color: DS.warning, bg: DS.warningLight, icon: Clock }
+        return { label: 'Esperando empleado', color: COLORS.warning, bg: COLORS.warningLight, icon: Clock }
       case 'pending_reception':
-        return { label: 'Esperando confirmación', color: DS.primary, bg: DS.primaryLight, icon: AlertTriangle }
+        return { label: 'Esperando confirmación', color: COLORS.primary, bg: COLORS.primary + '20', icon: AlertTriangle }
       case 'completed':
-        return { label: 'Completado', color: DS.success, bg: DS.successLight, icon: CheckCircle }
+        return { label: 'Completado', color: COLORS.success, bg: COLORS.successLight, icon: CheckCircle }
       case 'no_show':
-        return { label: 'No asistió', color: DS.danger, bg: DS.dangerLight, icon: XCircle }
+        return { label: 'No asistió', color: COLORS.danger, bg: COLORS.dangerLight, icon: XCircle }
       case 'not_performed':
-        return { label: 'No realizado', color: DS.textMuted, bg: '#F1F5F9', icon: X }
+        return { label: 'No realizado', color: COLORS.textMuted, bg: COLORS.surfaceSubtle, icon: X }
       default:
-        return { label: status, color: DS.textMuted, bg: '#F1F5F9', icon: Package }
+        return { label: status, color: COLORS.textMuted, bg: COLORS.surfaceSubtle, icon: Package }
     }
   }
 
@@ -122,8 +135,9 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
         <div 
           className="absolute inset-0 rounded-3xl -z-10"
           style={{
-            background: `linear-gradient(135deg, ${DS.primary} 0%, ${DS.purple} 100%)`,
-            height: '200px'
+            background: COLORS.headerBg,
+            height: '200px',
+            boxShadow: COLORS.isDark ? 'none' : '0 4px 20px rgba(15, 76, 92, 0.3)'
           }}
         />
         <div className="pt-8 px-8 pb-6">
@@ -131,19 +145,19 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
             <div>
               <p 
                 className="text-xs font-semibold uppercase tracking-widest"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.8)' }}
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.headerTextMuted }}
               >
                 Gestión de pagos
               </p>
               <h1 
                 className="text-3xl font-bold tracking-tight mt-1"
-                style={{ fontFamily: "'Cormorant Garamond', serif", color: '#FFFFFF' }}
+                style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.headerText }}
               >
                 Confirmar Pagos
               </h1>
               <p 
                 className="text-sm mt-1"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'rgba(255,255,255,0.7)' }}
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.headerTextMuted }}
               >
                 {pendingCount} servicio{pendingCount !== 1 ? 's' : ''} pendiente{pendingCount !== 1 ? 's' : ''} de confirmar
               </p>
@@ -154,17 +168,17 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
             <div 
               className="rounded-xl p-4"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}
+              style={{ backgroundColor: COLORS.surfaceGlass, backdropFilter: 'blur(10px)', border: `1px solid ${COLORS.border}` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                  <AlertTriangle className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.warning + '20' }}>
+                  <AlertTriangle className="w-5 h-5" style={{ color: COLORS.warning }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#FFFFFF' }}>
+                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
                     {pendingCount}
                   </p>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Pendientes
                   </p>
                 </div>
@@ -173,17 +187,17 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
 
             <div 
               className="rounded-xl p-4"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}
+              style={{ backgroundColor: COLORS.surfaceGlass, backdropFilter: 'blur(10px)', border: `1px solid ${COLORS.border}` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                  <TrendingUp className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.success + '20' }}>
+                  <TrendingUp className="w-5 h-5" style={{ color: COLORS.success }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#FFFFFF' }}>
+                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
                     ${todayIncome.toLocaleString('es-CO')}
                   </p>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Ingresos hoy
                   </p>
                 </div>
@@ -192,17 +206,17 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
 
             <div 
               className="rounded-xl p-4"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}
+              style={{ backgroundColor: COLORS.surfaceGlass, backdropFilter: 'blur(10px)', border: `1px solid ${COLORS.border}` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                  <CheckCircle className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.success + '20' }}>
+                  <CheckCircle className="w-5 h-5" style={{ color: COLORS.success }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#FFFFFF' }}>
+                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
                     {completedCount}
                   </p>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Completados
                   </p>
                 </div>
@@ -211,17 +225,17 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
 
             <div 
               className="rounded-xl p-4"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}
+              style={{ backgroundColor: COLORS.surfaceGlass, backdropFilter: 'blur(10px)', border: `1px solid ${COLORS.border}` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                  <XCircle className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.danger + '20' }}>
+                  <XCircle className="w-5 h-5" style={{ color: COLORS.danger }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#FFFFFF' }}>
+                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
                     {noShowCount}
                   </p>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     No asistentes
                   </p>
                 </div>
@@ -235,17 +249,17 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
       <div className="px-8 mb-6">
         <div 
           className="inline-flex rounded-xl p-1"
-          style={{ backgroundColor: '#F1F5F9', border: `1px solid ${DS.border}` }}
+          style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
         >
           {filterOptions.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setFilter(opt.value)}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 cursor-pointer"
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                backgroundColor: filter === opt.value ? DS.surface : 'transparent',
-                color: filter === opt.value ? DS.primary : DS.textSecondary,
+                backgroundColor: filter === opt.value ? COLORS.surface : 'transparent',
+                color: filter === opt.value ? COLORS.primary : COLORS.textSecondary,
                 boxShadow: filter === opt.value ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
               }}
             >
@@ -253,8 +267,8 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
               <span 
                 className="px-2 py-0.5 rounded-full text-xs"
                 style={{ 
-                  backgroundColor: filter === opt.value ? DS.primaryLight : '#E2E8F0',
-                  color: filter === opt.value ? DS.primary : DS.textMuted
+                  backgroundColor: filter === opt.value ? COLORS.primary + '20' : COLORS.border,
+                  color: filter === opt.value ? COLORS.primary : COLORS.textMuted
                 }}
               >
                 {opt.count}
@@ -268,16 +282,26 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
       <div className="px-8 -mt-2">
         {filteredConfirmations.length === 0 ? (
           <div 
-            className="text-center py-16 rounded-2xl"
-            style={{ backgroundColor: DS.surface, border: `1px solid ${DS.border}` }}
+            className="text-center py-16 rounded-2xl animate-in fade-in duration-300"
+            style={{ 
+              backgroundColor: COLORS.surfaceGlass,
+              border: `1px solid ${COLORS.border}`,
+              backdropFilter: 'blur(12px)'
+            }}
           >
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: DS.primaryLight }}>
-              <Package className="w-10 h-10" style={{ color: DS.primary }} />
+            <div 
+              className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" 
+              style={{ backgroundColor: COLORS.primary + '15' }}
+            >
+              <Package className="w-10 h-10" style={{ color: COLORS.primary }} />
             </div>
-            <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", color: DS.textPrimary }}>
+            <h3 
+              className="text-xl font-semibold mb-2" 
+              style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}
+            >
               No hay confirmaciones
             </h3>
-            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.textSecondary }}>
+            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}>
               Las confirmaciones aparecerán aquí cuando los empleados confirmen servicios.
             </p>
           </div>
@@ -292,7 +316,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
               return (
                 <div
                   key={conf.id}
-                  className="animate-fadeIn"
+                  className="animate-in fade-in slide-in-from-bottom-4"
                   style={{ 
                     animationDelay: `${index * 50}ms`,
                     opacity: isSuccess ? 0.6 : 1,
@@ -301,16 +325,17 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                 >
                   <div
                     style={{
-                      backgroundColor: DS.surface,
-                      borderRadius: DS.radius.lg,
-                      border: `1px solid ${isSuccess ? DS.success : DS.border}`,
+                      backgroundColor: COLORS.surfaceGlass,
+                      borderRadius: '16px',
+                      border: `1px solid ${isSuccess ? COLORS.success : COLORS.border}`,
                       overflow: 'hidden',
+                      backdropFilter: 'blur(12px)',
                     }}
                   >
                     {/* Header */}
                     <div 
                       className="px-6 py-4 flex items-center justify-between"
-                      style={{ backgroundColor: '#F8FAFC' }}
+                      style={{ backgroundColor: COLORS.surfaceSubtle }}
                     >
                       <div className="flex items-center gap-3">
                         <div 
@@ -334,8 +359,8 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                             <span 
                               className="text-xs px-2 py-0.5 rounded-full"
                               style={{ 
-                                backgroundColor: conf.confirmation_type === 'walkin' ? DS.warningLight : DS.primaryLight, 
-                                color: conf.confirmation_type === 'walkin' ? '#B45309' : DS.primary,
+                                backgroundColor: conf.confirmation_type === 'walkin' ? COLORS.warningLight : COLORS.primary + '20', 
+                                color: conf.confirmation_type === 'walkin' ? COLORS.warning : COLORS.primary,
                                 fontFamily: "'Plus Jakarta Sans', sans-serif"
                               }}
                             >
@@ -344,8 +369,8 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                           </div>
                           {conf.client_name && (
                             <div className="flex items-center gap-1 mt-1">
-                              <User className="w-3 h-3" style={{ color: DS.textMuted }} />
-                              <span className="text-xs" style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              <User className="w-3 h-3" style={{ color: COLORS.textMuted }} />
+                              <span className="text-xs" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                                 {conf.client_name}
                               </span>
                             </div>
@@ -353,10 +378,10 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs" style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-xs" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Total a cobrar
                         </p>
-                        <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: DS.primary }}>
+                        <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.primary }}>
                           ${conf.total_amount.toLocaleString('es-CO')}
                         </p>
                       </div>
@@ -370,17 +395,17 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                           <div
                             key={idx}
                             className="flex items-center justify-between p-3 rounded-lg"
-                            style={{ backgroundColor: '#F8FAFC' }}
+                            style={{ backgroundColor: COLORS.surfaceSubtle }}
                           >
                             <div className="flex items-center gap-2">
-                              <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: DS.successLight }}>
-                                <Check className="w-3 h-3" style={{ color: DS.success }} />
+                              <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.successLight }}>
+                                <Check className="w-3 h-3" style={{ color: COLORS.success }} />
                               </div>
-                              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.textPrimary }}>
+                              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}>
                                 {service.service_name}
                               </span>
                             </div>
-                            <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.textSecondary }}>
+                            <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}>
                               ${service.price.toLocaleString('es-CO')}
                             </span>
                           </div>
@@ -391,7 +416,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                         <>
                           {/* Payment Methods */}
                           <div className="mb-4">
-                            <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: DS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                               Método de pago:
                             </p>
                             <div className="grid grid-cols-3 gap-2">
@@ -407,12 +432,12 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                                     key={method.id}
                                     type="button"
                                     onClick={() => setSelectedPayment(prev => ({ ...prev, [conf.id]: method.id }))}
-                                    className={`py-3 px-2 rounded-xl text-sm font-medium flex flex-col items-center gap-1 transition-all ${isSelected ? 'ring-2 ring-offset-2' : ''}`}
+                                    className={`py-3 px-2 rounded-xl text-sm font-medium flex flex-col items-center gap-1 transition-all cursor-pointer ${isSelected ? 'ring-2 ring-offset-2' : ''}`}
                                     style={{
                                       fontFamily: "'Plus Jakarta Sans', sans-serif",
-                                      backgroundColor: isSelected ? DS.primary : '#F1F5F9',
-                                      color: isSelected ? '#FFFFFF' : DS.textSecondary,
-                                      border: isSelected ? `2px solid ${DS.primary}` : '2px solid transparent',
+                                      backgroundColor: isSelected ? COLORS.primary : COLORS.surfaceSubtle,
+                                      color: isSelected ? '#FFFFFF' : COLORS.textSecondary,
+                                      border: isSelected ? `2px solid ${COLORS.primary}` : '2px solid transparent',
                                     }}
                                   >
                                     <Icon className="w-5 h-5" />
@@ -429,11 +454,11 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                               type="button"
                               onClick={() => handleAction(conf.id, 'no_show')}
                               disabled={processing === conf.id}
-                              className="py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                              className="py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                               style={{ 
                                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                                backgroundColor: DS.dangerLight,
-                                color: DS.danger,
+                                backgroundColor: COLORS.dangerLight,
+                                color: COLORS.danger,
                               }}
                             >
                               <XCircle className="w-4 h-4" />
@@ -443,11 +468,11 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                               type="button"
                               onClick={() => handleAction(conf.id, 'not_performed')}
                               disabled={processing === conf.id}
-                              className="py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                              className="py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                               style={{ 
                                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                                backgroundColor: '#F1F5F9',
-                                color: DS.textSecondary,
+                                backgroundColor: COLORS.surfaceSubtle,
+                                color: COLORS.textSecondary,
                               }}
                             >
                               <AlertTriangle className="w-4 h-4" />
@@ -457,10 +482,10 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                               type="button"
                               onClick={() => handleAction(conf.id, 'complete')}
                               disabled={processing === conf.id || !selectedPayment[conf.id]}
-                              className="py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                              className="py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                               style={{ 
                                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                                backgroundColor: isSuccess ? DS.success : DS.primary,
+                                backgroundColor: isSuccess ? COLORS.success : COLORS.primary,
                                 color: '#FFFFFF',
                               }}
                             >
@@ -480,10 +505,10 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                       {conf.status === 'completed' && (
                         <div 
                           className="flex items-center gap-2 p-3 rounded-xl"
-                          style={{ backgroundColor: DS.successLight }}
+                          style={{ backgroundColor: COLORS.successLight }}
                         >
-                          <CheckCircle className="w-5 h-5" style={{ color: DS.success }} />
-                          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: DS.successDark }}>
+                          <CheckCircle className="w-5 h-5" style={{ color: COLORS.success }} />
+                          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.successDark }}>
                             Confirmado • {conf.payment_method} • ${conf.total_amount.toLocaleString('es-CO')}
                           </span>
                         </div>
@@ -492,16 +517,16 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                       {(conf.status === 'no_show' || conf.status === 'not_performed') && (
                         <div 
                           className="flex items-center gap-2 p-3 rounded-xl"
-                          style={{ backgroundColor: conf.status === 'no_show' ? DS.dangerLight : '#F1F5F9' }}
+                          style={{ backgroundColor: conf.status === 'no_show' ? COLORS.dangerLight : COLORS.surfaceSubtle }}
                         >
                           {conf.status === 'no_show' ? (
-                            <XCircle className="w-5 h-5" style={{ color: DS.danger }} />
+                            <XCircle className="w-5 h-5" style={{ color: COLORS.danger }} />
                           ) : (
-                            <X className="w-5 h-5" style={{ color: DS.textMuted }} />
+                            <X className="w-5 h-5" style={{ color: COLORS.textMuted }} />
                           )}
                           <span style={{ 
                             fontFamily: "'Plus Jakarta Sans', sans-serif", 
-                            color: conf.status === 'no_show' ? DS.danger : DS.textMuted 
+                            color: conf.status === 'no_show' ? COLORS.danger : COLORS.textMuted 
                           }}>
                             {conf.status === 'no_show' ? 'Cliente no asistió' : 'Servicio no realizado'}
                           </span>
@@ -515,23 +540,6 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out forwards;
-          opacity: 0;
-        }
-      `}</style>
     </>
   )
 }
