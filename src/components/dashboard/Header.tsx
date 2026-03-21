@@ -5,15 +5,23 @@ import { Sun, Moon, Settings, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { usePathname } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 interface HeaderProps {
   organizationConnected: boolean
+  onMenuToggle?: () => void
+  showHamburger?: boolean
 }
 
-export function Header({ organizationConnected }: HeaderProps) {
+export function Header({ organizationConnected, onMenuToggle, showHamburger }: HeaderProps) {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
   const supabase = createClient()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -35,14 +43,32 @@ export function Header({ organizationConnected }: HeaderProps) {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
+        {/* Mobile Menu Toggle */}
+        {showHamburger && onMenuToggle && (
+          <button
+            onClick={onMenuToggle}
+            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 md:hidden"
+            aria-label="Abrir menú"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+
         {/* Theme Toggle */}
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           className="relative p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] dark:focus-visible:ring-[#38BDF8]"
-          aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          aria-label={mounted ? (theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro') : 'Cambiar modo'}
+          suppressHydrationWarning
         >
-          {theme === 'dark' ? (
-            <Sun className="w-5 h-5" />
+          {mounted ? (
+            theme === 'dark' ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )
           ) : (
             <Moon className="w-5 h-5" />
           )}

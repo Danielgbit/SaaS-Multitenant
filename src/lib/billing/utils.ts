@@ -1,4 +1,16 @@
+export function formatCurrencyCOP(amount: number): string {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
 export function formatCurrency(amount: number, currency: string = 'EUR'): string {
+  if (currency.toUpperCase() === 'COP') {
+    return formatCurrencyCOP(amount)
+  }
   return new Intl.NumberFormat('es-ES', {
     style: 'currency',
     currency: currency.toUpperCase(),

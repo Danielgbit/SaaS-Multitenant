@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { OrganizationProvider } from '@/components/providers/OrganizationProvider'
-import { Sidebar } from '@/components/dashboard/Sidebar'
-import { Header } from '@/components/dashboard/Header'
+import { DashboardShell } from '@/components/dashboard/DashboardShell'
 
 export default async function DashboardLayout({
   children,
@@ -35,21 +34,12 @@ export default async function DashboardLayout({
 
   return (
     <OrganizationProvider organizationId={organizationId} role={role}>
-      <div className="flex h-screen bg-[#FAFAF9] dark:bg-[#0F172A] font-sans antialiased selection:bg-[#0F4C5C]/20 dark:selection:bg-[#38BDF8]/30">
-        
-        <Sidebar role={role} />
-
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-          <Header organizationConnected={!!organizationId} />
-
-          <main className="flex-1 overflow-y-auto w-full scroll-smooth">
-            <div className="w-full max-w-[1280px] mx-auto p-6 md:p-8 lg:p-10">
-              {children}
-            </div>
-          </main>
-
-        </div>
-      </div>
+      <DashboardShell 
+        role={role}
+        organizationId={organizationId}
+      >
+        {children}
+      </DashboardShell>
     </OrganizationProvider>
   )
 }

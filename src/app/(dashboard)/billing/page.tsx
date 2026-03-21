@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getPlans } from '@/actions/billing/getPlans'
 import { getSubscription } from '@/actions/billing/getSubscription'
 import { BillingClient } from '@/components/dashboard/billing/BillingClient'
+import { BillingPageWrapper } from './BillingPageWrapper'
 
 export const metadata = {
   title: 'Facturación | Prügressy',
@@ -36,23 +37,10 @@ export default async function BillingPage() {
   ])
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FAFAF9' }}>
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <header className="mb-8">
-          <h1 className="text-3xl font-semibold" style={{ color: '#1A2B32', fontFamily: 'Cormorant Garamond, serif' }}>
-            Facturación
-          </h1>
-          <p style={{ color: '#5A6B70' }} className="mt-2">
-            Gestiona tu suscripción y métodos de pago
-          </p>
-        </header>
-
-        <BillingClient
-          plans={plansResult.data as unknown as any}
-          subscription={subscriptionResult.success ? subscriptionResult.data as any : null}
-          organizationId={organizationId}
-        />
-      </div>
-    </div>
+    <BillingPageWrapper
+      plans={plansResult.data as unknown as any}
+      subscription={subscriptionResult.success ? subscriptionResult.data as any : null}
+      organizationId={organizationId}
+    />
   )
 }

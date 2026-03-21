@@ -29,6 +29,8 @@ export async function getSubscription(
       .eq('id', subscription.plan_id)
       .single()
 
+    const planData = plan as Record<string, unknown> | null
+
     const trialDaysRemaining = getTrialDaysRemaining(subscription.trial_ends_at)
     const isActive = subscription.status === 'active' || 
       (subscription.status === 'trial' && !isTrialExpired(subscription.trial_ends_at))
@@ -37,11 +39,12 @@ export async function getSubscription(
       success: true,
       data: {
         ...subscription,
-        planName: plan?.name || 'Unknown',
-        planPrice: plan?.price || 0,
-        planWhatsApp: plan?.whatsapp_enabled || false,
-        planEmployees: plan?.max_employees || 0,
-        planServices: plan?.max_services || 0,
+        planName: planData?.name || 'Unknown',
+        planPrice: planData?.price || 0,
+        planCurrency: (planData?.currency as string) || 'COP',
+        planWhatsApp: planData?.whatsapp_enabled || false,
+        planEmployees: planData?.max_employees || 0,
+        planServices: planData?.max_services || 0,
         trialDaysRemaining,
         isActive,
       },
