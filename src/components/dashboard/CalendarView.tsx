@@ -37,11 +37,12 @@ import {
 } from '@/types/calendar'
 import React from 'react'
 
-function useColors(): CalendarColors {
+function useColors(): CalendarColors & { isDark: boolean } {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   
   return {
+    isDark,
     primary: isDark ? '#38BDF8' : '#0F4C5C',
     primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
     surface: isDark ? '#0F172A' : '#FFFFFF',
@@ -343,10 +344,40 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
   }
 
   if (loading) return (
-    <div className="flex items-center justify-center h-[600px] rounded-2xl" style={{ backgroundColor: COLORS.surface, boxShadow: '0 4px 24px rgba(15,76,92,0.08)' }}>
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative"><div className="w-12 h-12 rounded-full" style={{ backgroundColor: COLORS.primaryLight + '20' }} /><Loader2 className="w-6 h-6 animate-spin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: COLORS.primary }} /></div>
-        <p style={{ color: COLORS.textSecondary }} className="text-sm font-medium">Cargando...</p>
+    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: '0 4px 24px rgba(15,76,92,0.08)' }}>
+      {/* Skeleton Header */}
+      <div className="px-6 md:px-8 py-5 md:py-6 flex items-center justify-between" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+        <div className="animate-pulse">
+          <div className="h-7 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
+          <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
+        </div>
+        <div className="flex gap-2">
+          <div className="h-10 w-20 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+          <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+        </div>
+      </div>
+      {/* Skeleton Week Days */}
+      <div className="grid grid-cols-7 border-b" style={{ borderColor: COLORS.border }}>
+        {[...Array(7)].map((_, i) => (
+          <div key={i} className="py-4 text-center">
+            <div className="h-3 w-8 bg-slate-200 dark:bg-slate-700 rounded mx-auto mb-2" />
+            <div className="h-6 w-6 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto" />
+          </div>
+        ))}
+      </div>
+      {/* Skeleton Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-7 min-h-[500px]">
+        {[...Array(7)].map((_, i) => (
+          <div key={i} className={`p-3 ${i !== 6 ? 'border-r' : ''}`} style={{ borderColor: COLORS.border }}>
+            {[...Array(3)].map((_, j) => (
+              <div key={j} className="p-3 rounded-xl mb-2 animate-pulse">
+                <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
+                <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
+                <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700 rounded" />
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -354,60 +385,191 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
   if (error) return (
     <div className="flex items-center justify-center h-[600px] rounded-2xl" style={{ backgroundColor: COLORS.surface, boxShadow: '0 4px 24px rgba(15,76,92,0.08)' }}>
       <div className="flex flex-col items-center gap-4 text-center px-6">
-        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.errorLight }}><Calendar className="w-8 h-8" style={{ color: COLORS.error }} /></div>
-        <div><h3 className="text-lg font-semibold mb-1" style={{ color: COLORS.textPrimary }}>Error</h3><p style={{ color: COLORS.textSecondary }} className="text-sm">{error}</p></div>
-        <button onClick={goToToday} className="px-5 py-2.5 rounded-lg font-medium text-sm" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}>Reintentar</button>
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: COLORS.errorLight }}>
+          <Calendar className="w-8 h-8" style={{ color: COLORS.error }} />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold mb-1" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>
+            Error
+          </h3>
+          <p style={{ color: COLORS.textSecondary }} className="text-sm">
+            {error}
+          </p>
+        </div>
+        <button 
+          onClick={goToToday} 
+          className="px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 hover:scale-[1.02]"
+          style={{ backgroundColor: COLORS.primary, color: '#FFF', boxShadow: '0 4px 12px rgba(15,76,92,0.25)' }}
+        >
+          Reintentar
+        </button>
       </div>
     </div>
   )
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: '0 4px 24px rgba(15,76,92,0.08)', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-      {/* Header */}
-      <div className="px-8 py-6 flex items-center justify-between" style={{ borderBottom: `1px solid ${COLORS.border}`, background: `linear-gradient(135deg, ${COLORS.surface} 0%, ${COLORS.surfaceSubtle} 100%)` }}>
-        <div className="flex items-center gap-6">
-          <div><h2 className="text-2xl font-semibold capitalize" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>{formatMonthYear()}</h2><p className="text-sm mt-1" style={{ color: COLORS.textMuted }}>{getWeekRange()}</p></div>
-        </div>
-        <div className="flex items-center gap-3">
-          <button onClick={goToToday} className="px-4 py-2.5 text-sm font-medium rounded-lg" style={{ color: COLORS.primary, backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>Hoy</button>
-          <div className="flex rounded-lg" style={{ border: `1px solid ${COLORS.border}` }}>
-            <button onClick={goToPrevWeek} className="p-2.5" style={{ backgroundColor: COLORS.surface }} aria-label="Anterior"><ChevronLeft className="w-5 h-5" style={{ color: COLORS.primary }} /></button>
-            <div style={{ width: '1px', height: '24px', backgroundColor: COLORS.border }} />
-            <button onClick={goToNextWeek} className="p-2.5" style={{ backgroundColor: COLORS.surface }} aria-label="Siguiente"><ChevronRight className="w-5 h-5" style={{ color: COLORS.primary }} /></button>
+      {/* Header with gradient */}
+      <div className="px-6 md:px-8 py-5 md:py-6 flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden" style={{ 
+        background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
+      }}>
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+        
+        <div className="flex items-center gap-6 relative z-10">
+          <div className="hidden md:block w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <Calendar className="w-6 h-6 text-white" />
           </div>
-          <button onClick={openNewModal} className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm" style={{ backgroundColor: COLORS.primary, color: '#FFF', boxShadow: '0 4px 12px rgba(15,76,92,0.25)' }}><Plus className="w-4 h-4" />Nueva cita</button>
+          <div>
+            <h2 className="text-2xl font-semibold capitalize text-white" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{formatMonthYear()}</h2>
+            <p className="text-sm mt-1 text-white/80">{getWeekRange()}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 md:gap-3 relative z-10">
+          <button 
+            onClick={goToToday} 
+            className="px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-white/20"
+            style={{ color: '#FFFFFF', backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}
+          >
+            Hoy
+          </button>
+          <div className="flex rounded-lg" style={{ border: '1px solid rgba(255,255,255,0.2)' }}>
+            <button 
+              onClick={goToPrevWeek} 
+              className="p-2.5 transition-colors duration-200 hover:bg-white/20 rounded-l-lg" 
+              style={{ backgroundColor: 'transparent' }} 
+              aria-label="Anterior"
+            >
+              <ChevronLeft className="w-5 h-5 text-white" />
+            </button>
+            <div style={{ width: '1px', height: '24px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
+            <button 
+              onClick={goToNextWeek} 
+              className="p-2.5 transition-colors duration-200 hover:bg-white/20 rounded-r-lg" 
+              style={{ backgroundColor: 'transparent' }} 
+              aria-label="Siguiente"
+            >
+              <ChevronRight className="w-5 h-5 text-white" />
+            </button>
+          </div>
+          <button 
+            onClick={openNewModal} 
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+            style={{ backgroundColor: '#FFFFFF', color: COLORS.primary, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Nueva cita</span>
+          </button>
         </div>
       </div>
 
       {/* Week days */}
       <div className="grid grid-cols-7" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
         {weekDates.map((date, i) => (
-          <div key={i} className={`py-4 text-center ${i !== 6 ? 'border-r' : ''}`} style={{ borderColor: COLORS.border, backgroundColor: isToday(date) ? COLORS.primary + '08' : COLORS.surfaceSubtle }}>
-            <p className="text-xs font-medium uppercase" style={{ color: COLORS.textMuted }}>{date.toLocaleDateString('es-ES', { weekday: 'short' })}</p>
-            <p className="text-lg font-semibold mt-1" style={{ color: isToday(date) ? COLORS.primary : COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>{date.getDate()}</p>
+          <div 
+            key={i} 
+            className={`py-3 md:py-4 text-center transition-colors duration-200 ${i !== 6 ? 'border-r' : ''}`}
+            style={{ 
+              borderColor: COLORS.border, 
+              backgroundColor: isToday(date) ? `${COLORS.primary}10` : COLORS.surfaceSubtle 
+            }}
+          >
+            <p className="text-xs font-medium uppercase" style={{ color: COLORS.textMuted }}>
+              {date.toLocaleDateString('es-ES', { weekday: 'short' })}
+            </p>
+            <div 
+              className={`inline-flex items-center justify-center mt-1 w-8 h-8 md:w-9 md:h-9 rounded-full transition-all duration-200`}
+              style={{ 
+                color: isToday(date) ? COLORS.primary : COLORS.textPrimary, 
+                fontFamily: 'Cormorant Garamond, serif',
+                backgroundColor: isToday(date) ? `${COLORS.primary}20` : 'transparent',
+                boxShadow: isToday(date) ? `0 0 0 2px ${COLORS.surface}, 0 0 0 4px ${COLORS.primary}` : 'none'
+              }}
+            >
+              {date.getDate()}
+            </div>
           </div>
         ))}
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-7 min-h-[500px]">
+      <div className="grid grid-cols-1 md:grid-cols-7 min-h-[500px]">
         {weekDates.map((date, i) => {
           const dayKey = formatDateKey(date)
           const dayAppts = appointmentsByDay[dayKey] || []
           return (
-            <div key={i} className={`${i !== 6 ? 'border-r' : ''} p-3`} style={{ borderColor: COLORS.border, backgroundColor: isToday(date) ? COLORS.primary + '05' : COLORS.surface }}>
+            <div 
+              key={i} 
+              className={`${i !== 6 && i !== 0 ? 'md:border-r' : ''} p-3 md:p-3 transition-colors duration-200`}
+              style={{ 
+                borderColor: COLORS.border, 
+                backgroundColor: isToday(date) ? `${COLORS.primary}05` : COLORS.surface 
+              }}
+            >
+              {/* Mobile: Day header */}
+              <div className="md:hidden mb-3 flex items-center justify-between">
+                <span className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
+                  {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}
+                </span>
+                {isToday(date) && (
+                  <span className="px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: COLORS.primary + '20', color: COLORS.primary }}>
+                    Hoy
+                  </span>
+                )}
+              </div>
+              
               {dayAppts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full py-8"><div className="w-10 h-10 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: COLORS.borderLight }}><Calendar className="w-5 h-5" style={{ color: COLORS.textMuted }} /></div><p className="text-xs" style={{ color: COLORS.textMuted }}>Sin citas</p></div>
+                <div className="flex flex-col items-center justify-center h-full py-8">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: COLORS.borderLight }}>
+                    <Calendar className="w-5 h-5" style={{ color: COLORS.textMuted }} />
+                  </div>
+                  <p className="text-xs" style={{ color: COLORS.textMuted }}>Sin citas</p>
+                </div>
               ) : (
                 <div className="space-y-2">
-                  {dayAppts.map(apt => {
-                    const st = STATUS_CONFIG[apt.status] || { color: COLORS.textSecondary, bg: COLORS.borderLight, label: apt.status, icon: <Circle className="w-3.5 h-3.5" /> }
+                  {dayAppts.map((apt, index) => {
+                    const st = (STATUS_CONFIG as Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }>)[apt.status] || { color: COLORS.textSecondary, bg: COLORS.borderLight, label: apt.status, icon: <Circle className="w-3.5 h-3.5" /> }
+                    const clientInitial = apt.client?.name?.charAt(0).toUpperCase() || 'C'
                     return (
-                      <button key={apt.id} onClick={() => setSelectedAppointment(apt)} className="w-full text-left p-3 rounded-xl transition-all hover:scale-[1.02]" style={{ backgroundColor: st.bg, border: `1px solid ${st.color}30`, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                        <div className="flex items-center gap-2 mb-2"><Clock className="w-3.5 h-3.5" style={{ color: st.color }} /><span className="text-xs font-semibold" style={{ color: st.color }}>{formatTime(apt.start_time)}</span></div>
-                        <p className="text-sm font-semibold truncate" style={{ color: COLORS.textPrimary }}>{apt.client?.name || 'Cliente'}</p>
-                        <div className="flex items-center gap-1.5"><Building2 className="w-3 h-3" style={{ color: COLORS.textMuted }} /><span className="text-xs truncate" style={{ color: COLORS.textSecondary }}>{apt.employee?.name || 'Empleado'}</span></div>
-                        {apt.service && <div className="mt-2 pt-2 border-t text-xs" style={{ borderColor: st.color + '40', color: COLORS.textMuted }}>{apt.service.name}</div>}
+                      <button 
+                        key={apt.id} 
+                        onClick={() => setSelectedAppointment(apt)} 
+                        className="w-full text-left p-3 rounded-xl transition-all duration-200 hover:scale-[1.02] hover:shadow-md group cursor-pointer"
+                        style={{ 
+                          backgroundColor: st.bg, 
+                          border: `1px solid ${st.color}30`, 
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                          animationDelay: `${index * 50}ms`
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-3.5 h-3.5" style={{ color: st.color }} />
+                            <span className="text-xs font-bold" style={{ color: st.color }}>{formatTime(apt.start_time)}</span>
+                          </div>
+                          <span 
+                            className="px-1.5 py-0.5 rounded text-[10px] font-medium"
+                            style={{ backgroundColor: COLORS.isDark ? `${st.color}20` : st.color + '15', color: st.color }}
+                          >
+                            {apt.service?.name?.slice(0, 10) || 'Servicio'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+                            style={{ backgroundColor: COLORS.primary }}
+                          >
+                            {clientInitial}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold truncate" style={{ color: COLORS.textPrimary }}>{apt.client?.name || 'Cliente'}</p>
+                            <div className="flex items-center gap-1">
+                              <Building2 className="w-3 h-3 flex-shrink-0" style={{ color: COLORS.textMuted }} />
+                              <span className="text-xs truncate" style={{ color: COLORS.textSecondary }}>{apt.employee?.name || 'Empleado'}</span>
+                            </div>
+                          </div>
+                        </div>
                       </button>
                     )
                   })}
@@ -418,11 +580,30 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
         })}
       </div>
 
-      {/* Footer */}
-      <div className="px-8 py-4 flex items-center justify-between" style={{ borderTop: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surfaceSubtle }}>
-        <p className="text-sm" style={{ color: COLORS.textSecondary }}><span className="font-semibold" style={{ color: COLORS.textPrimary }}>{appointments.length}</span> cita{appointments.length !== 1 ? 's' : ''} esta semana</p>
-        <div className="flex items-center gap-6">
-          {Object.entries(STATUS_CONFIG).slice(0, 4).map(([s, c]) => <div key={s} className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} /><span className="text-xs" style={{ color: COLORS.textMuted }}>{c.label}</span></div>)}
+      {/* Footer with glassmorphism */}
+      <div 
+        className="px-6 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-3"
+        style={{ 
+          borderTop: `1px solid ${COLORS.border}`, 
+          backgroundColor: COLORS.glass,
+          backdropFilter: 'blur(12px)'
+        }}
+      >
+        <p className="text-sm" style={{ color: COLORS.textSecondary }}>
+          <span className="font-semibold" style={{ color: COLORS.textPrimary }}>{appointments.length}</span> cita{appointments.length !== 1 ? 's' : ''} esta semana
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+          {Object.entries(STATUS_CONFIG).slice(0, 4).map(([s, c]) => (
+            <div key={s} className="flex items-center gap-2">
+              <div 
+                className="w-2.5 h-2.5 rounded-full" 
+                style={{ backgroundColor: c.color }} 
+              />
+              <span className="text-xs hidden sm:inline" style={{ color: COLORS.textMuted }}>
+                {c.label}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -432,7 +613,7 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
           <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }} onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}><h3 className="text-xl font-semibold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Detalles</h3></div>
             <div className="p-6">
-              {(() => { const st = STATUS_CONFIG[selectedAppointment.status] || { color: COLORS.textSecondary, bg: COLORS.borderLight, label: selectedAppointment.status, icon: <Circle /> }; return (
+              {(() => { const st = (STATUS_CONFIG as Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }>)[selectedAppointment.status] || { color: COLORS.textSecondary, bg: COLORS.borderLight, label: selectedAppointment.status, icon: <Circle /> }; return (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between"><div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" style={{ backgroundColor: st.bg, color: st.color }}>{st.icon}{st.label}</div><span className="text-sm" style={{ color: COLORS.textMuted }}>#{selectedAppointment.id.slice(0, 8)}</span></div>
                   <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}><div className="flex items-center gap-3 mb-2"><Calendar className="w-5 h-5" style={{ color: COLORS.primary }} /><span className="font-semibold" style={{ color: COLORS.textPrimary }}>Fecha</span></div><p className="text-sm pl-8" style={{ color: COLORS.textSecondary }}>{formatDateTimeFull(selectedAppointment.start_time)}</p></div>

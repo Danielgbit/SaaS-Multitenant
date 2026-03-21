@@ -1,23 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import { useTheme } from 'next-themes'
 import { Calendar, ChevronDown } from 'lucide-react'
-
-const COLORS = {
-  primary: '#0F4C5C',
-  surface: '#FFFFFF',
-  surfaceSubtle: '#F8FAFC',
-  border: '#E2E8F0',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textMuted: '#94A3B8',
-}
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'last7days' | 'last30days'
 
 interface PeriodSelectorProps {
   value: Period
   onChange: (period: Period) => void
+  isDark?: boolean
 }
 
 const periods: { value: Period; label: string }[] = [
@@ -29,8 +21,21 @@ const periods: { value: Period; label: string }[] = [
   { value: 'year', label: 'Este año' },
 ]
 
-export function PeriodSelector({ value, onChange }: PeriodSelectorProps) {
+export function PeriodSelector({ value, onChange, isDark: isDarkProp }: PeriodSelectorProps) {
+  const { theme } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
+  
+  const isDark = isDarkProp ?? theme === 'dark'
+  
+  const COLORS = {
+    primary: isDark ? '#38BDF8' : '#0F4C5C',
+    surface: isDark ? '#1E293B' : '#FFFFFF',
+    surfaceSubtle: isDark ? '#334155' : '#F8FAFC',
+    border: isDark ? '#334155' : '#E2E8F0',
+    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
+    textSecondary: isDark ? '#94A3B8' : '#475569',
+    textMuted: isDark ? '#64748B' : '#94A3B8',
+  }
   
   const currentLabel = periods.find(p => p.value === value)?.label || 'Este mes'
 
@@ -38,14 +43,19 @@ export function PeriodSelector({ value, onChange }: PeriodSelectorProps) {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all duration-200 hover:shadow-sm"
+        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer"
         style={{ 
-          backgroundColor: COLORS.surface, 
-          borderColor: COLORS.border,
-          color: COLORS.textPrimary
+          backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : COLORS.surface, 
+          borderColor: isDark ? 'rgba(255,255,255,0.2)' : COLORS.border,
+          color: isDark ? '#FFFFFF' : COLORS.textPrimary,
+          backdropFilter: isDark ? 'blur(8px)' : 'none'
         }}
       >
-        <Calendar className="w-4 h-4" style={{ color: COLORS.primary }} />
+        {isDark ? (
+          <Calendar className="w-4 h-4 text-white/80" />
+        ) : (
+          <Calendar className="w-4 h-4" style={{ color: COLORS.primary }} />
+        )}
         <span 
           className="text-sm font-medium"
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
@@ -55,7 +65,7 @@ export function PeriodSelector({ value, onChange }: PeriodSelectorProps) {
         <ChevronDown 
           className="w-4 h-4 transition-transform duration-200"
           style={{ 
-            color: COLORS.textMuted,
+            color: isDark ? 'rgba(255,255,255,0.6)' : COLORS.textMuted,
             transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
           }} 
         />
@@ -68,10 +78,10 @@ export function PeriodSelector({ value, onChange }: PeriodSelectorProps) {
             onClick={() => setIsOpen(false)}
           />
           <div 
-            className="absolute right-0 top-full mt-2 w-48 rounded-xl border shadow-lg z-20 overflow-hidden"
+            className="absolute right-0 top-full mt-2 w-48 rounded-xl border shadow-xl z-20 overflow-hidden backdrop-blur-xl"
             style={{ 
-              backgroundColor: COLORS.surface, 
-              borderColor: COLORS.border 
+              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : COLORS.surface, 
+              borderColor: isDark ? 'rgba(255,255,255,0.1)' : COLORS.border 
             }}
           >
             {periods.map((period) => (
@@ -81,10 +91,10 @@ export function PeriodSelector({ value, onChange }: PeriodSelectorProps) {
                   onChange(period.value)
                   setIsOpen(false)
                 }}
-                className="w-full px-4 py-2.5 text-left text-sm transition-colors hover:bg-slate-50"
+                className="w-full px-4 py-2.5 text-left text-sm transition-colors hover:opacity-80 cursor-pointer"
                 style={{ 
-                  backgroundColor: value === period.value ? COLORS.surfaceSubtle : 'transparent',
-                  color: value === period.value ? COLORS.primary : COLORS.textSecondary,
+                  backgroundColor: value === period.value ? COLORS.primary + '15' : 'transparent',
+                  color: value === period.value ? COLORS.primary : isDark ? '#E2E8F0' : COLORS.textSecondary,
                   fontFamily: 'Plus Jakarta Sans, sans-serif'
                 }}
               >

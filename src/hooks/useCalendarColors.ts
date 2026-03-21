@@ -8,6 +8,7 @@ export function useCalendarColors(): CalendarColors {
   const isDark = theme === 'dark'
   
   return {
+    isDark,
     primary: isDark ? '#38BDF8' : '#0F4C5C',
     primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
     surface: isDark ? '#0F172A' : '#FFFFFF',

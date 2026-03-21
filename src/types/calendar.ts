@@ -93,6 +93,7 @@ export interface CalendarColors {
   errorLight: string
   overlay: string
   glass: string
+  isDark: boolean
 }
 
 export type AppointmentStatus = 'confirmed' | 'pending' | 'cancelled' | 'completed' | 'no_show'

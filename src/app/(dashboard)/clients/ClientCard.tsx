@@ -1,6 +1,7 @@
 'use client'
 
-import { UserCircle, Phone, Mail, Calendar, Pencil, Trash2 } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { UserCircle, Phone, Mail, Calendar, Pencil, Trash2, Sparkles } from 'lucide-react'
 import type { Database } from '@/../types/supabase'
 
 type Client = Database['public']['Tables']['clients']['Row']
@@ -11,7 +12,6 @@ interface ClientCardProps {
   onDelete: (client: Client) => void
 }
 
-// Generar iniciales del nombre
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/)
   if (parts.length >= 2) {
@@ -20,45 +20,63 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase()
 }
 
-// Design system tokens (light mode only)
-const DS = {
-  primary: '#0F4C5C',
-  primaryLight: '#E6F1F4',
-  surface: '#FFFFFF',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  border: '#E2E8F0',
-  success: '#16A34A',
-  error: '#DC2626',
-  radius: {
-    lg: '16px',
-    md: '10px',
-  },
+function useColors() {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  
+  return {
+    primary: isDark ? '#38BDF8' : '#0F4C5C',
+    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
+    primaryGradient: isDark 
+      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
+      : 'linear-gradient(135deg, #0F4C5C 0%, #1A6B7C 100%)',
+    surface: isDark ? '#0F172A' : '#FFFFFF',
+    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
+    surfaceGlass: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.8)',
+    border: isDark ? '#334155' : '#E2E8F0',
+    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
+    textSecondary: isDark ? '#94A3B8' : '#475569',
+    textMuted: isDark ? '#64748B' : '#94A3B8',
+    success: '#16A34A',
+    successLight: isDark ? '#064E3B' : '#D1FAE5',
+    error: '#DC2626',
+    errorLight: isDark ? '#450A0A' : '#FEE2E2',
+    isDark,
+  }
 }
 
 export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
+  const COLORS = useColors()
   const initials = getInitials(client.name)
 
   return (
     <div
+      className="group p-5 rounded-2xl border transition-all duration-300 cursor-default"
       style={{
-        backgroundColor: DS.surface,
-        borderRadius: DS.radius.lg,
-        border: `1px solid ${DS.border}`,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        backgroundColor: COLORS.surfaceGlass,
+        borderColor: COLORS.border,
+        boxShadow: '0 4px 24px rgba(15, 76, 92, 0.08)',
+        backdropFilter: 'blur(12px)',
       }}
-      className="p-5 hover:shadow-md transition-shadow duration-200"
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)'
+        e.currentTarget.style.boxShadow = '0 8px 32px rgba(15, 76, 92, 0.15)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = '0 4px 24px rgba(15, 76, 92, 0.08)'
+      }}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          {/* Avatar con iniciales */}
+          {/* Avatar con gradiente */}
           <div
+            className="w-12 h-12 rounded-full flex items-center justify-center font-semibold text-sm text-white transition-transform duration-200 group-hover:scale-110"
             style={{
-              backgroundColor: DS.primaryLight,
-              color: DS.primary,
+              background: COLORS.primaryGradient,
+              boxShadow: '0 4px 12px rgba(15, 76, 92, 0.25)'
             }}
-            className="w-12 h-12 rounded-full flex items-center justify-center font-semibold text-sm"
           >
             {initials}
           </div>
@@ -66,7 +84,7 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
             <h3
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: DS.textPrimary,
+                color: COLORS.textPrimary,
               }}
               className="font-semibold text-base"
             >
@@ -75,7 +93,7 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
             <span
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: DS.textSecondary,
+                color: COLORS.textMuted,
               }}
               className="text-xs"
             >
@@ -88,11 +106,11 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
         </div>
 
         {/* Acciones */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
             onClick={() => onEdit(client)}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
-            style={{ color: DS.textSecondary }}
+            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            style={{ color: COLORS.textSecondary }}
             title="Editar cliente"
             aria-label="Editar cliente"
           >
@@ -100,8 +118,8 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
           </button>
           <button
             onClick={() => onDelete(client)}
-            className="p-2 rounded-lg hover:bg-red-50 transition-colors"
-            style={{ color: DS.error }}
+            className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+            style={{ color: COLORS.error }}
             title="Eliminar cliente"
             aria-label="Eliminar cliente"
           >
@@ -114,11 +132,11 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
       <div className="space-y-2 mb-4">
         {client.phone && (
           <div className="flex items-center gap-2">
-            <Phone className="w-4 h-4" style={{ color: DS.textSecondary }} />
+            <Phone className="w-4 h-4 flex-shrink-0" style={{ color: COLORS.textMuted }} />
             <span
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: DS.textSecondary,
+                color: COLORS.textSecondary,
               }}
               className="text-sm"
             >
@@ -128,11 +146,11 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
         )}
         {client.email && (
           <div className="flex items-center gap-2">
-            <Mail className="w-4 h-4" style={{ color: DS.textSecondary }} />
+            <Mail className="w-4 h-4 flex-shrink-0" style={{ color: COLORS.textMuted }} />
             <span
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: DS.textSecondary,
+                color: COLORS.textSecondary,
               }}
               className="text-sm truncate"
             >
@@ -144,7 +162,7 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
           <span
             style={{
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: DS.textSecondary,
+              color: COLORS.textMuted,
             }}
             className="text-sm italic"
           >
@@ -156,31 +174,38 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
       {/* Notas */}
       {client.notes && (
         <div
+          className="text-sm rounded-xl p-3 mb-4"
           style={{
             fontFamily: "'Plus Jakarta Sans', sans-serif",
-            color: DS.textSecondary,
+            color: COLORS.textSecondary,
+            backgroundColor: COLORS.surfaceSubtle,
           }}
-          className="text-sm bg-slate-50 rounded-lg p-3 mb-4"
         >
           {client.notes}
         </div>
       )}
 
       {/* Footer con badge y acciones rápidas */}
-      <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: DS.border }}>
+      <div 
+        className="flex items-center justify-between pt-3 border-t"
+        style={{ borderColor: COLORS.border }}
+      >
         <span
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
           style={{
             fontFamily: "'Plus Jakarta Sans', sans-serif",
+            backgroundColor: COLORS.successLight, 
+            color: COLORS.success 
           }}
-          className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"
         >
+          <Sparkles className="w-3 h-3" />
           Activo
         </span>
         <button
-          className="flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-80"
+          className="flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-80 cursor-pointer"
           style={{
             fontFamily: "'Plus Jakarta Sans', sans-serif",
-            color: DS.primary,
+            color: COLORS.primary,
           }}
         >
           <Calendar className="w-3.5 h-3.5" />

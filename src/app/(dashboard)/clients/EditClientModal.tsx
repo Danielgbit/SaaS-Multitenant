@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Loader2, UserCircle, Check, AlertCircle } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { X, Loader2, UserCircle, Check, AlertCircle, Sparkles } from 'lucide-react'
 import { useActionState } from 'react'
 import { createClient } from '@/actions/clients/createClient'
 import type { Database } from '@/../types/supabase'
@@ -16,24 +17,36 @@ interface EditClientModalProps {
   onSuccess: () => void
 }
 
-// Design system tokens (light mode only) - Premium minimal design
-const DS = {
-  primary: '#0F4C5C',
-  primaryHover: '#0C3E4A',
-  surface: '#FFFFFF',
-  textPrimary: '#0F172A',
-  textSecondary: '#64748B',
-  border: '#E2E8F0',
-  error: '#DC2626',
-  success: '#059669',
-  overlay: 'rgba(15, 23, 42, 0.4)',
-  radius: {
-    lg: '16px',
-    md: '10px',
-    sm: '8px',
-  },
-  shadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
-  transition: 'all 0.2s ease-out',
+function useColors() {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  
+  return {
+    primary: isDark ? '#38BDF8' : '#0F4C5C',
+    primaryHover: isDark ? '#0EA5E9' : '#0C3E4A',
+    primaryGradient: isDark 
+      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
+      : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
+    surface: isDark ? '#0F172A' : '#FFFFFF',
+    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
+    border: isDark ? '#334155' : '#E2E8F0',
+    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
+    textSecondary: isDark ? '#94A3B8' : '#64748B',
+    textMuted: isDark ? '#64748B' : '#94A3B8',
+    error: '#DC2626',
+    errorLight: isDark ? '#450A0A' : '#FEF2F2',
+    success: '#16A34A',
+    successLight: isDark ? '#064E3B' : '#ECFDF5',
+    overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.4)',
+    radius: {
+      lg: '16px',
+      md: '10px',
+      sm: '8px',
+    },
+    shadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+    transition: 'all 0.2s ease-out',
+    isDark,
+  }
 }
 
 const initialState = {
@@ -49,15 +62,13 @@ export function EditClientModal({
   onClose,
   onSuccess,
 }: EditClientModalProps) {
-  // Use different action based on whether we're creating or editing
+  const COLORS = useColors()
   const [state, formAction] = useActionState(createClient, initialState)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
 
-  // Determine if we're creating a new client
   const isNewClient = !client
 
-  // Handle close with animation
   const handleClose = () => {
     setIsClosing(true)
     setTimeout(() => {
@@ -66,17 +77,14 @@ export function EditClientModal({
     }, 200)
   }
 
-  // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
       setIsSubmitted(false)
     }
   }, [isOpen])
 
-  // Handle success
   useEffect(() => {
     if (state.success) {
-      // Small delay to show success state
       const timer = setTimeout(() => {
         onSuccess()
         onClose()
@@ -87,7 +95,6 @@ export function EditClientModal({
 
   if (!isOpen && !isClosing) return null
 
-  // Calculate if form is in loading state
   const isLoading = isSubmitted && !state.success && !state.error && !state.fieldErrors
 
   return (
@@ -95,7 +102,7 @@ export function EditClientModal({
       className="fixed inset-0 z-50 flex items-center justify-center"
       style={{ 
         opacity: isClosing ? 0 : 1,
-        transition: DS.transition,
+        transition: COLORS.transition,
         pointerEvents: isClosing ? 'none' : 'auto'
       }}
     >
@@ -103,8 +110,8 @@ export function EditClientModal({
       <div 
         className="absolute inset-0"
         style={{ 
-          backgroundColor: DS.overlay,
-          backdropFilter: 'blur(4px)',
+          backgroundColor: COLORS.overlay,
+          backdropFilter: 'blur(8px)',
         }}
         onClick={handleClose}
       />
@@ -112,63 +119,69 @@ export function EditClientModal({
       {/* Modal */}
       <div
         style={{
-          backgroundColor: DS.surface,
-          borderRadius: DS.radius.lg,
-          boxShadow: DS.shadow,
+          backgroundColor: COLORS.surface,
+          borderRadius: COLORS.radius.lg,
+          boxShadow: COLORS.shadow,
           opacity: isClosing ? 0 : 1,
           transform: isClosing ? 'scale(0.95)' : 'scale(1)',
-          transition: DS.transition,
+          transition: COLORS.transition,
         }}
-        className="relative w-full max-w-md mx-4 max-h-[90vh] overflow-hidden"
+        className="relative w-full max-w-md mx-4 max-h-[90vh] overflow-hidden border"
       >
-        {/* Header */}
+        {/* Header with gradient */}
         <div 
-          className="flex items-center justify-between p-5 border-b"
-          style={{ borderColor: DS.border }}
+          className="relative p-5 border-b overflow-hidden"
+          style={{ 
+            borderColor: COLORS.border,
+            background: COLORS.primaryGradient,
+          }}
         >
-          <div className="flex items-center gap-3">
-            {/* Icon */}
-            <div 
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: '#E6F1F4' }}
+          {/* Decorative */}
+          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)' }}
+              >
+                <UserCircle className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 
+                  style={{ 
+                    fontFamily: "'Cormorant Garamond', serif",
+                    color: '#FFFFFF',
+                  }}
+                  className="text-xl font-semibold"
+                >
+                  {isNewClient ? 'Nuevo cliente' : 'Editar cliente'}
+                </h2>
+                <p 
+                  style={{ 
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    color: 'rgba(255,255,255,0.8)',
+                    fontSize: '12px'
+                  }}
+                >
+                  {isNewClient ? 'Añade los datos del cliente' : 'Actualiza la información'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleClose}
+              disabled={isLoading}
+              className="p-2 rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50 cursor-pointer"
+              aria-label="Cerrar"
             >
-              <UserCircle className="w-5 h-5" style={{ color: DS.primary }} />
-            </div>
-            <div>
-              <h2 
-                style={{ 
-                  fontFamily: "'Cormorant Garamond', serif",
-                  color: DS.textPrimary,
-                }}
-                className="text-xl font-semibold"
-              >
-                {isNewClient ? 'Nuevo cliente' : 'Editar cliente'}
-              </h2>
-              <p 
-                style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: DS.textSecondary,
-                  fontSize: '12px'
-                }}
-              >
-                {isNewClient ? 'Añade los datos del cliente' : 'Actualiza la información'}
-              </p>
-            </div>
+              <X className="w-5 h-5 text-white" />
+            </button>
           </div>
-          <button
-            onClick={handleClose}
-            disabled={isLoading}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50"
-            aria-label="Cerrar"
-            style={{ transition: DS.transition }}
-          >
-            <X className="w-5 h-5" style={{ color: DS.textSecondary }} />
-          </button>
         </div>
 
         {/* Form */}
         <form action={formAction} onSubmit={() => setIsSubmitted(true)} className="p-5 space-y-4">
-          {/* Hidden fields - only include for editing */}
+          {/* Hidden fields */}
           {!isNewClient && (
             <input type="hidden" name="id" value={client.id} />
           )}
@@ -177,11 +190,11 @@ export function EditClientModal({
           {/* Success Message */}
           {state.success && (
             <div 
-              className="flex items-center gap-2 p-3 rounded-lg"
+              className="flex items-center gap-2 p-3 rounded-xl"
               style={{ 
-                backgroundColor: '#ECFDF5',
-                border: '1px solid #A7F3D0',
-                color: DS.success,
+                backgroundColor: COLORS.successLight,
+                border: `1px solid ${COLORS.success}30`,
+                color: COLORS.success,
               }}
             >
               <Check className="w-5 h-5 flex-shrink-0" />
@@ -194,11 +207,11 @@ export function EditClientModal({
           {/* Error general */}
           {state.error && (
             <div 
-              className="flex items-start gap-2 p-3 rounded-lg"
+              className="flex items-start gap-2 p-3 rounded-xl"
               style={{ 
-                backgroundColor: '#FEF2F2',
-                border: '1px solid #FECACA',
-                color: DS.error,
+                backgroundColor: COLORS.errorLight,
+                border: `1px solid ${COLORS.error}30`,
+                color: COLORS.error,
               }}
             >
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -212,10 +225,13 @@ export function EditClientModal({
           <div>
             <label 
               htmlFor="name"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               className="block text-sm font-medium mb-1.5"
+              style={{ 
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                color: COLORS.textPrimary 
+              }}
             >
-              Nombre completo <span style={{ color: DS.error }}>*</span>
+              Nombre completo <span style={{ color: COLORS.error }}>*</span>
             </label>
             <input
               type="text"
@@ -227,20 +243,21 @@ export function EditClientModal({
               placeholder="Ej: María García"
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: DS.radius.sm,
-                borderColor: state.fieldErrors?.name ? DS.error : DS.border,
+                borderRadius: COLORS.radius.sm,
+                borderColor: state.fieldErrors?.name ? COLORS.error : COLORS.border,
                 padding: '12px 14px',
-                color: DS.textPrimary,
+                color: COLORS.textPrimary,
+                backgroundColor: COLORS.surface,
                 opacity: isLoading ? 0.7 : 1,
-                transition: DS.transition,
+                transition: COLORS.transition,
               }}
-              className="w-full border focus:outline-none focus:ring-2 focus:border-transparent"
+              className="w-full border focus:outline-none focus:ring-2 focus:ring-offset-2"
             />
             {state.fieldErrors?.name && (
               <p 
                 style={{ 
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: DS.error,
+                  color: COLORS.error,
                   fontSize: '12px'
                 }} 
                 className="mt-1"
@@ -254,8 +271,11 @@ export function EditClientModal({
           <div>
             <label 
               htmlFor="email"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               className="block text-sm font-medium mb-1.5"
+              style={{ 
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                color: COLORS.textPrimary 
+              }}
             >
               Email
             </label>
@@ -268,20 +288,21 @@ export function EditClientModal({
               placeholder="ej: maria@email.com"
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: DS.radius.sm,
-                borderColor: state.fieldErrors?.email ? DS.error : DS.border,
+                borderRadius: COLORS.radius.sm,
+                borderColor: state.fieldErrors?.email ? COLORS.error : COLORS.border,
                 padding: '12px 14px',
-                color: DS.textPrimary,
+                color: COLORS.textPrimary,
+                backgroundColor: COLORS.surface,
                 opacity: isLoading ? 0.7 : 1,
-                transition: DS.transition,
+                transition: COLORS.transition,
               }}
-              className="w-full border focus:outline-none focus:ring-2 focus:border-transparent"
+              className="w-full border focus:outline-none focus:ring-2 focus:ring-offset-2"
             />
             {state.fieldErrors?.email && (
               <p 
                 style={{ 
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: DS.error,
+                  color: COLORS.error,
                   fontSize: '12px'
                 }} 
                 className="mt-1"
@@ -295,8 +316,11 @@ export function EditClientModal({
           <div>
             <label 
               htmlFor="phone"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               className="block text-sm font-medium mb-1.5"
+              style={{ 
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                color: COLORS.textPrimary 
+              }}
             >
               Teléfono
             </label>
@@ -309,20 +333,21 @@ export function EditClientModal({
               placeholder="Ej: +34 612 345 678"
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: DS.radius.sm,
-                borderColor: state.fieldErrors?.phone ? DS.error : DS.border,
+                borderRadius: COLORS.radius.sm,
+                borderColor: state.fieldErrors?.phone ? COLORS.error : COLORS.border,
                 padding: '12px 14px',
-                color: DS.textPrimary,
+                color: COLORS.textPrimary,
+                backgroundColor: COLORS.surface,
                 opacity: isLoading ? 0.7 : 1,
-                transition: DS.transition,
+                transition: COLORS.transition,
               }}
-              className="w-full border focus:outline-none focus:ring-2 focus:border-transparent"
+              className="w-full border focus:outline-none focus:ring-2 focus:ring-offset-2"
             />
             {state.fieldErrors?.phone && (
               <p 
                 style={{ 
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: DS.error,
+                  color: COLORS.error,
                   fontSize: '12px'
                 }} 
                 className="mt-1"
@@ -336,8 +361,11 @@ export function EditClientModal({
           <div>
             <label 
               htmlFor="notes"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               className="block text-sm font-medium mb-1.5"
+              style={{ 
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                color: COLORS.textPrimary 
+              }}
             >
               Notas
             </label>
@@ -350,15 +378,16 @@ export function EditClientModal({
               rows={3}
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: DS.radius.sm,
-                borderColor: DS.border,
+                borderRadius: COLORS.radius.sm,
+                borderColor: COLORS.border,
                 padding: '12px 14px',
-                color: DS.textPrimary,
+                color: COLORS.textPrimary,
+                backgroundColor: COLORS.surface,
                 opacity: isLoading ? 0.7 : 1,
-                transition: DS.transition,
+                transition: COLORS.transition,
                 resize: 'none',
               }}
-              className="w-full border focus:outline-none focus:ring-2 focus:border-transparent"
+              className="w-full border focus:outline-none focus:ring-2 focus:ring-offset-2"
             />
           </div>
 
@@ -370,11 +399,13 @@ export function EditClientModal({
               disabled={isLoading}
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: DS.radius.sm,
+                borderRadius: COLORS.radius.sm,
                 padding: '12px 20px',
-                color: DS.textSecondary,
+                color: COLORS.textSecondary,
+                backgroundColor: COLORS.surfaceSubtle,
+                border: `1px solid ${COLORS.border}`
               }}
-              className="flex-1 border font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+              className="flex-1 border font-medium hover:opacity-80 transition-opacity disabled:opacity-50 cursor-pointer"
             >
               Cancelar
             </button>
@@ -383,13 +414,13 @@ export function EditClientModal({
               disabled={isLoading || state.success}
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: DS.radius.sm,
+                borderRadius: COLORS.radius.sm,
                 padding: '12px 20px',
-                backgroundColor: state.success ? DS.success : DS.primary,
+                backgroundColor: state.success ? COLORS.success : COLORS.primary,
                 color: '#FFFFFF',
                 opacity: isLoading ? 0.7 : 1,
               }}
-              className="flex-1 font-medium hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 transition-opacity"
+              className="flex-1 font-medium hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 transition-opacity cursor-pointer"
             >
               {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
               {state.success ? (

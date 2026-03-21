@@ -1,18 +1,7 @@
 'use client'
 
+import { useTheme } from 'next-themes'
 import { TrendingUp, TrendingDown } from 'lucide-react'
-
-const COLORS = {
-  primary: '#0F4C5C',
-  success: '#16A34A',
-  error: '#DC2626',
-  surface: '#FFFFFF',
-  surfaceSubtle: '#F8FAFC',
-  border: '#E2E8F0',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textMuted: '#94A3B8',
-}
 
 interface StatsCardProps {
   title: string
@@ -21,10 +10,29 @@ interface StatsCardProps {
   prefix?: string
   suffix?: string
   icon?: React.ReactNode
+  iconColor?: string
   loading?: boolean
+  delay?: number
 }
 
-export function StatsCard({ title, value, change, prefix = '', suffix = '', icon, loading }: StatsCardProps) {
+export function StatsCard({ title, value, change, prefix = '', suffix = '', icon, iconColor = '#0F4C5C', loading, delay = 0 }: StatsCardProps) {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  
+  const COLORS = {
+    primary: isDark ? '#38BDF8' : '#0F4C5C',
+    success: '#16A34A',
+    error: '#DC2626',
+    surface: isDark ? '#0F172A' : '#FFFFFF',
+    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
+    surfaceGlass: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
+    border: isDark ? '#334155' : '#E2E8F0',
+    borderLight: isDark ? '#1E293B' : '#F0F3F4',
+    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
+    textSecondary: isDark ? '#94A3B8' : '#475569',
+    textMuted: isDark ? '#64748B' : '#94A3B8',
+  }
+
   const isPositive = change !== undefined && change >= 0
   
   const formattedValue = typeof value === 'number' 
@@ -40,20 +48,30 @@ export function StatsCard({ title, value, change, prefix = '', suffix = '', icon
           borderColor: COLORS.border 
         }}
       >
-        <div className="h-4 w-24 bg-slate-200 rounded mb-3" />
-        <div className="h-8 w-32 bg-slate-200 rounded mb-2" />
-        <div className="h-4 w-16 bg-slate-200 rounded" />
+        <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded mb-3" />
+        <div className="h-8 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
+        <div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded" />
       </div>
     )
   }
 
   return (
     <div 
-      className="p-5 rounded-2xl border transition-all duration-200 hover:shadow-md cursor-default"
+      className="group p-5 rounded-2xl border transition-all duration-300 cursor-default"
       style={{ 
-        backgroundColor: COLORS.surface, 
+        backgroundColor: COLORS.surfaceGlass, 
         borderColor: COLORS.border,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+        boxShadow: '0 4px 24px rgba(15, 76, 92, 0.08)',
+        backdropFilter: 'blur(12px)',
+        animationDelay: `${delay}ms`
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)'
+        e.currentTarget.style.boxShadow = '0 8px 32px rgba(15, 76, 92, 0.15)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = '0 4px 24px rgba(15, 76, 92, 0.08)'
       }}
     >
       <div className="flex items-center justify-between mb-3">
@@ -65,10 +83,14 @@ export function StatsCard({ title, value, change, prefix = '', suffix = '', icon
         </span>
         {icon && (
           <div 
-            className="p-2 rounded-lg"
-            style={{ backgroundColor: COLORS.surfaceSubtle }}
+            className="p-2.5 rounded-xl transition-transform duration-200 group-hover:scale-110"
+            style={{ 
+              backgroundColor: isDark ? `${iconColor}20` : `${iconColor}15`,
+            }}
           >
-            {icon}
+            <span style={{ color: iconColor }}>
+              {icon}
+            </span>
           </div>
         )}
       </div>
@@ -102,14 +124,14 @@ export function StatsCard({ title, value, change, prefix = '', suffix = '', icon
       </div>
 
       {change !== undefined && (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           {isPositive ? (
             <TrendingUp className="w-4 h-4" style={{ color: COLORS.success }} />
           ) : (
             <TrendingDown className="w-4 h-4" style={{ color: COLORS.error }} />
           )}
           <span 
-            className="text-sm font-medium"
+            className="text-sm font-semibold"
             style={{ 
               color: isPositive ? COLORS.success : COLORS.error,
               fontFamily: 'Plus Jakarta Sans, sans-serif'
