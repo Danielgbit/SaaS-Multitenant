@@ -1,0 +1,8 @@
+# <type>(<scope>): <subject>
+#
+# Types: feat | fix | docs | style | refactor | perf | test | chore
+# Keep subject under 72 characters
+# Use English only
+#
+# Example:
+# feat(dashboard): add new analytics component
