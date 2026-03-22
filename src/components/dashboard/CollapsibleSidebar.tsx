@@ -7,7 +7,7 @@ import { useTheme } from 'next-themes'
 import { 
   CalendarDays, 
   Users, 
-  Scissors, 
+  Scissors,
   LayoutDashboard, 
   UserCircle, 
   CreditCard, 
@@ -27,15 +27,16 @@ function useColors() {
   
   return {
     primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
+    primaryHover: isDark ? '#0EA5E9' : '#0C3E4A',
     primaryGradient: isDark 
       ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
       : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
+    primarySubtle: isDark ? 'rgba(56, 189, 248, 0.08)' : 'rgba(15, 76, 92, 0.06)',
     surface: isDark ? '#1E293B' : '#FFFFFF',
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
+    surfaceHover: isDark ? '#334155' : '#F8FAFC',
     border: isDark ? '#334155' : '#E2E8F0',
     textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
+    textSecondary: isDark ? '#94A3B8' : '#64748B',
     textMuted: isDark ? '#64748B' : '#94A3B8',
     isDark,
   }
@@ -53,7 +54,6 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
   const [hoveredRoute, setHoveredRoute] = useState<string | null>(null)
   const [tooltipVisible, setTooltipVisible] = useState(false)
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const supabase = createClient()
 
   const isEmployee = role === 'employee'
 
@@ -143,7 +143,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
     if (hoveredRoute && isCollapsed) {
       tooltipTimeoutRef.current = setTimeout(() => {
         setTooltipVisible(true)
-      }, 200)
+      }, 300)
     } else {
       if (tooltipTimeoutRef.current) {
         clearTimeout(tooltipTimeoutRef.current)
@@ -160,19 +160,20 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
 
   return (
     <aside 
-      className="hidden md:flex flex-col z-30 transition-all duration-300 ease-out flex-shrink-0 border-r"
+      className="md:flex flex-col z-30 transition-all duration-300 ease-out flex-shrink-0 border-r"
       style={{ 
-        width: isCollapsed ? '64px' : '280px',
+        width: isCollapsed ? '72px' : '260px',
         backgroundColor: COLORS.surface,
         borderColor: COLORS.border,
       }}
     >
-      {/* Logo */}
+      {/* Logo Section */}
       <div 
-        className="h-20 flex items-center shrink-0 transition-all duration-300"
+        className="relative flex items-center shrink-0 transition-all duration-300"
         style={{ 
-          paddingLeft: isCollapsed ? '16px' : '32px',
-          paddingRight: isCollapsed ? '16px' : '32px',
+          height: '72px',
+          paddingLeft: isCollapsed ? '20px' : '24px',
+          paddingRight: isCollapsed ? '20px' : '24px',
           borderBottom: `1px solid ${COLORS.border}`,
         }}
       >
@@ -181,16 +182,19 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
           className="flex items-center gap-3 group"
         >
           <div 
-            className="w-8 h-8 rounded-xl flex items-center justify-center shadow-md transform transition-transform duration-200 group-hover:scale-105 flex-shrink-0"
+            className="relative w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform duration-200 group-hover:scale-105 flex-shrink-0"
             style={{ background: COLORS.primaryGradient }}
           >
-            <span className="text-white font-serif font-bold text-lg leading-none">P</span>
+            <span className="text-white font-serif font-bold text-xl leading-none">P</span>
+            <div 
+              className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white dark:border-slate-800"
+              style={{ backgroundColor: '#34D399' }}
+            />
           </div>
           <span 
-            className="text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300"
+            className="font-display text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300"
             style={{ 
               color: COLORS.textPrimary, 
-              fontFamily: "'Cormorant Garamond', serif",
               opacity: isCollapsed ? 0 : 1,
               width: isCollapsed ? '0' : 'auto',
             }}
@@ -202,15 +206,22 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
 
       {/* Navigation */}
       <nav 
-        className="flex-1 py-4 overflow-y-auto overflow-x-hidden transition-all duration-300"
+        className="flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 scrollbar-thin"
         style={{ 
-          paddingLeft: isCollapsed ? '8px' : '16px', 
-          paddingRight: isCollapsed ? '8px' : '16px',
-          maxHeight: 'calc(100vh - 80px - 80px)', // header 80px + footer toggle 80px aproximate
+          paddingTop: '12px',
+          paddingBottom: '12px',
+          maskImage: 'linear-gradient(to bottom, black calc(100% - 40px), transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black calc(100% - 40px), transparent 100%)',
         }}
         aria-label="Navegación principal"
       >
-        <div className="space-y-1.5">
+        <div 
+          className="space-y-0.5 px-3"
+          style={{
+            paddingLeft: isCollapsed ? '12px' : '16px',
+            paddingRight: isCollapsed ? '12px' : '16px',
+          }}
+        >
           {routes.map((route) => {
             const Icon = route.icon
             const isActive = route.active
@@ -218,58 +229,95 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
             
             return (
               <div key={route.href} className="relative">
+                {/* Active indicator bar */}
+                {isActive && (
+                  <div 
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-full transition-all duration-200"
+                    style={{ 
+                      height: '24px',
+                      background: COLORS.primaryGradient,
+                    }}
+                  />
+                )}
+                
                 <Link
                   href={route.href}
                   className={`
-                    group flex items-center gap-3 px-3 py-3 rounded-xl min-h-[48px]
+                    group relative flex items-center gap-3 px-3 py-2.5 rounded-lg
                     transition-all duration-200 font-medium text-sm
                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
-                    justify-center
                     ${isActive 
-                      ? 'text-white shadow-lg' 
-                      : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? '' 
+                      : 'hover:bg-opacity-60'
                     }
                   `}
                   style={{ 
-                    background: isActive ? COLORS.primaryGradient : 'transparent',
-                    color: isActive ? '#FFFFFF' : COLORS.textSecondary,
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    backgroundColor: isActive 
+                      ? COLORS.primarySubtle 
+                      : isHovered 
+                        ? COLORS.surfaceHover 
+                        : 'transparent',
+                    color: isActive 
+                      ? COLORS.primary 
+                      : COLORS.textSecondary,
                     width: '100%',
+                    paddingLeft: isActive ? '20px' : '16px',
                   }}
                   onMouseEnter={() => setHoveredRoute(route.href)}
                   onMouseLeave={() => setHoveredRoute(null)}
                   aria-current={isActive ? 'page' : undefined}
                 >
                   <Icon 
-                    className={`w-5 h-5 transition-transform duration-200 flex-shrink-0 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} 
+                    className={`
+                      w-5 h-5 flex-shrink-0 transition-all duration-200
+                      ${isActive 
+                        ? 'scale-110' 
+                        : isHovered 
+                          ? 'scale-105' 
+                          : ''
+                      }
+                    `}
+                    style={{ 
+                      color: isActive ? COLORS.primary : COLORS.textSecondary,
+                    }}
                     aria-hidden="true" 
                   />
                   <span 
-                    className="whitespace-nowrap overflow-hidden transition-all duration-200"
+                    className="whitespace-nowrap overflow-hidden transition-all duration-300"
                     style={{ 
                       opacity: isCollapsed ? 0 : 1,
                       width: isCollapsed ? '0' : 'auto',
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
                     }}
                   >
                     {route.label}
                   </span>
+                  
+                  {/* Active background glow */}
+                  {isActive && (
+                    <div 
+                      className="absolute inset-0 rounded-lg opacity-20 pointer-events-none transition-opacity duration-200"
+                      style={{ 
+                        background: `linear-gradient(90deg, ${COLORS.primary}15, transparent)`,
+                      }}
+                    />
+                  )}
                 </Link>
 
-                {/* Tooltip cuando está colapsado */}
+                {/* Premium Tooltip when collapsed */}
                 {isCollapsed && isHovered && tooltipVisible && (
                   <div 
-                    className="absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 pointer-events-none"
-                    style={{
-                      animation: 'fadeIn 150ms ease-out',
-                    }}
+                    className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 pointer-events-none animate-slideInLeft"
                   >
                     <div 
-                      className="px-3 py-2 rounded-lg shadow-lg whitespace-nowrap"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm whitespace-nowrap"
                       style={{ 
-                        backgroundColor: COLORS.textPrimary,
-                        color: COLORS.surface,
+                        backgroundColor: COLORS.isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)',
+                        color: '#F8FAFC',
+                        border: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
                       }}
                     >
+                      <Icon className="w-4 h-4" style={{ color: COLORS.primary }} aria-hidden="true" />
                       <span 
                         className="text-sm font-medium"
                         style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
@@ -277,6 +325,14 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
                         {route.label}
                       </span>
                     </div>
+                    <div 
+                      className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 rotate-45"
+                      style={{ 
+                        backgroundColor: COLORS.isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)',
+                        borderLeft: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
+                        borderBottom: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
+                      }}
+                    />
                   </div>
                 )}
               </div>
@@ -285,77 +341,93 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
         </div>
       </nav>
 
-      {/* Footer with Toggle */}
+      {/* Footer with Profile and Toggle */}
       <div 
-        className="shrink-0 border-t transition-all duration-300"
+        className="shrink-0 border-t"
         style={{ 
           borderColor: COLORS.border,
-          padding: isCollapsed ? '8px' : '12px',
-          height: isCollapsed ? 'auto' : 'auto',
+          padding: isCollapsed ? '12px' : '16px',
         }}
       >
         {/* Profile Badge */}
-        <div 
-          className="overflow-hidden transition-all duration-300 flex items-center justify-center"
-          style={{ 
-            height: isCollapsed ? '0px' : '48px',
-            opacity: isCollapsed ? 0 : 1,
-            marginBottom: isCollapsed ? '0px' : '8px',
-          }}
-        >
-          {role && (
+        {!isCollapsed && role && (
+          <div 
+            className="mb-3 transition-all duration-300 animate-scaleIn"
+          >
             <div 
-              className="px-3 py-2 rounded-xl w-full flex items-center justify-between"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
               style={{ 
-                backgroundColor: COLORS.surfaceSubtle,
-                border: `1px solid ${COLORS.border}` 
+                backgroundColor: COLORS.surfaceHover,
+                border: `1px solid ${COLORS.border}`,
               }}
             >
-              <span 
-                className="text-[11px] font-bold uppercase tracking-wider"
-                style={{ color: COLORS.textMuted }}
+              <div 
+                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: COLORS.primaryGradient }}
               >
-                Perfil
-              </span>
-              <span 
-                className="text-xs font-semibold capitalize"
-                style={{ color: COLORS.primary }}
-              >
-                {role}
-              </span>
+                <span 
+                  className="text-white font-semibold text-xs uppercase"
+                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                >
+                  {role.charAt(0)}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p 
+                  className="text-[10px] font-semibold uppercase tracking-wider"
+                  style={{ color: COLORS.textMuted }}
+                >
+                  Rol
+                </p>
+                <p 
+                  className="text-sm font-semibold capitalize truncate"
+                  style={{ color: COLORS.primary }}
+                >
+                  {role}
+                </p>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Toggle Button */}
         <button
           onClick={onToggle}
-          className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl min-h-[48px] transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 group"
-          style={{ color: COLORS.textSecondary }}
+          className={`
+            w-full flex items-center gap-2 px-3 py-2.5 rounded-lg
+            transition-all duration-200 
+            hover:bg-opacity-50 group
+            ${isCollapsed ? 'justify-center' : 'justify-between'}
+          `}
+          style={{ 
+            backgroundColor: COLORS.surfaceHover,
+            color: COLORS.textSecondary,
+          }}
           aria-label={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
         >
-          {isCollapsed ? (
-            <ChevronRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-0.5" />
-          ) : (
-            <>
-              <ChevronLeft className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-0.5" />
-              <span 
-                className="text-sm font-medium whitespace-nowrap overflow-hidden"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
-                Colapsar
-              </span>
-            </>
+          {!isCollapsed && (
+            <span 
+              className="text-sm font-medium"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              Colapsar
+            </span>
           )}
+          <div 
+            className={`
+              w-7 h-7 rounded-lg flex items-center justify-center
+              transition-all duration-300
+              ${isCollapsed ? '' : 'rotate-180'}
+            `}
+            style={{ 
+              backgroundColor: COLORS.primary,
+              color: 'white',
+            }}
+          >
+            <ChevronLeft className="w-4 h-4 transition-transform duration-200" />
+          </div>
         </button>
       </div>
-
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-50%) translateX(-8px); }
-          to { opacity: 1; transform: translateY(-50%) translateX(0); }
-        }
-      `}</style>
     </aside>
   )
 }

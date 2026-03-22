@@ -35,6 +35,25 @@ export default {
         glass: "0 8px 32px rgba(0,0,0,0.04)",
         "glass-dark": "0 8px 32px rgba(0,0,0,0.2)",
       },
+      keyframes: {
+        fadeInTooltip: {
+          from: { opacity: "0", transform: "translateY(-50%) translateX(-8px)" },
+          to: { opacity: "1", transform: "translateY(-50%) translateX(0)" },
+        },
+        slideInLeft: {
+          from: { opacity: "0", transform: "translateX(-12px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        scaleIn: {
+          from: { opacity: "0", transform: "scale(0.95)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
+      },
+      animation: {
+        fadeInTooltip: "fadeInTooltip 200ms cubic-bezier(0.4, 0, 0.2, 1)",
+        slideInLeft: "slideInLeft 250ms cubic-bezier(0.4, 0, 0.2, 1)",
+        scaleIn: "scaleIn 200ms cubic-bezier(0.4, 0, 0.2, 1)",
+      },
     },
   },
   plugins: [
