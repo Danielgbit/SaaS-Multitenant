@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTheme } from 'next-themes'
 import { 
   Mail, 
   RefreshCw, 
@@ -16,22 +17,31 @@ import {
 } from 'lucide-react'
 import { getEmailLogs } from '@/actions/email/getEmailLogs'
 
-const COLORS = {
-  primary: '#0F4C5C',
-  primaryHover: '#0C3E4A',
-  primaryLight: '#E6F1F4',
-  success: '#16A34A',
-  successLight: '#DCFCE7',
-  warning: '#F59E0B',
-  warningLight: '#FEF3C7',
-  error: '#DC2626',
-  errorLight: '#FEE2E2',
-  surface: '#FFFFFF',
-  surfaceSubtle: '#FAFAF9',
-  border: '#E2E8F0',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textMuted: '#94A3B8',
+function useColors() {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  
+  return {
+    primary: isDark ? '#38BDF8' : '#0F4C5C',
+    primaryGradient: isDark 
+      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)' 
+      : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
+    primarySubtle: isDark ? 'rgba(56, 189, 248, 0.1)' : 'rgba(15, 76, 92, 0.08)',
+    success: '#16A34A',
+    successLight: isDark ? '#064E3B' : '#DCFCE7',
+    warning: '#F59E0B',
+    warningLight: isDark ? '#78350F' : '#FEF3C7',
+    error: '#DC2626',
+    errorLight: isDark ? '#450A0A' : '#FEE2E2',
+    surface: isDark ? '#0F172A' : '#FFFFFF',
+    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
+    surfaceGlass: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+    border: isDark ? '#334155' : '#E2E8F0',
+    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
+    textSecondary: isDark ? '#94A3B8' : '#475569',
+    textMuted: isDark ? '#64748B' : '#94A3B8',
+    isDark,
+  }
 }
 
 interface LogEntry {
@@ -58,38 +68,20 @@ const emailTypeLabels: Record<string, string> = {
   appointment_no_show: 'No asistencia',
 }
 
-const statusLabels: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  sent: { 
-    label: 'Enviado', 
-    color: COLORS.success, 
-    bg: COLORS.successLight,
-    icon: <Send className="w-3 h-3" />
-  },
-  failed: { 
-    label: 'Fallido', 
-    color: COLORS.error, 
-    bg: COLORS.errorLight,
-    icon: <XCircle className="w-3 h-3" />
-  },
-  pending: { 
-    label: 'Pendiente', 
-    color: COLORS.warning, 
-    bg: COLORS.warningLight,
-    icon: <Clock className="w-3 h-3" />
-  },
-}
-
 export function EmailLogs({ organizationId }: EmailLogsProps) {
+  const COLORS = useColors()
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<'all' | 'sent' | 'failed' | 'pending'>('all')
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   const limit = 15
 
   useEffect(() => {
+    setMounted(true)
     loadLogs()
   }, [organizationId, page])
 
@@ -134,12 +126,33 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
     { key: 'pending', label: 'Pendientes', icon: <Clock className="w-3.5 h-3.5" /> },
   ]
 
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'sent':
+        return { label: 'Enviado', color: COLORS.success, bg: COLORS.successLight, icon: <Send className="w-3 h-3" /> }
+      case 'failed':
+        return { label: 'Fallido', color: COLORS.error, bg: COLORS.errorLight, icon: <XCircle className="w-3 h-3" /> }
+      case 'pending':
+        return { label: 'Pendiente', color: COLORS.warning, bg: COLORS.warningLight, icon: <Clock className="w-3 h-3" /> }
+      default:
+        return { label: status, color: COLORS.textSecondary, bg: COLORS.surfaceSubtle, icon: <Clock className="w-3 h-3" /> }
+    }
+  }
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+      </div>
+    )
+  }
+
   return (
     <div>
       {/* Filters */}
       <div className="mb-6">
         <div 
-          className="inline-flex gap-1 p-1 rounded-xl"
+          className="inline-flex gap-1 p-1.5 rounded-xl"
           style={{ backgroundColor: COLORS.surfaceSubtle }}
         >
           {filterButtons.map((btn) => (
@@ -154,8 +167,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
               style={{ 
                 backgroundColor: statusFilter === btn.key ? COLORS.surface : 'transparent',
                 color: statusFilter === btn.key ? COLORS.primary : COLORS.textSecondary,
-                boxShadow: statusFilter === btn.key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                fontFamily: 'Plus Jakarta Sans, sans-serif'
+                boxShadow: statusFilter === btn.key ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
               }}
             >
               {btn.icon}
@@ -167,7 +179,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
 
       {message && (
         <div 
-          className="mb-4 p-4 rounded-xl flex items-center gap-3"
+          className="mb-4 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300"
           style={{ 
             backgroundColor: message.type === 'success' ? COLORS.successLight : COLORS.errorLight 
           }}
@@ -180,7 +192,6 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
           <span 
             style={{ 
               color: message.type === 'success' ? COLORS.success : COLORS.error, 
-              fontFamily: 'Plus Jakarta Sans, sans-serif' 
             }}
           >
             {message.text}
@@ -192,9 +203,10 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
       <div 
         className="rounded-2xl border overflow-hidden"
         style={{ 
-          backgroundColor: COLORS.surface, 
+          backgroundColor: COLORS.surfaceGlass,
+          backdropFilter: 'blur(12px)',
           borderColor: COLORS.border,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.04)'
+          boxShadow: '0 4px 24px rgba(15, 76, 92, 0.08)'
         }}
       >
         {loading ? (
@@ -203,23 +215,23 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
               className="w-8 h-8 mx-auto animate-spin mb-4"
               style={{ color: COLORS.primary }} 
             />
-            <p style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Cargando historial...</p>
+            <p style={{ color: COLORS.textMuted }}>Cargando historial...</p>
           </div>
         ) : logs.length === 0 ? (
           <div className="p-16 text-center">
             <div 
-              className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
-              style={{ backgroundColor: COLORS.surfaceSubtle }}
+              className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4"
+              style={{ backgroundColor: COLORS.primarySubtle }}
             >
-              <Mail className="w-8 h-8" style={{ color: COLORS.textMuted }} />
+              <Mail className="w-8 h-8" style={{ color: COLORS.primary }} />
             </div>
             <h3 
-              className="font-semibold mb-2"
-              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              className="font-semibold text-lg mb-2"
+              style={{ color: COLORS.textPrimary }}
             >
               No hay emails enviados
             </h3>
-            <p style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            <p style={{ color: COLORS.textMuted }}>
               Los emails aparecerán aquí cuando se envíen
             </p>
           </div>
@@ -229,60 +241,58 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
               <tr style={{ backgroundColor: COLORS.surfaceSubtle }}>
                 <th 
                   className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                  style={{ color: COLORS.textMuted }}
                 >
                   Destinatario
                 </th>
                 <th 
                   className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                  style={{ color: COLORS.textMuted }}
                 >
                   Tipo
                 </th>
                 <th 
                   className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                  style={{ color: COLORS.textMuted }}
                 >
                   Asunto
                 </th>
                 <th 
                   className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                  style={{ color: COLORS.textMuted }}
                 >
                   Estado
                 </th>
                 <th 
                   className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                  style={{ color: COLORS.textMuted }}
                 >
                   Fecha
                 </th>
               </tr>
             </thead>
-            <tbody style={{ borderColor: COLORS.border }}>
+            <tbody>
               {logs.map((log) => {
-                const status = statusLabels[log.status] || { 
-                  label: log.status, 
-                  color: COLORS.textSecondary, 
-                  bg: COLORS.surfaceSubtle,
-                  icon: <Clock className="w-3 h-3" />
-                }
+                const status = getStatusStyle(log.status)
                 return (
                   <tr 
                     key={log.id}
-                    className="hover:bg-slate-50 transition-colors"
+                    className="transition-colors"
+                    style={{ borderBottom: `1px solid ${COLORS.border}` }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <div 
                           className="w-8 h-8 rounded-full flex items-center justify-center"
-                          style={{ backgroundColor: COLORS.primaryLight }}
+                          style={{ backgroundColor: COLORS.primarySubtle }}
                         >
                           <MailOpen className="w-4 h-4" style={{ color: COLORS.primary }} />
                         </div>
                         <span 
                           className="text-sm font-medium"
-                          style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                          style={{ color: COLORS.textPrimary }}
                         >
                           {log.to_email}
                         </span>
@@ -291,7 +301,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
                     <td className="px-5 py-4">
                       <span 
                         className="text-sm"
-                        style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                        style={{ color: COLORS.textSecondary }}
                       >
                         {emailTypeLabels[log.email_type] || log.email_type}
                       </span>
@@ -299,7 +309,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
                     <td className="px-5 py-4">
                       <span 
                         className="text-sm block max-w-xs truncate"
-                        style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                        style={{ color: COLORS.textSecondary }}
                         title={log.subject}
                       >
                         {log.subject}
@@ -311,7 +321,6 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
                         style={{ 
                           backgroundColor: status.bg, 
                           color: status.color,
-                          fontFamily: 'Plus Jakarta Sans, sans-serif'
                         }}
                       >
                         {status.icon}
@@ -321,7 +330,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
                     <td className="px-5 py-4">
                       <span 
                         className="text-sm"
-                        style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                        style={{ color: COLORS.textMuted }}
                       >
                         {formatDate(log.created_at)}
                       </span>
@@ -339,7 +348,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
         <div className="mt-6 flex items-center justify-between">
           <p 
             className="text-sm"
-            style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            style={{ color: COLORS.textMuted }}
           >
             Mostrando {page * limit + 1} - {Math.min((page + 1) * limit, total)} de {total}
           </p>
@@ -347,7 +356,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
             <button
               onClick={() => setPage(p => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="p-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg border transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ 
                 borderColor: COLORS.border,
                 backgroundColor: COLORS.surface,
@@ -362,7 +371,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
             >
               <span 
                 className="text-sm font-medium"
-                style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                style={{ color: COLORS.textPrimary }}
               >
                 {page + 1} / {totalPages}
               </span>
@@ -370,7 +379,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
             <button
               onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="p-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg border transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ 
                 borderColor: COLORS.border,
                 backgroundColor: COLORS.surface,

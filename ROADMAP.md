@@ -370,6 +370,8 @@
 - Estado vacío (empty states) profesionales
 - Tabla de logs con paginación
 - Metadata SEO (OpenGraph, Twitter Cards)
+- Dark/Light mode con `useTheme()` + `useColors()` hook
+- Glassmorphism cards con `backdrop-blur`
 
 ### Configuración N8N
 - Endpoint: `POST /api/email/scheduler`
@@ -527,6 +529,47 @@
 
 ---
 
+## CollapsibleSidebar - Sidebar Rediseñada
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| Sidebar principal | `src/components/dashboard/CollapsibleSidebar.tsx` | ✅ |
+| Animaciones CSS | `src/app/globals.css` | ✅ |
+
+### Características implementadas
+- Header premium con indicador de logo (dot)
+- Barra de estado activo con gradiente
+- Tooltips con glassmorphism cuando está colapsada
+- Badge de perfil mejorado
+- Custom scrollbar con `scrollbar-thin`
+- Efecto fade mask para scroll de navegación
+- Hydration error fix (removido styled-jsx global)
+- Dark/Light mode con `useTheme()` + `useColors()` hook
+- Clases `hidden md:flex` corregidas a `md:flex`
+
+---
+
+## Admin Dashboard - Widgets Mejorados
+
+| Componente | Archivo | Estado |
+|------------|---------|--------|
+| UpcomingAppointments | `src/components/dashboard/analytics/UpcomingAppointments.tsx` | ✅ |
+| RecentActivity | `src/components/dashboard/analytics/RecentActivity.tsx` | ✅ |
+| EmployeePerformance | `src/components/dashboard/analytics/EmployeePerformance.tsx` | ✅ |
+| AlertsPanel | `src/components/dashboard/analytics/AlertsPanel.tsx` | ✅ |
+| getUpcomingAppointments | `src/actions/analytics/getUpcomingAppointments.ts` | ✅ |
+| getRecentActivity | `src/actions/analytics/getRecentActivity.ts` | ✅ |
+| getSystemAlerts | `src/actions/analytics/getSystemAlerts.ts` | ✅ |
+| getEmployeePerformance | `src/actions/analytics/getEmployeePerformance.ts` | ✅ |
+
+### Widgets implementados
+- **UpcomingAppointments**: Lista de citas del día con status badges
+- **RecentActivity**: Timeline de actividad con iconos coloreados
+- **EmployeePerformance**: Progress bars para top empleados por revenue
+- **AlertsPanel**: Cards de alertas clickeables (WhatsApp failed + unconfirmed)
+
+---
+
 ## UX/UI Improvements - Mejoras de Diseño
 
 ### Objetivo
@@ -548,9 +591,9 @@ Actualizar todas las secciones del dashboard con un diseño premium, profesional
 | **Services** | `services/**` | ✅ Completado |
 | **Inventory** | `inventory/**` | ✅ Completado |
 | **Billing** | `billing/**` | 🔄 Pendiente |
-| **Settings** | `settings/**` | 🔄 Pendiente |
+| **Settings** | `settings/**` | ✅ Completado |
 | **Confirmations** | `confirmations/**` | ✅ Completado |
-| **Sidebar** | `Sidebar.tsx` | 🔄 Pendiente |
+| **Sidebar** | `Sidebar.tsx` | ✅ Completado |
 
 ### Mejoras Implementadas en Employees
 
@@ -669,6 +712,37 @@ Actualizar todas las secciones del dashboard con un diseño premium, profesional
 
 ---
 
+### Mejoras Implementadas en CollapsibleSidebar
+
+#### CollapsibleSidebar.tsx
+- Premium header con logo indicator dot
+- Active state indicator bar con gradiente
+- Tooltips con glassmorphism cuando está colapsada
+- Profile badge mejorado
+- Custom scrollbar con `scrollbar-thin`
+- Fade mask effect para navegación scroll
+- Hydration error fix (removido styled-jsx global)
+- Dark/Light mode completo con `useTheme()` + `useColors()` hook
+- Animaciones CSS en `globals.css` (`fade-in-up`, `slide-in-left`)
+
+#### WhatsAppSettingsClient.tsx / WhatsAppLogs.tsx
+- Gradient headers con círculos decorativos
+- Glassmorphism cards con hover effects
+- Stats cards con iconos
+- Tabs para settings/logs
+- Toggle switches con animaciones
+- Dark/Light mode con `useTheme()` + `useColors()` hook
+
+#### EmailSettingsClient.tsx / EmailLogs.tsx
+- Gradient headers con círculos decorativos
+- Glassmorphism cards con hover effects
+- Stats cards con iconos
+- Tabs para settings/logs
+- Toggle switches con animaciones
+- Dark/Light mode con `useTheme()` + `useColors()` hook
+
+---
+
 ## Próximos Pasos Inmediatos
 
 1. ~~**Email Automation**~~ → ✅ Completado
@@ -684,7 +758,7 @@ Actualizar todas las secciones del dashboard con un diseño premium, profesional
 11. **UX/UI Billing** → Pendiente
 12. ~~**UX/UI Settings**~~ → ✅ Completado
 13. ~~**UX/UI Confirmations**~~ → ✅ Completado
-14. **UX/UI Sidebar** → Pendiente
+14. ~~**UX/UI Sidebar**~~ → ✅ Completado
 15. **Review & Testing** → Tests unitarios y de integración
 
 ---

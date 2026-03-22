@@ -7,16 +7,19 @@ import {
   DollarSign, 
   Users, 
   CheckCircle2,
-  Loader2,
-  Scissors,
   TrendingUp,
-  Sparkles
+  XCircle,
+  Loader2
 } from 'lucide-react'
 import { getDashboardData } from '@/actions/analytics/getDashboardData'
 import { StatsCard } from './StatsCard'
 import { TrendChart } from './TrendChart'
 import { TopServicesList } from './TopServicesList'
 import { PeriodSelector } from './PeriodSelector'
+import { UpcomingAppointments } from './UpcomingAppointments'
+import { RecentActivity } from './RecentActivity'
+import { EmployeePerformance } from './EmployeePerformance'
+import { AlertsPanel } from './AlertsPanel'
 
 function useColors() {
   const { theme } = useTheme()
@@ -37,6 +40,7 @@ function useColors() {
     glass: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
     gradientFrom: isDark ? '#38BDF8' : '#0F4C5C',
     gradientTo: isDark ? '#0EA5E9' : '#0C3E4A',
+    isDark,
   }
 }
 
@@ -91,13 +95,21 @@ export function DashboardClient({ organizationId }: DashboardClientProps) {
     setLoading(false)
   }
 
+  const totalAppointments = data?.overview.appointments || 0
+  const completedAppointments = data?.overview.completionRate && totalAppointments 
+    ? Math.round((data.overview.completionRate / 100) * totalAppointments) 
+    : 0
+  const cancellationRate = totalAppointments > 0 
+    ? Math.round(((totalAppointments - completedAppointments) / totalAppointments) * 100) 
+    : 0
+
   const statsCards = [
     {
       title: 'Citas',
       value: data?.overview.appointments || 0,
       change: data?.overview.appointmentsChange,
       icon: <Calendar className="w-4 h-4" />,
-      color: COLORS.primary
+      iconColor: COLORS.primary
     },
     {
       title: 'Ingresos',
@@ -105,22 +117,38 @@ export function DashboardClient({ organizationId }: DashboardClientProps) {
       prefix: '€',
       change: data?.overview.revenueChange,
       icon: <DollarSign className="w-4 h-4" />,
-      color: '#10B981'
+      iconColor: '#10B981'
     },
     {
-      title: 'Clientes',
+      title: 'Nuevos Clientes',
       value: data?.overview.clients || 0,
       change: data?.overview.clientsChange,
       icon: <Users className="w-4 h-4" />,
-      color: '#8B5CF6'
+      iconColor: '#8B5CF6'
     },
     {
-      title: 'Tasa Completado',
+      title: 'Ticket Promedio',
+      value: data?.overview.avgTicket || 0,
+      prefix: '€',
+      change: data?.overview.appointmentsChange,
+      icon: <TrendingUp className="w-4 h-4" />,
+      iconColor: '#F59E0B'
+    },
+    {
+      title: 'Finalizadas',
       value: data?.overview.completionRate || 0,
       suffix: '%',
       change: data?.overview.completionRateChange,
       icon: <CheckCircle2 className="w-4 h-4" />,
-      color: '#F59E0B'
+      iconColor: '#10B981'
+    },
+    {
+      title: 'Canceladas',
+      value: cancellationRate || 0,
+      suffix: '%',
+      change: undefined,
+      icon: <XCircle className="w-4 h-4" />,
+      iconColor: '#EF4444'
     }
   ]
 
@@ -128,32 +156,29 @@ export function DashboardClient({ organizationId }: DashboardClientProps) {
     <div className="space-y-6">
       {/* Header with gradient */}
       <div 
-        className="relative overflow-hidden rounded-2xl p-8"
+        className="relative overflow-hidden rounded-2xl p-6 md:p-8"
         style={{ 
           background: `linear-gradient(135deg, ${COLORS.gradientFrom} 0%, ${COLORS.gradientTo} 100%)`,
         }}
       >
-        {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
         
-        <div className="relative flex items-center justify-between">
+        <div className="relative flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Panel de Control</p>
               <h1 
-                className="text-3xl font-semibold text-white"
+                className="text-3xl font-bold text-white"
                 style={{ fontFamily: 'Cormorant Garamond, serif' }}
               >
-                Analytics
+                Bienvenido de nuevo
               </h1>
-              <p 
-                className="text-sm mt-1 text-white/80"
-                style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-              >
-                Analiza el rendimiento de tu negocio
+              <p className="text-sm mt-1 text-white/80">
+                Resumen de tu negocio
               </p>
             </div>
           </div>
@@ -161,99 +186,43 @@ export function DashboardClient({ organizationId }: DashboardClientProps) {
         </div>
       </div>
 
-      {/* Stats Cards with glassmorphism */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPI Cards Grid - 6 cards in 3x2 on tablet, 6x1 on desktop */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         {statsCards.map((stat, index) => (
           <StatsCard
-            key={index}
+            key={stat.title}
             title={stat.title}
             value={stat.value}
             change={stat.change}
             prefix={stat.prefix}
             suffix={stat.suffix}
             icon={stat.icon}
-            iconColor={stat.color}
+            iconColor={stat.iconColor}
             loading={loading}
-            delay={index * 100}
+            delay={index * 50}
           />
         ))}
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      {/* Main Content Grid - 2 columns on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Left Column - Chart + Activity */}
+        <div className="space-y-6">
           <TrendChart data={data?.trend || []} loading={loading} />
+          <RecentActivity organizationId={organizationId} />
         </div>
-        <div>
-          <TopServicesList services={data?.topServices || []} loading={loading} />
+
+        {/* Right Column - Widgets */}
+        <div className="space-y-6">
+          <UpcomingAppointments organizationId={organizationId} />
+          <EmployeePerformance organizationId={organizationId} period={period} />
+          <AlertsPanel organizationId={organizationId} />
         </div>
       </div>
 
-      {/* Quick Stats with glassmorphism */}
-      <div 
-        className="p-6 rounded-2xl border backdrop-blur-sm"
-        style={{ 
-          backgroundColor: COLORS.glass, 
-          borderColor: COLORS.border,
-          boxShadow: '0 4px 24px rgba(15, 76, 92, 0.08)'
-        }}
-      >
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
-            <Sparkles className="w-5 h-5" style={{ color: COLORS.primary }} />
-          </div>
-          <h3 
-            className="text-lg font-semibold"
-            style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
-          >
-            Resumen Rápido
-          </h3>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
-            <p 
-              className="text-xs uppercase tracking-wide mb-1"
-              style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-            >
-              Ticket promedio
-            </p>
-            <p 
-              className="text-2xl font-bold"
-              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-            >
-              €{data?.overview.avgTicket || 0}
-            </p>
-          </div>
-          <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
-            <p 
-              className="text-xs uppercase tracking-wide mb-1"
-              style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-            >
-              Ingresos del período
-            </p>
-            <p 
-              className="text-2xl font-bold"
-              style={{ color: COLORS.success, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-            >
-              €{data?.overview.revenue || 0}
-            </p>
-          </div>
-          <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
-            <p 
-              className="text-xs uppercase tracking-wide mb-1"
-              style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-            >
-              Citas completadas
-            </p>
-            <p 
-              className="text-2xl font-bold"
-              style={{ color: COLORS.primary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-            >
-              {Math.round((data?.overview.completionRate || 0) * (data?.overview.appointments || 0) / 100)}
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Bottom Section - Top Services */}
+      <TopServicesList services={data?.topServices || []} loading={loading} />
     </div>
   )
 }
