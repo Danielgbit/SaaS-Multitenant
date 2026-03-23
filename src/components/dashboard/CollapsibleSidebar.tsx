@@ -17,9 +17,8 @@ import {
   CheckCircle, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  Receipt
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
 function useColors() {
   const { theme } = useTheme()
@@ -55,7 +54,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
   const [tooltipVisible, setTooltipVisible] = useState(false)
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const isEmployee = role === 'employee'
+  const isStaff = role === 'staff'
 
   const allRoutes = [
     {
@@ -63,81 +62,108 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
       label: 'Dashboard',
       icon: LayoutDashboard,
       active: pathname === '/dashboard' || pathname === '/',
+      group: 'Operaciones',
     },
     {
       href: '/calendar',
       label: 'Agenda',
       icon: CalendarDays,
       active: pathname.startsWith('/calendar'),
-    },
-    {
-      href: '/employees',
-      label: 'Equipo',
-      icon: Users,
-      active: pathname.startsWith('/employees'),
-      hideForEmployee: true,
-    },
-    {
-      href: '/services',
-      label: 'Servicios',
-      icon: Scissors,
-      active: pathname.startsWith('/services'),
-    },
-    {
-      href: '/clients',
-      label: 'Clientes',
-      icon: UserCircle,
-      active: pathname.startsWith('/clients'),
-    },
-    {
-      href: '/inventory',
-      label: 'Inventario',
-      icon: Package,
-      active: pathname.startsWith('/inventory'),
-      hideForEmployee: true,
+      group: 'Operaciones',
     },
     {
       href: '/confirmations',
       label: 'Confirmaciones',
       icon: CheckCircle,
       active: pathname.startsWith('/confirmations'),
+      group: 'Operaciones',
     },
     {
-      href: '/billing',
-      label: 'Pagos',
-      icon: CreditCard,
-      active: pathname.startsWith('/billing'),
-      hideForEmployee: true,
+      href: '/employees',
+      label: 'Equipo',
+      icon: Users,
+      active: pathname.startsWith('/employees'),
+      group: 'Gestión',
+      hideForStaff: true,
+    },
+    {
+      href: '/payroll',
+      label: 'Nómina',
+      icon: Receipt,
+      active: pathname.startsWith('/payroll'),
+      group: 'Gestión',
+      hideForStaff: true,
+    },
+    {
+      href: '/clients',
+      label: 'Clientes',
+      icon: UserCircle,
+      active: pathname.startsWith('/clients'),
+      group: 'Gestión',
+    },
+    {
+      href: '/services',
+      label: 'Servicios',
+      icon: Scissors,
+      active: pathname.startsWith('/services'),
+      group: 'Gestión',
+    },
+    {
+      href: '/inventory',
+      label: 'Inventario',
+      icon: Package,
+      active: pathname.startsWith('/inventory'),
+      group: 'Gestión',
+      hideForStaff: true,
     },
     {
       href: '/whatsapp',
       label: 'WhatsApp',
       icon: MessageSquare,
       active: pathname.startsWith('/whatsapp'),
-      hideForEmployee: true,
+      group: 'Integraciones',
+      hideForStaff: true,
     },
     {
       href: '/email',
       label: 'Email',
       icon: Mail,
       active: pathname.startsWith('/email'),
-      hideForEmployee: true,
+      group: 'Integraciones',
+      hideForStaff: true,
+    },
+    {
+      href: '/billing',
+      label: 'Facturación',
+      icon: CreditCard,
+      active: pathname.startsWith('/billing'),
+      group: 'Sistema',
+      hideForStaff: true,
     },
     {
       href: '/settings',
       label: 'Ajustes',
       icon: Settings,
       active: pathname.startsWith('/settings'),
-      hideForEmployee: true,
+      group: 'Sistema',
+      hideForStaff: true,
     },
   ]
 
-  const routes = allRoutes.filter(route => {
-    if (isEmployee && route.hideForEmployee) {
+  const filteredRoutes = allRoutes.filter(route => {
+    if (isStaff && route.hideForStaff) {
       return false
     }
     return true
   })
+
+  const groupedRoutes = filteredRoutes.reduce((acc, route) => {
+    if (!acc[route.group]) {
+      acc[route.group] = []
+    }
+    acc[route.group].push(route)
+    return acc
+  }, {} as Record<string, typeof filteredRoutes>)
 
   useEffect(() => {
     if (hoveredRoute && isCollapsed) {
@@ -216,128 +242,137 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
         aria-label="Navegación principal"
       >
         <div 
-          className="space-y-0.5 px-3"
+          className="space-y-4 px-3"
           style={{
             paddingLeft: isCollapsed ? '12px' : '16px',
             paddingRight: isCollapsed ? '12px' : '16px',
           }}
         >
-          {routes.map((route) => {
-            const Icon = route.icon
-            const isActive = route.active
-            const isHovered = hoveredRoute === route.href
-            
-            return (
-              <div key={route.href} className="relative">
-                {/* Active indicator bar */}
-                {isActive && (
-                  <div 
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-full transition-all duration-200"
-                    style={{ 
-                      height: '24px',
-                      background: COLORS.primaryGradient,
-                    }}
-                  />
-                )}
-                
-                <Link
-                  href={route.href}
-                  className={`
-                    group relative flex items-center gap-3 px-3 py-2.5 rounded-lg
-                    transition-all duration-200 font-medium text-sm
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
-                    ${isActive 
-                      ? '' 
-                      : 'hover:bg-opacity-60'
-                    }
-                  `}
-                  style={{ 
-                    backgroundColor: isActive 
-                      ? COLORS.primarySubtle 
-                      : isHovered 
-                        ? COLORS.surfaceHover 
-                        : 'transparent',
-                    color: isActive 
-                      ? COLORS.primary 
-                      : COLORS.textSecondary,
-                    width: '100%',
-                    paddingLeft: isActive ? '20px' : '16px',
-                  }}
-                  onMouseEnter={() => setHoveredRoute(route.href)}
-                  onMouseLeave={() => setHoveredRoute(null)}
-                  aria-current={isActive ? 'page' : undefined}
+          {Object.entries(groupedRoutes).map(([group, routes]) => (
+            <div key={group} className="space-y-0.5">
+              {!isCollapsed && (
+                <div 
+                  className="text-[10px] font-semibold uppercase tracking-wider px-3 py-2"
+                  style={{ color: COLORS.textMuted }}
                 >
-                  <Icon 
-                    className={`
-                      w-5 h-5 flex-shrink-0 transition-all duration-200
-                      ${isActive 
-                        ? 'scale-110' 
-                        : isHovered 
-                          ? 'scale-105' 
-                          : ''
-                      }
-                    `}
-                    style={{ 
-                      color: isActive ? COLORS.primary : COLORS.textSecondary,
-                    }}
-                    aria-hidden="true" 
-                  />
-                  <span 
-                    className="whitespace-nowrap overflow-hidden transition-all duration-300"
-                    style={{ 
-                      opacity: isCollapsed ? 0 : 1,
-                      width: isCollapsed ? '0' : 'auto',
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    }}
-                  >
-                    {route.label}
-                  </span>
-                  
-                  {/* Active background glow */}
-                  {isActive && (
-                    <div 
-                      className="absolute inset-0 rounded-lg opacity-20 pointer-events-none transition-opacity duration-200"
+                  {group}
+                </div>
+              )}
+              {routes.map((route: typeof filteredRoutes[0]) => {
+                const Icon = route.icon
+                const isActive = route.active
+                const isHovered = hoveredRoute === route.href
+                
+                return (
+                  <div key={route.href} className="relative">
+                    {isActive && (
+                      <div 
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-full transition-all duration-200"
+                        style={{ 
+                          height: '24px',
+                          background: COLORS.primaryGradient,
+                        }}
+                      />
+                    )}
+                    
+                    <Link
+                      href={route.href}
+                      className={`
+                        group relative flex items-center gap-3 px-3 py-2.5 rounded-lg
+                        transition-all duration-200 font-medium text-sm
+                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+                        ${isActive 
+                          ? '' 
+                          : 'hover:bg-opacity-60'
+                        }
+                      `}
                       style={{ 
-                        background: `linear-gradient(90deg, ${COLORS.primary}15, transparent)`,
+                        backgroundColor: isActive 
+                          ? COLORS.primarySubtle 
+                          : isHovered 
+                            ? COLORS.surfaceHover 
+                            : 'transparent',
+                        color: isActive 
+                          ? COLORS.primary 
+                          : COLORS.textSecondary,
+                        width: '100%',
+                        paddingLeft: isActive ? '20px' : '16px',
                       }}
-                    />
-                  )}
-                </Link>
-
-                {/* Premium Tooltip when collapsed */}
-                {isCollapsed && isHovered && tooltipVisible && (
-                  <div 
-                    className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 pointer-events-none animate-slideInLeft"
-                  >
-                    <div 
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm whitespace-nowrap"
-                      style={{ 
-                        backgroundColor: COLORS.isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)',
-                        color: '#F8FAFC',
-                        border: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
-                      }}
+                      onMouseEnter={() => setHoveredRoute(route.href)}
+                      onMouseLeave={() => setHoveredRoute(null)}
+                      aria-current={isActive ? 'page' : undefined}
                     >
-                      <Icon className="w-4 h-4" style={{ color: COLORS.primary }} aria-hidden="true" />
+                      <Icon 
+                        className={`
+                          w-5 h-5 flex-shrink-0 transition-all duration-200
+                          ${isActive 
+                            ? 'scale-110' 
+                            : isHovered 
+                              ? 'scale-105' 
+                              : ''
+                          }
+                        `}
+                        style={{ 
+                          color: isActive ? COLORS.primary : COLORS.textSecondary,
+                        }}
+                        aria-hidden="true" 
+                      />
                       <span 
-                        className="text-sm font-medium"
-                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        className="whitespace-nowrap overflow-hidden transition-all duration-300"
+                        style={{ 
+                          opacity: isCollapsed ? 0 : 1,
+                          width: isCollapsed ? '0' : 'auto',
+                          fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        }}
                       >
                         {route.label}
                       </span>
-                    </div>
-                    <div 
-                      className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 rotate-45"
-                      style={{ 
-                        backgroundColor: COLORS.isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)',
-                        borderLeft: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
-                        borderBottom: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
-                      }}
-                    />
+                      
+                      {isActive && (
+                        <div 
+                          className="absolute inset-0 rounded-lg opacity-20 pointer-events-none transition-opacity duration-200"
+                          style={{ 
+                            background: `linear-gradient(90deg, ${COLORS.primary}15, transparent)`,
+                          }}
+                        />
+                      )}
+                    </Link>
+
+                    {isCollapsed && isHovered && tooltipVisible && (
+                      <div 
+                        className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 pointer-events-none animate-slideInLeft"
+                      >
+                        <div 
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm whitespace-nowrap"
+                          style={{ 
+                            backgroundColor: COLORS.isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)',
+                            color: '#F8FAFC',
+                            border: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
+                          }}
+                        >
+                          <Icon className="w-4 h-4" style={{ color: COLORS.primary }} aria-hidden="true" />
+                          <span 
+                            className="text-sm font-medium"
+                            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                          >
+                            {route.label}
+                          </span>
+                        </div>
+                        <div 
+                          className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 rotate-45"
+                          style={{ 
+                            backgroundColor: COLORS.isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)',
+                            borderLeft: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
+                            borderBottom: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )
-          })}
+                )
+              })}
+            </div>
+          ))}
         </div>
       </nav>
 

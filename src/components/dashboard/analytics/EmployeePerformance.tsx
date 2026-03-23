@@ -141,7 +141,7 @@ export function EmployeePerformance({ organizationId, period = 'month' }: Employ
                   </div>
                   <div className="text-right">
                     <span className="font-semibold text-sm" style={{ color: COLORS.success }}>
-                      €{emp.revenue.toLocaleString()}
+                      COP {emp.revenue.toLocaleString('es-CO')}
                     </span>
                     <span className="text-xs ml-2" style={{ color: COLORS.textMuted }}>
                       {emp.completed} citas

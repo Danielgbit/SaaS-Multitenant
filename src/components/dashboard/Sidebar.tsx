@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, Users, Scissors, LayoutDashboard, UserCircle, CreditCard, MessageSquare, Mail, Package, CheckCircle, Settings } from 'lucide-react'
+import { CalendarDays, Users, Scissors, LayoutDashboard, UserCircle, CreditCard, MessageSquare, Mail, Package, CheckCircle, Settings, Receipt } from 'lucide-react'
 
 interface SidebarProps {
   role: string | null
@@ -11,7 +11,7 @@ interface SidebarProps {
 export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname()
 
-  const isEmployee = role === 'employee'
+  const isStaff = role === 'staff'
 
   const allRoutes = [
     {
@@ -19,81 +19,108 @@ export function Sidebar({ role }: SidebarProps) {
       label: 'Dashboard',
       icon: LayoutDashboard,
       active: pathname === '/dashboard' || pathname === '/',
+      group: 'Operaciones',
     },
     {
       href: '/calendar',
       label: 'Agenda',
       icon: CalendarDays,
       active: pathname.startsWith('/calendar'),
-    },
-    {
-      href: '/employees',
-      label: 'Equipo',
-      icon: Users,
-      active: pathname.startsWith('/employees'),
-      hideForEmployee: true,
-    },
-    {
-      href: '/services',
-      label: 'Servicios',
-      icon: Scissors,
-      active: pathname.startsWith('/services'),
-    },
-    {
-      href: '/clients',
-      label: 'Clientes',
-      icon: UserCircle,
-      active: pathname.startsWith('/clients'),
-    },
-    {
-      href: '/inventory',
-      label: 'Inventario',
-      icon: Package,
-      active: pathname.startsWith('/inventory'),
-      hideForEmployee: true,
+      group: 'Operaciones',
     },
     {
       href: '/confirmations',
       label: 'Confirmaciones',
       icon: CheckCircle,
       active: pathname.startsWith('/confirmations'),
+      group: 'Operaciones',
     },
     {
-      href: '/billing',
-      label: 'Pagos',
-      icon: CreditCard,
-      active: pathname.startsWith('/billing'),
-      hideForEmployee: true,
+      href: '/employees',
+      label: 'Equipo',
+      icon: Users,
+      active: pathname.startsWith('/employees'),
+      group: 'Gestión',
+      hideForStaff: true,
+    },
+    {
+      href: '/payroll',
+      label: 'Nómina',
+      icon: Receipt,
+      active: pathname.startsWith('/payroll'),
+      group: 'Gestión',
+      hideForStaff: true,
+    },
+    {
+      href: '/clients',
+      label: 'Clientes',
+      icon: UserCircle,
+      active: pathname.startsWith('/clients'),
+      group: 'Gestión',
+    },
+    {
+      href: '/services',
+      label: 'Servicios',
+      icon: Scissors,
+      active: pathname.startsWith('/services'),
+      group: 'Gestión',
+    },
+    {
+      href: '/inventory',
+      label: 'Inventario',
+      icon: Package,
+      active: pathname.startsWith('/inventory'),
+      group: 'Gestión',
+      hideForStaff: true,
     },
     {
       href: '/whatsapp',
       label: 'WhatsApp',
       icon: MessageSquare,
       active: pathname.startsWith('/whatsapp'),
-      hideForEmployee: true,
+      group: 'Integraciones',
+      hideForStaff: true,
     },
     {
       href: '/email',
       label: 'Email',
       icon: Mail,
       active: pathname.startsWith('/email'),
-      hideForEmployee: true,
+      group: 'Integraciones',
+      hideForStaff: true,
+    },
+    {
+      href: '/billing',
+      label: 'Facturación',
+      icon: CreditCard,
+      active: pathname.startsWith('/billing'),
+      group: 'Sistema',
+      hideForStaff: true,
     },
     {
       href: '/settings',
       label: 'Ajustes',
       icon: Settings,
       active: pathname.startsWith('/settings'),
-      hideForEmployee: true,
+      group: 'Sistema',
+      hideForStaff: true,
     },
   ]
 
-  const routes = allRoutes.filter(route => {
-    if (isEmployee && route.hideForEmployee) {
+  const filteredRoutes = allRoutes.filter(route => {
+    if (isStaff && route.hideForStaff) {
       return false
     }
     return true
   })
+
+  const groupedRoutes = filteredRoutes.reduce((acc, route) => {
+    if (!acc[route.group]) {
+      acc[route.group] = []
+    }
+    acc[route.group].push(route)
+    return acc
+  }, {} as Record<string, typeof filteredRoutes>)
 
   return (
     <aside className="w-72 hidden md:flex flex-col bg-white dark:bg-[#1E293B] border-r border-slate-200 dark:border-slate-800/60 z-30 transition-colors duration-200 flex-shrink-0">
@@ -112,34 +139,41 @@ export function Sidebar({ role }: SidebarProps) {
         </Link>
       </div>
 
-      <nav className="flex-1 py-6 px-4 space-y-1.5 overflow-y-auto" aria-label="Navegación principal">
-        {routes.map((route) => {
-          const Icon = route.icon
-          const isActive = route.active
-          
-          return (
-            <Link
-              key={route.href}
-              href={route.href}
-              className={`
-                group flex items-center gap-3 px-4 py-3 rounded-xl min-h-[44px]
-                transition-all duration-200 font-medium text-sm
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] focus-visible:ring-offset-2
-                ${isActive 
-                  ? 'bg-[#0F4C5C]/5 dark:bg-[#38BDF8]/10 text-[#0F4C5C] dark:text-[#38BDF8]' 
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
-                }
-              `}
-              aria-current={isActive ? 'page' : undefined}
-            >
-              <Icon 
-                className={`w-5 h-5 transition-transform duration-200 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} 
-                aria-hidden="true" 
-              />
-              {route.label}
-            </Link>
-          )
-        })}
+      <nav className="flex-1 py-6 px-4 space-y-4 overflow-y-auto" aria-label="Navegación principal">
+        {Object.entries(groupedRoutes).map(([group, routes]) => (
+          <div key={group} className="space-y-1.5">
+            <div className="text-[10px] font-semibold uppercase tracking-wider px-4 py-2 text-slate-400 dark:text-slate-500">
+              {group}
+            </div>
+            {routes.map((route: typeof filteredRoutes[0]) => {
+              const Icon = route.icon
+              const isActive = route.active
+              
+              return (
+                <Link
+                  key={route.href}
+                  href={route.href}
+                  className={`
+                    group flex items-center gap-3 px-4 py-3 rounded-xl min-h-[44px]
+                    transition-all duration-200 font-medium text-sm
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] focus-visible:ring-offset-2
+                    ${isActive 
+                      ? 'bg-[#0F4C5C]/5 dark:bg-[#38BDF8]/10 text-[#0F4C5C] dark:text-[#38BDF8]' 
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
+                    }
+                  `}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <Icon 
+                    className={`w-5 h-5 transition-transform duration-200 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} 
+                    aria-hidden="true" 
+                  />
+                  {route.label}
+                </Link>
+              )
+            })}
+          </div>
+        ))}
       </nav>
 
       <div className="p-4 border-t border-slate-100 dark:border-slate-800/40 bg-slate-50/50 dark:bg-slate-800/20 shrink-0">

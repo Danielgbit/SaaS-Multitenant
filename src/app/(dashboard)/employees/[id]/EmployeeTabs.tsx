@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { User, Clock, Scissors, KeyRound } from 'lucide-react'
-import type { Employee } from '@/types/employees'
+import { User, Clock, Scissors, KeyRound, Wallet } from 'lucide-react'
+import type { Employee, PaymentType, SalaryFrequency } from '@/types/employees'
 import type { EmployeeAvailability } from '@/types/availability'
 import type { Service } from '@/types/services'
 import { EmployeeService } from '@/services/employees/getEmployeeServices'
@@ -10,10 +10,18 @@ import { EmployeeInfoTab } from './EmployeeInfoTab'
 import { EmployeeAvailabilityTab } from './EmployeeAvailabilityTab'
 import { EmployeeServicesTab } from './EmployeeServicesTab'
 import { EmployeeAccessTab } from './EmployeeAccessTab'
+import { EmployeePayrollTab } from './EmployeePayrollTab'
 import type { Invitation } from '@/types/invitations'
 
 interface EmployeeTabsProps {
-  employee: Employee
+  employee: Employee & {
+    default_commission_rate: number
+    payment_type: PaymentType
+    fixed_salary: number | null
+    salary_frequency: SalaryFrequency | null
+    max_debt_limit: number
+    debt_warning_threshold: number
+  }
   availability: EmployeeAvailability[]
   allServices: Service[]
   employeeServices: EmployeeService[]
@@ -22,12 +30,13 @@ interface EmployeeTabsProps {
   currentUserRole: string
 }
 
-type TabId = 'info' | 'availability' | 'services' | 'access'
+type TabId = 'info' | 'availability' | 'services' | 'payroll' | 'access'
 
 const tabs = [
   { id: 'info' as const, label: 'Información', icon: User },
   { id: 'availability' as const, label: 'Horario', icon: Clock },
   { id: 'services' as const, label: 'Servicios', icon: Scissors },
+  { id: 'payroll' as const, label: 'Nómina', icon: Wallet },
   { id: 'access' as const, label: 'Acceso', icon: KeyRound },
 ]
 
@@ -114,6 +123,13 @@ export function EmployeeTabs({
               employeeId={employee.id}
               allServices={allServices}
               employeeServices={employeeServices}
+            />
+          )}
+
+          {activeTab === 'payroll' && (
+            <EmployeePayrollTab
+              employee={employee}
+              organizationId={organizationId}
             />
           )}
 

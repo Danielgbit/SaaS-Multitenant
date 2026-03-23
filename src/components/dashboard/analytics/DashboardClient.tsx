@@ -20,6 +20,7 @@ import { UpcomingAppointments } from './UpcomingAppointments'
 import { RecentActivity } from './RecentActivity'
 import { EmployeePerformance } from './EmployeePerformance'
 import { AlertsPanel } from './AlertsPanel'
+import { PayrollSummaryWidget } from './PayrollSummaryWidget'
 
 function useColors() {
   const { theme } = useTheme()
@@ -114,7 +115,7 @@ export function DashboardClient({ organizationId }: DashboardClientProps) {
     {
       title: 'Ingresos',
       value: data?.overview.revenue || 0,
-      prefix: '€',
+      prefix: 'COP ',
       change: data?.overview.revenueChange,
       icon: <DollarSign className="w-4 h-4" />,
       iconColor: '#10B981'
@@ -129,7 +130,7 @@ export function DashboardClient({ organizationId }: DashboardClientProps) {
     {
       title: 'Ticket Promedio',
       value: data?.overview.avgTicket || 0,
-      prefix: '€',
+      prefix: 'COP ',
       change: data?.overview.appointmentsChange,
       icon: <TrendingUp className="w-4 h-4" />,
       iconColor: '#F59E0B'
@@ -217,6 +218,7 @@ export function DashboardClient({ organizationId }: DashboardClientProps) {
         <div className="space-y-6">
           <UpcomingAppointments organizationId={organizationId} />
           <EmployeePerformance organizationId={organizationId} period={period} />
+          <PayrollSummaryWidget organizationId={organizationId} />
           <AlertsPanel organizationId={organizationId} />
         </div>
       </div>
