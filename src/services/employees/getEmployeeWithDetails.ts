@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import type { Employee } from '@/types/employees'
+import type { EmployeeWithPayrollConfig } from '@/types/employees'
 
 export async function getEmployeeWithDetails(
   employeeId: string,
   organizationId: string
-): Promise<Employee | null> {
+): Promise<EmployeeWithPayrollConfig | null> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -18,5 +18,5 @@ export async function getEmployeeWithDetails(
     return null
   }
 
-  return data as Employee
+  return data as EmployeeWithPayrollConfig
 }

@@ -19,7 +19,8 @@ import {
   CheckCircle, 
   Settings,
   LogOut,
-  Receipt
+  Receipt,
+  Wallet
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -103,6 +104,13 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       label: 'Clientes',
       icon: UserCircle,
       active: pathname.startsWith('/clients'),
+      group: 'Gestión',
+    },
+    {
+      href: '/clients/accounts',
+      label: 'Cuentas por Cobrar',
+      icon: Wallet,
+      active: pathname.startsWith('/clients/accounts'),
       group: 'Gestión',
     },
     {

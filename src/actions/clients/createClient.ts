@@ -3,10 +3,7 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-
-// =============================================================================
-// SCHEMA DE VALIDACIÓN
-// =============================================================================
+import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
 
 const CreateClientSchema = z.object({
   organization_id: z.string().uuid('ID de organización inválido'),
@@ -14,23 +11,18 @@ const CreateClientSchema = z.object({
   phone: z.string().max(20).optional().or(z.literal('')),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   notes: z.string().max(500).optional().or(z.literal('')),
+  confirmation_method: z.enum(['whatsapp', 'phone_call', 'in_person', 'none']).default('whatsapp'),
+  confirmations_enabled: z.boolean().default(true),
+  preferred_contact: z.enum(['whatsapp', 'phone', 'email']).optional().nullable(),
 })
 
 type CreateClientInput = z.infer<typeof CreateClientSchema>
 
-// =============================================================================
-// SERVER ACTION
-// =============================================================================
-
-/**
- * Crea un nuevo cliente.
- */
 export async function createClientAction(
   input: CreateClientInput
 ): Promise<{ error?: string; success?: boolean; clientId?: string }> {
   console.log('[createClient] Input:', input)
   
-  // 1. Validar input
   const parsed = CreateClientSchema.safeParse(input)
 
   if (!parsed.success) {
@@ -39,11 +31,24 @@ export async function createClientAction(
     return { error: firstError || 'Datos inválidos' }
   }
 
-  const { organization_id, name, phone, email, notes } = parsed.data
+  const { 
+    organization_id, 
+    name, 
+    phone, 
+    email, 
+    notes,
+    confirmation_method,
+    confirmations_enabled,
+    preferred_contact
+  } = parsed.data
+
+  if (phone && !isValidPhone(phone)) {
+    const phoneError = getPhoneErrorMessage(phone)
+    return { error: phoneError || 'El teléfono no es válido' }
+  }
 
   const supabase = await createSupabaseClient()
 
-  // 2. Verificar usuario autenticado
   const {
     data: { user },
     error: authError,
@@ -54,7 +59,6 @@ export async function createClientAction(
     return { error: 'No autorizado.' }
   }
 
-  // 3. Verificar que el usuario pertenece a la organización
   const { data: orgMember, error: orgError } = await supabase
     .from('organization_members')
     .select('organization_id')
@@ -66,7 +70,6 @@ export async function createClientAction(
     return { error: 'No perteneces a esta organización.' }
   }
 
-  // 4. Crear el cliente
   const { data: client, error: insertError } = await supabase
     .from('clients')
     .insert({
@@ -75,6 +78,9 @@ export async function createClientAction(
       phone: phone || null,
       email: email || null,
       notes: notes || null,
+      confirmation_method,
+      confirmations_enabled,
+      preferred_contact: preferred_contact || 'whatsapp',
     })
     .select('id')
     .single()
@@ -86,25 +92,18 @@ export async function createClientAction(
 
   console.log('[createClient] Client created successfully:', client.id)
 
-  // 5. Revalidar paths - Force refresh
   revalidatePath('/clients')
   revalidatePath('/calendar')
   
-  // Also try revalidateTag if available
   try {
     // @ts-expect-error - revalidateTag signature may vary
     revalidateTag('clients')
   } catch (e) {
-    // revalidateTag may not be available in all Next.js versions or has different signature
     console.log('[createClient] revalidateTag not available or error:', e)
   }
 
   return { success: true, clientId: client.id }
 }
-
-// =============================================================================
-// FORMWRAPPER - Para usar con useFormState
-// =============================================================================
 
 export type CreateClientFormState = {
   success: boolean
@@ -117,9 +116,6 @@ export type CreateClientFormState = {
   }
 }
 
-/**
- * Wrapper para usar con useFormState. Acepta FormData.
- */
 export async function createClient(
   prevState: CreateClientFormState,
   formData: FormData
@@ -130,6 +126,9 @@ export async function createClient(
     phone: formData.get('phone') as string | undefined,
     email: formData.get('email') as string | undefined,
     notes: formData.get('notes') as string | undefined,
+    confirmation_method: (formData.get('confirmation_method') as string) || 'whatsapp',
+    confirmations_enabled: formData.get('confirmations_enabled') === 'true',
+    preferred_contact: (formData.get('preferred_contact') as string) || 'whatsapp',
   }
 
   const parsed = CreateClientSchema.safeParse(rawData)
@@ -146,6 +145,13 @@ export async function createClient(
       }
     })
     return { success: false, fieldErrors }
+  }
+
+  const { phone } = parsed.data
+  
+  if (phone && !isValidPhone(phone)) {
+    const phoneError = getPhoneErrorMessage(phone)
+    return { success: false, fieldErrors: { phone: [phoneError || 'Teléfono inválido'] } }
   }
 
   const result = await createClientAction(parsed.data)

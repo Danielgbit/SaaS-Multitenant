@@ -112,6 +112,8 @@ export function ClientSelector({
         organization_id: organizationId,
         name: newClientName.trim(),
         phone: newClientPhone.trim() || undefined,
+        confirmation_method: 'in_person',
+        confirmations_enabled: false,
       })
 
       if (result.error) {

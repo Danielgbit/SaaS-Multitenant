@@ -246,6 +246,8 @@ export type Database = {
       }
       clients: {
         Row: {
+          confirmation_method: string | null
+          confirmations_enabled: boolean | null
           created_at: string
           email: string | null
           id: string
@@ -253,8 +255,11 @@ export type Database = {
           notes: string | null
           organization_id: string
           phone: string | null
+          preferred_contact: string | null
         }
         Insert: {
+          confirmation_method?: string | null
+          confirmations_enabled?: boolean | null
           created_at?: string
           email?: string | null
           id?: string
@@ -262,8 +267,11 @@ export type Database = {
           notes?: string | null
           organization_id: string
           phone?: string | null
+          preferred_contact?: string | null
         }
         Update: {
+          confirmation_method?: string | null
+          confirmations_enabled?: boolean | null
           created_at?: string
           email?: string | null
           id?: string
@@ -271,6 +279,7 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           phone?: string | null
+          preferred_contact?: string | null
         }
         Relationships: [
           {

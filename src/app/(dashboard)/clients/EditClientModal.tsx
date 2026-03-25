@@ -1,13 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTheme } from 'next-themes'
-import { X, Loader2, UserCircle, Check, AlertCircle, Sparkles } from 'lucide-react'
-import { useActionState } from 'react'
+import { X, Loader2, UserCircle, Check, AlertCircle, HelpCircle, MessageCircle, Mail, Phone, PhoneCall, User, BellOff } from 'lucide-react'
 import { createClient } from '@/actions/clients/createClient'
+import { updateClient } from '@/actions/clients/updateClient'
 import type { Database } from '@/../types/supabase'
+import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
 
 type Client = Database['public']['Tables']['clients']['Row']
+
+type ConfirmationMethod = 'whatsapp' | 'phone_call' | 'in_person' | 'none'
 
 interface EditClientModalProps {
   client: Client | null
@@ -23,13 +26,15 @@ function useColors() {
   
   return {
     primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryHover: isDark ? '#0EA5E9' : '#0C3E4A',
+    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
     primaryGradient: isDark 
       ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
       : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
     surface: isDark ? '#0F172A' : '#FFFFFF',
     surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
+    surfaceGlass: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.95)',
     border: isDark ? '#334155' : '#E2E8F0',
+    borderFocus: isDark ? '#38BDF8' : '#0F4C5C',
     textPrimary: isDark ? '#F1F5F9' : '#0F172A',
     textSecondary: isDark ? '#94A3B8' : '#64748B',
     textMuted: isDark ? '#64748B' : '#94A3B8',
@@ -37,22 +42,514 @@ function useColors() {
     errorLight: isDark ? '#450A0A' : '#FEF2F2',
     success: '#16A34A',
     successLight: isDark ? '#064E3B' : '#ECFDF5',
-    overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.4)',
+    warning: '#F59E0B',
+    warningLight: isDark ? '#78350F' : '#FEF3C7',
+    overlay: isDark ? 'rgba(0, 0, 0, 0.75)' : 'rgba(15, 23, 42, 0.5)',
     radius: {
-      lg: '16px',
-      md: '10px',
+      lg: '20px',
+      md: '12px',
       sm: '8px',
     },
-    shadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-    transition: 'all 0.2s ease-out',
+    shadow: '0 25px 60px -12px rgba(0, 0, 0, 0.35)',
+    shadowInput: '0 2px 8px rgba(0, 0, 0, 0.08)',
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
     isDark,
   }
 }
 
-const initialState = {
-  success: false,
-  error: undefined,
-  fieldErrors: undefined,
+function FloatingInput({
+  label,
+  name,
+  type = 'text',
+  value,
+  onChange,
+  placeholder,
+  error,
+  disabled,
+  required,
+  autoComplete,
+  icon: Icon,
+  hint,
+  isDark,
+  COLORS,
+  inputRef,
+}: {
+  label: string
+  name: string
+  type?: string
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  placeholder?: string
+  error?: string
+  disabled?: boolean
+  required?: boolean
+  autoComplete?: string
+  icon?: React.ElementType
+  hint?: string
+  isDark: boolean
+  COLORS: ReturnType<typeof useColors>
+  inputRef?: React.RefObject<HTMLInputElement | null>
+}) {
+  const [isFocused, setIsFocused] = useState(false)
+  const hasValue = value.length > 0
+
+  return (
+    <div className="relative">
+      <div 
+        className="relative rounded-xl transition-all duration-200"
+        style={{
+          backgroundColor: COLORS.surface,
+          border: `1.5px solid ${error ? COLORS.error : isFocused ? COLORS.borderFocus : COLORS.border}`,
+          boxShadow: isFocused ? `0 0 0 3px ${COLORS.primary}15` : COLORS.shadowInput,
+          opacity: disabled ? 0.6 : 1,
+        }}
+      >
+        {Icon && (
+          <div 
+            className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors duration-200"
+            style={{ color: isFocused ? COLORS.primary : COLORS.textMuted }}
+          >
+            <Icon className="w-4 h-4" />
+          </div>
+        )}
+        
+        <input
+          ref={inputRef}
+          type={type}
+          name={name}
+          id={name}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          required={required}
+          autoComplete={autoComplete}
+          placeholder={isFocused ? placeholder : ''}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            padding: Icon ? '20px 44px 8px 44px' : '20px 44px 8px 16px',
+            color: COLORS.textPrimary,
+            backgroundColor: 'transparent',
+          }}
+          className="w-full border-0 focus:outline-none focus:ring-0 text-sm"
+        />
+        
+        <label
+          htmlFor={name}
+          className="absolute left-4 transition-all duration-200 pointer-events-none"
+          style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            color: error 
+              ? COLORS.error 
+              : isFocused 
+                ? COLORS.primary 
+                : COLORS.textMuted,
+            fontSize: isFocused || hasValue ? '11px' : '14px',
+            fontWeight: isFocused || hasValue ? '600' : '400',
+            top: isFocused || hasValue ? '10px' : '50%',
+            transform: isFocused || hasValue ? 'translateY(0)' : 'translateY(-50%)',
+            letterSpacing: '0.01em',
+          }}
+        >
+          {label}
+          {required && <span style={{ color: COLORS.error }}> *</span>}
+        </label>
+
+        {hasValue && !error && Icon && (
+          <div 
+            className="absolute right-4 top-1/2 -translate-y-1/2"
+            style={{ color: COLORS.success }}
+          >
+            <Check className="w-4 h-4" />
+          </div>
+        )}
+      </div>
+      
+      {error && (
+        <p 
+          className="flex items-center gap-1 mt-1.5"
+          style={{ 
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            color: COLORS.error,
+            fontSize: '12px',
+          }}
+        >
+          <AlertCircle className="w-3 h-3" />
+          {error}
+        </p>
+      )}
+      
+      {hint && !error && (
+        <p 
+          className="flex items-center gap-1 mt-1.5"
+          style={{ 
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            color: COLORS.textMuted,
+            fontSize: '12px',
+          }}
+        >
+          💡 {hint}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function FloatingTextarea({
+  label,
+  name,
+  value,
+  onChange,
+  placeholder,
+  error,
+  disabled,
+  maxLength,
+  rows,
+  isDark,
+  COLORS,
+}: {
+  label: string
+  name: string
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+  placeholder?: string
+  error?: string
+  disabled?: boolean
+  maxLength?: number
+  rows?: number
+  isDark: boolean
+  COLORS: ReturnType<typeof useColors>
+}) {
+  const [isFocused, setIsFocused] = useState(false)
+  const hasValue = value.length > 0
+
+  return (
+    <div className="relative">
+      <div 
+        className="relative rounded-xl transition-all duration-200"
+        style={{
+          backgroundColor: COLORS.surface,
+          border: `1.5px solid ${error ? COLORS.error : isFocused ? COLORS.borderFocus : COLORS.border}`,
+          boxShadow: isFocused ? `0 0 0 3px ${COLORS.primary}15` : COLORS.shadowInput,
+          opacity: disabled ? 0.6 : 1,
+        }}
+      >
+        <textarea
+          name={name}
+          id={name}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          rows={rows || 3}
+          maxLength={maxLength}
+          placeholder={isFocused ? placeholder : ''}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            padding: '28px 44px 8px 16px',
+            color: COLORS.textPrimary,
+            backgroundColor: 'transparent',
+            resize: 'none',
+          }}
+          className="w-full border-0 focus:outline-none focus:ring-0 text-sm"
+        />
+        
+        <label
+          htmlFor={name}
+          className="absolute left-4 transition-all duration-200 pointer-events-none"
+          style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            color: error 
+              ? COLORS.error 
+              : isFocused 
+                ? COLORS.primary 
+                : COLORS.textMuted,
+            fontSize: isFocused || hasValue ? '11px' : '14px',
+            fontWeight: isFocused || hasValue ? '600' : '400',
+            top: isFocused || hasValue ? '12px' : '16px',
+            letterSpacing: '0.01em',
+          }}
+        >
+          {label}
+        </label>
+
+        {maxLength && (
+          <div 
+            className="absolute right-4 bottom-3"
+            style={{ 
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: '11px',
+              color: value.length > maxLength * 0.9 ? COLORS.error : COLORS.textMuted,
+            }}
+          >
+            {value.length}/{maxLength}
+          </div>
+        )}
+      </div>
+      
+      {error && (
+        <p 
+          className="flex items-center gap-1 mt-1.5"
+          style={{ 
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            color: COLORS.error,
+            fontSize: '12px',
+          }}
+        >
+          <AlertCircle className="w-3 h-3" />
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function ConfirmationTooltip({ COLORS }: { COLORS: ReturnType<typeof useColors> }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="relative inline-block">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+        className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+        style={{ color: COLORS.textMuted }}
+        aria-label="Ayuda sobre confirmaciones"
+      >
+        <HelpCircle className="w-4 h-4" />
+      </button>
+      
+      {isOpen && (
+        <div 
+          className="absolute left-0 top-full mt-2 p-4 rounded-xl z-50 min-w-[280px]"
+          style={{
+            backgroundColor: COLORS.surface,
+            border: `1px solid ${COLORS.border}`,
+            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+          }}
+        >
+          <div className="space-y-3">
+            <p 
+              className="text-sm font-medium"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}
+            >
+              💡 Recuerda preguntar al cliente:
+            </p>
+            <p 
+              className="text-xs"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}
+            >
+              "¿Desea recibir confirmaciones de sus citas por WhatsApp?"
+            </p>
+            
+            <div className="border-t" style={{ borderColor: COLORS.border }} />
+            
+            <p 
+              className="text-xs font-medium"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}
+            >
+              Si dice NO, selecciona:
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span style={{ fontSize: '14px' }}>📞</span>
+                <span className="text-xs" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}>
+                  "Ya lo llamé" → Confirmado por llamada
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontSize: '14px' }}>👤</span>
+                <span className="text-xs" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}>
+                  "Confirmó aquí" → En persona
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ fontSize: '14px' }}>⏸️</span>
+                <span className="text-xs" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}>
+                  "No desea" → Sin confirmación
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ConfirmationToggle({ 
+  enabled, 
+  onChange, 
+  COLORS 
+}: { 
+  enabled: boolean
+  onChange: (enabled: boolean) => void
+  COLORS: ReturnType<typeof useColors>
+}) {
+  return (
+    <div 
+      className="flex items-start gap-3 p-4 rounded-xl border"
+      style={{
+        backgroundColor: enabled ? COLORS.primary + '08' : COLORS.surfaceSubtle,
+        borderColor: enabled ? COLORS.primary + '30' : COLORS.border,
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => onChange(!enabled)}
+        className="mt-0.5 relative w-12 h-6 rounded-full transition-colors duration-200 cursor-pointer"
+        style={{ 
+          backgroundColor: enabled ? COLORS.primary : COLORS.border,
+        }}
+        role="switch"
+        aria-checked={enabled}
+      >
+        <div 
+          className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
+          style={{ 
+            left: enabled ? '26px' : '4px',
+            transition: 'left 0.2s ease-out',
+          }}
+        />
+      </button>
+      
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          <span 
+            className="text-sm font-medium"
+            style={{ 
+              fontFamily: "'Plus Jakarta Sans', sans-serif", 
+              color: COLORS.textPrimary 
+            }}
+          >
+            Activar confirmaciones automáticas
+          </span>
+          <ConfirmationTooltip COLORS={COLORS} />
+        </div>
+        <p 
+          className="text-xs mt-0.5"
+          style={{ 
+            fontFamily: "'Plus Jakarta Sans', sans-serif", 
+            color: COLORS.textSecondary 
+          }}
+        >
+          {enabled 
+            ? 'Se enviarán recordatorios y confirmaciones por WhatsApp'
+            : 'No se enviarán mensajes automáticos'
+          }
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function MethodSelector({ 
+  method, 
+  onChange, 
+  disabled,
+  COLORS 
+}: { 
+  method: ConfirmationMethod
+  onChange: (method: ConfirmationMethod) => void
+  disabled?: boolean
+  COLORS: ReturnType<typeof useColors>
+}) {
+  const methods: { value: ConfirmationMethod; label: string; icon: React.ElementType; description: string }[] = [
+    { 
+      value: 'phone_call', 
+      label: 'Ya lo llamé', 
+      icon: PhoneCall,
+      description: 'Confirmado por llamada del staff' 
+    },
+    { 
+      value: 'in_person', 
+      label: 'Confirmó aquí', 
+      icon: User,
+      description: 'Confirmado presencialmente' 
+    },
+    { 
+      value: 'none', 
+      label: 'No desea', 
+      icon: BellOff,
+      description: 'No quiere recibir mensajes' 
+    },
+  ]
+
+  return (
+    <div className="space-y-2">
+      <p 
+        className="text-sm font-medium"
+        style={{ 
+          fontFamily: "'Plus Jakarta Sans', sans-serif", 
+          color: COLORS.textPrimary 
+        }}
+      >
+        ¿Cómo se confirmó la cita?
+      </p>
+      
+      <div className="space-y-2">
+        {methods.map(({ value, label, icon: Icon, description }) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => onChange(value)}
+            disabled={disabled}
+            className="w-full flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 cursor-pointer"
+            style={{
+              backgroundColor: method === value ? COLORS.primary + '10' : COLORS.surface,
+              borderColor: method === value ? COLORS.primary : COLORS.border,
+            }}
+          >
+            <div 
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{
+                backgroundColor: method === value ? COLORS.primary + '20' : COLORS.surfaceSubtle,
+              }}
+            >
+              <Icon 
+                className="w-4 h-4" 
+                style={{ color: method === value ? COLORS.primary : COLORS.textMuted }} 
+              />
+            </div>
+            <div className="flex-1 text-left">
+              <p 
+                className="text-sm font-medium"
+                style={{ 
+                  fontFamily: "'Plus Jakarta Sans', sans-serif", 
+                  color: COLORS.textPrimary 
+                }}
+              >
+                {label}
+              </p>
+              <p 
+                className="text-xs"
+                style={{ 
+                  fontFamily: "'Plus Jakarta Sans', sans-serif", 
+                  color: COLORS.textMuted 
+                }}
+              >
+                {description}
+              </p>
+            </div>
+            <div 
+              className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+              style={{
+                borderColor: method === value ? COLORS.primary : COLORS.border,
+                backgroundColor: method === value ? COLORS.primary : 'transparent',
+              }}
+            >
+              {method === value && (
+                <Check className="w-3 h-3 text-white" />
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export function EditClientModal({
@@ -63,89 +560,203 @@ export function EditClientModal({
   onSuccess,
 }: EditClientModalProps) {
   const COLORS = useColors()
-  const [state, formAction] = useActionState(createClient, initialState)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [isClosing, setIsClosing] = useState(false)
-
   const isNewClient = !client
 
-  const handleClose = () => {
-    setIsClosing(true)
-    setTimeout(() => {
-      setIsClosing(false)
-      onClose()
-    }, 200)
-  }
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [notes, setNotes] = useState('')
+  const [confirmationsEnabled, setConfirmationsEnabled] = useState(true)
+  const [confirmationMethod, setConfirmationMethod] = useState<ConfirmationMethod>('whatsapp')
+  
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+  
+  const nameInputRef = useRef<HTMLInputElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
     if (isOpen) {
+      setIsVisible(true)
       setIsSubmitted(false)
+      setFormErrors({})
+      
+      if (client) {
+        setName(client.name || '')
+        setEmail(client.email || '')
+        setPhone(client.phone || '')
+        setNotes(client.notes || '')
+        setConfirmationsEnabled(client.confirmations_enabled ?? true)
+        setConfirmationMethod((client.confirmation_method as ConfirmationMethod) || 'whatsapp')
+      } else {
+        setName('')
+        setEmail('')
+        setPhone('')
+        setNotes('')
+        setConfirmationsEnabled(true)
+        setConfirmationMethod('whatsapp')
+      }
+      
+      setTimeout(() => {
+        nameInputRef.current?.focus()
+      }, 100)
+    } else {
+      setIsVisible(false)
     }
-  }, [isOpen])
+  }, [isOpen, client])
 
   useEffect(() => {
-    if (state.success) {
+    if (isClosing) {
       const timer = setTimeout(() => {
-        onSuccess()
+        setIsClosing(false)
+        setIsVisible(false)
         onClose()
-      }, 800)
+      }, 200)
       return () => clearTimeout(timer)
     }
-  }, [state.success, onSuccess, onClose])
+  }, [isClosing, onClose])
 
-  if (!isOpen && !isClosing) return null
+  const handleClose = () => {
+    setIsClosing(true)
+  }
 
-  const isLoading = isSubmitted && !state.success && !state.error && !state.fieldErrors
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '')
+    if (numbers.length <= 3) return numbers
+    if (numbers.length <= 6) return `${numbers.slice(0, 3)} ${numbers.slice(3)}`
+    return `${numbers.slice(0, 3)} ${numbers.slice(3, 6)} ${numbers.slice(6, 10)}`
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value)
+    setPhone(formatted)
+  }
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {}
+    
+    if (!name.trim()) {
+      errors.name = 'El nombre es requerido'
+    } else if (name.trim().length < 2) {
+      errors.name = 'El nombre debe tener al menos 2 caracteres'
+    }
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = 'Ingresa un email válido'
+    }
+
+    if (confirmationsEnabled && confirmationMethod === 'whatsapp') {
+      if (!phone) {
+        errors.phone = 'El teléfono es requerido para confirmaciones por WhatsApp'
+      } else if (!isValidPhone(phone)) {
+        errors.phone = getPhoneErrorMessage(phone) || 'El teléfono no es válido'
+      }
+    }
+
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitted(true)
+
+    if (!validateForm()) {
+      setIsSubmitted(false)
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('organization_id', organizationId)
+    formData.append('name', name.trim())
+    formData.append('email', email)
+    formData.append('phone', phone)
+    formData.append('notes', notes)
+    formData.append('confirmations_enabled', String(confirmationsEnabled))
+    formData.append('confirmation_method', confirmationMethod)
+
+    if (!isNewClient && client) {
+      formData.append('id', client.id)
+    }
+
+    const action = isNewClient ? createClient : updateClient
+    const state = await action({ success: false, error: undefined, fieldErrors: undefined }, formData)
+
+    if (state.success) {
+      setTimeout(() => {
+        onSuccess()
+        onClose()
+      }, 400)
+    } else {
+      setIsSubmitted(false)
+      if (state.error) {
+        setFormErrors({ _form: state.error })
+      }
+      if (state.fieldErrors?.phone) {
+        setFormErrors(prev => ({ ...prev, phone: state.fieldErrors!.phone![0] }))
+      }
+    }
+  }
+
+  if (!isVisible && !isClosing) return null
+
+  const isLoading = isSubmitted
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ 
-        opacity: isClosing ? 0 : 1,
-        transition: COLORS.transition,
+        opacity: isClosing ? 0 : isVisible ? 1 : 0,
+        transition: 'opacity 0.2s ease-out',
         pointerEvents: isClosing ? 'none' : 'auto'
       }}
     >
-      {/* Backdrop */}
       <div 
         className="absolute inset-0"
         style={{ 
           backgroundColor: COLORS.overlay,
-          backdropFilter: 'blur(8px)',
+          backdropFilter: 'blur(12px)',
         }}
         onClick={handleClose}
       />
 
-      {/* Modal */}
       <div
         style={{
-          backgroundColor: COLORS.surface,
+          backgroundColor: COLORS.surfaceGlass,
           borderRadius: COLORS.radius.lg,
           boxShadow: COLORS.shadow,
+          border: `1px solid ${COLORS.border}`,
+          backdropFilter: 'blur(20px)',
           opacity: isClosing ? 0 : 1,
-          transform: isClosing ? 'scale(0.95)' : 'scale(1)',
-          transition: COLORS.transition,
+          transform: isClosing ? 'scale(0.95) translateY(10px)' : 'scale(1) translateY(0)',
+          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+          width: '100%',
+          maxWidth: '480px',
+          maxHeight: '90vh',
+          overflow: 'hidden',
         }}
-        className="relative w-full max-w-md mx-4 max-h-[90vh] overflow-hidden border"
       >
-        {/* Header with gradient */}
         <div 
-          className="relative p-5 border-b overflow-hidden"
+          className="relative p-6 border-b"
           style={{ 
             borderColor: COLORS.border,
             background: COLORS.primaryGradient,
           }}
         >
-          {/* Decorative */}
-          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div 
+            className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4"
+            style={{ filter: 'blur(40px)' }}
+          />
           
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div 
-                className="w-10 h-10 rounded-full flex items-center justify-center"
+                className="w-12 h-12 rounded-2xl flex items-center justify-center"
                 style={{ backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)' }}
               >
-                <UserCircle className="w-5 h-5 text-white" />
+                <UserCircle className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h2 
@@ -153,25 +764,25 @@ export function EditClientModal({
                     fontFamily: "'Cormorant Garamond', serif",
                     color: '#FFFFFF',
                   }}
-                  className="text-xl font-semibold"
+                  className="text-2xl font-semibold"
                 >
-                  {isNewClient ? 'Nuevo cliente' : 'Editar cliente'}
+                  {isNewClient ? 'Nuevo Cliente' : 'Editar Cliente'}
                 </h2>
                 <p 
                   style={{ 
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
                     color: 'rgba(255,255,255,0.8)',
-                    fontSize: '12px'
+                    fontSize: '13px'
                   }}
                 >
-                  {isNewClient ? 'Añade los datos del cliente' : 'Actualiza la información'}
+                  {isNewClient ? 'Añade la información del cliente' : 'Actualiza la información'}
                 </p>
               </div>
             </div>
             <button
               onClick={handleClose}
               disabled={isLoading}
-              className="p-2 rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50 cursor-pointer"
+              className="p-2.5 rounded-xl hover:bg-white/20 transition-colors disabled:opacity-50 cursor-pointer"
               aria-label="Cerrar"
             >
               <X className="w-5 h-5 text-white" />
@@ -179,35 +790,15 @@ export function EditClientModal({
           </div>
         </div>
 
-        {/* Form */}
-        <form action={formAction} onSubmit={() => setIsSubmitted(true)} className="p-5 space-y-4">
-          {/* Hidden fields */}
-          {!isNewClient && (
-            <input type="hidden" name="id" value={client.id} />
-          )}
-          <input type="hidden" name="organization_id" value={organizationId} />
-
-          {/* Success Message */}
-          {state.success && (
+        <form 
+          ref={formRef}
+          onSubmit={handleSubmit}
+          className="p-6 space-y-5 overflow-y-auto"
+          style={{ maxHeight: 'calc(90vh - 200px)' }}
+        >
+          {formErrors._form && (
             <div 
-              className="flex items-center gap-2 p-3 rounded-xl"
-              style={{ 
-                backgroundColor: COLORS.successLight,
-                border: `1px solid ${COLORS.success}30`,
-                color: COLORS.success,
-              }}
-            >
-              <Check className="w-5 h-5 flex-shrink-0" />
-              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px' }}>
-                Cliente creado exitosamente
-              </span>
-            </div>
-          )}
-
-          {/* Error general */}
-          {state.error && (
-            <div 
-              className="flex items-start gap-2 p-3 rounded-xl"
+              className="flex items-start gap-3 p-4 rounded-xl"
               style={{ 
                 backgroundColor: COLORS.errorLight,
                 border: `1px solid ${COLORS.error}30`,
@@ -216,182 +807,96 @@ export function EditClientModal({
             >
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px' }}>
-                {state.error}
+                {formErrors._form}
               </span>
             </div>
           )}
 
-          {/* Nombre */}
-          <div>
-            <label 
-              htmlFor="name"
-              className="block text-sm font-medium mb-1.5"
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textPrimary 
-              }}
-            >
-              Nombre completo <span style={{ color: COLORS.error }}>*</span>
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              defaultValue={isNewClient ? '' : client.name}
-              required
-              disabled={isLoading}
-              placeholder="Ej: María García"
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: COLORS.radius.sm,
-                borderColor: state.fieldErrors?.name ? COLORS.error : COLORS.border,
-                padding: '12px 14px',
-                color: COLORS.textPrimary,
-                backgroundColor: COLORS.surface,
-                opacity: isLoading ? 0.7 : 1,
-                transition: COLORS.transition,
-              }}
-              className="w-full border focus:outline-none focus:ring-2 focus:ring-offset-2"
-            />
-            {state.fieldErrors?.name && (
-              <p 
-                style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: COLORS.error,
-                  fontSize: '12px'
-                }} 
-                className="mt-1"
-              >
-                {state.fieldErrors.name[0]}
-              </p>
-            )}
-          </div>
+          <FloatingInput
+            label="Nombre completo"
+            name="name"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value)
+              if (formErrors.name) setFormErrors({ ...formErrors, name: '' })
+            }}
+            placeholder="Ej: María García"
+            error={formErrors.name}
+            disabled={isLoading}
+            required
+            autoComplete="name"
+            isDark={COLORS.isDark}
+            COLORS={COLORS}
+            inputRef={nameInputRef}
+          />
 
-          {/* Email */}
-          <div>
-            <label 
-              htmlFor="email"
-              className="block text-sm font-medium mb-1.5"
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textPrimary 
-              }}
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              defaultValue={isNewClient ? '' : (client.email || '')}
-              disabled={isLoading}
-              placeholder="ej: maria@email.com"
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: COLORS.radius.sm,
-                borderColor: state.fieldErrors?.email ? COLORS.error : COLORS.border,
-                padding: '12px 14px',
-                color: COLORS.textPrimary,
-                backgroundColor: COLORS.surface,
-                opacity: isLoading ? 0.7 : 1,
-                transition: COLORS.transition,
-              }}
-              className="w-full border focus:outline-none focus:ring-2 focus:ring-offset-2"
-            />
-            {state.fieldErrors?.email && (
-              <p 
-                style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: COLORS.error,
-                  fontSize: '12px'
-                }} 
-                className="mt-1"
-              >
-                {state.fieldErrors.email[0]}
-              </p>
-            )}
-          </div>
+          <ConfirmationToggle 
+            enabled={confirmationsEnabled}
+            onChange={setConfirmationsEnabled}
+            COLORS={COLORS}
+          />
 
-          {/* Teléfono */}
-          <div>
-            <label 
-              htmlFor="phone"
-              className="block text-sm font-medium mb-1.5"
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textPrimary 
-              }}
-            >
-              Teléfono
-            </label>
-            <input
-              type="tel"
-              id="phone"
+          {confirmationsEnabled ? (
+            <FloatingInput
+              label="Teléfono"
               name="phone"
-              defaultValue={isNewClient ? '' : (client.phone || '')}
+              type="tel"
+              value={phone}
+              onChange={(e) => {
+                handlePhoneChange(e)
+                if (formErrors.phone) setFormErrors({ ...formErrors, phone: '' })
+              }}
+              placeholder="300 123 4567 o +1 234 567 8900"
+              error={formErrors.phone}
               disabled={isLoading}
-              placeholder="Ej: +34 612 345 678"
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: COLORS.radius.sm,
-                borderColor: state.fieldErrors?.phone ? COLORS.error : COLORS.border,
-                padding: '12px 14px',
-                color: COLORS.textPrimary,
-                backgroundColor: COLORS.surface,
-                opacity: isLoading ? 0.7 : 1,
-                transition: COLORS.transition,
-              }}
-              className="w-full border focus:outline-none focus:ring-2 focus:ring-offset-2"
+              autoComplete="tel"
+              icon={Phone}
+              hint="Para enviar confirmaciones por WhatsApp"
+              isDark={COLORS.isDark}
+              COLORS={COLORS}
             />
-            {state.fieldErrors?.phone && (
-              <p 
-                style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: COLORS.error,
-                  fontSize: '12px'
-                }} 
-                className="mt-1"
-              >
-                {state.fieldErrors.phone[0]}
-              </p>
-            )}
-          </div>
-
-          {/* Notas */}
-          <div>
-            <label 
-              htmlFor="notes"
-              className="block text-sm font-medium mb-1.5"
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textPrimary 
-              }}
-            >
-              Notas
-            </label>
-            <textarea
-              id="notes"
-              name="notes"
-              defaultValue={isNewClient ? '' : (client.notes || '')}
+          ) : (
+            <MethodSelector
+              method={confirmationMethod}
+              onChange={setConfirmationMethod}
               disabled={isLoading}
-              placeholder="Información adicional sobre el cliente..."
-              rows={3}
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: COLORS.radius.sm,
-                borderColor: COLORS.border,
-                padding: '12px 14px',
-                color: COLORS.textPrimary,
-                backgroundColor: COLORS.surface,
-                opacity: isLoading ? 0.7 : 1,
-                transition: COLORS.transition,
-                resize: 'none',
-              }}
-              className="w-full border focus:outline-none focus:ring-2 focus:ring-offset-2"
+              COLORS={COLORS}
             />
-          </div>
+          )}
 
-          {/* Actions */}
+          <FloatingInput
+            label="Correo electrónico"
+            name="email"
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              if (formErrors.email) setFormErrors({ ...formErrors, email: '' })
+            }}
+            placeholder="Ej: maria@email.com"
+            error={formErrors.email}
+            disabled={isLoading}
+            autoComplete="email"
+            icon={Mail}
+            isDark={COLORS.isDark}
+            COLORS={COLORS}
+          />
+
+          <FloatingTextarea
+            label="Notas"
+            name="notes"
+            value={notes}
+            onChange={(e) => {
+              setNotes(e.target.value)
+              if (formErrors.notes) setFormErrors({ ...formErrors, notes: '' })
+            }}
+            placeholder="Información adicional sobre el cliente..."
+            maxLength={500}
+            rows={3}
+            isDark={COLORS.isDark}
+            COLORS={COLORS}
+          />
+
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -399,36 +904,46 @@ export function EditClientModal({
               disabled={isLoading}
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: COLORS.radius.sm,
-                padding: '12px 20px',
+                borderRadius: COLORS.radius.md,
+                padding: '14px 20px',
                 color: COLORS.textSecondary,
                 backgroundColor: COLORS.surfaceSubtle,
-                border: `1px solid ${COLORS.border}`
+                border: `1.5px solid ${COLORS.border}`,
+                fontSize: '14px',
+                fontWeight: '500',
+                opacity: isLoading ? 0.6 : 1,
+                transition: COLORS.transition,
               }}
-              className="flex-1 border font-medium hover:opacity-80 transition-opacity disabled:opacity-50 cursor-pointer"
+              className="flex-1 hover:opacity-80 transition-opacity disabled:opacity-50 cursor-pointer"
             >
               Cancelar
             </button>
+            
             <button
               type="submit"
-              disabled={isLoading || state.success}
+              disabled={isLoading}
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: COLORS.radius.sm,
-                padding: '12px 20px',
-                backgroundColor: state.success ? COLORS.success : COLORS.primary,
+                borderRadius: COLORS.radius.md,
+                padding: '14px 24px',
+                backgroundColor: COLORS.primary,
                 color: '#FFFFFF',
+                fontSize: '14px',
+                fontWeight: '600',
                 opacity: isLoading ? 0.7 : 1,
+                transition: COLORS.transition,
+                boxShadow: `0 4px 14px ${COLORS.primary}40`,
               }}
-              className="flex-1 font-medium hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 transition-opacity cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 cursor-pointer"
             >
-              {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {state.success ? (
+              {isLoading ? (
                 <>
-                  <Check className="w-4 h-4" />
-                  ¡Listo!
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Guardando...
                 </>
-              ) : isNewClient ? 'Crear cliente' : 'Guardar cambios'}
+              ) : (
+                isNewClient ? 'Crear cliente' : 'Guardar cambios'
+              )}
             </button>
           </div>
         </form>

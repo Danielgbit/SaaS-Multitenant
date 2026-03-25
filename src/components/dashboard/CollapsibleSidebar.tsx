@@ -17,7 +17,8 @@ import {
   CheckCircle, 
   Settings,
   ChevronLeft,
-  Receipt
+  Receipt,
+  Wallet
 } from 'lucide-react'
 
 function useColors() {
@@ -99,6 +100,13 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
       label: 'Clientes',
       icon: UserCircle,
       active: pathname.startsWith('/clients'),
+      group: 'Gestión',
+    },
+    {
+      href: '/clients/accounts',
+      label: 'Cuentas por Cobrar',
+      icon: Wallet,
+      active: pathname.startsWith('/clients/accounts'),
       group: 'Gestión',
     },
     {

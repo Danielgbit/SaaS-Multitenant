@@ -21,6 +21,8 @@ import { RecentActivity } from './RecentActivity'
 import { EmployeePerformance } from './EmployeePerformance'
 import { AlertsPanel } from './AlertsPanel'
 import { PayrollSummaryWidget } from './PayrollSummaryWidget'
+import { BusinessHealthWidget } from './BusinessHealthWidget'
+import { QuickActionsWidget } from './QuickActionsWidget'
 
 function useColors() {
   const { theme } = useTheme()
@@ -187,6 +189,9 @@ export function DashboardClient({ organizationId }: DashboardClientProps) {
         </div>
       </div>
 
+      {/* Quick View Widget - Today's Summary */}
+      <BusinessHealthWidget organizationId={organizationId} />
+
       {/* KPI Cards Grid - 6 cards in 3x2 on tablet, 6x1 on desktop */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         {statsCards.map((stat, index) => (
@@ -216,6 +221,7 @@ export function DashboardClient({ organizationId }: DashboardClientProps) {
 
         {/* Right Column - Widgets */}
         <div className="space-y-6">
+          <QuickActionsWidget />
           <UpcomingAppointments organizationId={organizationId} />
           <EmployeePerformance organizationId={organizationId} period={period} />
           <PayrollSummaryWidget organizationId={organizationId} />
