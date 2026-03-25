@@ -54,7 +54,7 @@ export function LoginForm() {
       </div>
 
       <div className="flex justify-end mt-1">
-        <Link href="#" className="text-primary hover:text-primary/80 text-sm font-medium transition-colors">¿Olvidaste tu contraseña?</Link>
+        <Link href="/forgot-password" className="text-primary hover:text-primary/80 text-sm font-medium transition-colors">¿Olvidaste tu contraseña?</Link>
       </div>
 
       <button 

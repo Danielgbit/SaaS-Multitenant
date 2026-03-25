@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { verifyInvitation } from '@/actions/invitations/verifyInvitation'
 import { AcceptInvitationForm } from './AcceptInvitationForm'
+import { createClient } from '@/lib/supabase/server'
 
 interface InvitePageProps {
   params: Promise<{ token: string }>
@@ -12,6 +13,9 @@ export default async function InvitePage({ params }: InvitePageProps) {
   if (!token) {
     notFound()
   }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const result = await verifyInvitation(token)
 
@@ -81,6 +85,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
             <AcceptInvitationForm 
               token={token} 
               invitationEmail={invitation.email}
+              isLoggedIn={!!user}
             />
           </div>
         </div>
