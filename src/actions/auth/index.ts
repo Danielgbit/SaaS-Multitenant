@@ -23,8 +23,8 @@ export async function loginAction(prevState: any, formData: FormData) {
     return { error: 'Credenciales inválidas. Por favor intenta de nuevo.' }
   }
 
-  // Redirect to dashboard on success
-  redirect('/calendar')
+  const redirectTo = formData.get('redirect_to') as string
+  redirect(redirectTo || '/calendar')
 }
 
 export async function registerAction(prevState: any, formData: FormData) {
