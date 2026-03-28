@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X, Mail, Copy, Check, Loader2, UserPlus, Shield } from 'lucide-react'
+import { X, Mail, Copy, Check, Loader2, UserPlus, Shield, Send } from 'lucide-react'
 import { createInvitation } from '@/actions/invitations/createInvitation'
 import type { Employee } from '@/types/employees'
 import type { MemberRole } from '@/types/invitations'
@@ -16,9 +16,11 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
   const [isPending, startTransition] = useTransition()
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<MemberRole>('staff')
+  const [sendEmail, setSendEmail] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [invitationUrl, setInvitationUrl] = useState<string | null>(null)
+  const [emailSent, setEmailSent] = useState(false)
   const [copied, setCopied] = useState(false)
 
   if (!isOpen) return null
@@ -33,6 +35,7 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
         employeeId: employee.id,
         email: email.trim() || undefined,
         role,
+        sendEmail,
       })
 
       if (result.error) {
@@ -42,6 +45,7 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
 
       if (result.invitationUrl) {
         setInvitationUrl(result.invitationUrl)
+        setEmailSent(result.emailSent || false)
         setSuccess(true)
       }
     })
@@ -58,9 +62,11 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
   function handleClose() {
     setEmail('')
     setRole('staff')
+    setSendEmail(true)
     setError(null)
     setSuccess(false)
     setInvitationUrl(null)
+    setEmailSent(false)
     setCopied(false)
     onClose()
   }
@@ -121,9 +127,15 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
               <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800/30">
                 <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
                   <Check className="w-4 h-4" />
-                  Invitación creada exitosamente
+                  {emailSent ? 'Invitación enviada exitosamente' : 'Invitación creada'}
                 </p>
               </div>
+
+              {emailSent && (
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Se envió un correo a <strong>{email}</strong> con el enlace de invitación.
+                </p>
+              )}
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -161,7 +173,7 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
                   </button>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Comparte este link por WhatsApp o cualquier otra vía
+                  Comparte este link por WhatsApp, SMS o cualquier otra vía
                 </p>
               </div>
             </div>
@@ -170,10 +182,9 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
               <div className="space-y-2">
                 <label
                   htmlFor="invite-email"
-                  className="text-sm font-semibold text-slate-700 dark:text-slate-300 tracking-wide flex justify-between"
+                  className="text-sm font-semibold text-slate-700 dark:text-slate-300 tracking-wide"
                 >
-                  <span>Email (opcional)</span>
-                  <span className="text-xs font-normal text-slate-400">Si no tienes, usa el link</span>
+                  Correo electrónico
                 </label>
                 <div className="relative group">
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-slate-400 group-focus-within:text-[#0F4C5C] dark:group-focus-within:text-[#38BDF8] transition-colors">
@@ -197,6 +208,26 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
                       shadow-sm
                     "
                   />
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+                <div className="flex items-center h-5">
+                  <input
+                    id="send-email-checkbox"
+                    type="checkbox"
+                    checked={sendEmail}
+                    onChange={(e) => setSendEmail(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-300 text-[#0F4C5C] focus:ring-[#0F4C5C] cursor-pointer"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="send-email-checkbox" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                    Enviar invitación por correo electrónico
+                  </label>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {sendEmail ? 'Se enviará inmediatamente al crear' : 'Solo genera el link para compartir'}
+                  </p>
                 </div>
               </div>
 
@@ -256,10 +287,13 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
                 {isPending ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Enviando...</span>
+                    <span>Creando...</span>
                   </>
                 ) : (
-                  'Enviar invitación'
+                  <>
+                    <Send className="w-4 h-4" />
+                    Crear invitación
+                  </>
                 )}
               </button>
             )}

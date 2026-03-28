@@ -1,6 +1,6 @@
 'use client'
 
-import { useFormState } from 'react-dom'
+import { useActionState } from 'react'
 import { sendPasswordResetEmail } from '@/actions/auth/sendPasswordResetEmail'
 import { Loader2, Mail, CheckCircle } from 'lucide-react'
 
@@ -9,7 +9,7 @@ type FormState = { error?: string; success?: boolean } | null
 const initialState: FormState = null
 
 export function ForgotPasswordForm() {
-  const [state, action, isPending] = useFormState(sendPasswordResetEmail, initialState)
+  const [state, action, isPending] = useActionState(sendPasswordResetEmail, initialState)
 
   if (state?.success) {
     return (

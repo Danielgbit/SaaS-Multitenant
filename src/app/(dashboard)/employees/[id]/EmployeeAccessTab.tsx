@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, X, AlertTriangle, Loader2 } from 'lucide-react'
+import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, X, AlertTriangle, Loader2, Link2, Send } from 'lucide-react'
 import { createInvitation } from '@/actions/invitations/createInvitation'
 import { resendInvitation } from '@/actions/invitations/resendInvitation'
 import { cancelInvitation } from '@/actions/invitations/cancelInvitation'
@@ -24,6 +24,7 @@ export function EmployeeAccessTab({
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<MemberRole>('staff')
+  const [sendEmail, setSendEmail] = useState(true)
   const [invitationUrl, setInvitationUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,6 +33,10 @@ export function EmployeeAccessTab({
   const hasAccess = !!employee.user_id
   const hasPendingInvite = pendingInvitation?.status === 'pending'
 
+  const pendingInviteUrl = pendingInvitation 
+    ? `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/invite/${pendingInvitation.token}`
+    : null
+
   function handleCreateInvite() {
     setError(null)
     startTransition(async () => {
@@ -39,6 +44,7 @@ export function EmployeeAccessTab({
         employeeId: employee.id,
         email: email.trim() || undefined,
         role,
+        sendEmail,
       })
 
       if (result.error) {
@@ -59,7 +65,7 @@ export function EmployeeAccessTab({
 
   function handleCancelInvite() {
     if (!pendingInvitation) return
-    if (!confirm('¿Cancelar esta invitación?')) return
+    if (!confirm('¿Cancelar esta invitación? El link dejará de funcionar.')) return
     startTransition(async () => {
       await cancelInvitation({ invitationId: pendingInvitation.id })
     })
@@ -72,12 +78,18 @@ export function EmployeeAccessTab({
     })
   }
 
-  function handleCopyLink() {
-    if (invitationUrl) {
-      navigator.clipboard.writeText(invitationUrl)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    }
+  function handleCopyLink(url: string) {
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  function handleCloseModal() {
+    setEmail('')
+    setRole('staff')
+    setSendEmail(true)
+    setError(null)
+    setShowInviteModal(false)
   }
 
   return (
@@ -227,7 +239,7 @@ export function EmployeeAccessTab({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Email (opcional)
+                  Correo electrónico
                 </label>
                 <input
                   type="email"
@@ -245,6 +257,27 @@ export function EmployeeAccessTab({
                   "
                 />
               </div>
+
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+                <div className="flex items-center h-5">
+                  <input
+                    id="send-email-checkbox"
+                    type="checkbox"
+                    checked={sendEmail}
+                    onChange={(e) => setSendEmail(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-300 text-[#0F4C5C] focus:ring-[#0F4C5C] cursor-pointer"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="send-email-checkbox" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                    Enviar invitación por correo
+                  </label>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {sendEmail ? 'Se enviará inmediatamente' : 'Solo genera el link'}
+                  </p>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Rol
@@ -270,7 +303,7 @@ export function EmployeeAccessTab({
 
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => setShowInviteModal(false)}
+                onClick={handleCloseModal}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
               >
                 Cancelar
@@ -280,20 +313,52 @@ export function EmployeeAccessTab({
                 disabled={isLoading}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] text-white font-medium shadow-lg shadow-[#0F4C5C]/20 disabled:opacity-50"
               >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-                Enviar invitación
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                Crear invitación
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Copied Link Card */}
-      {invitationUrl && (
-        <div className="p-5 rounded-xl bg-gradient-to-r from-[#0F4C5C]/10 to-[#38BDF8]/10 dark:from-[#38BDF8]/10 dark:to-[#0F4C5C]/5 border border-[#0F4C5C]/20 dark:border-[#38BDF8]/20">
-          <p className="text-sm font-semibold text-[#0F4C5C] dark:text-[#38BDF8] mb-2">
-            Link para compartir
+      {/* Pending Invitation Link Card */}
+      {hasPendingInvite && pendingInviteUrl && (
+        <div className="p-5 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800/30">
+          <div className="flex items-center gap-2 mb-3">
+            <Link2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+              Link de invitación activo
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              readOnly
+              value={pendingInviteUrl}
+              className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 text-sm border border-amber-200 dark:border-amber-700/50 text-slate-700 dark:text-slate-300"
+            />
+            <button
+              onClick={() => handleCopyLink(pendingInviteUrl)}
+              className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition-colors"
+            >
+              {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+            </button>
+          </div>
+          <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+            Comparte este link por WhatsApp, SMS o cualquier otra vía
           </p>
+        </div>
+      )}
+
+      {/* Newly Created Invitation Link Card */}
+      {invitationUrl && !hasPendingInvite && (
+        <div className="p-5 rounded-xl bg-gradient-to-r from-[#0F4C5C]/10 to-[#38BDF8]/10 dark:from-[#38BDF8]/10 dark:to-[#0F4C5C]/5 border border-[#0F4C5C]/20 dark:border-[#38BDF8]/20">
+          <div className="flex items-center gap-2 mb-3">
+            <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+              Invitación creada
+            </p>
+          </div>
           <div className="flex gap-2">
             <input
               type="text"
@@ -302,7 +367,7 @@ export function EmployeeAccessTab({
               className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 text-sm border border-slate-200/50 dark:border-slate-700/50"
             />
             <button
-              onClick={handleCopyLink}
+              onClick={() => handleCopyLink(invitationUrl)}
               className="px-4 py-2 rounded-lg bg-[#0F4C5C] dark:bg-[#38BDF8] text-white"
             >
               {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}

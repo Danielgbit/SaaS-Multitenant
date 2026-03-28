@@ -9,13 +9,14 @@ const CreateInvitationSchema = z.object({
   employeeId: z.string().uuid('ID de empleado inválido'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   role: z.enum(['staff', 'admin']).optional().default('staff'),
+  sendEmail: z.boolean().optional().default(true),
 })
 
 const INVITATION_EXPIRY_DAYS = 7
 
 export async function createInvitation(
   input: CreateInvitationInput
-): Promise<{ success?: boolean; invitationUrl?: string; error?: string }> {
+): Promise<{ success?: boolean; invitationUrl?: string; emailSent?: boolean; error?: string }> {
   const supabase = await createClient()
 
   const validation = CreateInvitationSchema.safeParse(input)
@@ -23,8 +24,9 @@ export async function createInvitation(
     return { error: validation.error.issues[0]?.message }
   }
 
-  const { employeeId, email, role } = validation.data
+  const { employeeId, email, role, sendEmail } = validation.data
   const emailValue = email || null
+  const shouldSendEmail = sendEmail && emailValue
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
@@ -119,12 +121,13 @@ export async function createInvitation(
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
   const invitationUrl = `${baseUrl}/invite/${token}`
 
-  if (emailValue) {
-    await sendInvitationEmail(emailValue, employee.name, orgMember.organization_id, invitationUrl, role)
+  let emailSent = false
+  if (shouldSendEmail) {
+    emailSent = await sendInvitationEmail(emailValue, employee.name, orgMember.organization_id, invitationUrl, role as string)
   }
 
   revalidatePath('/employees')
-  return { success: true, invitationUrl }
+  return { success: true, invitationUrl, emailSent }
 }
 
 async function sendInvitationEmail(
@@ -133,7 +136,7 @@ async function sendInvitationEmail(
   organizationId: string,
   invitationUrl: string,
   role: string
-) {
+): Promise<boolean> {
   const supabase = await createClient()
   
   const { data: organization } = await (supabase as any)
@@ -144,24 +147,20 @@ async function sendInvitationEmail(
 
   const orgName = organization?.name || 'la organización'
 
-  const { sendEmail } = await import('@/lib/resend')
-  const subject = `Te han invitado a ${orgName}`
-  const html = `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1>Hola ${employeeName},</h1>
-      <p>Has sido invitado a unirte a <strong>${orgName}</strong> como <strong>${role}</strong>.</p>
-      <p>Para aceptar la invitación, haz clic en el siguiente botón:</p>
-      <a href="${invitationUrl}" style="display: inline-block; background: #0F4C5C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">
-        Aceptar invitación
-      </a>
-      <p>Este enlace expire en ${INVITATION_EXPIRY_DAYS} días.</p>
-      <p>Si no conoces esta invitación, puedes ignorar este correo.</p>
-    </div>
-  `
-
   try {
-    await sendEmail({ to, subject, html })
+    const { getEmailTemplate } = await import('@/lib/email/templates')
+    const { subject, html } = getEmailTemplate('employee_invitation', {
+      businessName: orgName,
+      employeeName,
+      invitationUrl,
+      role,
+    })
+
+    const { sendEmail } = await import('@/lib/resend')
+    const result = await sendEmail({ to, subject, html })
+    return result.success
   } catch (error) {
     console.error('Error sending invitation email:', error)
+    return false
   }
 }

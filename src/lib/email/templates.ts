@@ -4,18 +4,21 @@ export type EmailType =
   | 'appointment_cancelled'
   | 'appointment_completed'
   | 'appointment_no_show'
+  | 'employee_invitation'
 
 interface EmailVariables {
   businessName: string
-  clientName: string
-  serviceName: string
-  employeeName: string
-  date: string
-  time: string
-  duration: string
+  clientName?: string
+  serviceName?: string
+  employeeName?: string
+  date?: string
+  time?: string
+  duration?: string
   price?: string
   location?: string
   phone?: string
+  invitationUrl?: string
+  role?: string
 }
 
 const getEmailStyles = () => `
@@ -172,7 +175,7 @@ export function getEmailTemplate(
   type: EmailType,
   variables: EmailVariables
 ): { subject: string; html: string } {
-  const { businessName, clientName, serviceName, employeeName, date, time, duration, price, location, phone } = variables
+  const { businessName, clientName, serviceName, employeeName, date, time, duration, price, location, phone, invitationUrl, role } = variables
 
   const subjectMap: Record<EmailType, string> = {
     appointment_confirmation: `✅ Confirmación de tu cita en ${businessName}`,
@@ -180,6 +183,7 @@ export function getEmailTemplate(
     appointment_cancelled: `❌ Tu cita en ${businessName} ha sido cancelada`,
     appointment_completed: `¡Gracias por tu visita a ${businessName}!`,
     appointment_no_show: `Información sobre tu cita en ${businessName}`,
+    employee_invitation: `Te han invitado a unirte a ${businessName}`,
   }
 
   const templates: Record<EmailType, string> = {
@@ -387,6 +391,45 @@ export function getEmailTemplate(
         <div class="footer">
           <p class="footer-text">
             ¿Tienes alguna pregunta? <a href="mailto:contacto@focusidestudio.com" class="footer_link">Escríbenos</a>
+          </p>
+          <p class="footer-text" style="margin-top: 8px;">
+            © ${new Date().getFullYear()} Prügressy. Todos los derechos reservados.
+          </p>
+        </div>
+      </div>
+    `,
+
+    employee_invitation: `
+      <div class="email-wrapper">
+        <div class="header">
+          <div class="logo">Prügressy<span>.</span></div>
+        </div>
+        <div class="content">
+          <p class="greeting">Hola <strong>${employeeName}</strong>,</p>
+          <p>Has sido invitado a unirte a <strong>${businessName}</strong> como <strong>${role}</strong>.</p>
+          
+          <div class="highlight-box">
+            <div class="highlight-title">Tu nueva cuenta</div>
+            <div class="highlight-value">${role === 'admin' ? 'Administrador' : 'Staff'}</div>
+          </div>
+          
+          <p style="margin-top: 24px; color: #334155; font-size: 16px; text-align: center;">
+            Para comenzar, acepta la invitación haciendo clic en el botón below.
+          </p>
+          
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${invitationUrl}" class="cta-button">
+              Aceptar invitación
+            </a>
+          </div>
+          
+          <p style="margin-top: 24px; color: #64748b; font-size: 14px; text-align: center;">
+            Este enlace expira en 7 días. Si no solicitaste esta invitación, puedes ignorar este correo.
+          </p>
+        </div>
+        <div class="footer">
+          <p class="footer-text">
+            ¿Tienes alguna pregunta? <a href="mailto:soporte@prugressy.com" class="footer-link">Contáctanos</a>
           </p>
           <p class="footer-text" style="margin-top: 8px;">
             © ${new Date().getFullYear()} Prügressy. Todos los derechos reservados.

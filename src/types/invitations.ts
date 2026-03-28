@@ -22,6 +22,7 @@ export type CreateInvitationInput = {
   employeeId: string
   email?: string
   role?: MemberRole
+  sendEmail?: boolean
 }
 
 export type ResendInvitationInput = {
