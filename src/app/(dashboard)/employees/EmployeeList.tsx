@@ -213,10 +213,10 @@ export function EmployeeList({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation()
-                      setOpenMenuId(isMenuOpen ? null : employee.id)
+                      setOpenMenuId(openMenuId === employee.id ? null : employee.id)
                     }}
                     aria-label="Más acciones"
-                    aria-expanded={isMenuOpen}
+                    aria-expanded={openMenuId === employee.id}
                     className="p-2.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C]/40"
                   >
                     {loadingId === employee.id ? (
