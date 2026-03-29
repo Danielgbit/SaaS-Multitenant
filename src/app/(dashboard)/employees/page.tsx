@@ -27,7 +27,7 @@ export default async function EmployeesPage() {
   // 2. Obtener organización del usuario
   const { data: orgMember, error: orgError } = await supabase
     .from('organization_members')
-    .select('organization_id')
+    .select('organization_id, role')
     .eq('user_id', user.id)
     .single()
 
@@ -62,5 +62,6 @@ export default async function EmployeesPage() {
     availabilityMap={availabilityMap} 
     invitationMap={invitationMap}
     organizationId={orgMember.organization_id}
+    userRole={orgMember.role}
   />
 }

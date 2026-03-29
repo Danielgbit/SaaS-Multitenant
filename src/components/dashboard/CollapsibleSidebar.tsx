@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useTheme } from 'next-themes'
 import { 
   CalendarDays, 
   Users, 
@@ -21,27 +20,6 @@ import {
   Wallet
 } from 'lucide-react'
 
-function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
-  return {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryHover: isDark ? '#0EA5E9' : '#0C3E4A',
-    primaryGradient: isDark 
-      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
-      : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
-    primarySubtle: isDark ? 'rgba(56, 189, 248, 0.08)' : 'rgba(15, 76, 92, 0.06)',
-    surface: isDark ? '#1E293B' : '#FFFFFF',
-    surfaceHover: isDark ? '#334155' : '#F8FAFC',
-    border: isDark ? '#334155' : '#E2E8F0',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#64748B',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    isDark,
-  }
-}
-
 interface CollapsibleSidebarProps {
   role: string | null
   isCollapsed: boolean
@@ -49,11 +27,15 @@ interface CollapsibleSidebarProps {
 }
 
 export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleSidebarProps) {
-  const COLORS = useColors()
   const pathname = usePathname()
   const [hoveredRoute, setHoveredRoute] = useState<string | null>(null)
   const [tooltipVisible, setTooltipVisible] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const isStaff = role === 'staff'
 
@@ -194,21 +176,18 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
 
   return (
     <aside 
-      className="md:flex flex-col z-30 transition-all duration-300 ease-out flex-shrink-0 border-r"
-      style={{ 
-        width: isCollapsed ? '72px' : '260px',
-        backgroundColor: COLORS.surface,
-        borderColor: COLORS.border,
-      }}
+      className={`
+        md:flex flex-col z-30 transition-all duration-300 ease-out flex-shrink-0 border-r
+        bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700
+      `}
+      style={{ width: isCollapsed ? '72px' : '260px' }}
     >
-      {/* Logo Section */}
       <div 
-        className="relative flex items-center shrink-0 transition-all duration-300"
+        className="relative flex items-center shrink-0 transition-all duration-300 border-b border-slate-200 dark:border-slate-700"
         style={{ 
           height: '72px',
           paddingLeft: isCollapsed ? '20px' : '24px',
           paddingRight: isCollapsed ? '20px' : '24px',
-          borderBottom: `1px solid ${COLORS.border}`,
         }}
       >
         <Link 
@@ -216,19 +195,16 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
           className="flex items-center gap-3 group"
         >
           <div 
-            className="relative w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform duration-200 group-hover:scale-105 flex-shrink-0"
-            style={{ background: COLORS.primaryGradient }}
+            className="relative w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform duration-200 group-hover:scale-105 flex-shrink-0 bg-gradient-to-br from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0EA5E9]"
           >
             <span className="text-white font-serif font-bold text-xl leading-none">P</span>
             <div 
               className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white dark:border-slate-800"
-              style={{ backgroundColor: '#34D399' }}
             />
           </div>
           <span 
-            className="font-display text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300"
+            className="font-display text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300 text-slate-900 dark:text-slate-100"
             style={{ 
-              color: COLORS.textPrimary, 
               opacity: isCollapsed ? 0 : 1,
               width: isCollapsed ? '0' : 'auto',
             }}
@@ -238,7 +214,6 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
         </Link>
       </div>
 
-      {/* Navigation */}
       <nav 
         className="flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 scrollbar-thin"
         style={{ 
@@ -260,8 +235,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
             <div key={group} className="space-y-0.5">
               {!isCollapsed && (
                 <div 
-                  className="text-[10px] font-semibold uppercase tracking-wider px-3 py-2"
-                  style={{ color: COLORS.textMuted }}
+                  className="text-[10px] font-semibold uppercase tracking-wider px-3 py-2 text-slate-400 dark:text-slate-500"
                 >
                   {group}
                 </div>
@@ -275,11 +249,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
                   <div key={route.href} className="relative">
                     {isActive && (
                       <div 
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-full transition-all duration-200"
-                        style={{ 
-                          height: '24px',
-                          background: COLORS.primaryGradient,
-                        }}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-full transition-all duration-200 h-6 bg-gradient-to-br from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0EA5E9]"
                       />
                     )}
                     
@@ -290,19 +260,11 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
                         transition-all duration-200 font-medium text-sm
                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
                         ${isActive 
-                          ? '' 
-                          : 'hover:bg-opacity-60'
+                          ? 'bg-[#0F4C5C]/6 dark:bg-[#38BDF8]/8 text-[#0F4C5C] dark:text-[#38BDF8]' 
+                          : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                         }
                       `}
                       style={{ 
-                        backgroundColor: isActive 
-                          ? COLORS.primarySubtle 
-                          : isHovered 
-                            ? COLORS.surfaceHover 
-                            : 'transparent',
-                        color: isActive 
-                          ? COLORS.primary 
-                          : COLORS.textSecondary,
                         width: '100%',
                         paddingLeft: isActive ? '20px' : '16px',
                       }}
@@ -320,9 +282,6 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
                               : ''
                           }
                         `}
-                        style={{ 
-                          color: isActive ? COLORS.primary : COLORS.textSecondary,
-                        }}
                         aria-hidden="true" 
                       />
                       <span 
@@ -338,10 +297,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
                       
                       {isActive && (
                         <div 
-                          className="absolute inset-0 rounded-lg opacity-20 pointer-events-none transition-opacity duration-200"
-                          style={{ 
-                            background: `linear-gradient(90deg, ${COLORS.primary}15, transparent)`,
-                          }}
+                          className="absolute inset-0 rounded-lg opacity-20 pointer-events-none transition-opacity duration-200 bg-gradient-to-r from-[#0F4C5C]/15 to-transparent dark:from-[#38BDF8]/15 dark:to-transparent"
                         />
                       )}
                     </Link>
@@ -351,14 +307,9 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
                         className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 pointer-events-none animate-slideInLeft"
                       >
                         <div 
-                          className="flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm whitespace-nowrap"
-                          style={{ 
-                            backgroundColor: COLORS.isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)',
-                            color: '#F8FAFC',
-                            border: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
-                          }}
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm whitespace-nowrap bg-slate-900/95 dark:bg-slate-800/95 text-slate-100 border border-slate-700"
                         >
-                          <Icon className="w-4 h-4" style={{ color: COLORS.primary }} aria-hidden="true" />
+                          <Icon className="w-4 h-4 text-[#38BDF8]" aria-hidden="true" />
                           <span 
                             className="text-sm font-medium"
                             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
@@ -367,12 +318,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
                           </span>
                         </div>
                         <div 
-                          className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 rotate-45"
-                          style={{ 
-                            backgroundColor: COLORS.isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)',
-                            borderLeft: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
-                            borderBottom: `1px solid ${COLORS.isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(51, 65, 85, 0.3)'}`,
-                          }}
+                          className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 rotate-45 bg-slate-900/95 dark:bg-slate-800/95 border-l border-b border-slate-700"
                         />
                       </div>
                     )}
@@ -384,29 +330,21 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
         </div>
       </nav>
 
-      {/* Footer with Profile and Toggle */}
       <div 
-        className="shrink-0 border-t"
+        className="shrink-0 border-t border-slate-200 dark:border-slate-700"
         style={{ 
-          borderColor: COLORS.border,
           padding: isCollapsed ? '12px' : '16px',
         }}
       >
-        {/* Profile Badge */}
         {!isCollapsed && role && (
           <div 
             className="mb-3 transition-all duration-300 animate-scaleIn"
           >
             <div 
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
-              style={{ 
-                backgroundColor: COLORS.surfaceHover,
-                border: `1px solid ${COLORS.border}`,
-              }}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600"
             >
               <div 
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ background: COLORS.primaryGradient }}
+                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0EA5E9]"
               >
                 <span 
                   className="text-white font-semibold text-xs uppercase"
@@ -417,14 +355,12 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
               </div>
               <div className="flex-1 min-w-0">
                 <p 
-                  className="text-[10px] font-semibold uppercase tracking-wider"
-                  style={{ color: COLORS.textMuted }}
+                  className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500"
                 >
                   Rol
                 </p>
                 <p 
-                  className="text-sm font-semibold capitalize truncate"
-                  style={{ color: COLORS.primary }}
+                  className="text-sm font-semibold capitalize truncate text-[#0F4C5C] dark:text-[#38BDF8]"
                 >
                   {role}
                 </p>
@@ -433,7 +369,6 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
           </div>
         )}
 
-        {/* Toggle Button */}
         <button
           onClick={onToggle}
           className={`
@@ -441,11 +376,8 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
             transition-all duration-200 
             hover:bg-opacity-50 group
             ${isCollapsed ? 'justify-center' : 'justify-between'}
+            bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400
           `}
-          style={{ 
-            backgroundColor: COLORS.surfaceHover,
-            color: COLORS.textSecondary,
-          }}
           aria-label={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
         >
           {!isCollapsed && (
@@ -461,11 +393,8 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
               w-7 h-7 rounded-lg flex items-center justify-center
               transition-all duration-300
               ${isCollapsed ? '' : 'rotate-180'}
+              bg-[#0F4C5C] dark:bg-[#38BDF8] text-white
             `}
-            style={{ 
-              backgroundColor: COLORS.primary,
-              color: 'white',
-            }}
           >
             <ChevronLeft className="w-4 h-4 transition-transform duration-200" />
           </div>
