@@ -1,32 +1,48 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { Plus, Users, Search } from 'lucide-react'
 import { CreateEmployeeModal } from './CreateEmployeeModal'
 import { EmployeeList } from './EmployeeList'
 import { InviteEmployeeModal } from './InviteEmployeeModal'
+import { DeleteEmployeePortal } from './DeleteEmployeePortal'
+import { PermanentDeletePortal } from './PermanentDeletePortal'
+import { InvitationLinkModal } from '@/components/employees/InvitationLinkModal'
+import { resendInvitation } from '@/actions/invitations/resendInvitation'
 import type { Employee } from '@/types/employees'
 import type { AvailabilitySummary } from '@/services/availability/getAvailability'
 import type { Invitation } from '@/types/invitations'
 
 interface EmployeesClientProps {
   employees: Employee[]
-  availabilityMap: Map<string, AvailabilitySummary>
-  invitationMap: Map<string, Invitation>
+  availabilityMap: Record<string, AvailabilitySummary>
+  invitationMap: Record<string, Invitation>
   organizationId: string
   userRole: string
 }
 
 export function EmployeesClient({ 
   employees, 
-  availabilityMap, 
+  availabilityMap,
   invitationMap,
   organizationId,
   userRole
 }: EmployeesClientProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [inviteTarget, setInviteTarget] = useState<Employee | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null)
+  const [hardDeleteTarget, setHardDeleteTarget] = useState<Employee | null>(null)
+  const [invitationLinkTarget, setInvitationLinkTarget] = useState<{ employee: Employee; invitation: Invitation } | null>(null)
+  const [, startTransition] = useTransition()
   const [query, setQuery] = useState('')
+
+  function handleShowInvitationLink(employee: Employee, invitation: Invitation) {
+    setInvitationLinkTarget({ employee, invitation })
+  }
+
+  async function handleResendInvite(invitationId: string): Promise<void> {
+    await resendInvitation({ invitationId })
+  }
 
   const filtered = employees.filter((e) =>
     e.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -135,6 +151,10 @@ export function EmployeesClient({
           organizationId={organizationId}
           userRole={userRole}
           onInvite={(employee) => setInviteTarget(employee)}
+          onDelete={(employee) => setDeleteTarget(employee)}
+          onHardDelete={(employee) => setHardDeleteTarget(employee)}
+          onShowInvitationLink={handleShowInvitationLink}
+          onResendInvite={handleResendInvite}
         />
       </div>
 
@@ -148,6 +168,25 @@ export function EmployeesClient({
           isOpen={!!inviteTarget}
           employee={inviteTarget}
           onClose={() => setInviteTarget(null)}
+        />
+      )}
+
+      <DeleteEmployeePortal
+        employee={deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+      />
+
+      <PermanentDeletePortal
+        employee={hardDeleteTarget}
+        onClose={() => setHardDeleteTarget(null)}
+      />
+
+      {invitationLinkTarget && (
+        <InvitationLinkModal
+          employee={invitationLinkTarget.employee}
+          invitation={invitationLinkTarget.invitation}
+          onClose={() => setInvitationLinkTarget(null)}
+          onResend={() => handleResendInvite(invitationLinkTarget.invitation.id)}
         />
       )}
     </>

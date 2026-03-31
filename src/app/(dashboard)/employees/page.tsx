@@ -43,17 +43,18 @@ export default async function EmployeesPage() {
   const employeeIds = employees.map(e => e.id)
   const availabilitySummary = await getAvailabilitySummaryForEmployees(employeeIds)
 
-  // 5. Crear mapa para acceso rápido
-  const availabilityMap = new Map(
-    availabilitySummary.map(a => [a.employee_id, a])
-  )
+  // 5. Crear mapa para acceso rápido (usar objeto plano para serialización)
+  const availabilityMap: Record<string, typeof availabilitySummary[0]> = {}
+  for (const a of availabilitySummary) {
+    availabilityMap[a.employee_id] = a
+  }
 
   // 6. Obtener invitaciones pendientes
   const { invitations } = await getPendingInvitations(orgMember.organization_id)
-  const invitationMap = new Map<string, any>()
+  const invitationMap: Record<string, typeof invitations[0]> = {}
   if (invitations) {
     for (const inv of invitations) {
-      invitationMap.set(inv.employee_id, inv)
+      invitationMap[inv.employee_id] = inv
     }
   }
 

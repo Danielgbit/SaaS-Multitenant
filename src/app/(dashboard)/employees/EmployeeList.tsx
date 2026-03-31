@@ -1,14 +1,12 @@
 'use client'
 
-import { useState, useTransition, useEffect, useRef } from 'react'
+import { useState, useTransition, useRef, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { Pencil, ToggleLeft, ToggleRight, Phone, UserCircle2, Loader2, Clock, Calendar, AlertCircle, RefreshCw, Plus, Search, MoreVertical, UserX, Trash2 } from 'lucide-react'
+import { Phone, UserCircle2, Loader2, Calendar, AlertCircle, Plus, Search, MoreVertical, UserX } from 'lucide-react'
 import { toggleEmployeeStatus } from '@/actions/employees/toggleEmployeeStatus'
-import { EditEmployeeModal } from './EditEmployeeModal'
-import { DeleteEmployeeModal } from './DeleteEmployeeModal'
-import { PermanentDeleteModal } from './PermanentDeleteModal'
 import { resendInvitation } from '@/actions/invitations/resendInvitation'
 import { cancelInvitation } from '@/actions/invitations/cancelInvitation'
+import { EmployeeActionMenu } from '@/components/employees/EmployeeActionMenu'
 import type { Employee } from '@/types/employees'
 import type { AvailabilitySummary } from '@/services/availability/getAvailability'
 import type { Invitation } from '@/types/invitations'
@@ -16,11 +14,15 @@ import type { Invitation } from '@/types/invitations'
 interface EmployeeListProps {
   employees: Employee[]
   allEmpty: boolean
-  availabilityMap: Map<string, AvailabilitySummary>
-  invitationMap: Map<string, Invitation>
+  availabilityMap: Record<string, AvailabilitySummary>
+  invitationMap: Record<string, Invitation>
   organizationId: string
   userRole: string
   onInvite: (employee: Employee) => void
+  onDelete: (employee: Employee) => void
+  onHardDelete: (employee: Employee) => void
+  onShowInvitationLink: (employee: Employee, invitation: Invitation) => void
+  onResendInvite: (invitationId: string) => void
 }
 
 export function EmployeeList({
@@ -30,30 +32,35 @@ export function EmployeeList({
   invitationMap,
   organizationId,
   userRole,
-  onInvite
+  onInvite,
+  onDelete,
+  onHardDelete,
+  onShowInvitationLink,
+  onResendInvite,
 }: EmployeeListProps) {
-  const [editTarget, setEditTarget] = useState<Employee | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null)
-  const [hardDeleteTarget, setHardDeleteTarget] = useState<Employee | null>(null)
   const isOwnerOrAdmin = userRole === 'owner' || userRole === 'admin'
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
-  const menuRef = useRef<HTMLUListElement>(null)
+  const [menuPosition, setMenuPosition] = useState<DOMRect | null>(null)
+  const menuButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
   const [, startTransition] = useTransition()
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpenMenuId(null)
-      }
+  const handleOpenMenu = useCallback((employeeId: string) => {
+    const button = menuButtonRefs.current.get(employeeId)
+    if (button) {
+      const rect = button.getBoundingClientRect()
+      setMenuPosition(rect)
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    setOpenMenuId(employeeId)
+  }, [])
+
+  const handleCloseMenu = useCallback(() => {
+    setOpenMenuId(null)
+    setMenuPosition(null)
   }, [])
 
   function handleToggle(employee: Employee) {
     setLoadingId(employee.id)
-    setOpenMenuId(null)
     startTransition(async () => {
       await toggleEmployeeStatus(employee.id, !employee.active)
       setLoadingId(null)
@@ -62,7 +69,6 @@ export function EmployeeList({
 
   function handleResendInvitation(invitationId: string) {
     setLoadingId(invitationId)
-    setOpenMenuId(null)
     startTransition(async () => {
       await resendInvitation({ invitationId })
       setLoadingId(null)
@@ -71,12 +77,20 @@ export function EmployeeList({
 
   function handleCancelInvitation(invitationId: string) {
     setLoadingId(invitationId)
-    setOpenMenuId(null)
     startTransition(async () => {
       await cancelInvitation({ invitationId })
       setLoadingId(null)
     })
   }
+
+  const openEmployee = useMemo(() => {
+    return employees.find(e => e.id === openMenuId) || null
+  }, [employees, openMenuId])
+
+  const openInvitation = useMemo(() => {
+    if (!openMenuId) return null
+    return invitationMap[openMenuId] || null
+  }, [openMenuId, invitationMap])
 
   if (allEmpty) {
     return (
@@ -114,17 +128,17 @@ export function EmployeeList({
 
   return (
     <>
-      <ul role="list" className="divide-y divide-slate-100/60 dark:divide-slate-700/40" ref={menuRef}>
+      <ul role="list" className="divide-y divide-slate-100/60 dark:divide-slate-700/40">
         {employees.map((employee, index) => {
           const hasAccess = !!employee.user_id
-          const hasPendingInvite = invitationMap.get(employee.id)?.status === 'pending'
-          const invitation = invitationMap.get(employee.id)
+          const hasPendingInvite = invitationMap[employee.id]?.status === 'pending'
+          const invitation = invitationMap[employee.id]
           const isMenuOpen = openMenuId === employee.id
-          const avail = availabilityMap.get(employee.id)
+          const avail = availabilityMap[employee.id]
 
           const liClassName = employee.active
             ? 'hover:bg-slate-50/80 dark:hover:bg-slate-700/20'
-            : 'bg-slate-50/30 dark:bg-slate-800/10 opacity-60 hover:opacity-80'
+            : 'bg-slate-50/40 dark:bg-slate-800/20'
 
           const avatarClassName = employee.active
             ? 'bg-gradient-to-br from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0ea5e9] text-white shadow-lg shadow-[#0F4C5C]/25'
@@ -145,8 +159,8 @@ export function EmployeeList({
               style={{ animationDelay: `${index * 50}ms` }}
             >
               {!employee.active && (
-                <span className="absolute top-2 right-16 text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-500 dark:bg-slate-700 dark:text-slate-400 flex items-center gap-1">
-                  <UserX className="w-2.5 h-2.5" />
+                <span className="absolute -top-1 left-16 text-[10px] font-medium px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 flex items-center gap-1.5 shadow-sm">
+                  <UserX className="w-3 h-3" />
                   Dado de baja
                 </span>
               )}
@@ -195,9 +209,30 @@ export function EmployeeList({
                     Activo
                   </span>
                 ) : hasPendingInvite ? (
-                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full mr-2 bg-amber-50/80 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 ring-1 ring-amber-200/50 dark:ring-amber-800/40">
-                    Invitado
-                  </span>
+                  <div className="flex items-center gap-1 mr-2">
+                    <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-50/80 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 ring-1 ring-amber-200/50 dark:ring-amber-800/40">
+                      Invitado
+                    </span>
+                    {invitation && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onShowInvitationLink(employee, invitation)}
+                          className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-amber-50/80 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 ring-1 ring-amber-200/50 dark:ring-amber-800/40 transition-all duration-150 cursor-pointer"
+                        >
+                          Ver link
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onResendInvite(invitation.id)}
+                          disabled={loadingId === invitation.id}
+                          className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-[#0F4C5C]/10 text-[#0F4C5C] dark:bg-[#38BDF8]/10 dark:text-[#38BDF8] hover:bg-[#0F4C5C]/20 dark:hover:bg-[#38BDF8]/20 ring-1 ring-[#0F4C5C]/20 dark:ring-[#38BDF8]/20 transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Reenviar
+                        </button>
+                      </>
+                    )}
+                  </div>
                 ) : (
                   <button
                     type="button"
@@ -208,132 +243,51 @@ export function EmployeeList({
                   </button>
                 )}
 
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setOpenMenuId(openMenuId === employee.id ? null : employee.id)
-                    }}
-                    aria-label="Más acciones"
-                    aria-expanded={openMenuId === employee.id}
-                    className="p-2.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C]/40"
-                  >
-                    {loadingId === employee.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <MoreVertical className="w-4 h-4" />
-                    )}
-                  </button>
-
-                  {isMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 py-2 min-w-[220px]" onClick={(e) => e.stopPropagation()}>
-                      {hasAccess && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => { setEditTarget(employee); setOpenMenuId(null) }}
-                            className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center gap-3 cursor-pointer transition-colors duration-150"
-                          >
-                            <Pencil className="w-4 h-4 text-slate-400" />
-                            Editar
-                          </button>
-                          <Link
-                            href={`/employees/${employee.id}/availability`}
-                            onClick={() => setOpenMenuId(null)}
-                            className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center gap-3 cursor-pointer transition-colors duration-150"
-                          >
-                            <Clock className="w-4 h-4 text-slate-400" />
-                            Disponibilidad
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => handleToggle(employee)}
-                            disabled={loadingId === employee.id}
-                            className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center gap-3 cursor-pointer transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {employee.active ? (
-                              <>
-                                <ToggleLeft className="w-4 h-4 text-slate-400" />
-                                Desactivar
-                              </>
-                            ) : (
-                              <>
-                                <ToggleRight className="w-4 h-4 text-emerald-500" />
-                                Reactivar
-                              </>
-                            )}
-                          </button>
-                          <div className="h-px bg-slate-100 dark:bg-slate-700 my-2" />
-                        </>
-                      )}
-
-                      {!hasAccess && hasPendingInvite && invitation && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleResendInvitation(invitation.id)}
-                            disabled={loadingId === invitation.id}
-                            className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center gap-3 cursor-pointer transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <RefreshCw className={`w-4 h-4 text-slate-400 ${loadingId === invitation.id ? 'animate-spin' : ''}`} />
-                            Reenviar invitación
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleCancelInvitation(invitation.id)}
-                            disabled={loadingId === invitation.id}
-                            className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 cursor-pointer transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <UserX className="w-4 h-4" />
-                            Cancelar invitación
-                          </button>
-                          <div className="h-px bg-slate-100 dark:bg-slate-700 my-2" />
-                        </>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => { setDeleteTarget(employee); setOpenMenuId(null) }}
-                        className="w-full px-4 py-2.5 text-left text-sm text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 flex items-center gap-3 cursor-pointer transition-colors duration-150"
-                      >
-                        <UserX className="w-4 h-4" />
-                        Archivar empleado
-                      </button>
-
-                      {isOwnerOrAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => { setHardDeleteTarget(employee); setOpenMenuId(null) }}
-                          className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 cursor-pointer transition-colors duration-150"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Eliminar permanentemente
-                        </button>
-                      )}
-                    </div>
+                <button
+                  ref={(el) => {
+                    if (el) menuButtonRefs.current.set(employee.id, el)
+                  }}
+                  type="button"
+                  onClick={() => handleOpenMenu(employee.id)}
+                  aria-label="Más acciones"
+                  aria-expanded={isMenuOpen}
+                  className={`
+                    min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl
+                    transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C]/40
+                    ${isMenuOpen 
+                      ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' 
+                      : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    }
+                  `}
+                >
+                  {loadingId === employee.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <MoreVertical className="w-4 h-4" />
                   )}
-                </div>
+                </button>
               </div>
             </li>
           )
         })}
       </ul>
 
-      <EditEmployeeModal
-        employee={editTarget}
-        onClose={() => setEditTarget(null)}
-        onDelete={setDeleteTarget}
-      />
-
-      <DeleteEmployeeModal
-        employee={deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-      />
-
-      <PermanentDeleteModal
-        employee={hardDeleteTarget}
-        onClose={() => setHardDeleteTarget(null)}
+      <EmployeeActionMenu
+        employee={openEmployee!}
+        isOpen={!!openMenuId}
+        position={menuPosition}
+        onClose={handleCloseMenu}
+        onEdit={() => {}}
+        onDelete={onDelete}
+        onHardDelete={onHardDelete}
+        onToggle={handleToggle}
+        onResendInvitation={handleResendInvitation}
+        onCancelInvitation={handleCancelInvitation}
+        invitation={openInvitation}
+        hasAccess={openEmployee ? !!openEmployee.user_id : false}
+        hasPendingInvite={openMenuId ? invitationMap[openMenuId]?.status === 'pending' : false}
+        isOwnerOrAdmin={isOwnerOrAdmin}
+        isLoading={!!loadingId}
       />
     </>
   )

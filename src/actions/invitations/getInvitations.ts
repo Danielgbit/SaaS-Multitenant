@@ -63,7 +63,7 @@ export async function getPendingInvitations(organizationId?: string) {
     .select('*, employee:employees(name)')
     .eq('organization_id', orgId)
     .eq('status', 'pending')
-    .eq('expires_at', new Date().toISOString(), { type: 'gt' })
+    .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
 
   if (error) {

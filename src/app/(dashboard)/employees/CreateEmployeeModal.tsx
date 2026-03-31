@@ -1,41 +1,71 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { X, UserPlus, Phone, Loader2 } from 'lucide-react'
+import { useEffect, useState, useTransition } from 'react'
+import { X, UserPlus, Phone, Loader2, AlertTriangle, RotateCcw } from 'lucide-react'
 import { createEmployee } from '@/actions/employees/createEmployee'
+import { toggleEmployeeStatus } from '@/actions/employees/toggleEmployeeStatus'
+import type { Employee } from '@/types/employees'
 
 interface CreateEmployeeModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
+interface FormState {
+  success: boolean
+  error?: string
+  duplicateEmployee?: Employee
+}
+
 export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProps) {
   const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+  const [state, setState] = useState<FormState>({ success: false })
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false)
 
-  if (!isOpen) return null
+  useEffect(() => {
+    if (state.duplicateEmployee) {
+      setShowDuplicateWarning(true)
+    }
+  }, [state.duplicateEmployee])
+
+  useEffect(() => {
+    if (state.success && !state.error) {
+      setShowDuplicateWarning(false)
+      onClose()
+    }
+  }, [state.success, state.error, onClose])
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setError(null)
-    const formData = new FormData(e.currentTarget)
+    setShowDuplicateWarning(false)
     
+    const formData = new FormData(e.currentTarget)
     const name = formData.get('name') as string
     const phone = formData.get('phone') as string
 
     startTransition(async () => {
-      const result = await createEmployee({ 
-        name, 
-        phone: phone || null 
-      })
-
-      if (!result.error) {
-        onClose()
-      } else {
-        setError(result.error)
-      }
+      const result = await createEmployee({ name, phone: phone || null })
+      setState(result)
     })
   }
+
+  function handleReactivate() {
+    if (!state.duplicateEmployee) return
+    
+    const employee = state.duplicateEmployee
+    startTransition(async () => {
+      await toggleEmployeeStatus(employee.id, true)
+      onClose()
+    })
+  }
+
+  function handleClose() {
+    setState({ success: false })
+    setShowDuplicateWarning(false)
+    onClose()
+  }
+
+  if (!isOpen) return null
 
   return (
     <div
@@ -44,14 +74,14 @@ export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProp
       aria-modal="true"
       aria-labelledby="create-employee-title"
     >
-      {/* ── Overlay ── */}
+      {/* Overlay */}
       <div
         className="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
+        onClick={handleClose}
         aria-hidden="true"
       />
 
-      {/* ── Dialog Panel ── */}
+      {/* Dialog Panel */}
       <div className="relative z-10 bg-white dark:bg-[#1E293B] rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-700/60 overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Header */}
@@ -69,7 +99,7 @@ export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProp
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Cerrar modal"
             className="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
           >
@@ -79,12 +109,40 @@ export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProp
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="px-6 sm:px-8 py-6 sm:py-8 space-y-6">
+          {/* Duplicate Phone Warning */}
+          {showDuplicateWarning && state.duplicateEmployee && (
+            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 animate-in slide-in-from-top-2">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                    Este número ya está registrado
+                  </p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                    {state.duplicateEmployee.name} ({state.duplicateEmployee.active ? 'Activo' : 'Dado de baja'})
+                  </p>
+                  {state.duplicateEmployee.active === false && (
+                    <button
+                      type="button"
+                      onClick={handleReactivate}
+                      disabled={isPending}
+                      className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 dark:bg-amber-800/50 dark:hover:bg-amber-800 text-amber-800 dark:text-amber-200 text-sm font-medium transition-colors disabled:opacity-50"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Reactivar empleado
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Error Banner */}
-          {error && (
+          {state.error && !state.duplicateEmployee && (
             <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30 flex items-start gap-3 animate-in slide-in-from-top-2">
               <span className="text-red-600 dark:text-red-400 mt-0.5">⚠️</span>
               <p className="text-sm font-medium text-red-800 dark:text-red-300">
-                {error}
+                {state.error}
               </p>
             </div>
           )}
@@ -131,7 +189,7 @@ export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProp
                   id="create-employee-phone"
                   name="phone"
                   type="tel"
-                  placeholder="+1 234 567 8900"
+                  placeholder="+57 300 123 4567"
                   className="w-full pl-12 pr-4 min-h-[48px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent transition-all duration-200 shadow-sm"
                 />
               </div>
@@ -145,7 +203,7 @@ export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProp
           <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-slate-100 dark:border-slate-800/40">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="w-full sm:w-1/2 px-5 min-h-[48px] rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
             >
               Cancelar

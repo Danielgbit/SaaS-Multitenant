@@ -1,7 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 
 @import "tailwindcss";
-@config "../../tailwind.config.ts";
+
+@theme {
+  --color-background-light: #FAFAF9;
+  --color-background-dark: #151b1d;
+  --color-text-main: #1C1917;
+  --color-text-muted: #78716C;
+  --color-border-color: #E7E5E4;
+  --color-primary: #0F4C5C;
+}
 
 @layer base {
   :root {
@@ -10,7 +18,7 @@
   }
   
   .dark {
-    --background: #111d21;
+    --background: #151b1d;
     --foreground: #f1f5f9;
   }
   
@@ -20,7 +28,6 @@
 }
 
 @layer utilities {
-  /* Animations */
   .animate-fade-in {
     animation: fadeIn 0.3s ease-out forwards;
     opacity: 0;
@@ -62,13 +69,41 @@
     25% { transform: translateX(-4px); }
     75% { transform: translateX(4px); }
   }
-  
-  /* Focus ring */
-  .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900;
+
+  .animate-scale-in-95 {
+    animation: scaleIn95 0.15s ease-out forwards;
   }
 
-  /* Custom Scrollbar Styles */
+  @keyframes scaleIn95 {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-menu-enter {
+    animation: menuEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes menuEnter {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900;
+  }
+
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: theme('colors.slate.300') transparent;
@@ -103,8 +138,7 @@
   .dark .scrollbar-thin:hover::-webkit-scrollbar-thumb {
     background-color: theme('colors.slate.500');
   }
-  
-  /* Sidebar specific */
+
   .sidebar-nav {
     mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
