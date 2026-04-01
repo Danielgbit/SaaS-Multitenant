@@ -259,12 +259,13 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
                       cursor-pointer
                     "
                   >
-                    <option value="staff">Staff (acceso básico)</option>
-                    <option value="admin">Admin (acceso completo)</option>
+                    <option value="empleado">Empleado (acceso a su agenda, confirmaciones y su nomina)</option>
+                    <option value="staff">Asistente (acceso a agenda, confirmaciones e invitaciones)</option>
+                    <option value="admin">Administrador (acceso completo: agenda, empleados, servicios, configuracion e invitaciones)</option>
                   </select>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 ml-1">
-                  Staff: solo agenda y confirmaciones. Admin: acceso total.
+                  Empleado: agenda, confirmaciones y su nomina. Asistente: agenda, confirmaciones e invitaciones. Administrador: acceso completo.
                 </p>
               </div>
             </div>

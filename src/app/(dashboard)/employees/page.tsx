@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getEmployees } from '@/services/employees/getEmployees'
 import { getAvailabilitySummaryForEmployees } from '@/services/availability/getAvailability'
+import { getEmployeeServicesForOrganization } from '@/services/employees/getEmployeeServicesForOrganization'
 import { getPendingInvitations } from '@/actions/invitations/getInvitations'
 import { EmployeesClient } from './EmployeesClient'
 import type { Metadata } from 'next'
@@ -58,10 +59,17 @@ export default async function EmployeesPage() {
     }
   }
 
+  // 7. Obtener servicios por empleado
+  const employeeServicesMap = await getEmployeeServicesForOrganization(
+    employeeIds,
+    orgMember.organization_id
+  )
+
   return <EmployeesClient 
     employees={employees} 
     availabilityMap={availabilityMap} 
     invitationMap={invitationMap}
+    employeeServicesMap={employeeServicesMap}
     organizationId={orgMember.organization_id}
     userRole={orgMember.role}
   />

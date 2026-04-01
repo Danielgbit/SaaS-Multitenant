@@ -295,8 +295,9 @@ export function EmployeeAccessTab({
                     transition-all duration-200
                   "
                 >
-                  <option value="staff">Staff (acceso básico)</option>
-                  <option value="admin">Admin (acceso completo)</option>
+                  <option value="empleado">Empleado (acceso a su agenda, confirmaciones y su nomina)</option>
+                  <option value="staff">Asistente (acceso a agenda, confirmaciones e invitaciones)</option>
+                  <option value="admin">Administrador (acceso completo: agenda, empleados, servicios, configuracion e invitaciones)</option>
                 </select>
               </div>
             </div>

@@ -16,7 +16,7 @@ export interface Invitation {
 
 export type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'cancelled'
 
-export type MemberRole = 'staff' | 'admin' | 'owner'
+export type MemberRole = 'admin' | 'staff' | 'empleado'
 
 export type CreateInvitationInput = {
   employeeId: string

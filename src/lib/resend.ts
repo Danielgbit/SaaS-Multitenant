@@ -28,7 +28,7 @@ export function getResendInstance() {
   return getResend()
 }
 
-export const EMAIL_FROM = process.env.EMAIL_FROM || 'Prügressy <norespond@prugressy.com>'
+export const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Prügressy <noreply@focusidestudio.com>'
 export const CONTACT_EMAIL = 'contacto@focusidestudio.com'
 
 export async function sendEmail({

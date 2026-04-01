@@ -34,8 +34,8 @@ interface EmployeeActionMenuProps {
   isLoading: boolean
 }
 
-const GAP = 6
-const MIN_SPACE = 100
+const GAP = 8
+const MIN_SPACE = 180
 
 type VerticalDirection = 'below' | 'above'
 type HorizontalDirection = 'right' | 'left'
@@ -89,7 +89,7 @@ function getSmartPosition(
   left = Math.max(GAP, Math.min(left, viewport.width - menuWidth - GAP))
   top = Math.max(GAP, Math.min(top, viewport.height - maxHeight - GAP))
 
-  return { top, left, vertical, maxHeight: Math.max(120, maxHeight) }
+  return { top, left, vertical, maxHeight: Math.max(220, maxHeight) }
 }
 
 export function EmployeeActionMenu({
@@ -232,8 +232,8 @@ export function EmployeeActionMenu({
               ${menuPos.vertical === 'below' ? 'menu-indicator-below' : 'menu-indicator-above'}
             `}
             style={{ 
-              left: position ? position.width / 2 - 6 : 22,
-              [menuPos.vertical === 'below' ? 'top' : 'bottom']: -5,
+              left: position ? position.left + position.width / 2 - menuPos.left - 6 : 22,
+              [menuPos.vertical === 'below' ? 'top' : 'bottom']: -6,
               zIndex: 1,
             }}
           />

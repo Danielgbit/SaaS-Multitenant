@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus, Users, Search } from 'lucide-react'
+import { Plus, Users, Search, Filter } from 'lucide-react'
 import { CreateEmployeeModal } from './CreateEmployeeModal'
 import { EmployeeList } from './EmployeeList'
 import { InviteEmployeeModal } from './InviteEmployeeModal'
@@ -12,11 +12,15 @@ import { resendInvitation } from '@/actions/invitations/resendInvitation'
 import type { Employee } from '@/types/employees'
 import type { AvailabilitySummary } from '@/services/availability/getAvailability'
 import type { Invitation } from '@/types/invitations'
+import type { EmployeeServicesMap } from '@/services/employees/getEmployeeServicesForOrganization'
+
+type FilterType = 'all' | 'active' | 'inactive' | 'pending'
 
 interface EmployeesClientProps {
   employees: Employee[]
   availabilityMap: Record<string, AvailabilitySummary>
   invitationMap: Record<string, Invitation>
+  employeeServicesMap: EmployeeServicesMap
   organizationId: string
   userRole: string
 }
@@ -25,6 +29,7 @@ export function EmployeesClient({
   employees, 
   availabilityMap,
   invitationMap,
+  employeeServicesMap,
   organizationId,
   userRole
 }: EmployeesClientProps) {
@@ -35,6 +40,7 @@ export function EmployeesClient({
   const [invitationLinkTarget, setInvitationLinkTarget] = useState<{ employee: Employee; invitation: Invitation } | null>(null)
   const [, startTransition] = useTransition()
   const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<FilterType>('all')
 
   function handleShowInvitationLink(employee: Employee, invitation: Invitation) {
     setInvitationLinkTarget({ employee, invitation })
@@ -44,13 +50,42 @@ export function EmployeesClient({
     await resendInvitation({ invitationId })
   }
 
-  const filtered = employees.filter((e) =>
-    e.name.toLowerCase().includes(query.toLowerCase()) ||
-    (e.phone ?? '').includes(query)
-  )
+  const filtered = employees.filter((e) => {
+    const matchesSearch = 
+      e.name.toLowerCase().includes(query.toLowerCase()) ||
+      (e.phone ?? '').includes(query)
+    
+    if (!matchesSearch) return false
+
+    const hasAccess = !!e.user_id
+    const hasPendingInvite = invitationMap[e.id]?.status === 'pending'
+
+    switch (filter) {
+      case 'active':
+        return e.active
+      case 'inactive':
+        return !e.active
+      case 'pending':
+        return e.active && !hasAccess && hasPendingInvite
+      default:
+        return true
+    }
+  })
 
   const activeCount = employees.filter((e) => e.active).length
   const inactiveCount = employees.length - activeCount
+  const pendingCount = employees.filter((e) => {
+    const hasAccess = !!e.user_id
+    const hasPendingInvite = invitationMap[e.id]?.status === 'pending'
+    return e.active && !hasAccess && hasPendingInvite
+  }).length
+
+  const filterOptions: { value: FilterType; label: string; count: number }[] = [
+    { value: 'all', label: 'Todos', count: employees.length },
+    { value: 'active', label: 'Activos', count: activeCount },
+    { value: 'inactive', label: 'Inactivos', count: inactiveCount },
+    { value: 'pending', label: 'Pendientes', count: pendingCount },
+  ]
 
   return (
     <>
@@ -107,20 +142,53 @@ export function EmployeesClient({
       )}
 
       {employees.length > 0 && (
-        <div className="relative mb-6 group">
-          <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
-            <div className="pl-4">
-              <Search className="w-5 h-5 text-slate-400 group-focus-within:text-[#0F4C5C] dark:group-focus-within:text-[#38BDF8] transition-colors duration-200" />
+        <div className="relative mb-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1 group">
+              <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                <div className="pl-4">
+                  <Search className="w-5 h-5 text-slate-400 group-focus-within:text-[#0F4C5C] dark:group-focus-within:text-[#38BDF8] transition-colors duration-200" />
+                </div>
+              </div>
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar por nombre o teléfono…"
+                aria-label="Buscar empleados"
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/80 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 shadow-md shadow-slate-200/30 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]/30 dark:focus:ring-[#38BDF8]/30 focus:border-[#0F4C5C]/50 dark:focus:border-[#38BDF8]/50 focus:shadow-xl focus:shadow-[#0F4C5C]/10 transition-all duration-200"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 shadow-md shadow-slate-200/20 dark:shadow-none">
+              <Filter className="w-4 h-4 text-slate-400 ml-2 hidden sm:block" />
+              {filterOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setFilter(option.value)}
+                  className={`
+                    relative flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200
+                    ${filter === option.value
+                      ? 'bg-gradient-to-r from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0ea5e9] text-white shadow-lg'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/60 dark:hover:bg-slate-700/40'
+                    }
+                  `}
+                >
+                  {option.label}
+                  <span className={`
+                    ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold
+                    ${filter === option.value
+                      ? 'bg-white/20 text-white'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                    }
+                  `}>
+                    {option.count}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por nombre o teléfono…"
-            aria-label="Buscar empleados"
-            className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/80 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 shadow-md shadow-slate-200/30 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]/30 dark:focus:ring-[#38BDF8]/30 focus:border-[#0F4C5C]/50 dark:focus:border-[#38BDF8]/50 focus:shadow-xl focus:shadow-[#0F4C5C]/10 transition-all duration-200"
-          />
         </div>
       )}
 
@@ -135,7 +203,7 @@ export function EmployeesClient({
                 Equipo de trabajo
               </span>
             </div>
-            {query && (
+            {(query || filter !== 'all') && (
               <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700/50 px-2.5 py-1 rounded-full">
                 {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
               </span>
@@ -148,6 +216,7 @@ export function EmployeesClient({
           allEmpty={employees.length === 0} 
           availabilityMap={availabilityMap} 
           invitationMap={invitationMap}
+          employeeServicesMap={employeeServicesMap}
           organizationId={organizationId}
           userRole={userRole}
           onInvite={(employee) => setInviteTarget(employee)}

@@ -3,9 +3,22 @@
 import { createClient } from '@/lib/supabase/server'
 import type { InvitationWithDetails } from '@/types/invitations'
 
-export async function verifyInvitation(token: string): Promise<{ invitation?: InvitationWithDetails; error?: string }> {
+export type InvitationErrorType = 
+  | 'invalid_token'
+  | 'not_found'
+  | 'already_accepted'
+  | 'cancelled'
+  | 'expired'
+
+interface VerifyInvitationResult {
+  invitation?: InvitationWithDetails
+  error?: string
+  errorType?: InvitationErrorType
+}
+
+export async function verifyInvitation(token: string): Promise<VerifyInvitationResult> {
   if (!token || typeof token !== 'string') {
-    return { error: 'Token inválido.' }
+    return { error: 'Esta invitación no es válida.', errorType: 'invalid_token' }
   }
 
   const supabase = await createClient()
@@ -17,16 +30,20 @@ export async function verifyInvitation(token: string): Promise<{ invitation?: In
     .single()
 
   if (error || !invitation) {
-    return { error: 'Invitación no encontrada.' }
+    return { error: 'Esta invitación no fue encontrada.', errorType: 'not_found' }
   }
 
-  if (invitation.status !== 'pending') {
-    return { error: `Esta invitación ya ha sido ${invitation.status === 'accepted' ? 'aceptada' : 'cancelada'}.` }
+  if (invitation.status === 'accepted') {
+    return { error: 'Esta invitación ya fue aceptada.', errorType: 'already_accepted' }
+  }
+
+  if (invitation.status === 'cancelled') {
+    return { error: 'Esta invitación fue cancelada.', errorType: 'cancelled' }
   }
 
   const expiresAt = new Date(invitation.expires_at)
   if (expiresAt < new Date()) {
-    return { error: 'Esta invitación ha expirado.' }
+    return { error: 'Esta invitación ha expirado.', errorType: 'expired' }
   }
 
   return {

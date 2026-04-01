@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import { sendEmail, EMAIL_FROM } from '@/lib/resend'
+import { sendEmail } from '@/lib/resend'
 import { getEmailTemplate, EmailType } from '@/lib/email/templates'
 
 const QueueEmailSchema = z.object({
