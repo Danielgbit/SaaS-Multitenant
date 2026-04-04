@@ -23,6 +23,10 @@ export default async function PayrollPage() {
 
   if (!orgMember) redirect('/calendar')
 
+  if (orgMember.role === 'empleado') {
+    redirect('/payroll/mi')
+  }
+
   const settingsResult = await getPayrollSettings(orgMember.organization_id)
 
   const { data: employees } = await (supabase as any)

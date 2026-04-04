@@ -22,6 +22,10 @@ export default async function PayrollSettingsPage() {
 
   if (!orgMember) redirect('/calendar')
 
+  if (!['owner', 'admin'].includes(orgMember.role)) {
+    redirect('/dashboard')
+  }
+
   const settingsResult = await getPayrollSettings(orgMember.organization_id)
 
   return (

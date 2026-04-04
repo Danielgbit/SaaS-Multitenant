@@ -8,7 +8,7 @@ import type { CreateInvitationInput, MemberRole } from '@/types/invitations'
 const CreateInvitationSchema = z.object({
   employeeId: z.string().uuid('ID de empleado inválido'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
-  role: z.enum(['staff', 'admin']).optional().default('staff'),
+  role: z.enum(['staff', 'admin', 'empleado']).optional().default('staff'),
   sendEmail: z.boolean().optional().default(true),
 })
 

@@ -37,7 +37,7 @@ export default async function ConfirmationsPage() {
 
   // Obtener employee_id si es empleado
   let employeeId: string | undefined
-  if (role === 'employee') {
+  if (role === 'empleado') {
     const { data: employee } = await supabase
       .from('employees')
       .select('id')
@@ -52,7 +52,7 @@ export default async function ConfirmationsPage() {
   const confirmations = await getPendingConfirmations(organization_id, employeeId)
 
   // Redirigir según rol
-  if (role === 'employee') {
+  if (role === 'empleado') {
     return <EmployeeConfirmations 
       confirmations={confirmations} 
       organizationId={organization_id}

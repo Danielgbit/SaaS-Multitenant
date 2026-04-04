@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 const UpdateMemberRoleSchema = z.object({
   employeeId: z.string().uuid('ID de empleado inválido'),
-  role: z.enum(['staff', 'admin']),
+  role: z.enum(['staff', 'admin', 'empleado']),
 })
 
 export async function updateMemberRole(

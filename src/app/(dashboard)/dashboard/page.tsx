@@ -23,11 +23,23 @@ export default async function DashboardPage() {
 
   const { data: orgMember } = await supabase
     .from('organization_members')
-    .select('organization_id')
+    .select('organization_id, role')
     .eq('user_id', user.id)
     .single()
 
   const organizationId = orgMember?.organization_id
+  const role = orgMember?.role
+
+  let employeeName: string | null = null
+  if (role === 'empleado') {
+    const { data: employee } = await (supabase as any)
+      .from('employees')
+      .select('name')
+      .eq('user_id', user.id)
+      .eq('organization_id', organizationId)
+      .single()
+    employeeName = employee?.name
+  }
 
   if (!organizationId) {
     return (
@@ -37,5 +49,5 @@ export default async function DashboardPage() {
     )
   }
 
-  return <DashboardClient organizationId={organizationId} />
+  return <DashboardClient organizationId={organizationId} role={role} employeeName={employeeName} />
 }

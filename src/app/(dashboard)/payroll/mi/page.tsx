@@ -6,8 +6,8 @@ import { getPayrollReceipts } from '@/actions/payroll/generatePayrollReceipt'
 import { EmployeePayrollDetail } from '@/components/dashboard/payroll/EmployeePayrollDetail'
 
 export const metadata = {
-  title: 'Detalle de Nómina | Prügressy',
-  description: 'Ver detalles de nómina y generar recibos de pago',
+  title: 'Mi Nómina | Prügressy',
+  description: 'Ver tu nómina y generar recibos de pago',
 }
 
 function getDefaultPeriod() {
@@ -28,14 +28,7 @@ function getDefaultPeriod() {
   }
 }
 
-export default async function EmployeePayrollPage({
-  params,
-}: {
-  params: Promise<{ employeeId: string }>
-}) {
-  const resolvedParams = await params
-  const { employeeId } = resolvedParams
-
+export default async function MyPayrollPage() {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -49,27 +42,27 @@ export default async function EmployeePayrollPage({
 
   if (!orgMember) redirect('/calendar')
 
+  if (!['empleado'].includes(orgMember.role)) {
+    redirect('/payroll')
+  }
+
   const { data: employee } = await (supabase as any)
     .from('employees')
     .select('*')
-    .eq('id', employeeId)
+    .eq('user_id', user.id)
     .eq('organization_id', orgMember.organization_id)
     .single()
 
   if (!employee) {
-    redirect('/payroll')
-  }
-
-  if (orgMember.role === 'empleado' && employee.user_id !== user.id) {
-    redirect('/payroll/mi')
+    redirect('/calendar')
   }
 
   const defaultPeriod = getDefaultPeriod()
 
   const [commissionResult, debtInfoResult, receiptsResult] = await Promise.all([
-    calculateCommission(employeeId, defaultPeriod.start, defaultPeriod.end),
-    getEmployeeDebtInfo(employeeId),
-    getPayrollReceipts(employeeId),
+    calculateCommission(employee.id, defaultPeriod.start, defaultPeriod.end),
+    getEmployeeDebtInfo(employee.id),
+    getPayrollReceipts(employee.id),
   ])
 
   return (

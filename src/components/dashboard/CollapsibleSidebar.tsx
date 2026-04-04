@@ -17,8 +17,10 @@ import {
   Settings,
   ChevronLeft,
   Receipt,
-  Wallet
+  Wallet,
+  WalletCards
 } from 'lucide-react'
+import { getRoleLabel, isEmpleado } from '@/lib/rbac'
 
 interface CollapsibleSidebarProps {
   role: string | null
@@ -38,6 +40,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
   }, [])
 
   const isStaff = role === 'staff'
+  const isEmpleado = role === 'empleado'
 
   const allRoutes = [
     {
@@ -68,14 +71,24 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
       active: pathname.startsWith('/employees'),
       group: 'Gestión',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/payroll',
       label: 'Nómina',
       icon: Receipt,
-      active: pathname.startsWith('/payroll'),
+      active: pathname.startsWith('/payroll') && !pathname.startsWith('/payroll/mi'),
       group: 'Gestión',
       hideForStaff: true,
+      hideForEmpleado: true,
+    },
+    {
+      href: '/payroll/mi',
+      label: 'Mi Nómina',
+      icon: WalletCards,
+      active: pathname === '/payroll/mi',
+      group: 'Gestión',
+      showOnlyForEmpleado: true,
     },
     {
       href: '/clients',
@@ -83,6 +96,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
       icon: UserCircle,
       active: pathname.startsWith('/clients'),
       group: 'Gestión',
+      hideForEmpleado: true,
     },
     {
       href: '/clients/accounts',
@@ -90,6 +104,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
       icon: Wallet,
       active: pathname.startsWith('/clients/accounts'),
       group: 'Gestión',
+      hideForEmpleado: true,
     },
     {
       href: '/services',
@@ -97,6 +112,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
       icon: Scissors,
       active: pathname.startsWith('/services'),
       group: 'Gestión',
+      hideForEmpleado: true,
     },
     {
       href: '/inventory',
@@ -105,6 +121,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
       active: pathname.startsWith('/inventory'),
       group: 'Gestión',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/whatsapp',
@@ -113,6 +130,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
       active: pathname.startsWith('/whatsapp'),
       group: 'Integraciones',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/email',
@@ -121,6 +139,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
       active: pathname.startsWith('/email'),
       group: 'Integraciones',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/billing',
@@ -129,6 +148,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
       active: pathname.startsWith('/billing'),
       group: 'Sistema',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/settings',
@@ -137,12 +157,24 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
       active: pathname.startsWith('/settings'),
       group: 'Sistema',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
   ]
 
   const filteredRoutes = allRoutes.filter(route => {
     if (isStaff && route.hideForStaff) {
       return false
+    }
+    if (isEmpleado && route.hideForEmpleado) {
+      return false
+    }
+    if (route.showOnlyForEmpleado && !isEmpleado) {
+      return false
+    }
+    if (route.hideForStaff && route.hideForEmpleado) {
+      if (role === 'staff' || role === 'empleado') {
+        return false
+      }
     }
     return true
   })
@@ -362,7 +394,7 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
                 <p 
                   className="text-sm font-semibold capitalize truncate text-[#0F4C5C] dark:text-[#38BDF8]"
                 >
-                  {role}
+                  {getRoleLabel(role)}
                 </p>
               </div>
             </div>

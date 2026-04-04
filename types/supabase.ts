@@ -1337,7 +1337,7 @@ export type Database = {
       integration_status: "disabled" | "pending" | "active" | "suspended"
       log_level: "info" | "warn" | "error" | "critical"
       message_status: "pending" | "processing" | "sent" | "failed"
-      role_type: "owner" | "admin" | "staff"
+      role_type: "owner" | "admin" | "staff" | "empleado"
       subscription_status:
         | "trial"
         | "active"

@@ -1,13 +1,69 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, X, AlertTriangle, Loader2, Link2, Send } from 'lucide-react'
+import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, X, AlertTriangle, Loader2, Link2, Send, Shield } from 'lucide-react'
 import { createInvitation } from '@/actions/invitations/createInvitation'
 import { resendInvitation } from '@/actions/invitations/resendInvitation'
 import { cancelInvitation } from '@/actions/invitations/cancelInvitation'
 import { revokeAccess } from '@/actions/invitations/revokeAccess'
+import { SecurityConfirmationModal } from '@/components/dashboard/SecurityConfirmationModal'
 import type { Employee } from '@/types/employees'
 import type { Invitation, MemberRole } from '@/types/invitations'
+
+function RoleOption({
+  value,
+  label,
+  description,
+  selected,
+  onSelect
+}: {
+  value: MemberRole
+  label: string
+  description: string
+  selected: boolean
+  onSelect: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`
+        flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all duration-200
+        ${selected
+          ? 'border-[#0F4C5C] dark:border-[#38BDF8] bg-[#0F4C5C]/5 dark:bg-[#38BDF8]/10'
+          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800'
+        }
+      `}
+    >
+      <div className={`
+        w-10 h-10 rounded-xl flex items-center justify-center
+        ${selected
+          ? 'bg-[#0F4C5C] dark:bg-[#38BDF8] text-white'
+          : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+        }
+      `}>
+        <Shield className="w-5 h-5" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className={`font-semibold text-sm ${selected ? 'text-[#0F4C5C] dark:text-[#38BDF8]' : 'text-slate-900 dark:text-slate-100'}`}>
+          {label}
+        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+          {description}
+        </p>
+      </div>
+      <div className={`
+        w-5 h-5 rounded-full border-2 flex items-center justify-center
+        ${selected
+          ? 'border-[#0F4C5C] dark:border-[#38BDF8] bg-[#0F4C5C] dark:bg-[#38BDF8]'
+          : 'border-slate-300 dark:border-slate-600'
+        }
+      `}>
+        {selected && <Check className="w-3 h-3 text-white" />}
+      </div>
+    </button>
+  )
+}
 
 interface EmployeeAccessTabProps {
   employee: Employee
@@ -24,10 +80,16 @@ export function EmployeeAccessTab({
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<MemberRole>('staff')
-  const [sendEmail, setSendEmail] = useState(true)
+  const [sendEmail, setSendEmail] = useState(false)
   const [invitationUrl, setInvitationUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showSecurityConfirm, setShowSecurityConfirm] = useState(false)
+  const [pendingRoleChange, setPendingRoleChange] = useState<{
+    newRole: 'staff' | 'admin'
+    previousRole: string
+  } | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
 
   const isOwner = currentUserRole === 'owner'
   const hasAccess = !!employee.user_id
@@ -37,8 +99,33 @@ export function EmployeeAccessTab({
     ? `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/invite/${pendingInvitation.token}`
     : null
 
+  function isValidEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  }
+
+  const canSubmit = !sendEmail || (email.length > 0 && isValidEmail(email))
+
   function handleCreateInvite() {
     setError(null)
+
+    if (sendEmail && !isValidEmail(email.trim())) {
+      setEmailError('Ingresa un correo válido para enviar la invitación')
+      return
+    }
+
+    if (role === 'staff' || role === 'admin') {
+      setPendingRoleChange({
+        newRole: role,
+        previousRole: 'empleado',
+      })
+      setShowSecurityConfirm(true)
+      return
+    }
+
+    submitInvitation()
+  }
+
+  function submitInvitation() {
     startTransition(async () => {
       const result = await createInvitation({
         employeeId: employee.id,
@@ -54,6 +141,17 @@ export function EmployeeAccessTab({
         setShowInviteModal(false)
       }
     })
+  }
+
+  function handleConfirmSecurity() {
+    submitInvitation()
+    setShowSecurityConfirm(false)
+    setPendingRoleChange(null)
+  }
+
+  function handleCancelSecurity() {
+    setShowSecurityConfirm(false)
+    setPendingRoleChange(null)
   }
 
   function handleResend() {
@@ -87,9 +185,12 @@ export function EmployeeAccessTab({
   function handleCloseModal() {
     setEmail('')
     setRole('staff')
-    setSendEmail(true)
+    setSendEmail(false)
     setError(null)
     setShowInviteModal(false)
+    setShowSecurityConfirm(false)
+    setPendingRoleChange(null)
+    setEmailError(null)
   }
 
   return (
@@ -244,18 +345,40 @@ export function EmployeeAccessTab({
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (emailError) setEmailError(null)
+                  }}
+                  onBlur={() => {
+                    if (sendEmail && email.length > 0 && !isValidEmail(email)) {
+                      setEmailError('Ingresa un correo válido')
+                    }
+                  }}
                   placeholder="empleado@ejemplo.com"
-                  className="
+                  className={`
                     w-full px-4 py-3 rounded-xl 
                     bg-white/80 dark:bg-slate-800/60
-                    border border-slate-200/60 dark:border-slate-700/60
+                    border
+                    ${emailError 
+                      ? 'border-red-400 dark:border-red-500 focus:ring-red-300' 
+                      : 'border-slate-200/60 dark:border-slate-700/60 focus:ring-[#0F4C5C]/30'
+                    }
                     text-slate-900 dark:text-slate-100
                     shadow-md shadow-slate-200/20
-                    focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]/30
+                    focus:outline-none focus:ring-2
                     transition-all duration-200
-                  "
+                  `}
                 />
+                {emailError && (
+                  <p className="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
+                    <span>⚠️</span> {emailError}
+                  </p>
+                )}
+                {sendEmail && email.length === 0 && !emailError && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Ingresa un correo o desactiva el envío para generar solo el link
+                  </p>
+                )}
               </div>
 
               <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
@@ -278,27 +401,33 @@ export function EmployeeAccessTab({
                 </div>
               </div>
 
-              <div>
+              <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Rol
                 </label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as MemberRole)}
-                  className="
-                    w-full px-4 py-3 rounded-xl 
-                    bg-white/80 dark:bg-slate-800/60
-                    border border-slate-200/60 dark:border-slate-700/60
-                    text-slate-900 dark:text-slate-100
-                    shadow-md shadow-slate-200/20
-                    focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]/30
-                    transition-all duration-200
-                  "
-                >
-                  <option value="empleado">Empleado (acceso a su agenda, confirmaciones y su nomina)</option>
-                  <option value="staff">Asistente (acceso a agenda, confirmaciones e invitaciones)</option>
-                  <option value="admin">Administrador (acceso completo: agenda, empleados, servicios, configuracion e invitaciones)</option>
-                </select>
+                <div className="grid grid-cols-1 gap-2">
+                  <RoleOption
+                    value="empleado"
+                    label="Empleado"
+                    description="Agenda, confirmaciones y su nómina"
+                    selected={role === 'empleado'}
+                    onSelect={() => setRole('empleado')}
+                  />
+                  <RoleOption
+                    value="staff"
+                    label="Asistente"
+                    description="Agenda, confirmaciones e invitaciones"
+                    selected={role === 'staff'}
+                    onSelect={() => setRole('staff')}
+                  />
+                  <RoleOption
+                    value="admin"
+                    label="Administrador"
+                    description="Acceso completo al sistema"
+                    selected={role === 'admin'}
+                    onSelect={() => setRole('admin')}
+                  />
+                </div>
               </div>
             </div>
 
@@ -311,8 +440,8 @@ export function EmployeeAccessTab({
               </button>
               <button
                 onClick={handleCreateInvite}
-                disabled={isLoading}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] text-white font-medium shadow-lg shadow-[#0F4C5C]/20 disabled:opacity-50"
+                disabled={isLoading || !canSubmit}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] text-white font-medium shadow-lg shadow-[#0F4C5C]/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 Crear invitación
@@ -375,6 +504,17 @@ export function EmployeeAccessTab({
             </button>
           </div>
         </div>
+      )}
+
+      {showSecurityConfirm && pendingRoleChange && (
+        <SecurityConfirmationModal
+          isOpen={showSecurityConfirm}
+          role={pendingRoleChange.newRole}
+          employeeName={employee.name}
+          previousRole={pendingRoleChange.previousRole}
+          onConfirm={handleConfirmSecurity}
+          onCancel={handleCancelSecurity}
+        />
       )}
     </div>
   )

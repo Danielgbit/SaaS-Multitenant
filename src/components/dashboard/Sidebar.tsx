@@ -12,6 +12,7 @@ export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname()
 
   const isStaff = role === 'staff'
+  const isEmpleado = role === 'empleado'
 
   const allRoutes = [
     {
@@ -42,6 +43,7 @@ export function Sidebar({ role }: SidebarProps) {
       active: pathname.startsWith('/employees'),
       group: 'Gestión',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/payroll',
@@ -50,6 +52,7 @@ export function Sidebar({ role }: SidebarProps) {
       active: pathname.startsWith('/payroll'),
       group: 'Gestión',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/clients',
@@ -57,6 +60,7 @@ export function Sidebar({ role }: SidebarProps) {
       icon: UserCircle,
       active: pathname.startsWith('/clients'),
       group: 'Gestión',
+      hideForEmpleado: true,
     },
     {
       href: '/services',
@@ -64,6 +68,7 @@ export function Sidebar({ role }: SidebarProps) {
       icon: Scissors,
       active: pathname.startsWith('/services'),
       group: 'Gestión',
+      hideForEmpleado: true,
     },
     {
       href: '/inventory',
@@ -72,6 +77,7 @@ export function Sidebar({ role }: SidebarProps) {
       active: pathname.startsWith('/inventory'),
       group: 'Gestión',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/whatsapp',
@@ -80,6 +86,7 @@ export function Sidebar({ role }: SidebarProps) {
       active: pathname.startsWith('/whatsapp'),
       group: 'Integraciones',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/email',
@@ -88,6 +95,7 @@ export function Sidebar({ role }: SidebarProps) {
       active: pathname.startsWith('/email'),
       group: 'Integraciones',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/billing',
@@ -96,6 +104,7 @@ export function Sidebar({ role }: SidebarProps) {
       active: pathname.startsWith('/billing'),
       group: 'Sistema',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/settings',
@@ -104,11 +113,15 @@ export function Sidebar({ role }: SidebarProps) {
       active: pathname.startsWith('/settings'),
       group: 'Sistema',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
   ]
 
   const filteredRoutes = allRoutes.filter(route => {
     if (isStaff && route.hideForStaff) {
+      return false
+    }
+    if (isEmpleado && route.hideForEmpleado) {
       return false
     }
     return true

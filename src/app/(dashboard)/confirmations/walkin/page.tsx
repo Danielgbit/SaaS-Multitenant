@@ -29,7 +29,7 @@ export default async function WalkinPage() {
   const { organization_id, role } = orgMember
 
   let employeeId: string | undefined
-  if (role === 'employee') {
+  if (role === 'empleado') {
     const { data: employee } = await supabase
       .from('employees')
       .select('id')

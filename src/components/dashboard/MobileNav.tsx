@@ -20,9 +20,11 @@ import {
   Settings,
   LogOut,
   Receipt,
-  Wallet
+  Wallet,
+  WalletCards
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { getRoleLabel, isEmpleado } from '@/lib/rbac'
 
 function useColors() {
   const { theme } = useTheme()
@@ -60,6 +62,7 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
   const supabase = createClient()
 
   const isStaff = role === 'staff'
+  const isEmpleado = role === 'empleado'
 
   const allRoutes = [
     {
@@ -90,14 +93,24 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       active: pathname.startsWith('/employees'),
       group: 'Gestión',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/payroll',
       label: 'Nómina',
       icon: Receipt,
-      active: pathname.startsWith('/payroll'),
+      active: pathname.startsWith('/payroll') && !pathname.startsWith('/payroll/mi'),
       group: 'Gestión',
       hideForStaff: true,
+      hideForEmpleado: true,
+    },
+    {
+      href: '/payroll/mi',
+      label: 'Mi Nómina',
+      icon: WalletCards,
+      active: pathname === '/payroll/mi',
+      group: 'Gestión',
+      showOnlyForEmpleado: true,
     },
     {
       href: '/clients',
@@ -105,6 +118,7 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       icon: UserCircle,
       active: pathname.startsWith('/clients'),
       group: 'Gestión',
+      hideForEmpleado: true,
     },
     {
       href: '/clients/accounts',
@@ -112,6 +126,7 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       icon: Wallet,
       active: pathname.startsWith('/clients/accounts'),
       group: 'Gestión',
+      hideForEmpleado: true,
     },
     {
       href: '/services',
@@ -119,6 +134,7 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       icon: Scissors,
       active: pathname.startsWith('/services'),
       group: 'Gestión',
+      hideForEmpleado: true,
     },
     {
       href: '/inventory',
@@ -127,6 +143,7 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       active: pathname.startsWith('/inventory'),
       group: 'Gestión',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/whatsapp',
@@ -135,6 +152,7 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       active: pathname.startsWith('/whatsapp'),
       group: 'Integraciones',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/email',
@@ -143,6 +161,7 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       active: pathname.startsWith('/email'),
       group: 'Integraciones',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/billing',
@@ -151,6 +170,7 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       active: pathname.startsWith('/billing'),
       group: 'Sistema',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
     {
       href: '/settings',
@@ -159,12 +179,24 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       active: pathname.startsWith('/settings'),
       group: 'Sistema',
       hideForStaff: true,
+      hideForEmpleado: true,
     },
   ]
 
   const filteredRoutes = allRoutes.filter(route => {
     if (isStaff && route.hideForStaff) {
       return false
+    }
+    if (isEmpleado && route.hideForEmpleado) {
+      return false
+    }
+    if (route.showOnlyForEmpleado && !isEmpleado) {
+      return false
+    }
+    if (route.hideForStaff && route.hideForEmpleado) {
+      if (role === 'staff' || role === 'empleado') {
+        return false
+      }
     }
     return true
   })
@@ -352,7 +384,7 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
                 className="text-sm font-semibold capitalize"
                 style={{ color: COLORS.primary }}
               >
-                {role}
+                {getRoleLabel(role)}
               </span>
             </div>
           )}

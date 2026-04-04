@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { useTheme } from 'next-themes'
 import { 
   Calendar, 
@@ -8,8 +9,7 @@ import {
   Users, 
   CheckCircle2,
   TrendingUp,
-  XCircle,
-  Loader2
+  XCircle
 } from 'lucide-react'
 import { getDashboardData } from '@/actions/analytics/getDashboardData'
 import { StatsCard } from './StatsCard'
@@ -51,9 +51,11 @@ type Period = 'today' | 'week' | 'month' | 'year' | 'last7days' | 'last30days'
 
 interface DashboardClientProps {
   organizationId: string
+  role?: string | null
+  employeeName?: string | null
 }
 
-export function DashboardClient({ organizationId }: DashboardClientProps) {
+export function DashboardClient({ organizationId, role, employeeName }: DashboardClientProps) {
   const COLORS = useColors()
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<Period>('month')
@@ -85,18 +87,20 @@ export function DashboardClient({ organizationId }: DashboardClientProps) {
     }>
   } | null>(null)
 
-  useEffect(() => {
-    loadDashboard()
-  }, [organizationId, period])
-
-  const loadDashboard = async () => {
+  const loadDashboard = useCallback(async () => {
     setLoading(true)
     const result = await getDashboardData(organizationId, period)
     if (result.success && result.data) {
       setData(result.data)
     }
     setLoading(false)
-  }
+  }, [organizationId, period])
+
+  useEffect(() => {
+    if (role !== 'empleado') {
+      loadDashboard()
+    }
+  }, [role, loadDashboard])
 
   const totalAppointments = data?.overview.appointments || 0
   const completedAppointments = data?.overview.completionRate && totalAppointments 
@@ -154,6 +158,92 @@ export function DashboardClient({ organizationId }: DashboardClientProps) {
       iconColor: '#EF4444'
     }
   ]
+
+  if (role === 'empleado') {
+    return (
+      <div className="space-y-6">
+        <div 
+          className="relative overflow-hidden rounded-2xl p-6 md:p-8"
+          style={{ 
+            background: `linear-gradient(135deg, ${COLORS.gradientFrom} 0%, ${COLORS.gradientTo} 100%)`,
+          }}
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          
+          <div className="relative flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Bienvenido</p>
+                <h1 
+                  className="text-3xl font-bold text-white"
+                  style={{ fontFamily: 'Cormorant Garamond, serif' }}
+                >
+                  Hola, {employeeName || 'Empleado'}
+                </h1>
+                <p className="text-sm mt-1 text-white/80">
+                  Tu resumen de actividad
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Link href="/calendar" className="group block p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#0F4C5C] dark:hover:border-[#38BDF8] transition-all duration-200 hover:shadow-lg">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-[#0F4C5C] dark:text-[#38BDF8]" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">Mi Agenda</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Ver mis citas</p>
+              </div>
+            </div>
+            <div className="flex items-center text-[#0F4C5C] dark:text-[#38BDF8] text-sm font-medium group-hover:gap-2 transition-all">
+              Ir a Agenda
+              <TrendingUp className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+
+          <Link href="/confirmations" className="group block p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#0F4C5C] dark:hover:border-[#38BDF8] transition-all duration-200 hover:shadow-lg">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <CheckCircle2 className="w-6 h-6 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">Confirmaciones</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Pendientes de confirmar</p>
+              </div>
+            </div>
+            <div className="flex items-center text-[#0F4C5C] dark:text-[#38BDF8] text-sm font-medium group-hover:gap-2 transition-all">
+              Ver confirmaciones
+              <TrendingUp className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+
+          <Link href="/payroll/mi" className="group block p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#0F4C5C] dark:hover:border-[#38BDF8] transition-all duration-200 hover:shadow-lg">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-emerald-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">Mi Nómina</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Ver mis ingresos</p>
+              </div>
+            </div>
+            <div className="flex items-center text-[#0F4C5C] dark:text-[#38BDF8] text-sm font-medium group-hover:gap-2 transition-all">
+              Ver nómina
+              <TrendingUp className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
