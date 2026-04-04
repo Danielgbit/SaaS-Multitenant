@@ -37,6 +37,15 @@ export default async function EmployeesPage() {
     redirect('/calendar')
   }
 
+  // 2.5 Obtener nombre de la organización
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('name')
+    .eq('id', orgMember.organization_id)
+    .single()
+
+  const organizationName = organization?.name || 'tu organización'
+
   // 3. Obtener empleados de la organización
   const employees = await getEmployees(orgMember.organization_id)
 
@@ -67,10 +76,11 @@ export default async function EmployeesPage() {
 
   return <EmployeesClient 
     employees={employees} 
-    availabilityMap={availabilityMap} 
+    availabilityMap={availabilityMap}
     invitationMap={invitationMap}
     employeeServicesMap={employeeServicesMap}
     organizationId={orgMember.organization_id}
+    organizationName={organizationName}
     userRole={orgMember.role}
   />
 }

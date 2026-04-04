@@ -58,6 +58,7 @@ export async function cancelInvitation(
     .from('employee_invitations')
     .update({ status: 'cancelled' })
     .eq('id', invitationId)
+    .eq('organization_id', orgMember.organization_id)
 
   if (updateError) {
     console.error('Error cancelling invitation:', updateError.message)

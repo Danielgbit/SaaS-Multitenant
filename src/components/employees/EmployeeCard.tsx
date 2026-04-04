@@ -16,6 +16,7 @@ import {
   RotateCcw,
   ChevronRight
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { toggleEmployeeStatus } from '@/actions/employees/toggleEmployeeStatus'
 import { resendInvitation } from '@/actions/invitations/resendInvitation'
 import { cancelInvitation } from '@/actions/invitations/cancelInvitation'
@@ -124,8 +125,13 @@ export function EmployeeCard({
     if (!invitation) return
     setLoading(true)
     startTransition(async () => {
-      await cancelInvitation({ invitationId: invitation.id })
+      const result = await cancelInvitation({ invitationId: invitation.id })
       setLoading(false)
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Invitación cancelada correctamente')
+      }
     })
   }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans, Cormorant_Garamond } from 'next/font/google'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -38,6 +39,16 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Toaster 
+            position="bottom-right" 
+            richColors 
+            closeButton
+            toastOptions={{
+              style: {
+                fontFamily: 'var(--font-plus-jakarta-sans)',
+              },
+            }}
+          />
         </ThemeProvider>
       </body>
     </html>

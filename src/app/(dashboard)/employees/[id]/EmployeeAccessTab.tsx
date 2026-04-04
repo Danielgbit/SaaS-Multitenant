@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, X, AlertTriangle, Loader2, Link2, Send, Shield } from 'lucide-react'
+import { toast } from 'sonner'
 import { createInvitation } from '@/actions/invitations/createInvitation'
 import { resendInvitation } from '@/actions/invitations/resendInvitation'
 import { cancelInvitation } from '@/actions/invitations/cancelInvitation'
@@ -165,7 +166,12 @@ export function EmployeeAccessTab({
     if (!pendingInvitation) return
     if (!confirm('¿Cancelar esta invitación? El link dejará de funcionar.')) return
     startTransition(async () => {
-      await cancelInvitation({ invitationId: pendingInvitation.id })
+      const result = await cancelInvitation({ invitationId: pendingInvitation.id })
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Invitación cancelada correctamente')
+      }
     })
   }
 

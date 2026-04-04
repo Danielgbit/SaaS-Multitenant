@@ -67,10 +67,77 @@ function RoleOption({
 interface InviteEmployeeModalProps {
   isOpen: boolean
   employee: Employee
+  organizationName: string
   onClose: () => void
 }
 
-export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmployeeModalProps) {
+function getRoleLabel(role: string): string {
+  switch (role) {
+    case 'admin': return 'Administrador'
+    case 'staff': return 'Asistente'
+    case 'empleado': return 'Empleado'
+    default: return role
+  }
+}
+
+function getAccessDescription(role: string): string {
+  switch (role) {
+    case 'admin': return 'Acceso completo al sistema, gestión del negocio y empleados'
+    case 'staff': return 'Gestiona la agenda, confirma citas e invita nuevos miembros al equipo'
+    case 'empleado': return 'Accede a su propia agenda, confirma sus citas y gestiona a sus clientes'
+    default: return 'Acceso básico al sistema'
+  }
+}
+
+function EmailPreviewCard({ 
+  email, 
+  role, 
+  businessName, 
+  employeeName,
+  sendEmail
+}: { 
+  email: string
+  role: MemberRole
+  businessName: string
+  employeeName: string
+  sendEmail: boolean
+}) {
+  return (
+    <div className="border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/30 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-2 mb-2">
+          <Mail className="w-4 h-4 text-slate-400" />
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Vista previa del email</span>
+        </div>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          <span className="font-medium">Para:</span> {email || 'empleado@ejemplo.com'}
+        </p>
+      </div>
+      
+      <div className="p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="font-bold text-[#0F4C5C] dark:text-[#38BDF8] text-sm">Prügressy</span>
+          <span className="text-[#5eead4] font-bold text-sm">.</span>
+        </div>
+        
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+          Hola {employeeName}, <strong>{businessName}</strong> te ha invitado a formar parte de su equipo.
+        </p>
+        
+        <div className="flex items-center gap-2 text-xs">
+          <span className="px-2 py-1 bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 text-[#0F4C5C] dark:text-[#38BDF8] font-semibold rounded">
+            {getRoleLabel(role)}
+          </span>
+          <span className="text-slate-400">
+            {sendEmail ? '• Recibirás enlace para crear contraseña' : '• Link expira en 7 días'}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function InviteEmployeeModal({ isOpen, employee, organizationName, onClose }: InviteEmployeeModalProps) {
   const [isPending, startTransition] = useTransition()
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<MemberRole>('staff')
@@ -180,8 +247,8 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
         aria-hidden="true"
       />
 
-      <div className="relative z-10 bg-white dark:bg-[#1E293B] rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-700/60 overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="relative flex items-center justify-between px-6 sm:px-8 py-5 sm:py-6 border-b border-slate-100 dark:border-slate-800/40 bg-slate-50/50 dark:bg-slate-800/20">
+        <div className="relative z-10 bg-white dark:bg-[#1E293B] rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-700/60 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+        <div className="sticky top-0 z-10 flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-100 dark:border-slate-800/40 bg-white dark:bg-[#1E293B]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center text-[#0F4C5C] dark:text-[#38BDF8]">
               <UserPlus className="w-5 h-5" />
@@ -208,7 +275,7 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 sm:px-8 py-6 sm:py-8 space-y-6">
+        <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-4">
           {error && (
             <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30 flex items-start gap-3 animate-in slide-in-from-top-2">
               <span className="text-red-600 dark:text-red-400 mt-0.5">⚠️</span>
@@ -274,7 +341,36 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
               </div>
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 tracking-wide">
+                  Rol del empleado
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: 'empleado', label: 'Empleado' },
+                    { value: 'staff', label: 'Asistente' },
+                    { value: 'admin', label: 'Administrador' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setRole(option.value as MemberRole)}
+                      className={`
+                        px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border
+                        ${role === option.value
+                          ? 'bg-[#0F4C5C] dark:bg-[#38BDF8] text-white border-[#0F4C5C] dark:border-[#38BDF8]'
+                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#0F4C5C] dark:hover:border-[#38BDF8]'
+                        }
+                      `}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <input type="hidden" name="role" value={role} />
+              </div>
+
               <div className="space-y-2">
                 <label
                   htmlFor="invite-email"
@@ -322,65 +418,46 @@ export function InviteEmployeeModal({ isOpen, employee, onClose }: InviteEmploye
                     <span>⚠️</span> {emailError}
                   </p>
                 )}
-                {sendEmail && email.length === 0 && !emailError && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Ingresa un correo o desactiva el envío para generar solo el link
-                  </p>
-                )}
               </div>
 
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
-                <div className="flex items-center h-5">
-                  <input
-                    id="send-email-checkbox"
-                    type="checkbox"
-                    checked={sendEmail}
-                    onChange={(e) => setSendEmail(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 text-[#0F4C5C] focus:ring-[#0F4C5C] cursor-pointer"
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+                <button
+                  type="button"
+                  onClick={() => setSendEmail(!sendEmail)}
+                  className={`
+                    relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 flex-shrink-0
+                    ${sendEmail 
+                      ? 'bg-[#0F4C5C] dark:bg-[#38BDF8]' 
+                      : 'bg-slate-300 dark:bg-slate-600'
+                    }
+                  `}
+                >
+                  <span
+                    className={`
+                      inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200
+                      ${sendEmail ? 'translate-x-6' : 'translate-x-1'}
+                    `}
                   />
-                </div>
+                </button>
                 <div className="flex-1">
-                  <label htmlFor="send-email-checkbox" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                    Enviar invitación por correo electrónico
-                  </label>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    {sendEmail ? 'Se enviará inmediatamente al crear' : 'Solo genera el link para compartir'}
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {sendEmail ? 'Enviar por email' : 'Solo generar link'}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {sendEmail ? 'Se enviará inmediatamente al crear' : 'Copia el link para compartirlo manualmente'}
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 tracking-wide">
-                  Rol del empleado
-                </label>
-                <div className="grid grid-cols-1 gap-2">
-                  <RoleOption
-                    value="empleado"
-                    label="Empleado"
-                    description="Agenda, confirmaciones y su nómina"
-                    icon={<Shield className="w-4 h-4" />}
-                    selected={role === 'empleado'}
-                    onSelect={() => setRole('empleado')}
-                  />
-                  <RoleOption
-                    value="staff"
-                    label="Asistente"
-                    description="Agenda, confirmaciones e invitaciones"
-                    icon={<Shield className="w-4 h-4" />}
-                    selected={role === 'staff'}
-                    onSelect={() => setRole('staff')}
-                  />
-                  <RoleOption
-                    value="admin"
-                    label="Administrador"
-                    description="Acceso completo al sistema"
-                    icon={<Shield className="w-4 h-4" />}
-                    selected={role === 'admin'}
-                    onSelect={() => setRole('admin')}
-                  />
-                </div>
-                <input type="hidden" name="role" value={role} />
-              </div>
+              {sendEmail && (
+                <EmailPreviewCard 
+                  email={email}
+                  role={role}
+                  businessName={organizationName}
+                  employeeName={employee.name}
+                  sendEmail={sendEmail}
+                />
+              )}
             </div>
           )}
 

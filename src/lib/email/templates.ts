@@ -1,3 +1,5 @@
+import { getRoleLabel } from '@/lib/rbac'
+
 export type EmailType = 
   | 'appointment_confirmation'
   | 'appointment_reminder'
@@ -5,6 +7,19 @@ export type EmailType =
   | 'appointment_completed'
   | 'appointment_no_show'
   | 'employee_invitation'
+
+function getAccessDescription(role: string): string {
+  switch (role) {
+    case 'admin':
+      return 'Acceso completo al sistema, gestión del negocio y empleados'
+    case 'staff':
+      return 'Gestiona la agenda, confirma citas e invita nuevos miembros al equipo'
+    case 'empleado':
+      return 'Accede a su propia agenda, confirma sus citas y gestiona a sus clientes'
+    default:
+      return 'Acceso básico al sistema'
+  }
+}
 
 interface EmailVariables {
   businessName: string
@@ -141,6 +156,12 @@ const getEmailStyles = () => `
       font-size: 14px;
       font-weight: 600;
       margin-top: 12px;
+    }
+    .access-description {
+      font-size: 14px;
+      color: #64748b;
+      margin-top: 8px;
+      line-height: 1.5;
     }
     .details-grid {
       display: grid;
@@ -566,8 +587,8 @@ export function getEmailTemplate(
           
           <div class="highlight-box">
             <div class="highlight-title">Tu rol en el equipo</div>
-            <div class="highlight-value">${role === 'admin' ? 'Administrador' : 'Staff'}</div>
-            <span class="role-badge">${role === 'admin' ? 'Acceso completo' : 'Acceso basico'}</span>
+            <div class="highlight-value">${getRoleLabel(role || 'staff')}</div>
+            <div class="access-description">${getAccessDescription(role || 'staff')}</div>
           </div>
           
           <div class="cta-section">

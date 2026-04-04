@@ -81,13 +81,14 @@ export async function setupPasswordAndAccept(
     return { error: 'No se pudo vincular tu cuenta. Intenta de nuevo.' }
   }
 
-  const { error: insertMemberError } = await supabase
-    .from('organization_members')
-    .insert({
-      organization_id: invitation.organization_id,
-      user_id: user.id,
-      role: invitation.role,
-    })
+  const { error: insertMemberError } = await (supabase as any).rpc(
+    'accept_employee_invitation',
+    {
+      p_organization_id: invitation.organization_id,
+      p_user_id: user.id,
+      p_role: invitation.role,
+    }
+  )
 
   if (insertMemberError) {
     console.error('Error creating member:', insertMemberError.message)

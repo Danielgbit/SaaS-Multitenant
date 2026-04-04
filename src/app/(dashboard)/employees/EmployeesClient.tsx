@@ -22,6 +22,7 @@ interface EmployeesClientProps {
   invitationMap: Record<string, Invitation>
   employeeServicesMap: EmployeeServicesMap
   organizationId: string
+  organizationName: string
   userRole: string
 }
 
@@ -31,6 +32,7 @@ export function EmployeesClient({
   invitationMap,
   employeeServicesMap,
   organizationId,
+  organizationName,
   userRole
 }: EmployeesClientProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -236,6 +238,7 @@ export function EmployeesClient({
         <InviteEmployeeModal
           isOpen={!!inviteTarget}
           employee={inviteTarget}
+          organizationName={organizationName}
           onClose={() => setInviteTarget(null)}
         />
       )}

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useFormState, useFormStatus } from 'react-dom'
-import { Loader2, UserPlus, CheckCircle, Lock, Mail, AlertCircle } from 'lucide-react'
+import { Loader2, UserPlus, CheckCircle, Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { acceptInvitation } from '@/actions/invitations/acceptInvitation'
 import { setupPasswordAndAccept } from '@/actions/invitations/setupPasswordAndAccept'
 
@@ -142,7 +142,7 @@ export function AcceptInvitationForm({ token, invitationEmail, isLoggedIn = fals
     <form action={setupAction} className="space-y-4">
       <input type="hidden" name="token" value={token} />
 
-      <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800/30">
+      <div className="p-5 rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800/30">
         <div className="flex items-start gap-3">
           <Mail className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
           <div>
@@ -156,7 +156,7 @@ export function AcceptInvitationForm({ token, invitationEmail, isLoggedIn = fals
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         <label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           Correo electrónico
         </label>
@@ -172,7 +172,7 @@ export function AcceptInvitationForm({ token, invitationEmail, isLoggedIn = fals
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         <label htmlFor="password" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           Contraseña
         </label>
@@ -185,19 +185,19 @@ export function AcceptInvitationForm({ token, invitationEmail, isLoggedIn = fals
             required
             minLength={6}
             placeholder="Mínimo 6 caracteres"
-            className="w-full pl-12 pr-12 py-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#0F4C5C]/20 focus:border-[#0F4C5C] transition-colors"
+            className="w-full pl-12 pr-14 py-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#0F4C5C]/20 focus:border-[#0F4C5C] transition-colors"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
           >
-            {showPassword ? 'visibility_off' : 'visibility'}
+            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         <label htmlFor="confirmPassword" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           Confirmar contraseña
         </label>
@@ -210,14 +210,14 @@ export function AcceptInvitationForm({ token, invitationEmail, isLoggedIn = fals
             required
             minLength={6}
             placeholder="Repite la contraseña"
-            className="w-full pl-12 pr-12 py-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#0F4C5C]/20 focus:border-[#0F4C5C] transition-colors"
+            className="w-full pl-12 pr-14 py-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#0F4C5C]/20 focus:border-[#0F4C5C] transition-colors"
           />
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
           >
-            {showConfirmPassword ? 'visibility_off' : 'visibility'}
+            {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
         </div>
       </div>
@@ -235,7 +235,7 @@ export function AcceptInvitationForm({ token, invitationEmail, isLoggedIn = fals
         Crear cuenta
       </SubmitButton>
 
-      <p className="text-xs text-center text-slate-400 dark:text-slate-500">
+      <p className="text-xs text-center text-slate-400 dark:text-slate-500 mt-4">
         Al crear tu cuenta, aceptas unirte a la organización
       </p>
     </form>

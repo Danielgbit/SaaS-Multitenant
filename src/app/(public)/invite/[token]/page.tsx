@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { verifyInvitation, type InvitationErrorType } from '@/actions/invitations/verifyInvitation'
 import { AcceptInvitationForm } from './AcceptInvitationForm'
 import { createClient } from '@/lib/supabase/server'
+import { getRoleLabel } from '@/lib/rbac'
 
 interface InvitePageProps {
   params: Promise<{ token: string }>
@@ -143,7 +144,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 font-serif mb-2">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 font-serif mb-6">
             Te han invitado
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
@@ -162,7 +163,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
                   {invitation.employee_name}
                 </p>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Rol: <span className="capitalize">{invitation.role}</span>
+                  Rol: <span className="font-medium text-[#0F4C5C] dark:text-[#38BDF8]">{getRoleLabel(invitation.role)}</span>
                 </p>
               </div>
             </div>
