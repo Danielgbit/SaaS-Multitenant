@@ -44,7 +44,7 @@ export async function sendEmail({
     console.warn('RESEND_API_KEY not configured - email not sent')
     return { success: false, error: 'RESEND_API_KEY not configured' }
   }
-  
+
   try {
     const data = await getResend().emails.send({
       from: EMAIL_FROM,

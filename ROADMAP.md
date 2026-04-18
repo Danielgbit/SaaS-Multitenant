@@ -146,6 +146,55 @@ Los roles ahora usan terminología en español claro:
 
 ---
 
+## Completado: Sistema de Invitaciones de Empleados (2026-04-18)
+
+### ✅ Fixes Implementados
+
+#### 1. Email de Invitacion - API Key Resend Actualizado
+| Componente | Estado | Detalle |
+|------------|--------|---------|
+| API Key Resend | ✅ | `re_NdCwvRUB_99z6BEWAPpdxQcbnfd1dmTCg` (nuevo) |
+| Dominio verificado | ✅ | `focusidestudio.com` |
+| Variable `RESEND_FROM_EMAIL` | ✅ | `noreply@focusidestudio.com` |
+
+#### 2. Registro de Nuevo Empleado - Bug RPC Corregido
+| Componente | Estado | Detalle |
+|------------|--------|---------|
+| `setupPasswordAndAccept.ts` | ✅ | RPC `accept_employee_invitation` → INSERT directo a `organization_members` |
+| Razon | ✅ | La funcion RPC no existia en migraciones (bug en Supabase dashboard) |
+| Solucion | ✅ | Uso de INSERT directo, igual que `acceptInvitation.ts` |
+
+#### 3. Deprecation React 19 - useActionState
+| Componente | Estado | Archivo |
+|------------|--------|---------|
+| `AcceptInvitationForm.tsx` | ✅ Fix | `useFormState` → `useActionState` |
+| `ResetPasswordForm.tsx` | ✅ Fix | `useFormState` → `useActionState` |
+
+#### 4. Validador Visual de Contrasena
+| Componente | Estado | Detalle |
+|------------|--------|---------|
+| `PasswordInput` component | ✅ Ya existia | Con `showStrength` para feedback visual |
+| `RegisterForm` | ✅ Listo | Ya usaba `PasswordInput` con `showStrength` |
+| `ResetPasswordForm` | ✅ Actualizado | Integró `PasswordInput` con `showStrength` |
+| `AcceptInvitationForm` | ✅ Actualizado | Integró `PasswordInput` con `showStrength` |
+| Zod schemas | ✅ | `min(6)` → `min(8)` caracteres |
+
+**Requisitos de seguridad:**
+- Minimo 8 caracteres
+- Al menos 1 mayuscula
+- Al menos 1 numero
+- Al menos 1 simbolo especial
+
+#### 5. Rate Limit Supabase Auth - SMTP Resend Configurado
+| Componente | Estado | Detalle |
+|------------|--------|---------|
+| `config.toml` local | ✅ | `email_sent = 30` (antes 2) |
+| `config.toml` SMTP | ✅ | Resend SMTP habilitado |
+| Supabase Dashboard remoto | ✅ | Resend SMTP configurado manualmente |
+| Resultado | ✅ | Emails ilimitados via Resend (no mas rate limit exceeded) |
+
+---
+
 ## Pendiente: Sistema de 3 Roles con Dashboard Diferenciado
 
 ### 🔄 En Progreso

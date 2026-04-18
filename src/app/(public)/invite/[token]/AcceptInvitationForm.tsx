@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useActionState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useFormState, useFormStatus } from 'react-dom'
-import { Loader2, UserPlus, CheckCircle, Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { useFormStatus } from 'react-dom'
+import { Loader2, UserPlus, CheckCircle, Lock, Mail, AlertCircle } from 'lucide-react'
 import { acceptInvitation } from '@/actions/invitations/acceptInvitation'
 import { setupPasswordAndAccept } from '@/actions/invitations/setupPasswordAndAccept'
+import { PasswordInput } from '@/components/auth/PasswordInput'
 
 function SubmitButton({ children, pending }: { children: React.ReactNode; pending?: boolean }) {
   const { pending: formPending } = useFormStatus()
@@ -35,12 +36,10 @@ interface AcceptInvitationFormProps {
 
 export function AcceptInvitationForm({ token, invitationEmail, isLoggedIn = false }: AcceptInvitationFormProps) {
   const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
   const [localSuccess, setLocalSuccess] = useState(false)
 
-  const [setupState, setupAction] = useFormState(setupPasswordAndAccept, null)
+  const [setupState, setupAction] = useActionState(setupPasswordAndAccept, null)
 
   const showExistingUser = setupState?.error?.includes('ya está registrado')
 
@@ -172,55 +171,23 @@ export function AcceptInvitationForm({ token, invitationEmail, isLoggedIn = fals
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="password" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-          Contraseña
-        </label>
-        <div className="relative">
-          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-          <input
-            name="password"
-            id="password"
-            type={showPassword ? 'text' : 'password'}
-            required
-            minLength={6}
-            placeholder="Mínimo 6 caracteres"
-            className="w-full pl-12 pr-14 py-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#0F4C5C]/20 focus:border-[#0F4C5C] transition-colors"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
+      <PasswordInput
+        name="password"
+        id="password"
+        label="Contraseña"
+        placeholder="Mínimo 8 caracteres"
+        required
+        showStrength
+      />
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="confirmPassword" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-          Confirmar contraseña
-        </label>
-        <div className="relative">
-          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-          <input
-            name="confirmPassword"
-            id="confirmPassword"
-            type={showConfirmPassword ? 'text' : 'password'}
-            required
-            minLength={6}
-            placeholder="Repite la contraseña"
-            className="w-full pl-12 pr-14 py-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#0F4C5C]/20 focus:border-[#0F4C5C] transition-colors"
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
+      <PasswordInput
+        name="confirmPassword"
+        id="confirmPassword"
+        label="Confirmar contraseña"
+        placeholder="Repite la contraseña"
+        required
+        showStrength={false}
+      />
 
       {setupState?.error && !showExistingUser && (
         <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/30">

@@ -138,7 +138,7 @@ async function sendInvitationEmail(
   role: string
 ): Promise<boolean> {
   const supabase = await createClient()
-  
+
   const { data: organization } = await (supabase as any)
     .from('organizations')
     .select('name')
