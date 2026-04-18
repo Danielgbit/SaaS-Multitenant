@@ -25,11 +25,12 @@ export default async function CalendarPage() {
 
   const { data: orgMember } = await supabase
     .from('organization_members')
-    .select('organization_id')
+    .select('organization_id, role')
     .eq('user_id', user.id)
     .single()
 
   const organizationId = orgMember?.organization_id
+  const userRole = orgMember?.role
 
   let employeesCount = 0
   let servicesCount = 0
@@ -188,7 +189,7 @@ export default async function CalendarPage() {
       
       {/* Calendario semanal */}
       {organizationId && (
-        <CalendarView organizationId={organizationId} />
+        <CalendarView organizationId={organizationId} userRole={userRole} />
       )}
     </div>
   )

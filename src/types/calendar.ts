@@ -48,6 +48,7 @@ export interface AppointmentWithDetails extends Appointment {
 
 export interface CalendarViewProps {
   organizationId: string
+  userRole?: 'owner' | 'admin' | 'staff' | 'empleado'
 }
 
 export interface TimeSlot {

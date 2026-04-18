@@ -64,9 +64,14 @@ function useColors(): CalendarColors & { isDark: boolean } {
   }
 }
 
-export function CalendarView({ organizationId }: CalendarViewProps) {
+export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const COLORS = useColors()
-  
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const STATUS_CONFIG = useMemo(() => ({
     confirmed: { color: COLORS.success, bg: COLORS.successLight, label: 'Confirmada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
     pending: { color: COLORS.warning, bg: COLORS.warningLight, label: 'Pendiente', icon: <AlertCircle className="w-3.5 h-3.5" /> },
@@ -343,10 +348,10 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
     finally { setIsDeleting(false) }
   }
 
-  if (loading) return (
-    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: '0 4px 24px rgba(15,76,92,0.08)' }}>
+  if (loading || !mounted) return (
+    <div suppressHydrationWarning className="rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800" style={{ boxShadow: '0 4px 24px rgba(15,76,92,0.08)' }}>
       {/* Skeleton Header */}
-      <div className="px-6 md:px-8 py-5 md:py-6 flex items-center justify-between" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+      <div suppressHydrationWarning className="px-6 md:px-8 py-5 md:py-6 flex items-center justify-between bg-slate-50 dark:bg-slate-700/50">
         <div className="animate-pulse">
           <div className="h-7 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
           <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
@@ -357,7 +362,7 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
         </div>
       </div>
       {/* Skeleton Week Days */}
-      <div className="grid grid-cols-7 border-b" style={{ borderColor: COLORS.border }}>
+      <div suppressHydrationWarning className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-600">
         {[...Array(7)].map((_, i) => (
           <div key={i} className="py-4 text-center">
             <div className="h-3 w-8 bg-slate-200 dark:bg-slate-700 rounded mx-auto mb-2" />
@@ -368,7 +373,7 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
       {/* Skeleton Grid */}
       <div className="grid grid-cols-1 md:grid-cols-7 min-h-[500px]">
         {[...Array(7)].map((_, i) => (
-          <div key={i} className={`p-3 ${i !== 6 ? 'border-r' : ''}`} style={{ borderColor: COLORS.border }}>
+          <div suppressHydrationWarning key={i} className={`p-3 border-r border-slate-200 dark:border-slate-600 ${i === 6 ? '' : ''}`}>
             {[...Array(3)].map((_, j) => (
               <div key={j} className="p-3 rounded-xl mb-2 animate-pulse">
                 <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
@@ -453,14 +458,16 @@ export function CalendarView({ organizationId }: CalendarViewProps) {
               <ChevronRight className="w-5 h-5 text-white" />
             </button>
           </div>
-          <button 
-            onClick={openNewModal} 
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-            style={{ backgroundColor: '#FFFFFF', color: COLORS.primary, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nueva cita</span>
-          </button>
+          {userRole === 'owner' || userRole === 'admin' ? (
+            <button
+              onClick={openNewModal}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+              style={{ backgroundColor: '#FFFFFF', color: COLORS.primary, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Nueva cita</span>
+            </button>
+          ) : null}
         </div>
       </div>
 

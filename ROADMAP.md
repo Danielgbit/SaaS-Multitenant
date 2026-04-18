@@ -193,6 +193,28 @@ Los roles ahora usan terminología en español claro:
 | Supabase Dashboard remoto | ✅ | Resend SMTP configurado manualmente |
 | Resultado | ✅ | Emails ilimitados via Resend (no mas rate limit exceeded) |
 
+#### 6. Empleado Invitado No Crea Organizacion (Trigger Fix)
+| Componente | Estado | Detalle |
+|------------|--------|---------|
+| Trigger `handle_new_user` | ✅ Corregido | Detecta si usuario ya tiene employee link |
+| Migracion | ✅ | `20260318170000_fix_invited_employee_org_trigger.sql` |
+| Comportamiento | ✅ | Empleado invitado NO crea organizacion "My Business" automaticamente |
+
+#### 7. Permisos de Empleado - Boton Nueva Cita
+| Componente | Estado | Detalle |
+|------------|--------|---------|
+| CalendarView.tsx | ✅ Fix | Boton "+ Nueva cita" solo visible para owner/admin |
+| `CalendarViewProps` | ✅ | Agregado `userRole?: 'owner' \| 'admin' \| 'staff' \| 'empleado'` |
+| `calendar/page.tsx` | ✅ | Pasa `userRole` a `CalendarView` |
+| Permisos resultantes | ✅ | Owner ✅, Admin ✅, Staff ❌, Empleado ❌ |
+
+#### 8. Hydration Error Fix - CalendarView
+| Componente | Estado | Detalle |
+|------------|--------|---------|
+| CalendarView.tsx | ✅ Fix | Agregado `mounted` state para evitar hydration mismatch |
+| CSS Classes | ✅ | Reemplazado `COLORS.surface` dinamico con `bg-slate-100 dark:bg-slate-800` |
+| `suppressHydrationWarning` | ✅ | Agregado a elementos problematicos |
+
 ---
 
 ## Pendiente: Sistema de 3 Roles con Dashboard Diferenciado
