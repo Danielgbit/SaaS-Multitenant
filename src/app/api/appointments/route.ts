@@ -178,13 +178,13 @@ export async function PATCH(request: NextRequest) {
 
     const { data: orgMember } = await supabase
       .from('organization_members')
-      .select('organization_id')
+      .select('organization_id, role')
       .eq('user_id', user.id)
       .eq('organization_id', appointment.organization_id)
       .single()
 
-    if (!orgMember) {
-      return NextResponse.json({ error: 'No perteneces a esta organización.' }, { status: 403 })
+    if (!orgMember || orgMember.role === 'empleado') {
+      return NextResponse.json({ error: 'No tienes permisos para cambiar el estado de esta cita.' }, { status: 403 })
     }
 
     const { error: updateError } = await supabase

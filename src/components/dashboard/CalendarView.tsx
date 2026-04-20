@@ -154,7 +154,13 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
         const startDate = formatDateKey(weekDates[0])
         const endDate = formatDateKey(weekDates[6])
         const [aptRes, empRes, cliRes, srvRes] = await Promise.all([
-          supabase.from('appointments').select('*').eq('organization_id', organizationId).gte('start_time', `${startDate}T00:00:00.000Z`).lte('start_time', `${endDate}T23:59:59.999Z`).order('start_time'),
+          supabase.from('appointments').select(`
+            *,
+            appointment_services(
+              service_id,
+              services(name, price, duration)
+            )
+          `).eq('organization_id', organizationId).gte('start_time', `${startDate}T00:00:00.000Z`).lte('start_time', `${endDate}T23:59:59.999Z`).order('start_time'),
           supabase.from('employees').select('*').eq('organization_id', organizationId),
           supabase.from('clients').select('*').eq('organization_id', organizationId),
           supabase.from('services').select('*').eq('organization_id', organizationId),
@@ -175,7 +181,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
           ...apt,
           employee: empMap.get(apt.employee_id),
           client: cliMap.get(apt.client_id),
-          service: apt.service_id ? srvMap.get(apt.service_id) : undefined
+          service: (apt.appointment_services as any[])?.[0]?.services ?? undefined
         }))
         setAppointments(withDetails)
         setEmployees(empRes.data ?? [])
@@ -646,12 +652,16 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
                     onCompleted={() => { setSelectedAppointment(null); setCurrentDate(new Date(currentDate)) }}
                   />
                 )}
-                {userRole !== 'empleado' && selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && <><button onClick={() => handleStatus('confirmed')} disabled={updatingStatus || selectedAppointment.status === 'confirmed'} className="px-4 py-2.5 rounded-lg text-sm font-medium" style={{ backgroundColor: COLORS.success, color: '#FFF', opacity: selectedAppointment.status === 'confirmed' ? 0.5 : 1 }}>Confirmar</button><button onClick={() => handleStatus('cancelled')} disabled={updatingStatus} className="px-4 py-2.5 rounded-lg text-sm font-medium" style={{ backgroundColor: COLORS.error, color: '#FFF' }}>Cancelar</button></>}
+                {userRole !== 'empleado' && selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && <><button onClick={() => handleStatus('confirmed')} disabled={updatingStatus || selectedAppointment.status === 'confirmed'} className="px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer" style={{ backgroundColor: COLORS.success, color: '#FFF', opacity: selectedAppointment.status === 'confirmed' ? 0.5 : 1 }}>Confirmar</button><button onClick={() => handleStatus('cancelled')} disabled={updatingStatus} className="px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer" style={{ backgroundColor: COLORS.error, color: '#FFF' }}>Cancelar</button></>}
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setShowDeleteConfirm(true)} className="px-4 py-2.5 rounded-lg text-sm font-medium" style={{ color: COLORS.error, backgroundColor: COLORS.errorLight }}>Eliminar</button>
-                <button onClick={() => setSelectedAppointment(null)} className="px-5 py-2.5 rounded-lg text-sm font-medium" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}>Cerrar</button>
-                <button onClick={openEdit} className="px-5 py-2.5 rounded-lg text-sm font-medium" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}>Editar</button>
+                {userRole !== 'empleado' && (
+                  <>
+                    <button onClick={() => setShowDeleteConfirm(true)} className="px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer" style={{ color: COLORS.error, backgroundColor: COLORS.errorLight }}>Eliminar</button>
+                    <button onClick={openEdit} className="px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}>Editar</button>
+                  </>
+                )}
+                <button onClick={() => setSelectedAppointment(null)} className="px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}>Cerrar</button>
               </div>
             </div>
           </div>

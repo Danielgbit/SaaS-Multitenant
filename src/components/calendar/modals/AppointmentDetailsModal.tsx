@@ -21,6 +21,7 @@ interface AppointmentDetailsModalProps {
   COLORS: CalendarColors
   STATUS_CONFIG: Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }>
   formatDateTimeFull: (dateString: string) => string
+  userRole?: string | null
   onClose: () => void
   onEdit: () => void
   onDelete: () => void
@@ -33,6 +34,7 @@ export function AppointmentDetailsModal({
   COLORS,
   STATUS_CONFIG,
   formatDateTimeFull,
+  userRole,
   onClose,
   onEdit,
   onDelete,
@@ -148,24 +150,24 @@ export function AppointmentDetailsModal({
           style={{ borderTop: `1px solid ${COLORS.border}` }}
         >
           <div className="flex gap-2">
-            {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
+            {userRole !== 'empleado' && appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
               <>
-                <button 
-                  onClick={() => onStatusChange('confirmed')} 
+                <button
+                  onClick={() => onStatusChange('confirmed')}
                   disabled={updatingStatus || appointment.status === 'confirmed'}
-                  className="px-4 py-2.5 rounded-lg text-sm font-medium"
-                  style={{ 
-                    backgroundColor: COLORS.success, 
-                    color: '#FFF', 
-                    opacity: appointment.status === 'confirmed' ? 0.5 : 1 
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer"
+                  style={{
+                    backgroundColor: COLORS.success,
+                    color: '#FFF',
+                    opacity: appointment.status === 'confirmed' ? 0.5 : 1
                   }}
                 >
                   Confirmar
                 </button>
-                <button 
-                  onClick={() => onStatusChange('cancelled')} 
+                <button
+                  onClick={() => onStatusChange('cancelled')}
                   disabled={updatingStatus}
-                  className="px-4 py-2.5 rounded-lg text-sm font-medium"
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer"
                   style={{ backgroundColor: COLORS.error, color: '#FFF' }}
                 >
                   Cancelar
@@ -174,30 +176,34 @@ export function AppointmentDetailsModal({
             )}
           </div>
           <div className="flex gap-2">
-            <button 
-              onClick={onDelete}
-              className="px-4 py-2.5 rounded-lg text-sm font-medium"
-              style={{ color: COLORS.error, backgroundColor: COLORS.errorLight }}
-            >
-              Eliminar
-            </button>
-            <button 
+            {userRole !== 'empleado' && (
+              <>
+                <button
+                  onClick={onDelete}
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer"
+                  style={{ color: COLORS.error, backgroundColor: COLORS.errorLight }}
+                >
+                  Eliminar
+                </button>
+                <button
+                  onClick={onEdit}
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer"
+                  style={{ backgroundColor: COLORS.primary, color: '#FFF' }}
+                >
+                  Editar
+                </button>
+              </>
+            )}
+            <button
               onClick={onClose}
-              className="px-5 py-2.5 rounded-lg text-sm font-medium"
-              style={{ 
-                color: COLORS.textSecondary, 
-                backgroundColor: COLORS.surfaceSubtle, 
-                border: `1px solid ${COLORS.border}` 
+              className="px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer"
+              style={{
+                color: COLORS.textSecondary,
+                backgroundColor: COLORS.surfaceSubtle,
+                border: `1px solid ${COLORS.border}`
               }}
             >
               Cerrar
-            </button>
-            <button 
-              onClick={onEdit}
-              className="px-5 py-2.5 rounded-lg text-sm font-medium"
-              style={{ backgroundColor: COLORS.primary, color: '#FFF' }}
-            >
-              Editar
             </button>
           </div>
         </div>
