@@ -11,12 +11,13 @@ interface HeaderProps {
   organizationConnected: boolean
   organizationName?: string | null
   role?: string | null
+  userId?: string | null
   onMenuToggle?: () => void
   showHamburger?: boolean
   onConfirmationsToggle?: () => void
 }
 
-function getUrgencyLevel(pendingCount: number, oldestPendingAt: number | null): {
+function getUrgencyLevel(pendingCount: number, oldestNotificationAt: number | null): {
   color: string
   bgColor: string
   animate: boolean
@@ -25,38 +26,73 @@ function getUrgencyLevel(pendingCount: number, oldestPendingAt: number | null): 
     return { color: '#EF4444', bgColor: '#EF4444', animate: false }
   }
 
-  if (!oldestPendingAt) {
+  if (!oldestNotificationAt) {
     return { color: '#EF4444', bgColor: '#EF4444', animate: false }
   }
 
   const now = new Date().getTime()
-  const diffMin = Math.floor((now - oldestPendingAt) / 60000)
+  const diffMin = Math.floor((now - oldestNotificationAt) / 60000)
 
-  if (diffMin < 15) {
+  // Thresholds adjusted for notification age (created_at)
+  // These represent how long since the notification was created
+  // Remember: notifications for unmarked_alert are created when appointment is ~60 min overdue
+  // So 5 min old notification = appointment actually ~65 min overdue
+  if (diffMin < 5) {
     return { color: '#22C55E', bgColor: '#22C55E', animate: false }
-  } else if (diffMin < 25) {
+  } else if (diffMin < 15) {
     return { color: '#EAB308', bgColor: '#EAB308', animate: false }
-  } else if (diffMin < 40) {
+  } else if (diffMin < 25) {
     return { color: '#F97316', bgColor: '#F97316', animate: false }
   } else {
     return { color: '#EF4444', bgColor: '#EF4444', animate: true }
   }
 }
 
-export function Header({ organizationConnected, organizationName, role, onMenuToggle, showHamburger, onConfirmationsToggle }: HeaderProps) {
+export function Header({ organizationConnected, organizationName, role, userId, onMenuToggle, showHamburger, onConfirmationsToggle }: HeaderProps) {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
   const supabase = createClient()
   const [mounted, setMounted] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
   const [oldestPendingAt, setOldestPendingAt] = useState<number | null>(null)
+  const [reminderCount, setReminderCount] = useState(0)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    if (!organizationConnected || role === 'empleado' || !organizationName) return
+    if (!organizationConnected || !organizationName) return
+
+    if (role === 'empleado' && userId) {
+      const fetchReminderCount = async () => {
+        try {
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+          const tomorrow = new Date(today)
+          tomorrow.setDate(tomorrow.getDate() + 1)
+
+          const { count } = await (supabase as any)
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('type', 'reminder')
+            .eq('read', false)
+            .gte('created_at', today.toISOString())
+            .lt('created_at', tomorrow.toISOString())
+
+          setReminderCount(count || 0)
+        } catch (error) {
+          console.error('[Header] Error fetching reminder count:', error)
+        }
+      }
+
+      fetchReminderCount()
+      const interval = setInterval(fetchReminderCount, 60000)
+      return () => clearInterval(interval)
+    }
+
+    if (role === 'empleado' || !organizationName) return
 
     const fetchPendingInfo = async () => {
       try {
@@ -68,24 +104,37 @@ export function Header({ organizationConnected, organizationName, role, onMenuTo
 
         if (!orgMember) return
 
-        const { data: oldestPending } = await (supabase as any)
-          .from('appointments')
-          .select('completed_at')
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+
+        const { data: oldestNotification } = await (supabase as any)
+          .from('notifications')
+          .select('created_at')
           .eq('organization_id', orgMember.organization_id)
-          .in('confirmation_status', ['completed', 'needs_review'])
-          .order('completed_at', { ascending: true })
+          .in('type', ['unmarked_alert', 'auto_completed'])
+          .eq('read', false)
+          .gte('created_at', today.toISOString())
+          .lt('created_at', tomorrow.toISOString())
+          .order('created_at', { ascending: true })
           .limit(1)
           .single()
 
-        if (oldestPending?.completed_at) {
-          setOldestPendingAt(new Date(oldestPending.completed_at).getTime())
+        if (oldestNotification?.created_at) {
+          setOldestPendingAt(new Date(oldestNotification.created_at).getTime())
+        } else {
+          setOldestPendingAt(null)
         }
 
         const { count } = await (supabase as any)
-          .from('appointments')
+          .from('notifications')
           .select('*', { count: 'exact', head: true })
           .eq('organization_id', orgMember.organization_id)
-          .in('confirmation_status', ['completed', 'needs_review'])
+          .in('type', ['unmarked_alert', 'auto_completed'])
+          .eq('read', false)
+          .gte('created_at', today.toISOString())
+          .lt('created_at', tomorrow.toISOString())
 
         setPendingCount(count || 0)
       } catch (error) {
@@ -96,7 +145,7 @@ export function Header({ organizationConnected, organizationName, role, onMenuTo
     fetchPendingInfo()
     const interval = setInterval(fetchPendingInfo, 30000)
     return () => clearInterval(interval)
-  }, [organizationConnected, role, organizationName])
+  }, [organizationConnected, role, organizationName, userId])
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -160,6 +209,21 @@ export function Header({ organizationConnected, organizationName, role, onMenuTo
         </button>
 
         {/* Confirmations Bell */}
+        {role === 'empleado' && reminderCount > 0 && (
+          <Link
+            href="/calendar"
+            className="relative p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] dark:focus-visible:ring-[#38BDF8]"
+            aria-label="Recordatorios"
+          >
+            <Bell className="w-5 h-5" />
+            <span
+              className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse"
+            >
+              {reminderCount > 9 ? '9+' : reminderCount}
+            </span>
+          </Link>
+        )}
+
         {role !== 'empleado' && onConfirmationsToggle && (
           <button
             onClick={onConfirmationsToggle}

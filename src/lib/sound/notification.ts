@@ -83,3 +83,37 @@ export function playUrgentSound() {
     console.warn('[Sound] Failed to play urgent sound:', e)
   }
 }
+
+export function playReminderSound() {
+  try {
+    const ctx = getAudioContext()
+
+    const playBeep = (freq: number, startTime: number, duration: number, gain: number) => {
+      const oscillator = ctx.createOscillator()
+      const gainNode = ctx.createGain()
+
+      oscillator.connect(gainNode)
+      gainNode.connect(ctx.destination)
+
+      oscillator.type = 'sine'
+      oscillator.frequency.setValueAtTime(freq, startTime)
+      oscillator.frequency.exponentialRampToValueAtTime(freq + 100, startTime + duration * 0.8)
+
+      gainNode.gain.setValueAtTime(gain, startTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
+
+      oscillator.start(startTime)
+      oscillator.stop(startTime + duration)
+    }
+
+    // Gentle Alert: suave ascenso 400Hz → 500Hz, 2 veces
+    // Elegante pero attention-grabbing, NO agresivo
+    const gentleGain = 0.2
+    playBeep(400, ctx.currentTime, 0.15, gentleGain)
+    playBeep(500, ctx.currentTime + 0.2, 0.15, gentleGain)
+    playBeep(400, ctx.currentTime + 0.4, 0.15, gentleGain)
+    playBeep(500, ctx.currentTime + 0.6, 0.15, gentleGain)
+  } catch (e) {
+    console.warn('[Sound] Failed to play reminder sound:', e)
+  }
+}

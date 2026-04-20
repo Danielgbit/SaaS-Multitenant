@@ -45,6 +45,7 @@ export default async function DashboardLayout({
   return (
     <OrganizationProvider organizationId={organizationId} role={role}>
       <DashboardShell
+        userId={user.id}
         role={role}
         organizationId={organizationId}
         organizationName={organizationName}

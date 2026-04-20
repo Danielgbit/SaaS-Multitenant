@@ -20,11 +20,11 @@ export async function runCheckReminders(): Promise<{
     const now = new Date()
 
     // =================================================================
-    // 1. RECORDATORIO 5 MIN ANTES — Para empleados
-    // SELECT appointments donde hora_fin = ahora + 5 min
+    // 1. RECORDATORIO 5 MIN ANTES — Para empleados (máx 2 por cita)
     // =================================================================
     const fiveMinutesLater = new Date(now.getTime() + 5 * 60 * 1000)
     const fourMinutesLater = new Date(now.getTime() + 4 * 60 * 1000)
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000)
 
     const { data: reminderAppointments, error: reminderError } = await (supabase as any)
       .from('appointments')
@@ -34,7 +34,8 @@ export async function runCheckReminders(): Promise<{
         employee_id,
         end_time,
         confirmation_status,
-        employees!employees_id(user_id, name)
+        employees!employees_id(user_id, name),
+        clients!clients_id(name)
       `)
       .gte('end_time', fourMinutesLater.toISOString())
       .lte('end_time', fiveMinutesLater.toISOString())
@@ -44,18 +45,52 @@ export async function runCheckReminders(): Promise<{
     if (!reminderError && reminderAppointments && reminderAppointments.length > 0) {
       for (const apt of reminderAppointments) {
         try {
+          // Contar cuántos reminders tiene esta cita en los últimos 10 min
+          const { count: existingReminders } = await (supabase as any)
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('metadata->>appointment_id', apt.id)
+            .eq('type', 'reminder')
+            .gte('created_at', fiveMinutesAgo.toISOString())
+
+          if ((existingReminders || 0) >= 2) {
+            continue // Ya tiene 2 reminders, saltar
+          }
+
+          // Verificar si ya existe un reminder muy reciente (< 3 min)
+          const threeMinutesAgo = new Date(now.getTime() - 3 * 60 * 1000)
+          const { count: recentReminders } = await (supabase as any)
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('metadata->>appointment_id', apt.id)
+            .eq('type', 'reminder')
+            .gte('created_at', threeMinutesAgo.toISOString())
+
+          if ((recentReminders || 0) > 0) {
+            continue // Ya se envió reminder recientemente
+          }
+
           if (apt.employees?.user_id) {
+            const clientName = apt.clients?.name || 'Cliente'
+            const reminderNumber = (existingReminders || 0) + 1
+
             await (supabase as any)
               .from('notifications')
               .insert({
                 organization_id: apt.organization_id,
                 user_id: apt.employees.user_id,
                 type: 'reminder',
-                title: 'Recordatorio de servicio',
-                message: `Tu servicio termina en 5 minutos`,
+                title: reminderNumber === 1
+                  ? 'Servicio por terminar'
+                  : '¡Aún no has marcado el servicio!',
+                message: reminderNumber === 1
+                  ? `El servicio de ${clientName} está por terminar en 5 minutos`
+                  : `¡No has marcado el servicio de ${clientName}! Ya pasaron 5 minutos.`,
                 metadata: {
                   appointment_id: apt.id,
                   employee_id: apt.employee_id,
+                  client_name: clientName,
+                  reminder_number: reminderNumber,
                 },
               })
             reminders++

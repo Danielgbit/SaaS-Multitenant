@@ -6,16 +6,18 @@ import { Header } from '@/components/dashboard/Header'
 import { MobileNav } from '@/components/dashboard/MobileNav'
 import { ConfirmationsPanel } from '@/components/dashboard/ConfirmationsPanel'
 import { ConfirmBanner } from '@/components/dashboard/ConfirmBanner'
+import { ReminderBanner } from '@/components/dashboard/ReminderBanner'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 
 interface DashboardShellProps {
   children: React.ReactNode
+  userId?: string | null
   role: string | null
   organizationId: string | null
   organizationName?: string | null
 }
 
-export function DashboardShell({ children, role, organizationId, organizationName }: DashboardShellProps) {
+export function DashboardShell({ children, userId, role, organizationId, organizationName }: DashboardShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [confirmationsPanelOpen, setConfirmationsPanelOpen] = useState(false)
@@ -56,6 +58,7 @@ export function DashboardShell({ children, role, organizationId, organizationNam
           organizationConnected={!!organizationId}
           organizationName={organizationName}
           role={role}
+          userId={userId}
           onMenuToggle={() => setMobileNavOpen(true)}
           showHamburger
           onConfirmationsToggle={() => setConfirmationsPanelOpen(!confirmationsPanelOpen)}
@@ -66,6 +69,10 @@ export function DashboardShell({ children, role, organizationId, organizationNam
             organizationId={organizationId}
             onOpenPanel={() => setConfirmationsPanelOpen(true)}
           />
+        )}
+
+        {role === 'empleado' && userId && (
+          <ReminderBanner userId={userId} />
         )}
 
         <ConfirmationsPanel
