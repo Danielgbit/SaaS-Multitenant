@@ -31,6 +31,17 @@ export default async function DashboardPage() {
   const role = orgMember?.role
 
   let employeeName: string | null = null
+  let organizationName: string | null = null
+
+  if (organizationId) {
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('name')
+      .eq('id', organizationId)
+      .single()
+    organizationName = org?.name ?? null
+  }
+
   if (role === 'empleado') {
     const { data: employee } = await (supabase as any)
       .from('employees')
@@ -49,5 +60,5 @@ export default async function DashboardPage() {
     )
   }
 
-  return <DashboardClient organizationId={organizationId} role={role} employeeName={employeeName} />
+  return <DashboardClient organizationId={organizationId} role={role} organizationName={organizationName} employeeName={employeeName} />
 }

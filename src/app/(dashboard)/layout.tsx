@@ -32,11 +32,22 @@ export default async function DashboardLayout({
   const organizationId = orgMember?.organization_id ?? null
   const role = orgMember?.role ?? null
 
+  let organizationName: string | null = null
+  if (organizationId) {
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('name')
+      .eq('id', organizationId)
+      .single()
+    organizationName = org?.name ?? null
+  }
+
   return (
     <OrganizationProvider organizationId={organizationId} role={role}>
-      <DashboardShell 
+      <DashboardShell
         role={role}
         organizationId={organizationId}
+        organizationName={organizationName}
       >
         {children}
       </DashboardShell>

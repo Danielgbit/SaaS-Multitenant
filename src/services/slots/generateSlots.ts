@@ -193,8 +193,9 @@ export async function generateSlots({
   date,
   organizationId,
 }: GenerateSlotsParams): Promise<TimeSlot[]> {
-  // 1. Obtener day of week (0 = domingo, 6 = sábado)
-  const dateObj = new Date(date)
+  // 1. Parse date in local timezone (fecha viene como YYYY-MM-DD del frontend)
+  // Usamos append T00:00:00 para evitar que new Date() la parsee como UTC
+  const dateObj = new Date(`${date}T00:00:00`)
   const dayOfWeek = dateObj.getDay()
 
   // 2. Obtener disponibilidad del empleado para ese día

@@ -24,11 +24,12 @@ import { getRoleLabel, isEmpleado } from '@/lib/rbac'
 
 interface CollapsibleSidebarProps {
   role: string | null
+  organizationName?: string | null
   isCollapsed: boolean
   onToggle: () => void
 }
 
-export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleSidebarProps) {
+export function CollapsibleSidebar({ role, organizationName, isCollapsed, onToggle }: CollapsibleSidebarProps) {
   const pathname = usePathname()
   const [hoveredRoute, setHoveredRoute] = useState<string | null>(null)
   const [tooltipVisible, setTooltipVisible] = useState(false)
@@ -216,33 +217,51 @@ export function CollapsibleSidebar({ role, isCollapsed, onToggle }: CollapsibleS
     >
       <div 
         className="relative flex items-center shrink-0 transition-all duration-300 border-b border-slate-200 dark:border-slate-700"
-        style={{ 
+        style={{
           height: '72px',
           paddingLeft: isCollapsed ? '20px' : '24px',
           paddingRight: isCollapsed ? '20px' : '24px',
         }}
       >
-        <Link 
-          href="/calendar" 
+        <Link
+          href="/calendar"
           className="flex items-center gap-3 group"
         >
-          <div 
+          <div
             className="relative w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform duration-200 group-hover:scale-105 flex-shrink-0 bg-gradient-to-br from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0EA5E9]"
           >
             <span className="text-white font-serif font-bold text-xl leading-none">P</span>
-            <div 
+            <div
               className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white dark:border-slate-800"
             />
           </div>
-          <span 
-            className="font-display text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300 text-slate-900 dark:text-slate-100"
-            style={{ 
-              opacity: isCollapsed ? 0 : 1,
-              width: isCollapsed ? '0' : 'auto',
-            }}
-          >
-            Prügressy
-          </span>
+          {isEmpleado && organizationName ? (
+            <div
+              className="flex flex-col overflow-hidden transition-all duration-300"
+              style={{ opacity: isCollapsed ? 0 : 1 }}
+            >
+              <span
+                className="text-xs text-slate-400 dark:text-slate-500 font-medium truncate"
+                style={{ lineHeight: 1.2 }}
+              >
+                Trabajando en
+              </span>
+              <span
+                className="font-display text-lg font-bold tracking-tight whitespace-nowrap overflow-hidden text-slate-900 dark:text-slate-100 truncate"
+              >
+                {organizationName}
+              </span>
+            </div>
+          ) : (
+            <span
+              className="font-display text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300 text-slate-900 dark:text-slate-100"
+              style={{
+                opacity: isCollapsed ? 0 : 1,
+              }}
+            >
+              Prügressy
+            </span>
+          )}
         </Link>
       </div>
 

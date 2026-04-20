@@ -2,8 +2,8 @@
 
 ## Estado del Proyecto
 
-**Versión Actual:** v1.0 MVP  
-**Última Actualización:** 2026-04-01  
+**Versión Actual:** v1.0 MVP
+**Última Actualización:** 2026-04-20  
 **Mercado Objetivo:** B2B wellness/health (spas, barberías, clínicas, centros de bienestar) en Colombia
 
 ---
@@ -397,6 +397,142 @@ Nueva ruta dedicada para el rol `empleado`:
 | Research | ✅ Completado |
 | API Setup | 🔄 Pendiente |
 | Sync Logic | 🔄 Pendiente |
+
+---
+
+## Completado: Sistema de Confirmaciones (2026-04-19)
+
+### ✅ Arquitectura Documentada
+
+**Documento:** [docs/ARCHITECTURE-CONFIRMATIONS.md](./docs/ARCHITECTURE-CONFIRMATIONS.md)
+
+### Resumen del Flujo
+
+```
+Empleado marca "Listo ✓" → Supabase Realtime → Asistente recibe notificación
+                                                    ↓
+                                          Panel slide-out con pendientes
+                                                    ↓
+                                          Asistente registra método pago
+                                                    ↓
+                                          Cita confirmada + log completo
+```
+
+### Estados de Cita
+
+| Estado | Descripción |
+|--------|-------------|
+| `scheduled` | Cita programada |
+| `completed` | Empleado marcó "Listo" |
+| `confirmed` | Asistente confirmó + cobró |
+| `needs_review` | ⚠️ Cita sin marcar 60 min+ |
+
+### Métodos de Pago Soportados
+
+| Método | Código |
+|--------|--------|
+| Efectivo | `efectivo` |
+| Nequi | `nequi` |
+| Daviplata | `daviplata` |
+| PSE | `pse` |
+| QR Nequi | `qr_nequi` |
+| QR Bancolombia | `qr_bancolombia` |
+| Tarjeta Débito | `tarjeta_debito` |
+| Tarjeta Crédito | `tarjeta_credito` |
+
+### Plan de Implementación
+
+| Fase | Descripción | Estado |
+|------|-------------|--------|
+| 1 | Base de Datos (tablas confirmation_logs, notifications) | ✅ Completado |
+| 2 | Backend - Server Actions (markCompleted, confirmService, etc.) | ✅ Completado |
+| 3 | Frontend - Empleado (botón "Listo ✓", modal, glow) | ✅ Completado |
+| 4 | Frontend - Asistente (panel slide-out, modal cobro) | ✅ Completado |
+| 5 | Realtime (Supabase channels) | ✅ Completado |
+| 6 | Cron (cron-job.org cada 3 min) | ✅ Completado |
+| 7 | UI/UX Premium - Notificaciones globales y urgencia | ✅ Completado |
+
+### Cron Configuration
+
+| Setting | Value |
+|---------|-------|
+| Schedule | Every 3 minutes |
+| URL | `/api/cron/check-reminders` |
+| Tool | cron-job.org |
+| Auth | `CRON_SECRET` header |
+
+### Timing de Recordatorios
+
+| Evento | Timing | Acción |
+|--------|--------|--------|
+| Recordatorio pre-servicio | hora_fin - 5 min | Badge + toast al empleado |
+| Alerta sin marcar | hora_fin + 60 min | Badge "⚠️ Sin marcar" en panel asistente |
+| Auto-completado | hora_fin + 120 min | Sistema marca automáticamente |
+
+---
+
+## Completado: UI/UX Premium del Sistema de Confirmaciones (2026-04-20)
+
+### ✅ Implementado
+
+El sistema de confirmaciones ahora es el **centro del SaaS** con notificaciones globales y urgencia visual.
+
+#### Componentes Nuevos
+
+| Componente | Archivo | Descripción |
+|------------|---------|-------------|
+| `ConfirmBanner` | `src/components/dashboard/ConfirmBanner.tsx` | Banner slide-in cuando hay pendientes |
+| `useKeyboardShortcuts` | `src/hooks/useKeyboardShortcuts.ts` | Shortcuts: `c` = calendar |
+| Sound Utils | `src/lib/sound/notification.ts` | Web Audio API - tonos para "Listo" y "Cobrado" |
+
+#### Funcionalidades Implementadas
+
+| Feature | Descripción |
+|---------|-------------|
+| **ConfirmBanner** | Slide-in automático cuando hay pendientes. Muestra contador + tiempo desde "Listo" |
+| **Header Badge Urgencia** | Badge con colores: verde (<15min), ámbar (15-25min), naranja (25-40min), rojo (>40min) |
+| **Sonidos Web Audio** | Tono ascendente 440→880Hz cuando empleado marca "Listo". Tono OK 880→1100Hz al cobrar |
+| **Timer en PaymentModal** | Muestra tiempo pendiente con color de urgencia en el modal de cobro |
+| **Keyboard Shortcuts** | `c` o `g+c` = ir al calendario desde cualquier página |
+| **Toast Notifications** | Toast con acción "Ir a Cobrar" cuando llegan nuevas notificaciones |
+
+#### Colores de Urgencia
+
+| Tiempo | Color | Signal |
+|--------|-------|--------|
+| 0-15 min | 🟢 Verde `#22C55E` | Normal |
+| 15-25 min | 🟡 Ámbar `#EAB308` | Atención |
+| 25-40 min | 🟠 Naranja `#F97316` | Pendiente |
+| 40+ min | 🔴 Rojo `#EF4444` + animación | ¡Urgente! |
+
+#### Flujo de Notificación
+
+```
+1. Empleado marca "Listo ✓"
+   ↓
+2. Sonido: tono ascendente (atención)
+   ↓
+3. Toast global: "X servicios pendientes de cobro"
+   ↓
+4. ConfirmBanner aparece (slide-in)
+   ↓
+5. Header badge cambia color según urgencia
+   ↓
+6. Asistente abre panel → ve timer en cada card
+   ↓
+7. Asistente confirma cobro
+   ↓
+8. Sonido: tono OK (satisfacción)
+   ↓
+9. Cita confirmada → lista para nómina
+```
+
+#### Tipos de Confirmación
+
+| Tipo | Descripción |
+|------|-------------|
+| `scheduled` | Cita programada (via calendario) |
+| `walkin` | Atendimento sin cita previa |
 
 ---
 

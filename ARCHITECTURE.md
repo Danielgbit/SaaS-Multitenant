@@ -422,8 +422,47 @@ Todas las tablas tenant-specific tienen políticas RLS:
 
 ---
 
+## Sistema de Confirmaciones
+
+El sistema de confirmaciones permite la comunicación síncrona entre empleados y asistentes para el cobro de servicios.
+
+**Documento detallado:** [docs/ARCHITECTURE-CONFIRMATIONS.md](./docs/ARCHITECTURE-CONFIRMATIONS.md)
+
+### Resumen del Flujo
+
+```
+Empleado marca "Listo ✓" → Supabase Realtime → Asistente recibe notificación
+                                                    ↓
+                                          Panel slide-out con pendientes
+                                                    ↓
+                                          Asistente registra método pago
+                                                    ↓
+                                          Cita confirmada + log completo
+```
+
+### Estados de Cita
+
+| Estado | Descripción |
+|--------|-------------|
+| `scheduled` | Cita programada |
+| `completed` | Empleado marcó "Listo" |
+| `confirmed` | Asistente confirmó + cobró |
+| `needs_review` | ⚠️ Cita sin marcar 60 min+ |
+
+### Componentes Principales
+
+| Componente | Ubicación |
+|------------|-----------|
+| Tablas DB | `confirmation_logs`, `notifications` |
+| Server Actions | `src/actions/confirmations/` |
+| Panel UI | `src/app/(dashboard)/confirmations/` |
+| Cron | `/api/cron/check-reminders` |
+
+---
+
 ## Pendientes / v2
 
+- Sistema de confirmaciones con cliente (email/WhatsApp) - **Pendiente v1.1**
 - Google Calendar Integration
 - Tests unitarios y de integración
 - PWA support

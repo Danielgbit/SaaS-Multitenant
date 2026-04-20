@@ -44,11 +44,16 @@ export interface AppointmentWithDetails extends Appointment {
   client?: Client
   employee?: Employee
   service?: Service
+  confirmation_status?: string
+  completed_at?: string | null
+  confirmed_at?: string | null
+  price_adjustment?: number
+  payment_method?: string | null
 }
 
 export interface CalendarViewProps {
   organizationId: string
-  userRole?: 'owner' | 'admin' | 'staff' | 'empleado'
+  userRole?: string
 }
 
 export interface TimeSlot {

@@ -35,6 +35,7 @@ import {
   EditAppointmentData,
   CalendarColors
 } from '@/types/calendar'
+import { ConfirmationButton } from './ConfirmationButton'
 import React from 'react'
 
 function useColors(): CalendarColors & { isDark: boolean } {
@@ -635,7 +636,17 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
             </div>
             <div className="px-6 py-4 flex items-center justify-between" style={{ borderTop: `1px solid ${COLORS.border}` }}>
               <div className="flex gap-2">
-                {selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && <><button onClick={() => handleStatus('confirmed')} disabled={updatingStatus || selectedAppointment.status === 'confirmed'} className="px-4 py-2.5 rounded-lg text-sm font-medium" style={{ backgroundColor: COLORS.success, color: '#FFF', opacity: selectedAppointment.status === 'confirmed' ? 0.5 : 1 }}>Confirmar</button><button onClick={() => handleStatus('cancelled')} disabled={updatingStatus} className="px-4 py-2.5 rounded-lg text-sm font-medium" style={{ backgroundColor: COLORS.error, color: '#FFF' }}>Cancelar</button></>}
+                {userRole === 'empleado' && selectedAppointment.status === 'confirmed' && (
+                  <ConfirmationButton
+                    appointmentId={selectedAppointment.id}
+                    clientName={selectedAppointment.client?.name || 'Cliente'}
+                    serviceName={selectedAppointment.service?.name || 'Servicio'}
+                    basePrice={selectedAppointment.service?.price || 0}
+                    disabled={selectedAppointment.confirmation_status === 'completed' || selectedAppointment.confirmation_status === 'confirmed'}
+                    onCompleted={() => { setSelectedAppointment(null); setCurrentDate(new Date(currentDate)) }}
+                  />
+                )}
+                {userRole !== 'empleado' && selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && <><button onClick={() => handleStatus('confirmed')} disabled={updatingStatus || selectedAppointment.status === 'confirmed'} className="px-4 py-2.5 rounded-lg text-sm font-medium" style={{ backgroundColor: COLORS.success, color: '#FFF', opacity: selectedAppointment.status === 'confirmed' ? 0.5 : 1 }}>Confirmar</button><button onClick={() => handleStatus('cancelled')} disabled={updatingStatus} className="px-4 py-2.5 rounded-lg text-sm font-medium" style={{ backgroundColor: COLORS.error, color: '#FFF' }}>Cancelar</button></>}
               </div>
               <div className="flex gap-2">
                 <button onClick={() => setShowDeleteConfirm(true)} className="px-4 py-2.5 rounded-lg text-sm font-medium" style={{ color: COLORS.error, backgroundColor: COLORS.errorLight }}>Eliminar</button>
