@@ -36,6 +36,7 @@ import {
   CalendarColors
 } from '@/types/calendar'
 import { ConfirmationButton } from './ConfirmationButton'
+import { useAppointmentModal } from '@/components/providers/AppointmentModalProvider'
 import React from 'react'
 
 function useColors(): CalendarColors & { isDark: boolean } {
@@ -79,6 +80,8 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     cancelled: { color: COLORS.error, bg: COLORS.errorLight, label: 'Cancelada', icon: <XCircle className="w-3.5 h-3.5" /> },
     completed: { color: COLORS.textSecondary, bg: COLORS.borderLight, label: 'Completada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
   }), [COLORS])
+
+  const { selectedAppointmentId, closeModal } = useAppointmentModal()
 
   const [currentDate, setCurrentDate] = useState(new Date())
   const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([])
@@ -194,6 +197,29 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     }
     fetchData()
   }, [organizationId, currentDate, supabase, weekDates])
+
+  useEffect(() => {
+    if (selectedAppointmentId && appointments.length > 0) {
+      const apt = appointments.find(a => a.id === selectedAppointmentId)
+      if (apt) {
+        setSelectedAppointment(apt)
+      }
+    }
+  }, [selectedAppointmentId, appointments])
+
+  useEffect(() => {
+    if (selectedAppointment) {
+      const apt = appointments.find(a => a.id === selectedAppointment.id)
+      if (!apt) {
+        setSelectedAppointment(null)
+      }
+    }
+  }, [appointments])
+
+  const handleCloseAppointmentModal = () => {
+    setSelectedAppointment(null)
+    closeModal()
+  }
 
   const appointmentsByDay = useMemo(() => {
     const grouped: Record<string, AppointmentWithDetails[]> = {}
@@ -623,46 +649,154 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
 
       {/* Detail Modal */}
       {selectedAppointment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedAppointment(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }} onClick={handleCloseAppointmentModal}>
           <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }} onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}><h3 className="text-xl font-semibold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Detalles</h3></div>
+            {/* Header unificado - conectado directamente al body */}
+            <div className="px-6 py-4 flex items-center justify-between relative overflow-hidden" style={{ 
+              background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
+              borderBottom: `1px solid ${COLORS.primary}40`
+            }}>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/3 translate-x-1/3" />
+              <div className="flex items-center gap-4 relative z-10">
+                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Detalles</h3>
+                  <span className="text-xs text-white/60">#{selectedAppointment.id.slice(0, 8)}</span>
+                </div>
+              </div>
+              <button 
+                onClick={handleCloseAppointmentModal} 
+                className="w-8 h-8 rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center cursor-pointer"
+                aria-label="Cerrar"
+              >
+                <X className="w-5 h-5 text-white/80 hover:text-white" />
+              </button>
+            </div>
+            
             <div className="p-6">
               {(() => { const st = (STATUS_CONFIG as Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }>)[selectedAppointment.status] || { color: COLORS.textSecondary, bg: COLORS.borderLight, label: selectedAppointment.status, icon: <Circle /> }; return (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between"><div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" style={{ backgroundColor: st.bg, color: st.color }}>{st.icon}{st.label}</div><span className="text-sm" style={{ color: COLORS.textMuted }}>#{selectedAppointment.id.slice(0, 8)}</span></div>
-                  <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}><div className="flex items-center gap-3 mb-2"><Calendar className="w-5 h-5" style={{ color: COLORS.primary }} /><span className="font-semibold" style={{ color: COLORS.textPrimary }}>Fecha</span></div><p className="text-sm pl-8" style={{ color: COLORS.textSecondary }}>{formatDateTimeFull(selectedAppointment.start_time)}</p></div>
-                  <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}><div className="flex items-center gap-3 mb-2"><User className="w-5 h-5" style={{ color: COLORS.primary }} /><span className="font-semibold" style={{ color: COLORS.textPrimary }}>Cliente</span></div><p className="font-medium pl-8" style={{ color: COLORS.textPrimary }}>{selectedAppointment.client?.name || 'N/A'}</p>{selectedAppointment.client?.phone && <div className="flex items-center gap-2 text-sm pl-8" style={{ color: COLORS.textSecondary }}><Phone className="w-4 h-4" />{selectedAppointment.client.phone}</div>}</div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}><div className="flex items-center gap-3 mb-2"><Building2 className="w-5 h-5" style={{ color: COLORS.primary }} /><span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Profesional</span></div><p className="text-sm font-medium pl-8" style={{ color: COLORS.textSecondary }}>{selectedAppointment.employee?.name || 'N/A'}</p></div>
-                    <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}><div className="flex items-center gap-3 mb-2"><Clock className="w-5 h-5" style={{ color: COLORS.primary }} /><span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Servicio</span></div><p className="text-sm font-medium pl-8" style={{ color: COLORS.textSecondary }}>{selectedAppointment.service?.name || 'N/A'}</p></div>
+                  {/* Status pill */}
+                  <div className="flex items-center justify-end">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium" style={{ backgroundColor: st.bg, color: st.color }}>
+                      {st.icon}{st.label}
+                    </div>
                   </div>
-                  {selectedAppointment.notes && <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}><div className="flex items-center gap-3 mb-2"><FileText className="w-5 h-5" style={{ color: COLORS.primary }} /><span className="font-semibold" style={{ color: COLORS.textPrimary }}>Notas</span></div><p className="text-sm pl-8" style={{ color: COLORS.textSecondary }}>{selectedAppointment.notes}</p></div>}
+                  
+                  {/* Fecha */}
+                  <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
+                        <Calendar className="w-4 h-4" style={{ color: COLORS.primary }} />
+                      </div>
+                      <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Fecha</span>
+                    </div>
+                    <p className="text-sm pl-11" style={{ color: COLORS.textSecondary }}>{formatDateTimeFull(selectedAppointment.start_time)}</p>
+                  </div>
+                  
+                  {/* Cliente */}
+                  <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
+                        <User className="w-4 h-4" style={{ color: COLORS.primary }} />
+                      </div>
+                      <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Cliente</span>
+                    </div>
+                    <p className="font-medium pl-11" style={{ color: COLORS.textPrimary }}>{selectedAppointment.client?.name || 'N/A'}</p>
+                    {selectedAppointment.client?.phone && (
+                      <div className="flex items-center gap-2 text-sm pl-11 mt-1" style={{ color: COLORS.textSecondary }}>
+                        <Phone className="w-4 h-4" />
+                        <span>{selectedAppointment.client.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Profesional y Servicio en grid */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
+                          <Building2 className="w-4 h-4" style={{ color: COLORS.primary }} />
+                        </div>
+                        <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Profesional</span>
+                      </div>
+                      <p className="text-sm font-medium pl-11" style={{ color: COLORS.textSecondary }}>{selectedAppointment.employee?.name || 'N/A'}</p>
+                    </div>
+                    <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
+                          <Clock className="w-4 h-4" style={{ color: COLORS.primary }} />
+                        </div>
+                        <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Servicio</span>
+                      </div>
+                      <p className="text-sm font-medium pl-11" style={{ color: COLORS.textSecondary }}>{selectedAppointment.service?.name || 'N/A'}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Notas */}
+                  {selectedAppointment.notes && (
+                    <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
+                          <FileText className="w-4 h-4" style={{ color: COLORS.primary }} />
+                        </div>
+                        <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Notas</span>
+                      </div>
+                      <p className="text-sm pl-11" style={{ color: COLORS.textSecondary }}>{selectedAppointment.notes}</p>
+                    </div>
+                  )}
                 </div>
               )})()}
             </div>
-            <div className="px-6 py-4 flex items-center justify-between" style={{ borderTop: `1px solid ${COLORS.border}` }}>
-              <div className="flex gap-2">
-                {userRole === 'empleado' && selectedAppointment.status === 'confirmed' && (
-                  <ConfirmationButton
-                    appointmentId={selectedAppointment.id}
-                    clientName={selectedAppointment.client?.name || 'Cliente'}
-                    serviceName={selectedAppointment.service?.name || 'Servicio'}
-                    basePrice={selectedAppointment.service?.price || 0}
-                    disabled={selectedAppointment.confirmation_status === 'completed' || selectedAppointment.confirmation_status === 'confirmed'}
-                    onCompleted={() => { setSelectedAppointment(null); setCurrentDate(new Date(currentDate)) }}
-                  />
-                )}
-                {userRole !== 'empleado' && selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && <><button onClick={() => handleStatus('confirmed')} disabled={updatingStatus || selectedAppointment.status === 'confirmed'} className="px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer" style={{ backgroundColor: COLORS.success, color: '#FFF', opacity: selectedAppointment.status === 'confirmed' ? 0.5 : 1 }}>Confirmar</button><button onClick={() => handleStatus('cancelled')} disabled={updatingStatus} className="px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer" style={{ backgroundColor: COLORS.error, color: '#FFF' }}>Cancelar</button></>}
-              </div>
-              <div className="flex gap-2">
-                {userRole !== 'empleado' && (
-                  <>
-                    <button onClick={() => setShowDeleteConfirm(true)} className="px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer" style={{ color: COLORS.error, backgroundColor: COLORS.errorLight }}>Eliminar</button>
-                    <button onClick={openEdit} className="px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}>Editar</button>
-                  </>
-                )}
-                <button onClick={() => setSelectedAppointment(null)} className="px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}>Cerrar</button>
-              </div>
+            
+            {/* Footer con acciones - Jerarquía clara */}
+            <div className="px-6 py-4 flex items-center justify-end gap-3" style={{ borderTop: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surfaceSubtle }}>
+              
+              {/* Confirmar - solo visible si NO está confirmado y no es empleado */}
+              {userRole !== 'empleado' && selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && selectedAppointment.status !== 'confirmed' && (
+                <button 
+                  onClick={() => handleStatus('confirmed')} 
+                  disabled={updatingStatus}
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
+                  style={{ backgroundColor: COLORS.success, color: '#FFF' }}
+                >
+                  Confirmar
+                </button>
+              )}
+              
+              {/* Para empleado: botón de confirmación de pago */}
+              {userRole === 'empleado' && selectedAppointment.status === 'confirmed' && (
+                <ConfirmationButton
+                  appointmentId={selectedAppointment.id}
+                  clientName={selectedAppointment.client?.name || 'Cliente'}
+                  serviceName={selectedAppointment.service?.name || 'Servicio'}
+                  basePrice={selectedAppointment.service?.price || 0}
+                  disabled={selectedAppointment.confirmation_status === 'completed' || selectedAppointment.confirmation_status === 'confirmed'}
+                  onCompleted={() => { setSelectedAppointment(null); setCurrentDate(new Date(currentDate)) }}
+                />
+              )}
+              
+              {/* Acciones de owner/admin */}
+              {userRole !== 'empleado' && selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && (
+                <>
+                  <button 
+                    onClick={() => setShowDeleteConfirm(true)} 
+                    className="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
+                    style={{ color: COLORS.error, backgroundColor: 'transparent', border: `1px solid ${COLORS.error}30` }}
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    onClick={openEdit} 
+                    className="px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-[1.02] cursor-pointer"
+                    style={{ backgroundColor: COLORS.primary, color: '#FFF', boxShadow: '0 2px 8px rgba(15,76,92,0.3)' }}
+                  >
+                    Editar
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

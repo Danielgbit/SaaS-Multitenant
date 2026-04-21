@@ -6,6 +6,7 @@ import { confirmService } from '@/actions/confirmations/confirmService'
 import { PaymentMethodSchema } from '@/actions/confirmations/schemas'
 import { toast } from 'sonner'
 import { playServiceConfirmedSound } from '@/lib/sound/notification'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
 
 interface PaymentModalProps {
   appointmentId: string
@@ -181,7 +182,7 @@ export function PaymentModal({
               <div className="flex justify-between">
                 <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">Total</span>
                 <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                  ${totalPrice.toLocaleString('es-CO')} COP
+                  {formatCurrencyCOP(totalPrice)}
                 </span>
               </div>
             </div>

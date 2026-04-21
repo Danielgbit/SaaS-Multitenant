@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { OrganizationProvider } from '@/components/providers/OrganizationProvider'
+import { AppointmentModalProvider } from '@/components/providers/AppointmentModalProvider'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 
 export default async function DashboardLayout({
@@ -43,15 +44,17 @@ export default async function DashboardLayout({
   }
 
   return (
-    <OrganizationProvider organizationId={organizationId} role={role}>
-      <DashboardShell
-        userId={user.id}
-        role={role}
-        organizationId={organizationId}
-        organizationName={organizationName}
-      >
-        {children}
-      </DashboardShell>
-    </OrganizationProvider>
+    <AppointmentModalProvider>
+      <OrganizationProvider organizationId={organizationId} role={role}>
+        <DashboardShell
+          userId={user.id}
+          role={role}
+          organizationId={organizationId}
+          organizationName={organizationName}
+        >
+          {children}
+        </DashboardShell>
+      </OrganizationProvider>
+    </AppointmentModalProvider>
   )
 }

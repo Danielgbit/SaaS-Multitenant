@@ -3,6 +3,12 @@ import { updateSession } from '@/lib/supabase/proxy'
 import { createServerClient } from '@supabase/ssr'
 
 export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  if (pathname.startsWith('/api/cron/')) {
+    return NextResponse.next()
+  }
+
   const supabaseResponse = await updateSession(request)
 
   const supabase = createServerClient(
@@ -25,8 +31,6 @@ export async function proxy(request: NextRequest) {
   if (!user) {
     return supabaseResponse
   }
-
-  const pathname = request.nextUrl.pathname
 
   const { data: orgMember } = await supabase
     .from('organization_members')

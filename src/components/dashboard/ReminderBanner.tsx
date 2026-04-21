@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Bell, X, Clock, AlertTriangle, ChevronRight, Calendar } from 'lucide-react'
+import { Bell, X, Clock, AlertTriangle, ChevronRight, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { playReminderSound } from '@/lib/sound/notification'
 import { toast } from 'sonner'
@@ -16,12 +16,9 @@ interface ReminderNotification {
   read: boolean
 }
 
-interface AppointmentInfo {
-  id: string
-  client_name: string
-  service_name?: string
-  start_time: string
-  end_time: string
+interface ReminderBannerProps {
+  userId: string
+  onOpenAppointment?: (appointmentId: string) => void
 }
 
 function getTimeUntilEnd(endTime: string): { minutes: number; label: string; urgency: 'normal' | 'warning' | 'urgent' } {
@@ -39,12 +36,49 @@ function getTimeUntilEnd(endTime: string): { minutes: number; label: string; urg
   }
 }
 
+function getUrgencyStyles(urgency: 'normal' | 'warning' | 'urgent') {
+  const configs = {
+    normal: {
+      border: 'border-l-[#0F4C5C] dark:border-l-[#38BDF8]',
+      bg: 'bg-white/80 dark:bg-slate-800/80',
+      hoverBg: 'hover:bg-white dark:hover:bg-slate-800',
+      textPrimary: 'text-[#0F172A] dark:text-[#F8FAFC]',
+      textSecondary: 'text-[#475569] dark:text-[#94A3B8]',
+      iconBg: 'bg-[#E6F1F4] dark:bg-[#38BDF8]/10',
+      iconColor: 'text-[#0F4C5C] dark:text-[#38BDF8]',
+    },
+    warning: {
+      border: 'border-l-[#D97706]',
+      bg: 'bg-amber-50/80 dark:bg-amber-900/20',
+      hoverBg: 'hover:bg-amber-50 dark:hover:bg-amber-900/30',
+      textPrimary: 'text-amber-900 dark:text-amber-100',
+      textSecondary: 'text-amber-700 dark:text-amber-200',
+      iconBg: 'bg-amber-100 dark:bg-amber-900/40',
+      iconColor: 'text-amber-600 dark:text-amber-300',
+    },
+    urgent: {
+      border: 'border-l-[#DC2626]',
+      bg: 'bg-red-50/80 dark:bg-red-900/20',
+      hoverBg: 'hover:bg-red-50 dark:hover:bg-red-900/30',
+      textPrimary: 'text-red-900 dark:text-red-100',
+      textSecondary: 'text-red-700 dark:text-red-200',
+      iconBg: 'bg-red-100 dark:bg-red-900/40',
+      iconColor: 'text-red-600 dark:text-red-300',
+    },
+  }
+  return configs[urgency]
+}
+
 function ReminderCard({
   reminder,
-  onDismiss
+  onOpenAppointment,
+  index,
+  hasBeenShown
 }: {
   reminder: ReminderNotification
-  onDismiss: (id: string) => void
+  onOpenAppointment: (id: string) => void
+  index: number
+  hasBeenShown: boolean
 }) {
   const metadata = reminder.metadata as {
     appointment_id?: string
@@ -54,69 +88,81 @@ function ReminderCard({
 
   const endTime = metadata?.end_time || ''
   const timeInfo = endTime ? getTimeUntilEnd(endTime) : null
+  const urgency = timeInfo?.urgency || 'normal'
+  const styles = getUrgencyStyles(urgency)
 
-  const urgencyColors = {
-    normal: { bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200 dark:border-blue-800/40', text: 'text-blue-900 dark:text-blue-100' },
-    warning: { bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-200 dark:border-amber-800/40', text: 'text-amber-900 dark:text-amber-100' },
-    urgent: { bg: 'bg-red-50 dark:bg-red-950/30', border: 'border-red-200 dark:border-red-800/40', text: 'text-red-900 dark:text-red-100' },
+  const handleClick = () => {
+    if (metadata.appointment_id) {
+      onOpenAppointment(metadata.appointment_id)
+    }
   }
 
-  const colors = urgencyColors[timeInfo?.urgency || 'normal']
-
   return (
-    <div
+    <button
+      onClick={handleClick}
+      disabled={!metadata.appointment_id}
       className={`
-        relative p-3 rounded-xl border transition-all duration-200
-        ${colors.bg} ${colors.border}
+        w-full text-left p-4 rounded-xl
+        ${styles.bg} ${styles.border}
+        border-l-4 shadow-sm
+        transition-all duration-200
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] focus-visible:ring-offset-2
+        ${metadata.appointment_id ? `cursor-pointer ${styles.hoverBg}` : 'cursor-default'}
+        group
+        ${hasBeenShown ? 'animate-fadeSlideIn' : ''}
       `}
+      style={{
+        animationDelay: hasBeenShown ? `${index * 150}ms` : '0ms',
+        animationFillMode: 'both',
+      }}
+      aria-label={`Ver detalles del servicio: ${reminder.title}`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start gap-3">
+        <div className={`p-2 rounded-lg ${styles.iconBg} flex-shrink-0`}>
+          {urgency === 'urgent' ? (
+            <AlertTriangle className={`w-4 h-4 ${styles.iconColor}`} />
+          ) : (
+            <Clock className={`w-4 h-4 ${styles.iconColor}`} />
+          )}
+        </div>
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            {timeInfo?.urgency === 'urgent' ? (
-              <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
-            ) : (
-              <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-            )}
-            <span className={`font-semibold text-sm ${colors.text}`}>
+            <span className={`text-sm font-semibold ${styles.textPrimary}`}>
               {reminder.title}
             </span>
+            {urgency === 'urgent' && (
+              <span className="px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-200 text-[10px] font-medium">
+                Urgente
+              </span>
+            )}
           </div>
-          <p className={`text-sm ${colors.text} opacity-80`}>
+          <p className={`text-sm ${styles.textSecondary} line-clamp-1`}>
             {reminder.message}
           </p>
           {timeInfo && (
-            <div className="flex items-center gap-1 mt-1.5">
-              <Clock className="w-3 h-3 opacity-60" />
-              <span className={`text-xs ${colors.text} opacity-60`}>
+            <div className="flex items-center gap-1.5 mt-2">
+              <Clock className={`w-3.5 h-3.5 ${styles.textSecondary}`} />
+              <span className={`text-xs font-medium ${styles.textSecondary}`}>
                 {timeInfo.label}
               </span>
             </div>
           )}
         </div>
 
-        <button
-          onClick={() => onDismiss(reminder.id)}
-          className="p-1 rounded-lg hover:bg-white/20 dark:hover:bg-black/20 transition-colors"
-          aria-label="Dismiss"
-        >
-          <X className="w-4 h-4 opacity-60" />
-        </button>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <ChevronRight className={`w-4 h-4 ${styles.textSecondary}`} />
+        </div>
       </div>
-    </div>
+    </button>
   )
-}
-
-interface ReminderBannerProps {
-  userId: string
-  onOpenAppointment?: (appointmentId: string) => void
 }
 
 export function ReminderBanner({ userId, onOpenAppointment }: ReminderBannerProps) {
   const [reminders, setReminders] = useState<ReminderNotification[]>([])
   const [loading, setLoading] = useState(true)
   const [dismissed, setDismissed] = useState(false)
-  const [lastCount, setLastCount] = useState(0)
+  const [hasAnimatedIn, setHasAnimatedIn] = useState(false)
 
   const fetchReminders = useCallback(async () => {
     const supabase = createClient()
@@ -138,20 +184,13 @@ export function ReminderBanner({ userId, onOpenAppointment }: ReminderBannerProp
 
     if (!error && data) {
       const newCount = data.length
-      if (newCount > 0 && newCount > lastCount) {
-        playReminderSound()
-        const latestReminder = data[0]
-        toast.info(latestReminder.message, {
-          duration: 8000,
-          icon: <Bell className="w-4 h-4" />,
-        })
+      if (newCount > 0 && !hasAnimatedIn) {
+        setHasAnimatedIn(true)
       }
       setReminders(data)
-      setLastCount(newCount)
-      setDismissed(false)
     }
     setLoading(false)
-  }, [userId, lastCount])
+  }, [userId, hasAnimatedIn])
 
   useEffect(() => {
     fetchReminders()
@@ -159,14 +198,16 @@ export function ReminderBanner({ userId, onOpenAppointment }: ReminderBannerProp
     return () => clearInterval(interval)
   }, [fetchReminders])
 
-  const handleDismiss = async (notificationId: string) => {
-    const supabase = createClient()
-    await (supabase as any)
-      .from('notifications')
-      .update({ read: true })
-      .eq('id', notificationId)
+  const handleDismissAll = () => {
+    setDismissed(true)
+  }
 
-    setReminders(prev => prev.filter(r => r.id !== notificationId))
+  const handleViewService = () => {
+    const firstReminder = reminders[0]
+    const appointmentId = firstReminder?.metadata?.appointment_id as string | undefined
+    if (appointmentId && onOpenAppointment) {
+      onOpenAppointment(appointmentId)
+    }
   }
 
   if (loading || reminders.length === 0 || dismissed) {
@@ -174,63 +215,123 @@ export function ReminderBanner({ userId, onOpenAppointment }: ReminderBannerProp
   }
 
   return (
-    <div className="fixed top-16 left-0 right-0 z-30 animate-in slide-in-from-top duration-300">
-      <div
-        className={`
-          mx-auto max-w-3xl px-4 py-3 rounded-b-2xl
-          bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30
-          border-b border-l border-r border-blue-200 dark:border-blue-800/40
-          shadow-lg
-        `}
-      >
-        <div className="flex items-center justify-between gap-4 mb-3">
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Bell className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center">
+    <div
+      className="
+        w-full rounded-2xl
+        backdrop-blur-xl
+        bg-white/70 dark:bg-slate-800/70
+        border border-[#0F4C5C]/20 dark:border-[#38BDF8]/20
+        shadow-lg shadow-[#0F4C5C]/5
+        overflow-hidden
+        animate-slideInFromTop
+      "
+    >
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#0F4C5C]/10 dark:border-[#38BDF8]/10">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="p-1.5 rounded-lg bg-[#E6F1F4] dark:bg-[#38BDF8]/10">
+              <Bell className="w-4 h-4 text-[#0F4C5C] dark:text-[#38BDF8]" />
+            </div>
+            {reminders.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#0F4C5C] dark:bg-[#38BDF8] text-white text-[10px] font-bold flex items-center justify-center">
                 {reminders.length}
               </span>
-            </div>
-            <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-              Recordatorios de hoy
-            </span>
+            )}
           </div>
-
-          <button
-            onClick={() => setDismissed(true)}
-            className="p-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-            aria-label="Cerrar"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <span className="text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
+            Recordatorios de hoy
+          </span>
         </div>
 
-        <div className="space-y-2">
-          {reminders.slice(0, 3).map((reminder) => (
-            <ReminderCard
-              key={reminder.id}
-              reminder={reminder}
-              onDismiss={handleDismiss}
-            />
-          ))}
-          {reminders.length > 3 && (
-            <p className="text-xs text-blue-600 dark:text-blue-400 text-center">
-              +{reminders.length - 3} más. Ve a tu agenda para ver todos.
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center justify-center mt-3">
-          <a
-            href="/calendar"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-          >
-            <Calendar className="w-4 h-4" />
-            Ir a mi agenda
-            <ChevronRight className="w-4 h-4" />
-          </a>
-        </div>
+        <button
+          onClick={handleDismissAll}
+          className="
+            p-1.5 rounded-lg
+            text-[#475569] dark:text-[#94A3B8]
+            hover:bg-[#0F4C5C]/10 dark:hover:bg-[#38BDF8]/10
+            transition-colors duration-200
+            cursor-pointer
+          "
+          aria-label="Cerrar recordatorios"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
+
+      <div className="p-3 space-y-2">
+        {reminders.slice(0, 3).map((reminder, index) => (
+          <ReminderCard
+            key={reminder.id}
+            reminder={reminder}
+            onOpenAppointment={onOpenAppointment || (() => {})}
+            index={index}
+            hasBeenShown={hasAnimatedIn}
+          />
+        ))}
+        {reminders.length > 3 && (
+          <p className="text-xs text-center text-[#475569] dark:text-[#94A3B8] py-1">
+            +{reminders.length - 3} más. Ve a tu agenda para ver todos.
+          </p>
+        )}
+      </div>
+
+      <div className="px-3 pb-3">
+        <button
+          onClick={handleViewService}
+          disabled={!reminders[0]?.metadata?.appointment_id}
+          className="
+            w-full py-2.5 px-4 rounded-xl
+            bg-[#0F4C5C] dark:bg-[#38BDF8]
+            text-white text-sm font-medium
+            flex items-center justify-center gap-2
+            transition-colors duration-200
+            cursor-pointer
+            hover:bg-[#0C3E4A] dark:hover:bg-[#0EA5E9]
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] focus-visible:ring-offset-2
+            disabled:opacity-50 disabled:cursor-not-allowed
+          "
+        >
+          <Sparkles className="w-4 h-4" />
+          Ver servicio
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes slideInFromTop {
+          from {
+            opacity: 0;
+            transform: translateY(-12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slideInFromTop {
+          animation: slideInFromTop 300ms ease-out;
+        }
+        @keyframes fadeSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeSlideIn {
+          animation: fadeSlideIn 200ms ease-out forwards;
+          opacity: 0;
+        }
+        .line-clamp-1 {
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}} />
     </div>
   )
 }

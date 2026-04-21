@@ -3,7 +3,7 @@
 ## Estado del Proyecto
 
 **Versión Actual:** v1.0 MVP
-**Última Actualización:** 2026-04-20  
+**Última Actualización:** 2026-04-21  
 **Mercado Objetivo:** B2B wellness/health (spas, barberías, clínicas, centros de bienestar) en Colombia
 
 ---
@@ -533,6 +533,62 @@ El sistema de confirmaciones ahora es el **centro del SaaS** con notificaciones 
 |------|-------------|
 | `scheduled` | Cita programada (via calendario) |
 | `walkin` | Atendimento sin cita previa |
+
+---
+
+## Completado: Fix Sistema Cron y Formato COP (2026-04-21)
+
+### ✅ Problemas Resueltos
+
+#### Problema 1: Notificaciones de Cron no se insertaban
+
+**Causa raíz:** El cron usaba `createClient()` (anon key) donde `auth.uid()` retornaba NULL, bloqueado por RLS en la tabla `notifications`.
+
+**Solución:** El endpoint `/api/cron/check-reminders/route.ts` ahora usa `createServiceRoleClient()` para bypass completo de RLS.
+
+#### Problema 2: Middleware redirigía requests del cron
+
+**Causa raíz:** El `src/proxy.ts` redirigía todas las requests no autenticadas a `/login`, incluyendo las del cron.
+
+**Solución:** Agregada early return para paths `/api/cron/*` antes de verificar sesión.
+
+#### Problema 3: Appointments con status incorrecto para procesar recordatorios
+
+**Causa raíz:** El cron solo procesaba `status = 'confirmed'` pero los bookings crean appointments con `status = 'pending'`.
+
+**Solución:** El cron ahora procesa tanto `pending` como `confirmed`.
+
+#### Problema 4: Precios de servicios en formato decimal (error COP)
+
+**Causa raíz:** Usuario ingresaba "20" pensando "$20.000 COP" pero se almacenaba como "$20 COP" (decimal).
+
+**Solución:** 
+- Migración `20260421000000_services_price_to_integer.sql` convierte `NUMERIC(10,2)` → `NUMERIC(10,0)` y multiplica valores por 1000
+- Todos los modales de servicios ahora multiplican por 1000 al guardar y dividen por 1000 al mostrar
+
+#### Archivos Modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/actions/cron/runCheckReminders.ts` | Acepta parametro supabase opcional |
+| `src/app/api/cron/check-reminders/route.ts` | Usa `createServiceRoleClient()` |
+| `src/proxy.ts` | Bypass `/api/cron/` paths |
+| `src/app/(dashboard)/services/CreateServiceModal.tsx` | COP input handling (×1000) |
+| `src/app/(dashboard)/services/EditServiceModal.tsx` | COP input handling (÷1000 display, ×1000 submit) |
+| `src/app/(dashboard)/services/ServiceList.tsx` | Usa `formatCurrencyCOP()` |
+| `src/components/dashboard/MarkCompletedModal.tsx` | Usa `formatCurrencyCOP()` |
+| `src/components/dashboard/AdjustPriceModal.tsx` | Usa `formatCurrencyCOP()` |
+| `src/components/dashboard/PaymentModal.tsx` | Usa `formatCurrencyCOP()` |
+| `src/components/dashboard/CalendarView.tsx` | Usa `AppointmentModalProvider` |
+| `src/components/dashboard/DashboardShell.tsx` | Usa `AppointmentModalProvider` |
+| `src/components/providers/AppointmentModalProvider.tsx` | Nuevo - contexto para modal de recordatorios |
+| `src/components/dashboard/ReminderBanner.tsx` | Redesign glassmorphism teal |
+
+#### Componentes Nuevos
+
+| Componente | Descripción |
+|------------|-------------|
+| `AppointmentModalProvider.tsx` | Context para abrir modal de cita desde ReminderBanner |
 
 ---
 

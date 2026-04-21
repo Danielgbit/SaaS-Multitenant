@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { runCheckReminders } from '@/actions/cron/runCheckReminders'
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
 
 export const runtime = 'edge'
 
@@ -12,7 +13,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const result = await runCheckReminders()
+    const supabase = await createServiceRoleClient()
+    const result = await runCheckReminders(supabase)
 
     if (!result.success) {
       return NextResponse.json({

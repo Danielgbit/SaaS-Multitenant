@@ -53,7 +53,7 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
     const priceStr = formData.get('price') as string
 
     const duration = parseInt(durationStr, 10)
-    const price = parseFloat(priceStr)
+    const price = parseInt(priceStr, 10) * 1000
 
     if (isNaN(duration) || duration <= 0) {
       setError('La duración debe ser un número válido mayor a 0.')
@@ -257,11 +257,12 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
                     name="price"
                     type="number"
                     min="0"
-                    step="0.01"
+                    step="1000"
                     required
-                    placeholder="10.00"
+                    placeholder="20"
+                    title="Ingresa el precio en miles (ej: 20 = $20.000 COP)"
                     className="w-full pl-12 pr-4 min-h-[48px] rounded-xl border text-base transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-                    style={{ 
+                    style={{
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
                       borderRadius: '10px',
                       borderColor: COLORS.border,

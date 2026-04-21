@@ -2,7 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server'
 
-export async function runCheckReminders(): Promise<{
+type SupabaseClient = ReturnType<typeof createClient>
+
+export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<typeof createClient>>): Promise<{
   success: boolean
   processed: number
   reminders: number
@@ -10,7 +12,7 @@ export async function runCheckReminders(): Promise<{
   autoCompleted: number
   errors: string[]
 }> {
-  const supabase = await createClient()
+  const supabase = supabaseClient || await createClient()
   const errors: string[] = []
   let reminders = 0
   let alerts = 0

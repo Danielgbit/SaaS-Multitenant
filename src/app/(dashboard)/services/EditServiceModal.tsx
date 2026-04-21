@@ -16,7 +16,7 @@ export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
   // States to keep the inputs controlled for immediate feedback
   const [name, setName] = useState(service?.name ?? '')
   const [duration, setDuration] = useState(service?.duration?.toString() ?? '')
-  const [price, setPrice] = useState(service?.price?.toString() ?? '')
+  const [price, setPrice] = useState(service?.price ? (service.price / 1000).toString() : '')
   
   const [error, setError] = useState<string | null>(null)
 
@@ -29,7 +29,7 @@ export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
     setError(null)
 
     const dur = parseInt(duration, 10)
-    const pri = parseFloat(price)
+    const pri = parseInt(price, 10) * 1000
 
     if (isNaN(dur) || dur <= 0) {
       setError('La duración debe ser un número válido mayor a 0.')
@@ -176,7 +176,9 @@ export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
                     id="edit-service-price"
                     type="number"
                     min="0"
-                    step="0.01"
+                    step="1000"
+                    placeholder="20"
+                    title="Ingresa el precio en miles (ej: 20 = $20.000 COP)"
                     required
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}

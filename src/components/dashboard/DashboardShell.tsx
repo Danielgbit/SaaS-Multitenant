@@ -8,6 +8,7 @@ import { ConfirmationsPanel } from '@/components/dashboard/ConfirmationsPanel'
 import { ConfirmBanner } from '@/components/dashboard/ConfirmBanner'
 import { ReminderBanner } from '@/components/dashboard/ReminderBanner'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
+import { useAppointmentModal } from '@/components/providers/AppointmentModalProvider'
 
 interface DashboardShellProps {
   children: React.ReactNode
@@ -21,6 +22,7 @@ export function DashboardShell({ children, userId, role, organizationId, organiz
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [confirmationsPanelOpen, setConfirmationsPanelOpen] = useState(false)
+  const { openAppointment } = useAppointmentModal()
 
   useKeyboardShortcuts()
 
@@ -54,26 +56,32 @@ export function DashboardShell({ children, userId, role, organizationId, organiz
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <Header
-          organizationConnected={!!organizationId}
-          organizationName={organizationName}
-          role={role}
-          userId={userId}
-          onMenuToggle={() => setMobileNavOpen(true)}
-          showHamburger
-          onConfirmationsToggle={() => setConfirmationsPanelOpen(!confirmationsPanelOpen)}
-        />
-
-        {role !== 'empleado' && organizationId && (
-          <ConfirmBanner
-            organizationId={organizationId}
-            onOpenPanel={() => setConfirmationsPanelOpen(true)}
+        {/* Wrapper centrado que alinea header, banners y contenido */}
+        <div className="w-full max-w-[1280px] mx-auto px-6 md:px-8 lg:px-10">
+          <Header
+            organizationConnected={!!organizationId}
+            organizationName={organizationName}
+            role={role}
+            userId={userId}
+            onMenuToggle={() => setMobileNavOpen(true)}
+            showHamburger
+            onConfirmationsToggle={() => setConfirmationsPanelOpen(!confirmationsPanelOpen)}
           />
-        )}
 
-        {role === 'empleado' && userId && (
-          <ReminderBanner userId={userId} />
-        )}
+          {role !== 'empleado' && organizationId && (
+            <ConfirmBanner
+              organizationId={organizationId}
+              onOpenPanel={() => setConfirmationsPanelOpen(true)}
+            />
+          )}
+
+          {role === 'empleado' && userId && (
+            <ReminderBanner 
+              userId={userId} 
+              onOpenAppointment={openAppointment}
+            />
+          )}
+        </div>
 
         <ConfirmationsPanel
           organizationId={organizationId || ''}

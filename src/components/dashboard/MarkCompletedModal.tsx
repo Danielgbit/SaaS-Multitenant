@@ -5,6 +5,7 @@ import { X, CheckCircle2, Loader2, AlertCircle, Plus, Minus } from 'lucide-react
 import { markCompleted } from '@/actions/confirmations/markCompleted'
 import type { MarkCompletedState } from '@/actions/confirmations/schemas'
 import { toast } from 'sonner'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
 
 interface MarkCompletedModalProps {
   appointmentId: string
@@ -123,7 +124,7 @@ export function MarkCompletedModal({
             <div className="flex justify-between text-sm">
               <span className="text-slate-500 dark:text-slate-400">Precio base</span>
               <span className="font-medium text-slate-900 dark:text-slate-100">
-                ${basePrice.toLocaleString('es-CO')} COP
+                {formatCurrencyCOP(basePrice)}
               </span>
             </div>
           </div>
@@ -171,7 +172,7 @@ export function MarkCompletedModal({
                 Precio Total
               </span>
               <span className="text-xl font-bold text-emerald-700 dark:text-emerald-300">
-                ${finalPrice.toLocaleString('es-CO')} COP
+                {formatCurrencyCOP(finalPrice)}
               </span>
             </div>
           </div>

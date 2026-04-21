@@ -48,7 +48,7 @@ function TimeBadge({ completedAt }: { completedAt: string | null }) {
   return (
     <span
       className={`
-        inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
+        inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium
         ${urgency.level === 'critical' ? 'animate-pulse' : ''}
       `}
       style={{
@@ -56,10 +56,10 @@ function TimeBadge({ completedAt }: { completedAt: string | null }) {
         color: urgency.color,
       }}
     >
-      <Clock className="w-3 h-3" />
+      <Clock className="w-2.5 h-2.5" />
       {urgency.label}
-      {urgency.level === 'urgent' && <AlertTriangle className="w-3 h-3" />}
-      {urgency.level === 'critical' && <AlertTriangle className="w-3 h-3" />}
+      {urgency.level === 'urgent' && <AlertTriangle className="w-2.5 h-2.5" />}
+      {urgency.level === 'critical' && <AlertTriangle className="w-2.5 h-2.5" />}
     </span>
   )
 }
@@ -127,27 +127,27 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
   }
 
   return (
-    <div className="fixed top-16 left-0 right-0 z-30 animate-in slide-in-from-top duration-300">
+    <div className="w-full animate-in slide-in-from-top duration-300">
       <div
         className={`
-          mx-auto max-w-3xl mx-auto px-4 py-3 rounded-b-2xl
+          w-full px-4 py-2 rounded-b-xl
           bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30
           border-b border-l border-r border-amber-200 dark:border-amber-800/40
           shadow-lg
         `}
       >
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className="relative flex-shrink-0">
-              <Bell className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
+              <Bell className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center">
                 {pending.length > 9 ? '9+' : pending.length}
               </span>
             </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                <span className="text-xs font-semibold text-amber-900 dark:text-amber-100">
                   {pending.length} servicio{pending.length > 1 ? 's' : ''} pendiente{pending.length > 1 ? 's' : ''} de cobro
                 </span>
 
@@ -155,14 +155,14 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
                   pending.map((p) => (
                     <span
                       key={p.id}
-                      className="inline-flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-300"
+                      className="inline-flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-300"
                     >
                       <span className="font-medium">{p.clients?.name || 'Cliente'}</span>
                       <TimeBadge completedAt={p.completed_at} />
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-amber-600 dark:text-amber-400">
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400">
                     {pending.slice(0, 2).map((p) => p.clients?.name || 'Cliente').join(', ')}...
                   </span>
                 )}
@@ -170,22 +170,22 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <button
               onClick={onOpenPanel}
               className={`
-                inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
+                inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium
                 bg-amber-600 hover:bg-amber-700 text-white
                 transition-colors
               `}
             >
               Ver Panel
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3 h-3" />
             </button>
 
             <button
               onClick={() => setDismissed(true)}
-              className="p-1.5 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+              className="p-1 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
               aria-label="Minimizar"
             >
               <X className="w-4 h-4" />

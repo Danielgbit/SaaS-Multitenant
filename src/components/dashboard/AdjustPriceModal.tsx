@@ -4,6 +4,7 @@ import { useState, useTransition, useCallback } from 'react'
 import { X, Loader2, AlertCircle, DollarSign } from 'lucide-react'
 import { adjustPrice } from '@/actions/confirmations/adjustPrice'
 import { toast } from 'sonner'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
 
 interface AdjustPriceModalProps {
   appointmentId: string
@@ -115,7 +116,7 @@ export function AdjustPriceModal({
             <div className="flex justify-between text-sm">
               <span className="text-slate-500 dark:text-slate-400">Precio actual</span>
               <span className="font-medium text-slate-900 dark:text-slate-100">
-                ${currentPrice.toLocaleString('es-CO')} COP
+                {formatCurrencyCOP(currentPrice)}
               </span>
             </div>
           </div>
@@ -152,7 +153,7 @@ export function AdjustPriceModal({
                 {priceDiff > 0 ? 'Aumento' : 'Reducción'}
               </span>
               <span className="font-bold">
-                {priceDiff > 0 ? '+' : ''}${priceDiff.toLocaleString('es-CO')} COP
+                {priceDiff > 0 ? '+' : ''}{formatCurrencyCOP(priceDiff)}
               </span>
             </div>
           )}
