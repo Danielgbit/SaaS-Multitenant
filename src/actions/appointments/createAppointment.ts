@@ -142,15 +142,19 @@ export async function createAppointment(
     console.log('[DEBUG createAppointment] available slots:', JSON.stringify(availableSlots.slice(0, 5), null, 2))
 
     // Buscar si el slot solicitado está disponible
-    // Comparar timestamps normalizados (ambos sin Z para evitar timezone mismatches)
+    // Comparar usando string comparison para evitar timezone issues
     const slotAvailable = availableSlots.some(
       (slot) => {
-        const match = slot.available && new Date(slot.start_time).getTime() === startDate.getTime()
+        // Normalizar slot time para comparar (quitar Z si tiene)
+        const slotNormalized = slot.start_time.endsWith('Z')
+          ? slot.start_time.slice(0, -1)
+          : slot.start_time
+        const match = slot.available && slotNormalized === normalizedStartTime
         console.log('[DEBUG createAppointment] Comparing slot:', {
           slotStartTime: slot.start_time,
+          slotNormalized: slotNormalized,
+          normalizedStartTime: normalizedStartTime,
           slotAvailable: slot.available,
-          slotTimeMs: new Date(slot.start_time).getTime(),
-          startDateMs: startDate.getTime(),
           match: match
         })
         return match
