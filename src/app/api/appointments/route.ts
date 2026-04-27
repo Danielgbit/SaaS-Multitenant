@@ -82,7 +82,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'El servicio no existe o no está activo.' }, { status: 400 })
     }
 
-    const startDate = new Date(start_time)
+    // Normalizar start_time para comparación (quitar Z si tiene)
+    const normalizedStartTime = start_time.endsWith('Z')
+      ? start_time.slice(0, -1)
+      : start_time
+
+    const startDate = new Date(normalizedStartTime)
     const endDate = new Date(startDate.getTime() + service.duration * 60 * 1000)
 
     const dateStr = start_time.split('T')[0]
@@ -93,10 +98,14 @@ export async function POST(request: NextRequest) {
       organizationId: organization_id,
     })
 
+    // Comparar usando strings normalizados para evitar timezone issues
     const slotAvailable = availableSlots.some(
-      (slot) =>
-        slot.available &&
-        new Date(slot.start_time).getTime() === startDate.getTime()
+      (slot) => {
+        const slotNormalized = slot.start_time.endsWith('Z')
+          ? slot.start_time.slice(0, -1)
+          : slot.start_time
+        return slot.available && slotNormalized === normalizedStartTime
+      }
     )
 
     if (!slotAvailable) {
