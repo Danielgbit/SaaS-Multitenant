@@ -1077,7 +1077,9 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
                                         backgroundColor: isAvailable
                                           ? isSelected ? COLORS.primary : COLORS.surfaceSubtle
                                           : COLORS.surfaceSubtle,
-                                        border: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
+                                        borderTop: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
+                                        borderRight: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
+                                        borderBottom: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
                                         borderLeft: `4px solid ${isAvailable ? COLORS.success : slot.blockedReason ? COLORS.warning : COLORS.border}`,
                                         boxShadow: isSelected ? `0 4px 16px ${COLORS.primary}30` : 'none',
                                         opacity: isAvailable ? 1 : 0.7,
@@ -1159,7 +1161,9 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
                                         backgroundColor: isAvailable
                                           ? isSelected ? COLORS.primary : COLORS.surfaceSubtle
                                           : COLORS.surfaceSubtle,
-                                        border: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
+                                        borderTop: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
+                                        borderRight: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
+                                        borderBottom: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
                                         borderLeft: `4px solid ${isAvailable ? COLORS.success : slot.blockedReason ? COLORS.warning : COLORS.border}`,
                                         boxShadow: isSelected ? `0 4px 16px ${COLORS.primary}30` : 'none',
                                         opacity: isAvailable ? 1 : 0.7,
