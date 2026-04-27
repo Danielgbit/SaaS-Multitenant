@@ -98,6 +98,7 @@ export async function POST(request: NextRequest) {
       serviceId: service_id,
       date: dateStr,
       organizationId: organization_id,
+      bypassNotice: true, // Admin/Owner puede crear citas en cualquier slot
     })
 
     console.log('[DEBUG API route] generateSlots returned:', availableSlots.length, 'slots')
