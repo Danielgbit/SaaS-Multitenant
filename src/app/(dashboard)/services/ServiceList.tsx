@@ -5,6 +5,7 @@ import { Pencil, ToggleLeft, ToggleRight, Loader2, Scissors, Clock, DollarSign }
 import { useTheme } from 'next-themes'
 import { toggleServiceStatus } from '@/actions/services/toggleServiceStatus'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
+import { formatDuration } from '@/lib/utils/formatTime'
 import { EditServiceModal } from './EditServiceModal'
 import type { Service } from '@/types/services'
 
@@ -138,7 +139,7 @@ export function ServiceList({ services, allEmpty }: ServiceListProps) {
                 <div className="flex items-center gap-4 mt-1">
                   <p className="text-xs flex items-center gap-1.5" style={{ color: COLORS.textSecondary }}>
                     <Clock className="w-3.5 h-3.5" style={{ color: COLORS.textMuted }} aria-hidden="true" />
-                    <span>{service.duration} min</span>
+                    <span>{formatDuration(service.duration)}</span>
                   </p>
                   <p className="text-xs flex items-center gap-1.5 border-l pl-4" style={{ borderColor: COLORS.border, color: COLORS.textSecondary }}>
                     <DollarSign className="w-3.5 h-3.5" style={{ color: COLORS.textMuted }} aria-hidden="true" />

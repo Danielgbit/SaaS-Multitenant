@@ -3,9 +3,11 @@ import { redirect } from 'next/navigation'
 import { ArrowLeft, CalendarClock, Plus, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getAvailability } from '@/services/availability/getAvailability'
+import { getOverridesForEmployee } from '@/services/availability/getOverrides'
 import { WEEKDAYS } from '@/types/availability'
 import { AvailabilityForm } from './AvailabilityForm'
 import { AvailabilityList } from './AvailabilityList'
+import { OverridesSection } from './OverridesSection'
 
 export const metadata = {
   title: 'Configurar Disponibilidad | Gestión de Empleados',
@@ -63,10 +65,13 @@ export default async function AvailabilityPage({ params }: Props) {
   // 4. Obtener disponibilidad actual
   const availability = await getAvailability(employeeId)
 
+  // 5. Obtener overrides de disponibilidad
+  const overrides = await getOverridesForEmployee(employeeId)
+
   return (
     <div className="min-h-screen bg-[#FAFAF9] dark:bg-[#0F172A] transition-colors duration-300">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        
+
         {/* Header */}
         <header className="mb-8 animate-fade-in">
           <Link
@@ -76,7 +81,7 @@ export default async function AvailabilityPage({ params }: Props) {
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
             Volver a empleados
           </Link>
-          
+
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-2xl bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center flex-shrink-0">
               <CalendarClock className="w-6 h-6 text-[#0F4C5C] dark:text-[#38BDF8]" />
@@ -107,10 +112,10 @@ export default async function AvailabilityPage({ params }: Props) {
           </div>
           <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-slate-700/60 p-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium">
-              Estado
+              Overrides activos
             </p>
-            <p className={`text-lg font-semibold mt-1 ${availability.length > 0 ? 'text-[#16A34A]' : 'text-slate-400'}`}>
-              {availability.length > 0 ? 'Activo' : 'Sin configurar'}
+            <p className="text-2xl font-display font-bold text-[#0F4C5C] dark:text-[#38BDF8] mt-1">
+              {overrides.length}
             </p>
           </div>
         </div>
@@ -131,6 +136,14 @@ export default async function AvailabilityPage({ params }: Props) {
               existingAvailability={availability}
             />
           </div>
+        </section>
+
+        {/* Overrides Section */}
+        <section className="mb-6">
+          <OverridesSection
+            employeeId={employeeId}
+            overrides={overrides}
+          />
         </section>
 
         {/* Lista de horarios configurados */}

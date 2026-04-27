@@ -19,6 +19,8 @@ interface PaymentModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
+  queueNotificationId?: string
+  onQueuePaymentSuccess?: (notificationId: string) => void
 }
 
 const PAYMENT_METHODS = [
@@ -43,6 +45,8 @@ export function PaymentModal({
   isOpen,
   onClose,
   onSuccess,
+  queueNotificationId,
+  onQueuePaymentSuccess,
 }: PaymentModalProps) {
   const [isPending, startTransition] = useTransition()
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
@@ -101,10 +105,15 @@ export function PaymentModal({
 
       toast.success('Cobro registrado exitosamente')
       playServiceConfirmedSound()
-      onSuccess?.()
+      
+      if (queueNotificationId && onQueuePaymentSuccess) {
+        onQueuePaymentSuccess(queueNotificationId)
+      } else {
+        onSuccess?.()
+      }
       onClose()
     })
-  }, [appointmentId, logId, selectedMethod, notes, onClose, onSuccess])
+  }, [appointmentId, logId, selectedMethod, notes, onClose, onSuccess, queueNotificationId, onQueuePaymentSuccess])
 
   const handleClose = useCallback(() => {
     if (!isPending) {

@@ -7,12 +7,16 @@ import type { ConfirmationPending, PendingConfirmationWithDetails } from '@/type
 export async function getPendingConfirmations(
   organizationId: string,
   employeeId?: string
-): Promise<AppointmentConfirmation[]> {
+): Promise<(AppointmentConfirmation & { employee_name?: string; client_name?: string | null })[]> {
   const supabase = await createClient()
 
   let query = (supabase as any)
     .from('appointment_confirmations')
-    .select('*')
+    .select(`
+      *,
+      employees:employee_id(name),
+      appointments:appointment_id(clients(name, phone))
+    `)
     .eq('organization_id', organizationId)
     .in('status', ['pending_employee', 'pending_reception'])
     .order('created_at', { ascending: false })
@@ -28,7 +32,13 @@ export async function getPendingConfirmations(
     return []
   }
 
-  return (data as AppointmentConfirmation[]) || []
+  const result = (data || []).map((item: any) => ({
+    ...item,
+    employee_name: item.employees?.name || 'Empleado',
+    client_name: item.client_name || item.appointments?.clients?.name || null
+  }))
+
+  return result
 }
 
 export async function getPendingFromAppointments(

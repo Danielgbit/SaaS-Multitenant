@@ -16,6 +16,7 @@ import {
   Mail
 } from 'lucide-react'
 import { createPublicBooking } from '@/actions/public/createPublicBooking'
+import { formatTime, formatDate as formatDateUtil, formatDuration } from '@/lib/utils/formatTime'
 
 // =============================================================================
 // TIPOS
@@ -43,6 +44,7 @@ interface TimeSlot {
   start_time: string
   end_time: string
   available: boolean
+  blockedReason?: string
 }
 
 type BookingStep = 'service' | 'datetime' | 'client' | 'confirming' | 'confirmed'
@@ -170,19 +172,6 @@ export function BookingWizard({
     }
   }
 
-  const formatTime = (isoString: string) => {
-    return isoString.split('T')[1].slice(0, 5)
-  }
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00')
-    return date.toLocaleDateString('es-ES', { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long' 
-    })
-  }
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', { 
       style: 'currency', 
@@ -232,7 +221,7 @@ export function BookingWizard({
                 </div>
                 <div className="flex justify-between">
                   <span style={{ color: COLORS.textMuted }}>Fecha</span>
-                  <span className="font-medium" style={{ color: COLORS.textPrimary }}>{selectedDate && formatDate(selectedDate)}</span>
+                  <span className="font-medium" style={{ color: COLORS.textPrimary }}>{selectedDate && formatDateUtil(selectedDate)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span style={{ color: COLORS.textMuted }}>Hora</span>
@@ -352,7 +341,7 @@ export function BookingWizard({
                       <div>
                         <h3 className="font-medium" style={{ color: COLORS.textPrimary }}>{service.name}</h3>
                         <p className="text-sm mt-1" style={{ color: COLORS.textSecondary }}>
-                          {service.duration} minutos
+                          {formatDuration(service.duration)}
                         </p>
                       </div>
                       <span className="font-semibold" style={{ color: COLORS.primary }}>
@@ -381,7 +370,7 @@ export function BookingWizard({
               <div className="mb-6 p-3 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
                 <div className="flex justify-between items-center">
                   <span className="text-sm" style={{ color: COLORS.textSecondary }}>{selectedService?.name}</span>
-                  <span className="text-sm font-medium" style={{ color: COLORS.primary }}>{selectedService?.duration} min</span>
+                  <span className="text-sm font-medium" style={{ color: COLORS.primary }}>{formatDuration(selectedService?.duration || 0)}</span>
                 </div>
               </div>
 
@@ -436,76 +425,187 @@ export function BookingWizard({
               {/* Slots */}
               {selectedDate && selectedEmployee && (
                 <div className="mb-6">
-                  <label className="block text-sm font-medium mb-3" style={{ color: COLORS.textPrimary }}>
-                    Horarios disponibles
-                  </label>
-                  
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
+                      Horarios disponibles
+                    </label>
+                    <div className="flex items-center gap-2 text-xs" style={{ color: COLORS.textMuted }}>
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.success }} />
+                      <span>Disponible</span>
+                      <div className="w-2 h-2 rounded-full ml-2" style={{ backgroundColor: COLORS.warning }} />
+                      <span>Ocupado</span>
+                    </div>
+                  </div>
+
                   {loadingSlots ? (
                     <div className="flex justify-center py-8">
                       <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.primary }} />
                     </div>
                   ) : availableSlots.length === 0 ? (
-                    <div className="text-center py-6" style={{ color: COLORS.textMuted }}>
-                      <p className="text-sm">No hay horarios disponibles para esta fecha.</p>
-                      <p className="text-xs mt-1">Intenta con otra fecha o profesional.</p>
+                    <div className="text-center py-6 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+                      <p className="text-sm" style={{ color: COLORS.textMuted }}>No hay horarios disponibles para esta fecha.</p>
+                      <p className="text-xs mt-1" style={{ color: COLORS.textMuted }}>Intenta con otra fecha o profesional.</p>
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       {/* Morning */}
-                      {availableSlots.filter(s => parseInt(s.start_time.split('T')[1].slice(0, 2)) < 13 && s.available).length > 0 && (
+                      {availableSlots.filter(s => parseInt(s.start_time.split('T')[1].slice(0, 2)) < 13).length > 0 && (
                         <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 rounded-full bg-amber-400" />
-                            <span className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>Mañana</span>
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-400" />
+                            <span className="text-sm font-semibold tracking-wide uppercase" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>Mañana</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: COLORS.surfaceSubtle, color: COLORS.textMuted }}>Antes de 1 PM</span>
                           </div>
-                          <div className="grid grid-cols-4 gap-2">
+                          <div className="grid grid-cols-2 gap-3">
                             {availableSlots
-                              .filter(s => parseInt(s.start_time.split('T')[1].slice(0, 2)) < 13 && s.available)
-                              .map(slot => (
-                                <button
-                                  key={slot.start_time}
-                                  onClick={() => setSelectedSlot(slot.start_time)}
-                                  className="py-2 px-3 rounded-lg text-sm font-medium transition-all"
-                                  style={{ 
-                                    backgroundColor: selectedSlot === slot.start_time ? COLORS.primary : COLORS.surfaceSubtle,
-                                    color: selectedSlot === slot.start_time ? '#FFF' : COLORS.textPrimary,
-                                    border: `1px solid ${selectedSlot === slot.start_time ? COLORS.primary : COLORS.border}`
-                                  }}
-                                >
-                                  {formatTime(slot.start_time)}
-                                </button>
-                              ))}
+                              .filter(s => parseInt(s.start_time.split('T')[1].slice(0, 2)) < 13)
+                              .map((slot, idx) => {
+                                const startTime = formatTime(slot.start_time)
+                                const endTime = formatTime(slot.end_time)
+                                const isSelected = selectedSlot === slot.start_time
+                                const isAvailable = slot.available
+
+                                return (
+                                  <div
+                                    key={slot.start_time}
+                                    className={`relative rounded-xl p-4 transition-all duration-200 ${isAvailable ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-not-allowed'}`}
+                                    style={{
+                                      backgroundColor: isAvailable
+                                        ? isSelected ? COLORS.primary : COLORS.surfaceSubtle
+                                        : COLORS.surfaceSubtle,
+                                      border: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
+                                      borderLeft: `4px solid ${isAvailable ? COLORS.success : slot.blockedReason ? COLORS.warning : COLORS.border}`,
+                                      boxShadow: isSelected ? `0 4px 16px ${COLORS.primary}30` : 'none',
+                                      opacity: isAvailable ? 1 : 0.7,
+                                    }}
+                                    onClick={() => isAvailable && setSelectedSlot(slot.start_time)}
+                                  >
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-lg font-bold" style={{ 
+                                        color: isAvailable ? COLORS.textPrimary : COLORS.textMuted,
+                                        fontFamily: 'Cormorant Garamond, serif'
+                                      }}>
+                                        {startTime} → {endTime}
+                                      </span>
+                                      {isAvailable ? (
+                                        <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.success }}>
+                                          <CheckCircle2 className="w-3 h-3 text-white" />
+                                        </div>
+                                      ) : (
+                                        <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.warning }}>
+                                          <Clock className="w-3 h-3 text-white" />
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <span className="text-xs px-2 py-1 rounded-lg" style={{ 
+                                      backgroundColor: isAvailable ? COLORS.success + '15' : COLORS.warning + '15',
+                                      color: isAvailable ? COLORS.success : COLORS.warning
+                                    }}>
+                                      {slot.available ? 'Disponible' : (slot.blockedReason || 'Ocupado')}
+                                    </span>
+
+                                    {!isAvailable && slot.blockedReason && (
+                                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs opacity-0 hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap" style={{ 
+                                        backgroundColor: COLORS.textPrimary, 
+                                        color: COLORS.surface,
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                                      }}>
+                                        {slot.blockedReason}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
                           </div>
                         </div>
                       )}
 
                       {/* Afternoon */}
-                      {availableSlots.filter(s => parseInt(s.start_time.split('T')[1].slice(0, 2)) >= 13 && s.available).length > 0 && (
+                      {availableSlots.filter(s => parseInt(s.start_time.split('T')[1].slice(0, 2)) >= 13).length > 0 && (
                         <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 rounded-full bg-indigo-400" />
-                            <span className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>Tarde</span>
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400" />
+                            <span className="text-sm font-semibold tracking-wide uppercase" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>Tarde</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: COLORS.surfaceSubtle, color: COLORS.textMuted }}>Desde 1 PM</span>
                           </div>
-                          <div className="grid grid-cols-4 gap-2">
+                          <div className="grid grid-cols-2 gap-3">
                             {availableSlots
-                              .filter(s => parseInt(s.start_time.split('T')[1].slice(0, 2)) >= 13 && s.available)
-                              .map(slot => (
-                                <button
-                                  key={slot.start_time}
-                                  onClick={() => setSelectedSlot(slot.start_time)}
-                                  className="py-2 px-3 rounded-lg text-sm font-medium transition-all"
-                                  style={{ 
-                                    backgroundColor: selectedSlot === slot.start_time ? COLORS.primary : COLORS.surfaceSubtle,
-                                    color: selectedSlot === slot.start_time ? '#FFF' : COLORS.textPrimary,
-                                    border: `1px solid ${selectedSlot === slot.start_time ? COLORS.primary : COLORS.border}`
-                                  }}
-                                >
-                                  {formatTime(slot.start_time)}
-                                </button>
-                              ))}
+                              .filter(s => parseInt(s.start_time.split('T')[1].slice(0, 2)) >= 13)
+                              .map((slot, idx) => {
+                                const startTime = formatTime(slot.start_time)
+                                const endTime = formatTime(slot.end_time)
+                                const isSelected = selectedSlot === slot.start_time
+                                const isAvailable = slot.available
+
+                                return (
+                                  <div
+                                    key={slot.start_time}
+                                    className={`relative rounded-xl p-4 transition-all duration-200 ${isAvailable ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-not-allowed'}`}
+                                    style={{
+                                      backgroundColor: isAvailable
+                                        ? isSelected ? COLORS.primary : COLORS.surfaceSubtle
+                                        : COLORS.surfaceSubtle,
+                                      border: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
+                                      borderLeft: `4px solid ${isAvailable ? COLORS.success : slot.blockedReason ? COLORS.warning : COLORS.border}`,
+                                      boxShadow: isSelected ? `0 4px 16px ${COLORS.primary}30` : 'none',
+                                      opacity: isAvailable ? 1 : 0.7,
+                                    }}
+                                    onClick={() => isAvailable && setSelectedSlot(slot.start_time)}
+                                  >
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-lg font-bold" style={{
+                                        color: isAvailable ? COLORS.textPrimary : COLORS.textMuted,
+                                        fontFamily: 'var(--font-dm-sans), sans-serif',
+                                        fontWeight: 600
+                                      }}>
+                                        {startTime} → {endTime}
+                                      </span>
+                                      {isAvailable ? (
+                                        <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.success }}>
+                                          <CheckCircle2 className="w-3 h-3 text-white" />
+                                        </div>
+                                      ) : (
+                                        <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.warning }}>
+                                          <Clock className="w-3 h-3 text-white" />
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <span className="text-xs px-2 py-1 rounded-lg" style={{ 
+                                      backgroundColor: isAvailable ? COLORS.success + '15' : COLORS.warning + '15',
+                                      color: isAvailable ? COLORS.success : COLORS.warning
+                                    }}>
+                                      {slot.available ? 'Disponible' : (slot.blockedReason || 'Ocupado')}
+                                    </span>
+
+                                    {!isAvailable && slot.blockedReason && (
+                                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs opacity-0 hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap" style={{ 
+                                        backgroundColor: COLORS.textPrimary, 
+                                        color: COLORS.surface,
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                                      }}>
+                                        {slot.blockedReason}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
                           </div>
                         </div>
                       )}
+
+                      {/* Legend */}
+                      <div className="flex items-center justify-center gap-6 pt-4 border-t" style={{ borderColor: COLORS.border }}>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.success }} />
+                          <span className="text-xs" style={{ color: COLORS.textSecondary }}>Disponible</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.warning }} />
+                          <span className="text-xs" style={{ color: COLORS.textSecondary }}>Ocupado - hover para razón</span>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -564,7 +664,7 @@ export function BookingWizard({
                   <div className="flex justify-between">
                     <span style={{ color: COLORS.textMuted }}>Fecha y hora</span>
                     <span style={{ color: COLORS.textPrimary }}>
-                      {selectedDate && formatDate(selectedDate)} a las {selectedSlot && formatTime(selectedSlot)}
+                      {selectedDate && formatDateUtil(selectedDate)} a las {selectedSlot && formatTime(selectedSlot)}
                     </span>
                   </div>
                 </div>

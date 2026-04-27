@@ -27,3 +27,32 @@ export const WEEKDAYS: { value: number; label: string; short: string }[] = [
 ]
 
 export const WORKING_WEEKDAYS = WEEKDAYS.filter((d) => d.value >= 1 && d.value <= 5)
+
+export type EmployeeAvailabilityOverride = Database['public']['Tables']['employee_availability_overrides']['Row']
+
+export type SpaOverride = {
+  id: string
+  organization_id: string
+  date: string
+  is_day_off: boolean
+  start_time: string | null
+  end_time: string | null
+  reason: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type EmployeeWithSchedules = {
+  id: string
+  name: string
+  phone: string | null
+  active: boolean
+  availability: EmployeeAvailability[]
+  overrides: EmployeeAvailabilityOverride[]
+}
+
+export type SpaHours = {
+  spa_opening_time: string
+  spa_closing_time: string
+}

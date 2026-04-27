@@ -83,6 +83,23 @@ export async function createConfirmation(
     return { error: 'Para walk-in, ingresa el nombre del cliente.' }
   }
 
+  // Si tiene appointment_id, obtener client_name desde el appointment
+  let finalClientName = client_name
+  let finalClientPhone = client_phone
+
+  if (appointment_id) {
+    const { data: appointmentData } = await supabase
+      .from('appointments')
+      .select('clients(name, phone)')
+      .eq('id', appointment_id)
+      .single()
+
+    if (appointmentData?.clients) {
+      finalClientName = (appointmentData.clients as any).name || client_name
+      finalClientPhone = (appointmentData.clients as any).phone || client_phone
+    }
+  }
+
   // Insertar confirmación
   const { data: confirmation, error: insertError } = await (supabase as any)
     .from('appointment_confirmations')
@@ -95,8 +112,8 @@ export async function createConfirmation(
       confirmation_type,
       status: 'pending_reception',
       employee_confirmed_at: new Date().toISOString(),
-      client_name: client_name || null,
-      client_phone: client_phone || null,
+      client_name: finalClientName || null,
+      client_phone: finalClientPhone || null,
       notes: notes || null,
     })
     .select('id')

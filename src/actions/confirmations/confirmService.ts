@@ -10,9 +10,9 @@ export async function confirmService(
 ): Promise<ConfirmServiceState> {
   const rawData = {
     appointmentId: formData.get('appointmentId') as string,
-    logId: formData.get('logId') as string | undefined,
+    logId: (formData.get('logId') as string | undefined) ?? undefined,
     paymentMethod: formData.get('paymentMethod') as string,
-    notes: formData.get('notes') as string | undefined,
+    notes: (formData.get('notes') as string | undefined) ?? undefined,
   }
 
   const parsed = ConfirmServiceSchema.safeParse(rawData)

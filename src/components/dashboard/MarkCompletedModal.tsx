@@ -53,7 +53,9 @@ export function MarkCompletedModal({
         return
       }
 
-      toast.success('Servicio marcado como completado')
+      toast.success('Servicio completado', {
+        description: 'La recepción fue notificada para confirmar el cobro',
+      })
       onSuccess?.()
       onClose()
     })

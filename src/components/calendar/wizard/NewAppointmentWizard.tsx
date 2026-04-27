@@ -13,14 +13,15 @@ import {
   HelpCircle,
   Clock
 } from 'lucide-react'
-import { 
-  CalendarColors, 
-  Employee, 
-  Client, 
-  Service, 
+import {
+  CalendarColors,
+  Employee,
+  Client,
+  Service,
   TimeSlot,
-  NewAppointmentData 
+  NewAppointmentData
 } from '@/types/calendar'
+import { formatTime, formatDuration } from '@/lib/utils/formatTime'
 
 interface NewAppointmentWizardProps {
   COLORS: CalendarColors
@@ -318,7 +319,7 @@ export function NewAppointmentWizard({
                             className="text-sm px-2 py-1 rounded-lg"
                             style={{ backgroundColor: COLORS.primary + '15', color: COLORS.primary }}
                           >
-                            {s.duration} min
+                            {formatDuration(s.duration)}
                           </span>
                         </button>
                       ))
@@ -456,18 +457,18 @@ export function NewAppointmentWizard({
                             {mornSlots.filter(s => s.available).map(s => (
                               <button 
                                 key={s.start_time} 
-                                onClick={() => onSetNewAppointmentData({ time: s.start_time.split('T')[1].slice(0, 5) })}
+                                onClick={() => onSetNewAppointmentData({ time: formatTime(s.start_time) })}
                                 className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 ${
-                                  newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? 'ring-2 ring-offset-2' : ''
+                                  newAppointmentData.time === formatTime(s.start_time) ? 'ring-2 ring-offset-2' : ''
                                 }`}
                                 style={{ 
-                                  backgroundColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : COLORS.surfaceSubtle,
-                                  color: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? '#FFF' : COLORS.textPrimary,
-                                  borderColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : 'transparent',
-                                  boxShadow: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? `0 4px 12px ${COLORS.primary}30` : 'none'
+                                  backgroundColor: newAppointmentData.time === formatTime(s.start_time) ? COLORS.primary : COLORS.surfaceSubtle,
+                                  color: newAppointmentData.time === formatTime(s.start_time) ? '#FFF' : COLORS.textPrimary,
+                                  borderColor: newAppointmentData.time === formatTime(s.start_time) ? COLORS.primary : 'transparent',
+                                  boxShadow: newAppointmentData.time === formatTime(s.start_time) ? `0 4px 12px ${COLORS.primary}30` : 'none'
                                 }}
                               >
-                                {s.start_time.split('T')[1].slice(0, 5)}
+                                {formatTime(s.start_time)}
                               </button>
                             ))}
                           </div>
@@ -484,18 +485,18 @@ export function NewAppointmentWizard({
                             {aftSlots.filter(s => s.available).map(s => (
                               <button 
                                 key={s.start_time} 
-                                onClick={() => onSetNewAppointmentData({ time: s.start_time.split('T')[1].slice(0, 5) })}
+                                onClick={() => onSetNewAppointmentData({ time: formatTime(s.start_time) })}
                                 className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 ${
-                                  newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? 'ring-2 ring-offset-2' : ''
+                                  newAppointmentData.time === formatTime(s.start_time) ? 'ring-2 ring-offset-2' : ''
                                 }`}
                                 style={{ 
-                                  backgroundColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : COLORS.surfaceSubtle,
-                                  color: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? '#FFF' : COLORS.textPrimary,
-                                  borderColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : 'transparent',
-                                  boxShadow: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? `0 4px 12px ${COLORS.primary}30` : 'none'
+                                  backgroundColor: newAppointmentData.time === formatTime(s.start_time) ? COLORS.primary : COLORS.surfaceSubtle,
+                                  color: newAppointmentData.time === formatTime(s.start_time) ? '#FFF' : COLORS.textPrimary,
+                                  borderColor: newAppointmentData.time === formatTime(s.start_time) ? COLORS.primary : 'transparent',
+                                  boxShadow: newAppointmentData.time === formatTime(s.start_time) ? `0 4px 12px ${COLORS.primary}30` : 'none'
                                 }}
                               >
-                                {s.start_time.split('T')[1].slice(0, 5)}
+                                {formatTime(s.start_time)}
                               </button>
                             ))}
                           </div>

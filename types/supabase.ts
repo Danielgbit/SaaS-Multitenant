@@ -214,6 +214,8 @@ export type Database = {
           online_booking_enabled: boolean
           organization_id: string
           slot_interval: number
+          spa_closing_time: string
+          spa_opening_time: string
           timezone: string
         }
         Insert: {
@@ -223,6 +225,8 @@ export type Database = {
           online_booking_enabled?: boolean
           organization_id: string
           slot_interval?: number
+          spa_closing_time?: string
+          spa_opening_time?: string
           timezone?: string
         }
         Update: {
@@ -232,6 +236,8 @@ export type Database = {
           online_booking_enabled?: boolean
           organization_id?: string
           slot_interval?: number
+          spa_closing_time?: string
+          spa_opening_time?: string
           timezone?: string
         }
         Relationships: [
@@ -477,6 +483,100 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_availability_overrides: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          employee_id: string
+          end_time: string | null
+          id: string
+          is_day_off: boolean
+          reason: string | null
+          start_time: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date: string
+          employee_id: string
+          end_time?: string | null
+          id?: string
+          is_day_off?: boolean
+          reason?: string | null
+          start_time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          employee_id?: string
+          end_time?: string | null
+          id?: string
+          is_day_off?: boolean
+          reason?: string | null
+          start_time?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_availability_overrides_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spa_availability_overrides: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          end_time: string | null
+          id: string
+          is_day_off: boolean
+          organization_id: string
+          reason: string | null
+          start_time: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date: string
+          end_time?: string | null
+          id?: string
+          is_day_off?: boolean
+          organization_id: string
+          reason?: string | null
+          start_time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          end_time?: string | null
+          id?: string
+          is_day_off?: boolean
+          organization_id?: string
+          reason?: string | null
+          start_time?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spa_availability_overrides_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]

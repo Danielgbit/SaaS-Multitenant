@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, Cormorant_Garamond } from 'next/font/google'
+import { Plus_Jakarta_Sans, Cormorant_Garamond, DM_Sans } from 'next/font/google'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { Toaster } from 'sonner'
 import './globals.css'
@@ -17,6 +17,12 @@ const cormorantGaramond = Cormorant_Garamond({
   display: 'swap',
 })
 
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'Prügressy - Gestión para negocios de bienestar',
   description: 'Gestión integral para barberías, spas y negocios de bienestar',
@@ -30,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body
-        className={`${plusJakartaSans.variable} ${cormorantGaramond.variable} font-display min-h-screen flex flex-col`}
+        className={`${plusJakartaSans.variable} ${cormorantGaramond.variable} ${dmSans.variable} font-display min-h-screen flex flex-col`}
       >
         <ThemeProvider
           attribute="class"

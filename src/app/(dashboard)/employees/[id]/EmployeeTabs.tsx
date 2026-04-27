@@ -1,13 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { User, Clock, Scissors, KeyRound, Wallet } from 'lucide-react'
+import { User, Scissors, KeyRound, Wallet } from 'lucide-react'
 import type { Employee, PaymentType, SalaryFrequency } from '@/types/employees'
-import type { EmployeeAvailability } from '@/types/availability'
 import type { Service } from '@/types/services'
 import { EmployeeService } from '@/services/employees/getEmployeeServices'
 import { EmployeeInfoTab } from './EmployeeInfoTab'
-import { EmployeeAvailabilityTab } from './EmployeeAvailabilityTab'
 import { EmployeeServicesTab } from './EmployeeServicesTab'
 import { EmployeeAccessTab } from './EmployeeAccessTab'
 import { EmployeePayrollTab } from './EmployeePayrollTab'
@@ -22,7 +20,6 @@ interface EmployeeTabsProps {
     max_debt_limit: number
     debt_warning_threshold: number
   }
-  availability: EmployeeAvailability[]
   allServices: Service[]
   employeeServices: EmployeeService[]
   pendingInvitation: Invitation | null | undefined
@@ -30,19 +27,17 @@ interface EmployeeTabsProps {
   currentUserRole: string
 }
 
-type TabId = 'info' | 'availability' | 'services' | 'payroll' | 'access'
+type TabId = 'info' | 'services' | 'payroll' | 'access'
 
 const tabs = [
   { id: 'info' as const, label: 'Información', icon: User },
-  { id: 'availability' as const, label: 'Horario', icon: Clock },
-  { id: 'services' as const, label: 'Servicios', icon: Scissors },
+  { id: 'services' as const, label: 'Servicios disponibles', icon: Scissors },
   { id: 'payroll' as const, label: 'Nómina', icon: Wallet },
   { id: 'access' as const, label: 'Acceso', icon: KeyRound },
 ]
 
 export function EmployeeTabs({
   employee,
-  availability,
   allServices,
   employeeServices,
   pendingInvitation,
@@ -108,13 +103,6 @@ export function EmployeeTabs({
             <EmployeeInfoTab 
               employee={employee} 
               organizationId={organizationId} 
-            />
-          )}
-
-          {activeTab === 'availability' && (
-            <EmployeeAvailabilityTab 
-              employeeId={employee.id}
-              availability={availability}
             />
           )}
 

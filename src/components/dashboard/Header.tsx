@@ -15,6 +15,7 @@ interface HeaderProps {
   onMenuToggle?: () => void
   showHamburger?: boolean
   onConfirmationsToggle?: () => void
+  queueCount?: number
 }
 
 function getUrgencyLevel(pendingCount: number, oldestNotificationAt: number | null): {
@@ -48,7 +49,7 @@ function getUrgencyLevel(pendingCount: number, oldestNotificationAt: number | nu
   }
 }
 
-export function Header({ organizationConnected, organizationName, role, userId, onMenuToggle, showHamburger, onConfirmationsToggle }: HeaderProps) {
+export function Header({ organizationConnected, organizationName, role, userId, onMenuToggle, showHamburger, onConfirmationsToggle, queueCount = 0 }: HeaderProps) {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
   const supabase = createClient()
@@ -231,15 +232,15 @@ export function Header({ organizationConnected, organizationName, role, userId, 
             aria-label="Confirmaciones"
           >
             <Bell className="w-5 h-5" />
-            {pendingCount > 0 && (
+            {(queueCount > 0 || pendingCount > 0) && (
               <span
                 className={`
                   absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center
-                  ${urgency.animate ? 'animate-pulse' : ''}
+                  ${queueCount > 0 ? 'animate-pulse bg-emerald-500' : (urgency.animate ? 'animate-pulse' : '')}
                 `}
-                style={{ backgroundColor: urgency.bgColor }}
+                style={queueCount > 0 ? {} : { backgroundColor: urgency.bgColor }}
               >
-                {pendingCount > 9 ? '9+' : pendingCount}
+                {queueCount > 0 ? (queueCount > 9 ? '9+' : queueCount) : (pendingCount > 9 ? '9+' : pendingCount)}
               </span>
             )}
           </button>

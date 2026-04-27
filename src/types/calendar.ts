@@ -109,3 +109,53 @@ export interface StatusConfig {
   bg: string
   label: string
 }
+
+// Employee Filter Types
+export type EmployeeFilter = 'all' | string
+
+export type WorkloadLevel = 'low' | 'normal' | 'busy' | 'overloaded'
+
+export interface EmployeeWorkload {
+  employeeId: string
+  weeklyCount: number
+  maxPerDay: number
+  workloadLevel: WorkloadLevel
+}
+
+export interface CalendarFilterState {
+  selectedEmployeeId: EmployeeFilter
+  employeeWorkloads: Record<string, EmployeeWorkload>
+  isLoading: boolean
+}
+
+export interface EmployeeWithWorkload extends Employee {
+  weeklyCount: number
+  maxPerDay: number
+  workloadLevel: WorkloadLevel
+  dailyBreakdown: Record<string, number>
+}
+
+// Employee Selector Types
+export interface EmployeeChipProps {
+  employee: EmployeeWithWorkload
+  isSelected: boolean
+  onClick: () => void
+  variant: 'full' | 'compact'
+  COLORS: CalendarColors
+}
+
+export interface EmployeeSelectorBarProps {
+  employees: EmployeeWithWorkload[]
+  selectedEmployeeId: EmployeeFilter
+  onSelect: (employeeId: EmployeeFilter) => void
+  totalAppointments: number
+  COLORS: CalendarColors
+  visibleCount?: number
+}
+
+export interface OverflowDropdownProps {
+  employees: EmployeeWithWorkload[]
+  selectedEmployeeId: EmployeeFilter
+  onSelect: (employeeId: EmployeeFilter) => void
+  COLORS: CalendarColors
+}

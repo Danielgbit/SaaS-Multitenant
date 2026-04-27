@@ -25,8 +25,9 @@ export async function GET(request: NextRequest) {
     const date = searchParams.get('date')
     const organizationId = searchParams.get('organizationId')
     const employeeIdsParam = searchParams.get('employeeIds')
+    const bypassNotice = searchParams.get('bypassNotice') === 'true'
 
-    console.log('[API/SLOTS] Params:', { employeeId, serviceId, date, organizationId })
+    console.log('[API/SLOTS] Params:', { employeeId, serviceId, date, organizationId, bypassNotice })
 
     // Validación de parámetros requeridos
     if (!serviceId || !date || !organizationId) {
@@ -53,6 +54,7 @@ export async function GET(request: NextRequest) {
         serviceId,
         date,
         organizationId,
+        bypassNotice,
       })
 
       return NextResponse.json({ slots })
@@ -71,6 +73,7 @@ export async function GET(request: NextRequest) {
       serviceId,
       date,
       organizationId,
+      bypassNotice,
     })
 
     return NextResponse.json({ slots })

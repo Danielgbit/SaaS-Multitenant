@@ -1,9 +1,8 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, User, Clock, Scissors, KeyRound } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getEmployeeWithDetails } from '@/services/employees/getEmployeeWithDetails'
-import { getAvailability } from '@/services/availability/getAvailability'
 import { getServices } from '@/services/services/getServices'
 import { getEmployeeServices } from '@/services/employees/getEmployeeServices'
 import { EmployeeTabs } from './EmployeeTabs'
@@ -64,7 +63,6 @@ export default async function EmployeeDetailPage({ params }: Props) {
     redirect('/employees')
   }
 
-  const availability = await getAvailability(employeeId)
   const services = await getServices(orgMember.organization_id)
   const employeeServices = await getEmployeeServices(employeeId)
   
@@ -122,7 +120,6 @@ export default async function EmployeeDetailPage({ params }: Props) {
         {/* Tabs */}
         <EmployeeTabs 
           employee={employee}
-          availability={availability}
           allServices={services}
           employeeServices={employeeServices}
           pendingInvitation={pendingInvitation}

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { createConfirmation } from '@/actions/confirmations/createConfirmation'
+import { formatDuration } from '@/lib/utils/formatTime'
 import type { ConfirmationService } from '@/actions/confirmations/types'
 
 function useColors() {
@@ -341,7 +342,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
-                          {service.duration} min
+                          {formatDuration(service.duration)}
                         </span>
                         {isSelected && (
                           <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primary }}>

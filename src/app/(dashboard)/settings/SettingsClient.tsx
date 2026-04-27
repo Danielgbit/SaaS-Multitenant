@@ -58,6 +58,8 @@ interface BookingSettings {
   min_notice_hours: number
   timezone: string
   online_booking_enabled: boolean
+  spa_opening_time: string
+  spa_closing_time: string
 }
 
 interface Organization {
@@ -72,6 +74,8 @@ const defaultBookingSettings: BookingSettings = {
   min_notice_hours: 24,
   timezone: 'Europe/Madrid',
   online_booking_enabled: true,
+  spa_opening_time: '09:00',
+  spa_closing_time: '20:00',
 }
 
 export default function SettingsClient({ 
@@ -333,14 +337,52 @@ export default function SettingsClient({
                     ))}
                   </select>
                 </div>
+
+                <div>
+                  <label
+                    className="block text-sm font-medium mb-2"
+                    style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  >
+                    Hora apertura spa
+                  </label>
+                  <input
+                    type="time"
+                    value={bookingSettings.spa_opening_time || '09:00'}
+                    onChange={(e) => setBookingSettings({ ...bookingSettings, spa_opening_time: e.target.value })}
+                    className={`w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
+                    style={{
+                      borderColor: COLORS.border,
+                      color: COLORS.textPrimary,
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="block text-sm font-medium mb-2"
+                    style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  >
+                    Hora cierre spa
+                  </label>
+                  <input
+                    type="time"
+                    value={bookingSettings.spa_closing_time || '20:00'}
+                    onChange={(e) => setBookingSettings({ ...bookingSettings, spa_closing_time: e.target.value })}
+                    className={`w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
+                    style={{
+                      borderColor: COLORS.border,
+                      color: COLORS.textPrimary,
+                    }}
+                  />
+                </div>
               </div>
 
-              <div 
+              <div
                 className="flex items-center justify-between pt-4 border-t"
                 style={{ borderColor: COLORS.border }}
               >
                 <div>
-                  <p 
+                  <p
                     className="font-medium"
                     style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                   >

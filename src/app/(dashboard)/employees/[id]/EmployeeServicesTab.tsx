@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Scissors, Clock, DollarSign, Check, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { updateEmployeeService } from '@/actions/employees/updateEmployeeService'
+import { formatDuration } from '@/lib/utils/formatTime'
 import type { Service } from '@/types/services'
 import type { EmployeeService } from '@/services/employees/getEmployeeServices'
 
@@ -79,7 +80,7 @@ export function EmployeeServicesTab({
             Servicios disponibles
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            {enabledCount} de {allServices.length} servicios activados
+            Selecciona qué servicios ofrece este empleado y personaliza precio/duración si es necesario
           </p>
         </div>
       </div>
@@ -108,8 +109,8 @@ export function EmployeeServicesTab({
                 key={service.id}
                 className={`
                   rounded-xl border transition-all duration-200
-                  ${isEnabled 
-                    ? 'bg-white/60 dark:bg-slate-800/40 border-slate-200/50 dark:border-slate-700/40 hover:shadow-lg' 
+                  ${isEnabled
+                    ? 'bg-white/60 dark:bg-slate-800/40 border-slate-200/50 dark:border-slate-700/40 hover:shadow-lg'
                     : 'bg-slate-50/50 dark:bg-slate-800/20 border-slate-100/50 dark:border-slate-700/20'
                   }
                 `}
@@ -122,11 +123,11 @@ export function EmployeeServicesTab({
                       className={`
                         w-6 h-6 rounded-lg flex items-center justify-center
                         transition-all duration-200
-                        ${isEnabled 
-                          ? 'bg-gradient-to-br from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0ea5e9]' 
+                        ${isEnabled
+                          ? 'bg-gradient-to-br from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0ea5e9]'
                           : 'border-2 border-slate-300 dark:border-slate-600 hover:border-[#0F4C5C] dark:hover:border-[#38BDF8]'
                         }
-                        disabled:opacity-50
+                        disabled:opacity-50 cursor-pointer
                       `}
                     >
                       {isEnabled && <Check className="w-4 h-4 text-white" />}
@@ -138,7 +139,7 @@ export function EmployeeServicesTab({
                       <div className="flex items-center gap-3 text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {service.duration} min
+                          {formatDuration(service.duration)}
                         </span>
                         <span className="flex items-center gap-1">
                           <DollarSign className="w-3 h-3" />
@@ -151,7 +152,7 @@ export function EmployeeServicesTab({
                   {isEnabled && (
                     <button
                       onClick={() => setExpandedService(isExpanded ? null : service.id)}
-                      className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-700/50 transition-colors"
+                      className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
                     >
                       {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                     </button>
@@ -176,7 +177,7 @@ export function EmployeeServicesTab({
                             handleUpdateOverrides(service.id, val, employeeService?.price_override || null)
                           }}
                           className="
-                            w-full px-3 py-2 rounded-lg 
+                            w-full px-3 py-2 rounded-lg
                             bg-white/80 dark:bg-slate-800/60
                             border border-slate-200/50 dark:border-slate-700/50
                             text-sm shadow-sm
@@ -196,7 +197,7 @@ export function EmployeeServicesTab({
                             handleUpdateOverrides(service.id, employeeService?.duration_override || null, val)
                           }}
                           className="
-                            w-full px-3 py-2 rounded-lg 
+                            w-full px-3 py-2 rounded-lg
                             bg-white/80 dark:bg-slate-800/60
                             border border-slate-200/50 dark:border-slate-700/50
                             text-sm shadow-sm

@@ -3,22 +3,23 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  CalendarDays, 
-  Users, 
+import {
+  CalendarDays,
+  Users,
   Scissors,
-  LayoutDashboard, 
-  UserCircle, 
-  CreditCard, 
-  MessageSquare, 
-  Mail, 
-  Package, 
-  CheckCircle, 
+  LayoutDashboard,
+  UserCircle,
+  CreditCard,
+  MessageSquare,
+  Mail,
+  Package,
+  CheckCircle,
   Settings,
   ChevronLeft,
   Receipt,
   Wallet,
-  WalletCards
+  WalletCards,
+  Clock
 } from 'lucide-react'
 import { getRoleLabel, isEmpleado } from '@/lib/rbac'
 
@@ -113,6 +114,15 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
       icon: Scissors,
       active: pathname.startsWith('/services'),
       group: 'Gestión',
+      hideForEmpleado: true,
+    },
+    {
+      href: '/horarios',
+      label: 'Horarios',
+      icon: Clock,
+      active: pathname.startsWith('/horarios'),
+      group: 'Configuración',
+      hideForStaff: true,
       hideForEmpleado: true,
     },
     {

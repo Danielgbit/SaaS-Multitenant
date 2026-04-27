@@ -13,7 +13,7 @@ export async function markCompleted(
     priceAdjustment: formData.get('priceAdjustment') 
       ? Number(formData.get('priceAdjustment')) 
       : 0,
-    notes: formData.get('notes') as string | undefined,
+    notes: (formData.get('notes') as string | undefined) ?? undefined,
   }
 
   const parsed = MarkCompletedSchema.safeParse(rawData)
@@ -37,11 +37,16 @@ export async function markCompleted(
       id,
       organization_id,
       employee_id,
+      client_id,
       start_time,
       end_time,
       status,
       confirmation_status,
-      price_adjustment
+      price_adjustment,
+      clients (
+        name,
+        phone
+      )
     `)
     .eq('id', appointmentId)
     .single()
@@ -124,11 +129,13 @@ export async function markCompleted(
       user_id: a.user_id,
       type: 'service_ready' as const,
       title: 'Servicio completado',
-      message: `${employee.name} completó un servicio`,
+      message: `${employee.name} completó un servicio${(appointment.clients as any)?.name ? ` - ${(appointment.clients as any).name}` : ''}`,
       metadata: {
         appointment_id: appointmentId,
         employee_id: employee.id,
         employee_name: employee.name,
+        client_name: (appointment.clients as any)?.name || null,
+        client_phone: (appointment.clients as any)?.phone || null,
         log_id: log.id,
         price: finalPrice,
       },

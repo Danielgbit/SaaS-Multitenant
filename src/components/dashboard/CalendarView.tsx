@@ -23,12 +23,12 @@ import {
   HelpCircle,
   Sparkles
 } from 'lucide-react'
-import { 
-  Appointment, 
-  Employee, 
-  Client, 
-  Service, 
-  AppointmentWithDetails, 
+import {
+  Appointment,
+  Employee,
+  Client,
+  Service,
+  AppointmentWithDetails,
   CalendarViewProps,
   TimeSlot,
   NewAppointmentData,
@@ -37,6 +37,10 @@ import {
 } from '@/types/calendar'
 import { ConfirmationButton } from './ConfirmationButton'
 import { useAppointmentModal } from '@/components/providers/AppointmentModalProvider'
+import { useCalendarFilters } from '@/hooks/useCalendarFilters'
+import { EmployeeSelectorBar } from '@/components/calendar/EmployeeSelectorBar'
+import { AppointmentCardV2 } from '@/components/calendar/AppointmentCardV2'
+import { formatTime, convertTo24Hour, formatDuration } from '@/lib/utils/formatTime'
 import React from 'react'
 
 function useColors(): CalendarColors & { isDark: boolean } {
@@ -72,7 +76,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+}, [])
 
   const STATUS_CONFIG = useMemo(() => ({
     confirmed: { color: COLORS.success, bg: COLORS.successLight, label: 'Confirmada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
@@ -80,6 +84,11 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     cancelled: { color: COLORS.error, bg: COLORS.errorLight, label: 'Cancelada', icon: <XCircle className="w-3.5 h-3.5" /> },
     completed: { color: COLORS.textSecondary, bg: COLORS.borderLight, label: 'Completada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
   }), [COLORS])
+
+  const EMPLOYEE_COLORS = [
+    '#0F4C5C', '#38BDF8', '#16A34A', '#EA580C', '#8B5CF6',
+    '#EC4899', '#F59E0B', '#06B6D4', '#84CC16', '#F43F5E'
+  ]
 
   const { selectedAppointmentId, closeModal } = useAppointmentModal()
 
@@ -102,7 +111,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const [showClientDropdown, setShowClientDropdown] = useState(false)
   const [showServiceDropdown, setShowServiceDropdown] = useState(false)
   const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false)
-  const [availableSlots, setAvailableSlots] = useState<{start_time: string, end_time: string, available: boolean}[]>([])
+  const [availableSlots, setAvailableSlots] = useState<{start_time: string, end_time: string, available: boolean, blockedReason?: string}[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [slotsError, setSlotsError] = useState<string | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState(false)
@@ -113,7 +122,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const [editData, setEditData] = useState({ clientId: '', serviceId: '', employeeId: '', date: '', time: '', notes: '' })
   const [editSearch, setEditSearch] = useState({ client: '', service: '', employee: '' })
   const [showEditDropdowns, setShowEditDropdowns] = useState({ client: false, service: false, employee: false })
-  const [editSlots, setEditSlots] = useState<{start_time: string, end_time: string, available: boolean}[]>([])
+  const [editSlots, setEditSlots] = useState<{start_time: string, end_time: string, available: boolean, blockedReason?: string}[]>([])
   const [loadingEditSlots, setLoadingEditSlots] = useState(false)
   const [isSavingEdit, setIsSavingEdit] = useState(false)
   const [showTimeWarning, setShowTimeWarning] = useState(false)
@@ -121,6 +130,29 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   // Delete mode
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Employee filter hook
+  const {
+    selectedEmployeeId,
+    setSelectedEmployeeId,
+    filteredAppointments,
+    employeesWithLoad,
+    totalAppointments,
+    visibleAppointmentsCount
+  } = useCalendarFilters({
+    organizationId,
+    userRole: userRole || 'empleado',
+    employees,
+    appointments
+  })
+
+  const employeeColorMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    employees.forEach((emp, idx) => {
+      map[emp.id] = EMPLOYEE_COLORS[idx % EMPLOYEE_COLORS.length]
+    })
+    return map
+  }, [employees])
 
   const supabase = createClient()
 
@@ -139,10 +171,6 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   }, [currentDate])
 
   const formatDateKey = (date: Date): string => date.toISOString().split('T')[0]
-  const formatTime = (dateString: string): string => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false })
-  }
   const formatDateTimeFull = (dateString: string): string => {
     const date = new Date(dateString)
     return date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -224,12 +252,12 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const appointmentsByDay = useMemo(() => {
     const grouped: Record<string, AppointmentWithDetails[]> = {}
     weekDates.forEach(d => { grouped[formatDateKey(d)] = [] })
-    appointments.forEach(apt => {
+    filteredAppointments.forEach(apt => {
       const key = formatDateKey(new Date(apt.start_time))
       if (grouped[key]) grouped[key].push(apt)
     })
     return grouped
-  }, [appointments, weekDates])
+  }, [filteredAppointments, weekDates])
 
   const goToPrevWeek = useCallback(() => { const n = new Date(currentDate); n.setDate(n.getDate() - 7); setCurrentDate(n) }, [currentDate])
   const goToNextWeek = useCallback(() => { const n = new Date(currentDate); n.setDate(n.getDate() + 7); setCurrentDate(n) }, [currentDate])
@@ -261,7 +289,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     setLoadingSlots(true)
     setSlotsError(null)
     try {
-      const res = await fetch(`/api/slots?employeeId=${newAppointmentData.employeeId}&serviceId=${newAppointmentData.serviceId}&date=${newAppointmentData.date}&organizationId=${organizationId}`)
+      const res = await fetch(`/api/slots?employeeId=${newAppointmentData.employeeId}&serviceId=${newAppointmentData.serviceId}&date=${newAppointmentData.date}&organizationId=${organizationId}&bypassNotice=true`)
       const data = await res.json()
       if (data.error) {
         setSlotsError(data.error + (data.details ? ` (${data.details})` : ''))
@@ -327,7 +355,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const openEdit = () => {
     if (!selectedAppointment) return
     const apt = selectedAppointment as any
-    setEditData({ clientId: selectedAppointment.client_id, serviceId: apt?.service?.id || '', employeeId: selectedAppointment.employee_id, date: selectedAppointment.start_time.split('T')[0], time: selectedAppointment.start_time.split('T')[1].slice(0, 5), notes: selectedAppointment.notes || '' })
+    setEditData({ clientId: selectedAppointment.client_id, serviceId: apt?.service?.id || '', employeeId: selectedAppointment.employee_id, date: selectedAppointment.start_time.split('T')[0], time: formatTime(selectedAppointment.start_time), notes: selectedAppointment.notes || '' })
     setEditSearch({ client: selectedAppointment.client?.name || '', service: apt?.service?.name || '', employee: selectedAppointment.employee?.name || '' })
     setIsEditing(true); setShowTimeWarning(false)
   }
@@ -344,7 +372,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     if (!editData.employeeId || !editData.serviceId || !editData.date) return
     setLoadingEditSlots(true)
     try {
-      const res = await fetch(`/api/slots?employeeId=${editData.employeeId}&serviceId=${editData.serviceId}&date=${editData.date}&organizationId=${organizationId}`)
+      const res = await fetch(`/api/slots?employeeId=${editData.employeeId}&serviceId=${editData.serviceId}&date=${editData.date}&organizationId=${organizationId}&bypassNotice=true`)
       const data = await res.json()
       if (data.slots) setEditSlots(data.slots)
     } catch (e) { console.error(e) }
@@ -353,9 +381,10 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
 
   const handleSaveEdit = async () => {
     if (!selectedAppointment || !editData.clientId || !editData.serviceId || !editData.employeeId || !editData.time) return
-    const orig = selectedAppointment.start_time.split('T')[1].slice(0, 5)
+    const orig = formatTime(selectedAppointment.start_time)
     if (orig !== editData.time && !showTimeWarning) { setShowTimeWarning(true); return }
-    const startTime = `${editData.date}T${editData.time}:00.000Z`
+    const time24 = convertTo24Hour(editData.time)
+    const startTime = `${editData.date}T${time24}:00.000Z`
     setIsSavingEdit(true)
     try {
       const res = await fetch('/api/appointments', {
@@ -504,6 +533,18 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
         </div>
       </div>
 
+      {/* Employee Selector Bar */}
+      {employeesWithLoad.length > 0 && (
+        <EmployeeSelectorBar
+          employees={employeesWithLoad}
+          selectedEmployeeId={selectedEmployeeId}
+          onSelect={setSelectedEmployeeId}
+          totalAppointments={totalAppointments}
+          COLORS={COLORS}
+          visibleCount={5}
+        />
+      )}
+
       {/* Week days */}
       <div className="grid grid-cols-7" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
         {weekDates.map((date, i) => (
@@ -568,51 +609,18 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {dayAppts.map((apt, index) => {
-                    const st = (STATUS_CONFIG as Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }>)[apt.status] || { color: COLORS.textSecondary, bg: COLORS.borderLight, label: apt.status, icon: <Circle className="w-3.5 h-3.5" /> }
-                    const clientInitial = apt.client?.name?.charAt(0).toUpperCase() || 'C'
-                    return (
-                      <button 
-                        key={apt.id} 
-                        onClick={() => setSelectedAppointment(apt)} 
-                        className="w-full text-left p-3 rounded-xl transition-all duration-200 hover:scale-[1.02] hover:shadow-md group cursor-pointer"
-                        style={{ 
-                          backgroundColor: st.bg, 
-                          border: `1px solid ${st.color}30`, 
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                          animationDelay: `${index * 50}ms`
-                        }}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-3.5 h-3.5" style={{ color: st.color }} />
-                            <span className="text-xs font-bold" style={{ color: st.color }}>{formatTime(apt.start_time)}</span>
-                          </div>
-                          <span 
-                            className="px-1.5 py-0.5 rounded text-[10px] font-medium"
-                            style={{ backgroundColor: COLORS.isDark ? `${st.color}20` : st.color + '15', color: st.color }}
-                          >
-                            {apt.service?.name?.slice(0, 10) || 'Servicio'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
-                            style={{ backgroundColor: COLORS.primary }}
-                          >
-                            {clientInitial}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold truncate" style={{ color: COLORS.textPrimary }}>{apt.client?.name || 'Cliente'}</p>
-                            <div className="flex items-center gap-1">
-                              <Building2 className="w-3 h-3 flex-shrink-0" style={{ color: COLORS.textMuted }} />
-                              <span className="text-xs truncate" style={{ color: COLORS.textSecondary }}>{apt.employee?.name || 'Empleado'}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    )
-                  })}
+                  {dayAppts.map((apt, index) => (
+                    <AppointmentCardV2
+                      key={apt.id}
+                      apt={apt}
+                      COLORS={COLORS}
+                      STATUS_CONFIG={STATUS_CONFIG}
+                      formatTime={formatTime}
+                      onClick={() => setSelectedAppointment(apt)}
+                      showEmployeeDot={selectedEmployeeId === 'all'}
+                      employeeColors={employeeColorMap}
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -621,16 +629,24 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
       </div>
 
       {/* Footer with glassmorphism */}
-      <div 
+      <div
         className="px-6 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-3"
-        style={{ 
-          borderTop: `1px solid ${COLORS.border}`, 
+        style={{
+          borderTop: `1px solid ${COLORS.border}`,
           backgroundColor: COLORS.glass,
           backdropFilter: 'blur(12px)'
         }}
       >
         <p className="text-sm" style={{ color: COLORS.textSecondary }}>
-          <span className="font-semibold" style={{ color: COLORS.textPrimary }}>{appointments.length}</span> cita{appointments.length !== 1 ? 's' : ''} esta semana
+          {selectedEmployeeId === 'all' ? (
+            <>
+              <span className="font-semibold" style={{ color: COLORS.textPrimary }}>{visibleAppointmentsCount}</span> de {totalAppointments} cita{totalAppointments !== 1 ? 's' : ''} esta semana
+            </>
+          ) : (
+            <>
+              <span className="font-semibold" style={{ color: COLORS.textPrimary }}>{visibleAppointmentsCount}</span> cita{visibleAppointmentsCount !== 1 ? 's' : ''} esta semana
+            </>
+          )}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
           {Object.entries(STATUS_CONFIG).slice(0, 4).map(([s, c]) => (
@@ -941,7 +957,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
                             style={{ color: COLORS.textPrimary }}
                           >
                             <span className="font-medium">{s.name}</span>
-                            <span className="text-sm px-2 py-1 rounded-lg" style={{ backgroundColor: COLORS.primary + '15', color: COLORS.primary }}>{s.duration} min</span>
+                            <span className="text-sm px-2 py-1 rounded-lg" style={{ backgroundColor: COLORS.primary + '15', color: COLORS.primary }}>{formatDuration(s.duration)}</span>
                           </button>
                         ))}
                       </div>
@@ -1038,69 +1054,182 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
                         </div>
                       )}
                       {availableSlots.length > 0 && (
-                        <div className="space-y-4 max-h-72 overflow-y-auto">
+                        <div className="space-y-6 max-h-80 overflow-y-auto pr-1">
                           {mornSlots.length > 0 && (
                             <div>
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                                <span className="text-sm font-semibold" style={{ color: COLORS.textPrimary }}>Mañana</span>
-                                <div className="group relative">
-                                  <HelpCircle className="w-3.5 h-3.5 cursor-help" style={{ color: COLORS.textMuted }} />
-                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ backgroundColor: COLORS.textPrimary, color: COLORS.surface }}>
-                                    Antes de las 13:00
-                                  </div>
-                                </div>
+                              <div className="flex items-center gap-3 mb-4">
+                                <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-400" />
+                                <span className="text-sm font-semibold tracking-wide uppercase" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>Mañana</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: COLORS.surfaceHover, color: COLORS.textMuted }}>Antes de 1 PM</span>
                               </div>
-                              <div className="grid grid-cols-4 gap-2">
-                                {mornSlots.filter(s => s.available).map(s => (
-                                  <button 
-                                    key={s.start_time} 
-                                    onClick={() => setNewAppointmentData({...newAppointmentData, time: s.start_time.split('T')[1].slice(0, 5)})}
-                                    className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 ${newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? 'ring-2 ring-offset-2' : ''}`}
-                                    style={{ 
-                                      backgroundColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : COLORS.surfaceSubtle,
-                                      color: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? '#FFF' : COLORS.textPrimary,
-                                      borderColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : 'transparent',
-                                      boxShadow: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? `0 4px 12px ${COLORS.primary}30` : 'none'
-                                    }}
-                                  >
-                                    {s.start_time.split('T')[1].slice(0, 5)}
-                                  </button>
-                                ))}
+                              <div className="grid grid-cols-2 gap-3">
+                                {mornSlots.map((slot, idx) => {
+                                  const startTime = formatTime(slot.start_time)
+                                  const endTime = formatTime(slot.end_time)
+                                  const isSelected = newAppointmentData.time === startTime
+                                  const isAvailable = slot.available
+
+                                  return (
+                                    <div
+                                      key={slot.start_time}
+                                      className={`relative rounded-xl p-4 transition-all duration-200 ${isAvailable ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-not-allowed'}`}
+                                      style={{
+                                        backgroundColor: isAvailable
+                                          ? isSelected ? COLORS.primary : COLORS.surfaceSubtle
+                                          : COLORS.surfaceSubtle,
+                                        border: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
+                                        borderLeft: `4px solid ${isAvailable ? COLORS.success : slot.blockedReason ? COLORS.warning : COLORS.border}`,
+                                        boxShadow: isSelected ? `0 4px 16px ${COLORS.primary}30` : 'none',
+                                        opacity: isAvailable ? 1 : 0.7,
+                                        animationDelay: `${idx * 50}ms`,
+                                      }}
+                                      onClick={() => isAvailable && setNewAppointmentData({...newAppointmentData, time: startTime})}
+                                    >
+                                      {/* Slot time header */}
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-lg font-bold" style={{
+                                            color: isAvailable ? COLORS.textPrimary : COLORS.textMuted,
+                                            fontFamily: 'var(--font-dm-sans), sans-serif',
+                                            fontWeight: 600
+                                          }}>
+                                            {startTime} → {endTime}
+                                          </span>
+                                        </div>
+                                        {isAvailable ? (
+                                          <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.success }}>
+                                            <CheckCircle2 className="w-3 h-3 text-white" />
+                                          </div>
+                                        ) : (
+                                          <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.warning }}>
+                                            <Clock className="w-3 h-3 text-white" />
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {/* Duration badge */}
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs px-2 py-1 rounded-lg" style={{ 
+                                          backgroundColor: isAvailable ? COLORS.success + '15' : COLORS.warning + '15',
+                                          color: isAvailable ? COLORS.success : COLORS.warning
+                                        }}>
+                                          {slot.available ? 'Disponible' : (slot.blockedReason || 'No disponible')}
+                                        </span>
+                                        <span className="text-xs" style={{ color: COLORS.textMuted }}>
+                                          Verificar disponibilidad del empleado
+                                        </span>
+                                      </div>
+
+                                      {/* Hover tooltip for blocked */}
+                                      {!isAvailable && slot.blockedReason && (
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs opacity-0 hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap" style={{ 
+                                          backgroundColor: COLORS.textPrimary, 
+                                          color: COLORS.surface,
+                                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                                        }}>
+                                          {slot.blockedReason}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                })}
                               </div>
                             </div>
                           )}
+
                           {aftSlots.length > 0 && (
                             <div>
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-2.5 h-2.5 rounded-full bg-indigo-400" />
-                                <span className="text-sm font-semibold" style={{ color: COLORS.textPrimary }}>Tarde</span>
-                                <div className="group relative">
-                                  <HelpCircle className="w-3.5 h-3.5 cursor-help" style={{ color: COLORS.textMuted }} />
-                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ backgroundColor: COLORS.textPrimary, color: COLORS.surface }}>
-                                    Desde las 13:00 en adelante
-                                  </div>
-                                </div>
+                              <div className="flex items-center gap-3 mb-4">
+                                <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400" />
+                                <span className="text-sm font-semibold tracking-wide uppercase" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>Tarde</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: COLORS.surfaceHover, color: COLORS.textMuted }}>Desde 1 PM</span>
                               </div>
-                              <div className="grid grid-cols-4 gap-2">
-                                {aftSlots.filter(s => s.available).map(s => (
-                                  <button 
-                                    key={s.start_time} 
-                                    onClick={() => setNewAppointmentData({...newAppointmentData, time: s.start_time.split('T')[1].slice(0, 5)})}
-                                    className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 ${newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? 'ring-2 ring-offset-2' : ''}`}
-                                    style={{ 
-                                      backgroundColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : COLORS.surfaceSubtle,
-                                      color: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? '#FFF' : COLORS.textPrimary,
-                                      borderColor: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : 'transparent',
-                                      boxShadow: newAppointmentData.time === s.start_time.split('T')[1].slice(0, 5) ? `0 4px 12px ${COLORS.primary}30` : 'none'
-                                    }}
-                                  >
-                                    {s.start_time.split('T')[1].slice(0, 5)}
-                                  </button>
-                                ))}
+                              <div className="grid grid-cols-2 gap-3">
+                                {aftSlots.map((slot, idx) => {
+                                  const startTime = formatTime(slot.start_time)
+                                  const endTime = formatTime(slot.end_time)
+                                  const isSelected = newAppointmentData.time === startTime
+                                  const isAvailable = slot.available
+
+                                  return (
+                                    <div
+                                      key={slot.start_time}
+                                      className={`relative rounded-xl p-4 transition-all duration-200 ${isAvailable ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-not-allowed'}`}
+                                      style={{
+                                        backgroundColor: isAvailable
+                                          ? isSelected ? COLORS.primary : COLORS.surfaceSubtle
+                                          : COLORS.surfaceSubtle,
+                                        border: `2px solid ${isAvailable ? isSelected ? COLORS.primary : COLORS.success + '40' : COLORS.border}`,
+                                        borderLeft: `4px solid ${isAvailable ? COLORS.success : slot.blockedReason ? COLORS.warning : COLORS.border}`,
+                                        boxShadow: isSelected ? `0 4px 16px ${COLORS.primary}30` : 'none',
+                                        opacity: isAvailable ? 1 : 0.7,
+                                        animationDelay: `${idx * 50}ms`,
+                                      }}
+                                      onClick={() => isAvailable && setNewAppointmentData({...newAppointmentData, time: startTime})}
+                                    >
+                                      {/* Slot time header */}
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-lg font-bold" style={{
+                                            color: isAvailable ? COLORS.textPrimary : COLORS.textMuted,
+                                            fontFamily: 'var(--font-dm-sans), sans-serif',
+                                            fontWeight: 600
+                                          }}>
+                                            {startTime} → {endTime}
+                                          </span>
+                                        </div>
+                                        {isAvailable ? (
+                                          <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.success }}>
+                                            <CheckCircle2 className="w-3 h-3 text-white" />
+                                          </div>
+                                        ) : (
+                                          <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.warning }}>
+                                            <Clock className="w-3 h-3 text-white" />
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {/* Duration badge */}
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs px-2 py-1 rounded-lg" style={{ 
+                                          backgroundColor: isAvailable ? COLORS.success + '15' : COLORS.warning + '15',
+                                          color: isAvailable ? COLORS.success : COLORS.warning
+                                        }}>
+                                          {slot.available ? 'Disponible' : (slot.blockedReason || 'No disponible')}
+                                        </span>
+                                        <span className="text-xs" style={{ color: COLORS.textMuted }}>
+                                          Verificar disponibilidad del empleado
+                                        </span>
+                                      </div>
+
+                                      {/* Hover tooltip for blocked */}
+                                      {!isAvailable && slot.blockedReason && (
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-xs opacity-0 hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap" style={{ 
+                                          backgroundColor: COLORS.textPrimary, 
+                                          color: COLORS.surface,
+                                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                                        }}>
+                                          {slot.blockedReason}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                })}
                               </div>
                             </div>
                           )}
+
+                          {/* Legend */}
+                          <div className="flex items-center justify-center gap-6 pt-4 border-t" style={{ borderColor: COLORS.border }}>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.success }} />
+                              <span className="text-xs" style={{ color: COLORS.textSecondary }}>Disponible</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.warning }} />
+                              <span className="text-xs" style={{ color: COLORS.textSecondary }}>No disponible - hover para razón</span>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1179,7 +1308,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
               <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Servicio</label><input type="text" value={editSearch.service} onChange={e => { setEditSearch({...editSearch, service: e.target.value}); setShowEditDropdowns({...showEditDropdowns, service: true}) }} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface }} />{showEditDropdowns.service && <div className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface }}>{services.filter(s => s.name.toLowerCase().includes(editSearch.service.toLowerCase())).map(s => <button key={s.id} onClick={() => { setEditData({...editData, serviceId: s.id, time: ''}); setEditSearch({...editSearch, service: s.name}); setShowEditDropdowns({...showEditDropdowns, service: false}); setEditSlots([]) }} className="w-full px-4 py-3 text-left" style={{ color: COLORS.textPrimary }}>{s.name} ({s.duration} min)</button>)}</div>}</div>
               <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Profesional</label><input type="text" value={editSearch.employee} onChange={e => { setEditSearch({...editSearch, employee: e.target.value}); setShowEditDropdowns({...showEditDropdowns, employee: true}) }} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface }} />{showEditDropdowns.employee && <div className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface }}>{employees.filter(e => e.name.toLowerCase().includes(editSearch.employee.toLowerCase())).map(e => <button key={e.id} onClick={() => { setEditData({...editData, employeeId: e.id, time: ''}); setEditSearch({...editSearch, employee: e.name}); setShowEditDropdowns({...showEditDropdowns, employee: false}); setEditSlots([]) }} className="w-full px-4 py-3 text-left" style={{ color: COLORS.textPrimary }}>{e.name}</button>)}</div>}</div>
               <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Fecha</label><input type="date" value={editData.date} min={new Date().toISOString().split('T')[0]} onChange={e => { setEditData({...editData, date: e.target.value, time: ''}); setEditSlots([]); setShowTimeWarning(false) }} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} /></div>
-              {editData.date && editData.employeeId && editData.serviceId && <div>{!loadingEditSlots && editSlots.length === 0 && <button onClick={fetchEditSlots} className="w-full px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}>Ver horarios</button>}{loadingEditSlots && <div className="flex justify-center py-4"><Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.primary }} /></div>}{editSlots.length > 0 && <div className="grid grid-cols-4 gap-2">{editSlots.filter(s => s.available).map(s => <button key={s.start_time} onClick={() => { setEditData({...editData, time: s.start_time.split('T')[1].slice(0, 5)}); setShowTimeWarning(false) }} className={`px-2 py-2 rounded-lg text-sm ${editData.time === s.start_time.split('T')[1].slice(0, 5) ? 'ring-2' : ''}`} style={{ backgroundColor: editData.time === s.start_time.split('T')[1].slice(0, 5) ? COLORS.primary : COLORS.surfaceSubtle, color: editData.time === s.start_time.split('T')[1].slice(0, 5) ? '#FFF' : COLORS.textPrimary }}>{s.start_time.split('T')[1].slice(0, 5)}</button>)}</div>}</div>}
+              {editData.date && editData.employeeId && editData.serviceId && <div>{!loadingEditSlots && editSlots.length === 0 && <button onClick={fetchEditSlots} className="w-full px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}>Ver horarios</button>}{loadingEditSlots && <div className="flex justify-center py-4"><Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.primary }} /></div>}{editSlots.length > 0 && <div className="grid grid-cols-4 gap-2">{editSlots.filter(s => s.available).map(s => <button key={s.start_time} onClick={() => { setEditData({...editData, time: formatTime(s.start_time)}); setShowTimeWarning(false) }} className={`px-2 py-2 rounded-lg text-sm ${editData.time === formatTime(s.start_time) ? 'ring-2' : ''}`} style={{ backgroundColor: editData.time === formatTime(s.start_time) ? COLORS.primary : COLORS.surfaceSubtle, color: editData.time === formatTime(s.start_time) ? '#FFF' : COLORS.textPrimary }}>{formatTime(s.start_time)}</button>)}</div>}</div>}
               <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Notas</label><textarea value={editData.notes} onChange={e => setEditData({...editData, notes: e.target.value})} className="w-full px-4 py-3 rounded-xl border" rows={2} style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} /></div>{showTimeWarning && <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.warningLight }}><p className="text-sm font-medium" style={{ color: COLORS.warning }}>El horario cambió. ¿Continuar?</p></div>}
             </div>
             <div className="px-6 py-4 flex justify-between sticky bottom-0" style={{ borderTop: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surface }}>
