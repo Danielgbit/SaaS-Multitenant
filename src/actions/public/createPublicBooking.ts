@@ -19,7 +19,7 @@ const PublicBookingSchema = z.object({
   clientName: z.string().min(2, 'Nombre muy corto'),
   clientPhone: z.string().min(8, 'Teléfono inválido'),
   clientEmail: z.string().email().optional().or(z.literal('')),
-  startTime: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/, 'Fecha inválida'),
+  startTime: z.string().min(1, 'Fecha inválida'),
   notes: z.string().optional(),
 })
 
