@@ -91,6 +91,8 @@ export async function POST(request: NextRequest) {
     const endDate = new Date(startDate.getTime() + service.duration * 60 * 1000)
 
     const dateStr = start_time.split('T')[0]
+    console.log('[DEBUG API route] Calling generateSlots with:', { employeeId: employee_id, serviceId: service_id, date: dateStr, organizationId: organization_id })
+
     const availableSlots = await generateSlots({
       employeeId: employee_id,
       serviceId: service_id,
@@ -98,17 +100,26 @@ export async function POST(request: NextRequest) {
       organizationId: organization_id,
     })
 
+    console.log('[DEBUG API route] generateSlots returned:', availableSlots.length, 'slots')
+    console.log('[DEBUG API route] normalizedStartTime:', normalizedStartTime)
+    console.log('[DEBUG API route] checking slots for match...')
+
     // Comparar usando strings normalizados para evitar timezone issues
     const slotAvailable = availableSlots.some(
       (slot) => {
         const slotNormalized = slot.start_time.endsWith('Z')
           ? slot.start_time.slice(0, -1)
           : slot.start_time
-        return slot.available && slotNormalized === normalizedStartTime
+        const match = slot.available && slotNormalized === normalizedStartTime
+        console.log('[DEBUG API route] slot:', { start: slot.start_time, normalized: slotNormalized, available: slot.available, match })
+        return match
       }
     )
 
+    console.log('[DEBUG API route] slotAvailable result:', slotAvailable)
+
     if (!slotAvailable) {
+      console.log('[DEBUG API route] Returning: El horario ya no está disponible')
       return NextResponse.json(
         { error: 'El horario ya no está disponible. Por favor selecciona otro.' },
         { status: 400 }
