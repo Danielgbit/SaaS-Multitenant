@@ -114,7 +114,11 @@ export async function createAppointment(
   }
 
   // 7. Calcular hora de fin
-  const startDate = new Date(start_time)
+  // Normalizar timestamp: si tiene Z, quitarlo para que coincida con formato de slots (sin Z)
+  const normalizedStartTime = start_time.endsWith('Z')
+    ? start_time.slice(0, -1)
+    : start_time
+  const startDate = new Date(normalizedStartTime)
   const endDate = new Date(startDate.getTime() + service.duration * 60 * 1000)
 
   // 8. VERIFICAR DISPONIBILIDAD (prevenir race conditions)
@@ -130,6 +134,7 @@ export async function createAppointment(
     })
 
     // Buscar si el slot solicitado está disponible
+    // Comparar timestamps normalizados (ambos sin Z para evitar timezone mismatches)
     const slotAvailable = availableSlots.some(
       (slot) =>
         slot.available &&
