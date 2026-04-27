@@ -317,6 +317,9 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const handleCreate = async () => {
     if (!newAppointmentData.clientId || !newAppointmentData.serviceId || !newAppointmentData.employeeId || !newAppointmentData.time) return
     const startTime = `${newAppointmentData.date}T${newAppointmentData.time}:00.000Z`
+    console.log('[DEBUG CalendarView] startTime being sent:', startTime)
+    console.log('[DEBUG CalendarView] newAppointmentData.date:', newAppointmentData.date)
+    console.log('[DEBUG CalendarView] newAppointmentData.time:', newAppointmentData.time)
     setIsCreating(true)
     try {
       const payload: Record<string, string> = {

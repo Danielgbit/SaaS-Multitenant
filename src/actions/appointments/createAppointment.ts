@@ -121,6 +121,10 @@ export async function createAppointment(
   const startDate = new Date(normalizedStartTime)
   const endDate = new Date(startDate.getTime() + service.duration * 60 * 1000)
 
+  console.log('[DEBUG createAppointment] start_time received:', start_time)
+  console.log('[DEBUG createAppointment] normalizedStartTime:', normalizedStartTime)
+  console.log('[DEBUG createAppointment] startDate.getTime():', startDate.getTime())
+
   // 8. VERIFICAR DISPONIBILIDAD (prevenir race conditions)
   // Obtenemos los slots disponibles para esa fecha
   const dateStr = start_time.split('T')[0]
@@ -133,13 +137,27 @@ export async function createAppointment(
       organizationId: organization_id,
     })
 
+    console.log('[DEBUG createAppointment] generateSlots params:', { employeeId: employee_id, serviceId: service_id, date: dateStr, organizationId: organization_id })
+    console.log('[DEBUG createAppointment] slots count:', availableSlots.length)
+    console.log('[DEBUG createAppointment] available slots:', JSON.stringify(availableSlots.slice(0, 5), null, 2))
+
     // Buscar si el slot solicitado está disponible
     // Comparar timestamps normalizados (ambos sin Z para evitar timezone mismatches)
     const slotAvailable = availableSlots.some(
-      (slot) =>
-        slot.available &&
-        new Date(slot.start_time).getTime() === startDate.getTime()
+      (slot) => {
+        const match = slot.available && new Date(slot.start_time).getTime() === startDate.getTime()
+        console.log('[DEBUG createAppointment] Comparing slot:', {
+          slotStartTime: slot.start_time,
+          slotAvailable: slot.available,
+          slotTimeMs: new Date(slot.start_time).getTime(),
+          startDateMs: startDate.getTime(),
+          match: match
+        })
+        return match
+      }
     )
+
+    console.log('[DEBUG createAppointment] slotAvailable result:', slotAvailable)
 
     if (!slotAvailable) {
       return { error: 'El horario ya no está disponible. Por favor selecciona otro.' }
