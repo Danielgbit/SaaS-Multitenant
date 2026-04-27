@@ -550,10 +550,10 @@ export async function generateSlots({
       }
 
       // Agregar slot - las horas se convierten a TIME local para el ISO string
-      // SIN sufijo Z para que el navegador las interprete como hora local
+      // CON sufijo Z para que el navegador las interprete correctamente
       slots.push({
-        start_time: `${date}T${minutesToTimeLocal(time, timezone)}:00.000`,
-        end_time: `${date}T${minutesToTimeLocal(slotEnd - buffer, timezone)}:00.000`,
+        start_time: `${date}T${minutesToTimeLocal(time, timezone)}:00.000Z`,
+        end_time: `${date}T${minutesToTimeLocal(slotEnd - buffer, timezone)}:00.000Z`,
         available: !isBooked && !isPast,
         blockedReason,
       })
