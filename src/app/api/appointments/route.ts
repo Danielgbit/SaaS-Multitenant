@@ -15,9 +15,11 @@ const CreateAppointmentSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('[DEBUG API route] body received:', JSON.stringify(body, null, 2))
     const parsed = CreateAppointmentSchema.safeParse(body)
-
+    console.log('[DEBUG API route] parsed success:', parsed.success)
     if (!parsed.success) {
+      console.log('[DEBUG API route] validation errors:', JSON.stringify(parsed.error.issues, null, 2))
       return NextResponse.json(
         { error: parsed.error.issues[0]?.message || 'Datos inválidos' },
         { status: 400 }
