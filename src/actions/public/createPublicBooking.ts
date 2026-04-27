@@ -9,6 +9,15 @@ import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 
 // =============================================================================
+// HELPERS
+// =============================================================================
+
+const normalizeToISO = (val: unknown) => {
+  if (typeof val !== 'string') return val
+  return val.endsWith('Z') || val.includes('+') ? val : val + 'Z'
+}
+
+// =============================================================================
 // SCHEMA DE VALIDACIÓN
 // =============================================================================
 
@@ -19,7 +28,7 @@ const PublicBookingSchema = z.object({
   clientName: z.string().min(2, 'Nombre muy corto'),
   clientPhone: z.string().min(8, 'Teléfono inválido'),
   clientEmail: z.string().email().optional().or(z.literal('')),
-  startTime: z.string().datetime('Fecha inválida'),
+  startTime: z.preprocess(normalizeToISO, z.string().datetime('Fecha inválida')),
   notes: z.string().optional(),
 })
 

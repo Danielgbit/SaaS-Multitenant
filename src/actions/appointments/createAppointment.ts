@@ -8,6 +8,15 @@ import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 
 // =============================================================================
+// HELPERS
+// =============================================================================
+
+const normalizeToISO = (val: unknown) => {
+  if (typeof val !== 'string') return val
+  return val.endsWith('Z') || val.includes('+') ? val : val + 'Z'
+}
+
+// =============================================================================
 // SCHEMA DE VALIDACIÓN
 // =============================================================================
 
@@ -15,7 +24,7 @@ const CreateAppointmentSchema = z.object({
   employee_id: z.string().uuid('ID de empleado inválido'),
   client_id: z.string().uuid('ID de cliente inválido'),
   service_id: z.string().uuid('ID de servicio inválido'),
-  start_time: z.string().datetime('Fecha inválida'),
+  start_time: z.preprocess(normalizeToISO, z.string().datetime('Fecha inválida')),
   organization_id: z.string().uuid('ID de organización inválido'),
   notes: z.string().optional(),
 })
