@@ -532,9 +532,11 @@ export async function generateSlots({
       const slotStart = time
       const slotEnd = time + serviceDuration + buffer
 
-      // Verificar si el slot está en el pasado (comparando en UTC)
-      const slotDateTime = new Date(`${date}T${minutesToTime(time)}:00.000Z`)
+      // Verificar si el slot está en el pasado (comparando en hora local)
+      // Usar minutesToTimeLocal para que la comparación sea consistente con cómo se generan los slots
+      const slotDateTime = new Date(`${date}T${minutesToTimeLocal(time, timezone)}:00.000`)
       const isPast = slotDateTime.getTime() < minBookingTime
+      console.log(`[DEBUG generateSlots] Slot ${minutesToTimeLocal(time, timezone)}: isPast=${isPast}, slotDateTime=${slotDateTime.getTime()}, minBookingTime=${minBookingTime}`)
 
       // Verificar si el slot colisiona con citas existentes
       const isBooked = bookedSlots.some((booked) =>
