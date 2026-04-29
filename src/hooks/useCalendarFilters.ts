@@ -87,7 +87,8 @@ function employeesWithWorkload(
       weeklyCount: wl.weeklyCount,
       maxPerDay: wl.maxPerDay,
       workloadLevel: wl.workloadLevel,
-      dailyBreakdown: byDay
+      dailyBreakdown: byDay,
+      hasConfiguredSchedule: true
     }
   })
 }

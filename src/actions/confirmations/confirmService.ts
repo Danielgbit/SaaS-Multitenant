@@ -99,6 +99,7 @@ export async function confirmService(
     .from('appointments')
     .update({
       confirmation_status: 'confirmed',
+      status: 'completed',
       confirmed_at: now,
       confirmed_by: user.id,
       payment_method: paymentMethod,
@@ -138,6 +139,11 @@ export async function confirmService(
     revalidateTag(`pending-${appointment.organization_id}`)
   } catch (e) {
     console.warn('[confirmService] revalidateTag error:', e)
+  }
+  try {
+    revalidatePath('/payroll')
+  } catch (e) {
+    console.warn('[confirmService] revalidatePath /payroll error:', e)
   }
 
   return { success: true, appointmentId }

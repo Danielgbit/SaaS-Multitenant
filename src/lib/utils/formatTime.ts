@@ -76,3 +76,17 @@ export function formatDuration(minutes: number): string {
   }
   return `${hours}h ${remainingMinutes}min`
 }
+
+/**
+ * Formats a time string (HH:MM 24-hour) to 12-hour format with AM/PM
+ * @param timeStr - Time string in HH:MM format (e.g., "10:00" or "19:00")
+ * @returns Formatted time string (e.g., "10:00 AM" or "7:00 PM")
+ */
+export function formatTime12(timeStr: string): string {
+  if (!timeStr) return ''
+  const [hoursStr, minutes] = timeStr.split(':')
+  const hours = parseInt(hoursStr, 10)
+  const period = hours >= 12 ? 'PM' : 'AM'
+  const hours12 = hours % 12 || 12
+  return `${hours12}:${minutes} ${period}`
+}

@@ -84,6 +84,7 @@ export async function markManually(
     .from('appointments')
     .update({
       confirmation_status: 'completed',
+      status: 'completed',
       completed_at: now,
       completed_by: user.id,
     })

@@ -188,6 +188,7 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
             .from('appointments')
             .update({ 
               confirmation_status: 'completed',
+              status: 'completed',
               completed_at: now.toISOString(),
             })
             .eq('id', apt.id)

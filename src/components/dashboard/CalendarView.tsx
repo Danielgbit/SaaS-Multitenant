@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from 'next-themes'
+import { useRouter } from 'next/navigation'
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -21,7 +22,9 @@ import {
   Mail,
   FileText,
   HelpCircle,
-  Sparkles
+  Sparkles,
+  AlertTriangle,
+  Settings2
 } from 'lucide-react'
 import {
   Appointment,
@@ -40,6 +43,9 @@ import { useAppointmentModal } from '@/components/providers/AppointmentModalProv
 import { useCalendarFilters } from '@/hooks/useCalendarFilters'
 import { EmployeeSelectorBar } from '@/components/calendar/EmployeeSelectorBar'
 import { AppointmentCardV2 } from '@/components/calendar/AppointmentCardV2'
+import { AppointmentClusterCard } from '@/components/calendar/AppointmentClusterCard'
+import { AppointmentList } from '@/components/calendar/AppointmentList'
+import { ScheduleWarningBanner } from '@/components/calendar/ScheduleWarningBanner'
 import { formatTime, convertTo24Hour, formatDuration } from '@/lib/utils/formatTime'
 import React from 'react'
 
@@ -72,7 +78,9 @@ function useColors(): CalendarColors & { isDark: boolean } {
 
 export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const COLORS = useColors()
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
+  const [showScheduleWarning, setShowScheduleWarning] = useState(true)
 
   useEffect(() => {
     setMounted(true)
@@ -298,7 +306,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
       if (data.slots && data.slots.length > 0) {
         setAvailableSlots(data.slots)
       } else {
-        setSlotsError('No hay horarios disponibles. Verifica que el empleado tenga disponibilidad configurada para este día.')
+        setSlotsError('Este empleado no tiene horarios disponibles para este día. Configure los horarios del empleado para poder agendar citas.')
       }
     } catch (e) { 
       console.error('[SLOTS] Error:', e)
@@ -318,10 +326,6 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     if (!newAppointmentData.clientId || !newAppointmentData.serviceId || !newAppointmentData.employeeId || !newAppointmentData.time) return
     const time24 = convertTo24Hour(newAppointmentData.time)
     const startTime = `${newAppointmentData.date}T${time24}:00.000Z`
-    console.log('[DEBUG CalendarView] startTime being sent:', startTime)
-    console.log('[DEBUG CalendarView] newAppointmentData.date:', newAppointmentData.date)
-    console.log('[DEBUG CalendarView] newAppointmentData.time (12h):', newAppointmentData.time)
-    console.log('[DEBUG CalendarView] time24 (24h):', time24)
     setIsCreating(true)
     try {
       const payload: Record<string, string> = {
@@ -550,6 +554,24 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
         />
       )}
 
+      {/* Schedule Warning Banner */}
+      {selectedEmployeeId !== 'all' && showScheduleWarning && (() => {
+        const selectedEmployee = employeesWithLoad.find(e => e.id === selectedEmployeeId)
+        if (selectedEmployee && !selectedEmployee.hasConfiguredSchedule) {
+          return (
+            <div className="px-4 py-3">
+              <ScheduleWarningBanner
+                employeeName={selectedEmployee.name.split(' ')[0]}
+                onConfigure={() => router.push('/horarios')}
+                onDismiss={() => setShowScheduleWarning(false)}
+                COLORS={COLORS}
+              />
+            </div>
+          )
+        }
+        return null
+      })()}
+
       {/* Week days */}
       <div className="grid grid-cols-7" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
         {weekDates.map((date, i) => (
@@ -587,7 +609,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
           return (
             <div 
               key={i} 
-              className={`${i !== 6 && i !== 0 ? 'md:border-r' : ''} p-3 md:p-3 transition-colors duration-200`}
+              className={`${i !== 6 && i !== 0 ? 'md:border-r' : ''} p-4 md:p-4 transition-colors duration-200`}
               style={{ 
                 borderColor: COLORS.border, 
                 backgroundColor: isToday(date) ? `${COLORS.primary}05` : COLORS.surface 
@@ -606,27 +628,23 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
               </div>
               
               {dayAppts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full py-8">
+                <div className="flex flex-col items-center justify-center h-full py-10">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: COLORS.borderLight }}>
                     <Calendar className="w-5 h-5" style={{ color: COLORS.textMuted }} />
                   </div>
                   <p className="text-xs" style={{ color: COLORS.textMuted }}>Sin citas</p>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {dayAppts.map((apt, index) => (
-                    <AppointmentCardV2
-                      key={apt.id}
-                      apt={apt}
-                      COLORS={COLORS}
-                      STATUS_CONFIG={STATUS_CONFIG}
-                      formatTime={formatTime}
-                      onClick={() => setSelectedAppointment(apt)}
-                      showEmployeeDot={selectedEmployeeId === 'all'}
-                      employeeColors={employeeColorMap}
-                    />
-                  ))}
-                </div>
+                <AppointmentList
+                  appointments={dayAppts}
+                  COLORS={COLORS}
+                  STATUS_CONFIG={STATUS_CONFIG}
+                  formatTime={formatTime}
+                  onAppointmentClick={setSelectedAppointment}
+                  showEmployeeDot={selectedEmployeeId === 'all'}
+                  employeeColors={employeeColorMap}
+                  isAllEmployees={selectedEmployeeId === 'all'}
+                />
               )}
             </div>
           )
@@ -670,118 +688,239 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
 
       {/* Detail Modal */}
       {selectedAppointment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }} onClick={handleCloseAppointmentModal}>
-          <div className="w-full max-w-lg rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }} onClick={e => e.stopPropagation()}>
-            {/* Header unificado - conectado directamente al body */}
-            <div className="px-6 py-4 flex items-center justify-between relative overflow-hidden" style={{ 
-              background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
-              borderBottom: `1px solid ${COLORS.primary}40`
-            }}>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/3 translate-x-1/3" />
-              <div className="flex items-center gap-4 relative z-10">
-                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-white" />
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200" 
+          style={{ backgroundColor: 'rgba(15,23,42,0.8)', backdropFilter: 'blur(8px)' }} 
+          onClick={handleCloseAppointmentModal}
+        >
+          <div 
+            className="w-full max-w-md rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200" 
+            style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 64px rgba(0,0,0,0.4)' }} 
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header Premium */}
+            <div 
+              className="px-6 py-5 relative overflow-hidden" 
+              style={{ 
+                background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primary}CC 100%)`,
+              }}
+            >
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+              
+              <div className="flex items-start justify-between relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 
+                      className="text-xl font-semibold text-white" 
+                      style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 600 }}
+                    >
+                      Detalles de Cita
+                    </h3>
+                    <span className="text-xs text-white/60 font-mono">#{selectedAppointment.id.slice(0, 8)}</span>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Detalles</h3>
-                  <span className="text-xs text-white/60">#{selectedAppointment.id.slice(0, 8)}</span>
-                </div>
+                <button 
+                  onClick={handleCloseAppointmentModal} 
+                  className="w-8 h-8 rounded-lg hover:bg-white/20 transition-all duration-200 flex items-center justify-center cursor-pointer"
+                  aria-label="Cerrar modal"
+                >
+                  <X className="w-5 h-5 text-white/80" />
+                </button>
               </div>
-              <button 
-                onClick={handleCloseAppointmentModal} 
-                className="w-8 h-8 rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center cursor-pointer"
-                aria-label="Cerrar"
-              >
-                <X className="w-5 h-5 text-white/80 hover:text-white" />
-              </button>
             </div>
             
+            {/* Body */}
             <div className="p-6">
-              {(() => { const st = (STATUS_CONFIG as Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }>)[selectedAppointment.status] || { color: COLORS.textSecondary, bg: COLORS.borderLight, label: selectedAppointment.status, icon: <Circle /> }; return (
-                <div className="space-y-4">
-                  {/* Status pill */}
-                  <div className="flex items-center justify-end">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium" style={{ backgroundColor: st.bg, color: st.color }}>
-                      {st.icon}{st.label}
-                    </div>
-                  </div>
-                  
-                  {/* Fecha */}
-                  <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
-                        <Calendar className="w-4 h-4" style={{ color: COLORS.primary }} />
+              {(() => { 
+                const st = (STATUS_CONFIG as Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }>)[selectedAppointment.status] || { color: COLORS.textSecondary, bg: COLORS.borderLight, label: selectedAppointment.status, icon: <Circle className="w-3.5 h-3.5" /> }
+                return (
+                  <div className="space-y-5">
+                    {/* Status Badge - Full width */}
+                    <div className="flex items-center justify-between">
+                      <div 
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" 
+                        style={{ backgroundColor: st.bg, color: st.color }}
+                      >
+                        {st.icon}
+                        <span>{st.label}</span>
                       </div>
-                      <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Fecha</span>
+                      <span className="text-sm font-medium" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: COLORS.textSecondary }}>
+                        {formatTime(selectedAppointment.start_time)}
+                      </span>
                     </div>
-                    <p className="text-sm pl-11" style={{ color: COLORS.textSecondary }}>{formatDateTimeFull(selectedAppointment.start_time)}</p>
-                  </div>
-                  
-                  {/* Cliente */}
-                  <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
-                        <User className="w-4 h-4" style={{ color: COLORS.primary }} />
+                    
+                    {/* Client Info - Premium Card */}
+                    <div 
+                      className="p-4 rounded-xl transition-colors duration-200" 
+                      style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div 
+                          className="w-10 h-10 rounded-lg flex items-center justify-center" 
+                          style={{ backgroundColor: COLORS.primary + '20' }}
+                        >
+                          <User className="w-5 h-5" style={{ color: COLORS.primary }} />
+                        </div>
+                        <span 
+                          className="text-xs uppercase tracking-wider font-medium" 
+                          style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                        >
+                          Cliente
+                        </span>
                       </div>
-                      <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Cliente</span>
+                      <p 
+                        className="text-lg font-semibold mb-1" 
+                        style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                      >
+                        {selectedAppointment.client?.name || 'N/A'}
+                      </p>
+                      {selectedAppointment.client?.phone && (
+                        <div 
+                          className="flex items-center gap-2 text-sm" 
+                          style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span>{selectedAppointment.client.phone}</span>
+                        </div>
+                      )}
                     </div>
-                    <p className="font-medium pl-11" style={{ color: COLORS.textPrimary }}>{selectedAppointment.client?.name || 'N/A'}</p>
-                    {selectedAppointment.client?.phone && (
-                      <div className="flex items-center gap-2 text-sm pl-11 mt-1" style={{ color: COLORS.textSecondary }}>
-                        <Phone className="w-4 h-4" />
-                        <span>{selectedAppointment.client.phone}</span>
+                    
+                    {/* Info Grid 2x2 */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Fecha */}
+                      <div 
+                        className="p-4 rounded-xl transition-colors duration-200" 
+                        style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <Calendar className="w-4 h-4" style={{ color: COLORS.primary }} />
+                          <span 
+                            className="text-xs uppercase tracking-wider font-medium" 
+                            style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                          >
+                            Fecha
+                          </span>
+                        </div>
+                        <p 
+                          className="text-sm font-medium" 
+                          style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                        >
+                          {new Date(selectedAppointment.start_time).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        </p>
+                      </div>
+                      
+                      {/* Hora */}
+                      <div 
+                        className="p-4 rounded-xl transition-colors duration-200" 
+                        style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-4 h-4" style={{ color: COLORS.primary }} />
+                          <span 
+                            className="text-xs uppercase tracking-wider font-medium" 
+                            style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                          >
+                            Hora
+                          </span>
+                        </div>
+                        <p 
+                          className="text-sm font-medium" 
+                          style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                        >
+                          {formatTime(selectedAppointment.start_time)}
+                        </p>
+                      </div>
+                      
+                      {/* Profesional */}
+                      <div 
+                        className="p-4 rounded-xl transition-colors duration-200" 
+                        style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <Building2 className="w-4 h-4" style={{ color: COLORS.primary }} />
+                          <span 
+                            className="text-xs uppercase tracking-wider font-medium" 
+                            style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                          >
+                            Profesional
+                          </span>
+                        </div>
+                        <p 
+                          className="text-sm font-medium" 
+                          style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                        >
+                          {selectedAppointment.employee?.name?.split(' ').map(n => n[0]).join('').toUpperCase() + '. ' + selectedAppointment.employee?.name?.split(' ').slice(1).join(' ') || 'N/A'}
+                        </p>
+                      </div>
+                      
+                      {/* Servicio */}
+                      <div 
+                        className="p-4 rounded-xl transition-colors duration-200" 
+                        style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles className="w-4 h-4" style={{ color: COLORS.primary }} />
+                          <span 
+                            className="text-xs uppercase tracking-wider font-medium" 
+                            style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                          >
+                            Servicio
+                          </span>
+                        </div>
+                        <p 
+                          className="text-sm font-medium" 
+                          style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                        >
+                          {selectedAppointment.service?.name || 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Notas */}
+                    {selectedAppointment.notes && (
+                      <div 
+                        className="p-4 rounded-xl" 
+                        style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <FileText className="w-4 h-4" style={{ color: COLORS.primary }} />
+                          <span 
+                            className="text-xs uppercase tracking-wider font-medium" 
+                            style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                          >
+                            Notas
+                          </span>
+                        </div>
+                        <p 
+                          className="text-sm" 
+                          style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                        >
+                          {selectedAppointment.notes}
+                        </p>
                       </div>
                     )}
                   </div>
-                  
-                  {/* Profesional y Servicio en grid */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
-                          <Building2 className="w-4 h-4" style={{ color: COLORS.primary }} />
-                        </div>
-                        <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Profesional</span>
-                      </div>
-                      <p className="text-sm font-medium pl-11" style={{ color: COLORS.textSecondary }}>{selectedAppointment.employee?.name || 'N/A'}</p>
-                    </div>
-                    <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
-                          <Clock className="w-4 h-4" style={{ color: COLORS.primary }} />
-                        </div>
-                        <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Servicio</span>
-                      </div>
-                      <p className="text-sm font-medium pl-11" style={{ color: COLORS.textSecondary }}>{selectedAppointment.service?.name || 'N/A'}</p>
-                    </div>
-                  </div>
-                  
-                  {/* Notas */}
-                  {selectedAppointment.notes && (
-                    <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '15' }}>
-                          <FileText className="w-4 h-4" style={{ color: COLORS.primary }} />
-                        </div>
-                        <span className="font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Notas</span>
-                      </div>
-                      <p className="text-sm pl-11" style={{ color: COLORS.textSecondary }}>{selectedAppointment.notes}</p>
-                    </div>
-                  )}
-                </div>
-              )})()}
+                )
+              })()}
             </div>
             
-            {/* Footer con acciones - Jerarquía clara */}
-            <div className="px-6 py-4 flex items-center justify-end gap-3" style={{ borderTop: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surfaceSubtle }}>
-              
+            {/* Footer Actions */}
+            <div 
+              className="px-6 py-4 flex items-center justify-end gap-3" 
+              style={{ borderTop: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surfaceSubtle }}
+            >
               {/* Confirmar - solo visible si NO está confirmado y no es empleado */}
               {userRole !== 'empleado' && selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && selectedAppointment.status !== 'confirmed' && (
                 <button 
                   onClick={() => handleStatus('confirmed')} 
                   disabled={updatingStatus}
-                  className="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
-                  style={{ backgroundColor: COLORS.success, color: '#FFF' }}
+                  className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:brightness-110 cursor-pointer"
+                  style={{ backgroundColor: '#10B981', color: '#FFF' }}
                 >
                   Confirmar
                 </button>
@@ -805,14 +944,14 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
                   <button 
                     onClick={() => setShowDeleteConfirm(true)} 
                     className="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
-                    style={{ color: COLORS.error, backgroundColor: 'transparent', border: `1px solid ${COLORS.error}30` }}
+                    style={{ color: '#EF4444', backgroundColor: 'transparent', border: '1px solid #EF444440' }}
                   >
                     Cancelar
                   </button>
                   <button 
                     onClick={openEdit} 
-                    className="px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-[1.02] cursor-pointer"
-                    style={{ backgroundColor: COLORS.primary, color: '#FFF', boxShadow: '0 2px 8px rgba(15,76,92,0.3)' }}
+                    className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:brightness-110 cursor-pointer"
+                    style={{ backgroundColor: COLORS.primary, color: '#FFF' }}
                   >
                     Editar
                   </button>
@@ -1046,16 +1185,98 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
                         </div>
                       )}
                       {slotsError && (
-                        <div className="p-4 rounded-xl border-2" style={{ backgroundColor: COLORS.errorLight, borderColor: COLORS.error }}>
-                          <p className="text-sm font-medium" style={{ color: COLORS.error }}>No hay disponibilidad</p>
-                          <p className="text-xs mt-1" style={{ color: COLORS.textSecondary }}>{slotsError}</p>
-                          <button 
-                            onClick={fetchSlots} 
-                            className="mt-3 text-xs font-medium underline"
-                            style={{ color: COLORS.primary }}
-                          >
-                            Reintentar
-                          </button>
+                        <div
+                          className="relative overflow-hidden rounded-2xl border-2 backdrop-blur-md animate-in fade-in duration-200"
+                          style={{
+                            backgroundColor: COLORS.isDark
+                              ? 'rgba(69, 26, 3, 0.5)'
+                              : 'rgba(254, 243, 199, 0.6)',
+                            borderColor: COLORS.isDark
+                              ? 'rgba(251, 191, 36, 0.3)'
+                              : 'rgba(251, 191, 36, 0.4)',
+                          }}
+                          role="alertdialog"
+                          aria-modal="true"
+                          aria-labelledby="availability-error-title"
+                          aria-describedby="availability-error-desc"
+                        >
+                          <div
+                            className="absolute top-0 left-0 right-0 h-1"
+                            style={{
+                              background: 'linear-gradient(90deg, #F59E0B 0%, #FBBF24 50%, #F59E0B 100%)'
+                            }}
+                          />
+
+                          <div className="p-5">
+                            <div className="flex items-start gap-4">
+                              <div
+                                className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center animate-in zoom-in-95 duration-200"
+                                style={{
+                                  backgroundColor: COLORS.isDark
+                                    ? 'rgba(251, 191, 36, 0.2)'
+                                    : 'rgba(251, 191, 36, 0.15)',
+                                }}
+                              >
+                                <AlertTriangle
+                                  className="w-6 h-6"
+                                  style={{ color: '#F59E0B' }}
+                                />
+                              </div>
+
+                              <div className="flex-1 min-w-0">
+                                <h3
+                                  id="availability-error-title"
+                                  className="text-lg font-semibold mb-1"
+                                  style={{
+                                    color: COLORS.isDark ? '#FEF3C7' : '#78350F',
+                                    fontFamily: 'Cormorant Garamond, serif'
+                                  }}
+                                >
+                                  Sin horarios configurados
+                                </h3>
+
+                                <p
+                                  id="availability-error-desc"
+                                  className="text-sm leading-relaxed"
+                                  style={{
+                                    color: COLORS.isDark ? '#FCD34D' : '#92400E',
+                                    fontFamily: 'Plus Jakarta Sans, sans-serif'
+                                  }}
+                                >
+                                  {slotsError}
+                                </p>
+
+                                <div className="flex items-center gap-3 mt-4">
+                                  <button
+                                    onClick={() => router.push(`/employees/${newAppointmentData.employeeId}/availability`)}
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 hover:-translate-y-0.5 cursor-pointer"
+                                    style={{
+                                      backgroundColor: '#F59E0B',
+                                      color: '#FFFFFF',
+                                      fontFamily: 'Plus Jakarta Sans, sans-serif',
+                                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.35)'
+                                    }}
+                                    aria-label="Ir a configurar horarios del empleado"
+                                  >
+                                    <Settings2 className="w-4 h-4" />
+                                    Ir a configurar
+                                  </button>
+
+                                  <button
+                                    onClick={() => setSlotsError(null)}
+                                    className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 cursor-pointer"
+                                    style={{
+                                      color: COLORS.isDark ? '#FCD34D' : '#92400E',
+                                      fontFamily: 'Plus Jakarta Sans, sans-serif'
+                                    }}
+                                    aria-label="Cerrar"
+                                  >
+                                    Cerrar
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       )}
                       {availableSlots.length > 0 && (

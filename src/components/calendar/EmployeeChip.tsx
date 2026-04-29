@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, AlertTriangle } from 'lucide-react'
 import type { EmployeeWithWorkload, CalendarColors } from '@/types/calendar'
 
 interface EmployeeChipProps {
@@ -110,6 +110,16 @@ export function EmployeeChip({
           style={{ color: COLORS.primary }}
         >
           <CheckCircle2 className="w-4 h-4 fill-current" />
+        </div>
+      )}
+
+      {!employee.hasConfiguredSchedule && (
+        <div
+          className="absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: '#F59E0B' }}
+          title="Sin horarios configurados"
+        >
+          <AlertTriangle className="w-3 h-3 text-white" />
         </div>
       )}
     </button>

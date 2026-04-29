@@ -220,7 +220,7 @@ export function PayrollClient({
   if (!mounted) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+        <Loader2 className="w-8 h-8 animate-spin text-[#38BDF8]" />
       </div>
     )
   }

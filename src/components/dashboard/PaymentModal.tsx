@@ -268,7 +268,7 @@ export function PaymentModal({
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  Confirmar ${totalPrice.toLocaleString('es-CO')}
+                  Cobrar ${totalPrice.toLocaleString('es-CO')}
                 </>
               )}
             </button>

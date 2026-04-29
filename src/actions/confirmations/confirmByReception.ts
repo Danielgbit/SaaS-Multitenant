@@ -99,12 +99,27 @@ export async function confirmByReception(
     return { error: 'Error al actualizar. Intenta de nuevo.' }
   }
 
-  // Si hay appointment_id y se completó, actualizar el status de la cita
-  if (confirmation.appointment_id && action === 'complete') {
-    await supabase
-      .from('appointments')
-      .update({ status: 'completed' })
-      .eq('id', confirmation.appointment_id)
+  // Si hay appointment_id, actualizar el status de la cita según la acción
+  if (confirmation.appointment_id) {
+    if (action === 'complete') {
+      await supabase
+        .from('appointments')
+        .update({
+          status: 'completed',
+          confirmation_status: 'completed',
+        })
+        .eq('id', confirmation.appointment_id)
+    } else if (action === 'no_show') {
+      await supabase
+        .from('appointments')
+        .update({ status: 'no_show' })
+        .eq('id', confirmation.appointment_id)
+    } else if (action === 'not_performed') {
+      await supabase
+        .from('appointments')
+        .update({ status: 'canceled' })
+        .eq('id', confirmation.appointment_id)
+    }
   }
 
   console.log('[confirmByReception] Confirmation updated:', confirmation_id, 'to', newStatus)
@@ -113,6 +128,7 @@ export async function confirmByReception(
   revalidatePath('/dashboard/confirmations/reception')
   revalidatePath('/dashboard/confirmations/employee')
   revalidatePath('/dashboard/my-services')
+  revalidatePath('/payroll')
 
   return { success: true }
 }

@@ -451,29 +451,35 @@ export async function generateSlots({
   // 6. Obtener disponibilidad del empleado para ese día
   const availability = await getEmployeeAvailabilityForDay(employeeId, dayOfWeek)
 
-  if (!availability && !override) {
+  // Si override existe pero no tiene horarios (día libre), retornar vacío
+  if (override && !override.start_time && !override.end_time) {
     return []
   }
 
   // 7. Determinar rango de tiempo efectivo (en minutos UTC)
-  // Priority: Employee Override > Spa Global Override > Normal availability
+  // Priority: Employee Override > Employee Availability > Spa Default
   let effectiveStartMinutes: number
   let effectiveEndMinutes: number
 
   if (override?.start_time && override?.end_time) {
+    // Override completo del empleado
     effectiveStartMinutes = timeToMinutesUTC(override.start_time, timezone)
     effectiveEndMinutes = timeToMinutesUTC(override.end_time, timezone)
   } else if (override?.start_time && !override?.end_time) {
+    // Override parcial - solo inicio
     effectiveStartMinutes = timeToMinutesUTC(override.start_time, timezone)
-    effectiveEndMinutes = timeToMinutesUTC(availability!.end_time, timezone)
+    effectiveEndMinutes = timeToMinutesUTC(availability?.end_time || settings.spa_closing_time, timezone)
   } else if (!override?.start_time && override?.end_time) {
-    effectiveStartMinutes = timeToMinutesUTC(availability!.start_time, timezone)
+    // Override parcial - solo fin
+    effectiveStartMinutes = timeToMinutesUTC(availability?.start_time || settings.spa_opening_time, timezone)
     effectiveEndMinutes = timeToMinutesUTC(override.end_time, timezone)
-  } else if (override && !override.start_time && !override.end_time) {
-    return []
+  } else if (availability) {
+    // Disponibilidad normal del empleado
+    effectiveStartMinutes = timeToMinutesUTC(availability.start_time, timezone)
+    effectiveEndMinutes = timeToMinutesUTC(availability.end_time, timezone)
   } else {
-    effectiveStartMinutes = timeToMinutesUTC(availability!.start_time, timezone)
-    effectiveEndMinutes = timeToMinutesUTC(availability!.end_time, timezone)
+    // Sin configuración del empleado - retornar vacío para forzar configuración
+    return []
   }
 
   // 8. Apply spa global override if exists (further restricts the range)
@@ -533,10 +539,8 @@ export async function generateSlots({
       const slotEnd = time + serviceDuration + buffer
 
       // Verificar si el slot está en el pasado (comparando en hora local)
-      // Usar minutesToTimeLocal para que la comparación sea consistente con cómo se generan los slots
       const slotDateTime = new Date(`${date}T${minutesToTimeLocal(time, timezone)}:00.000`)
       const isPast = slotDateTime.getTime() < minBookingTime
-      console.log(`[DEBUG generateSlots] Slot ${minutesToTimeLocal(time, timezone)}: isPast=${isPast}, slotDateTime=${slotDateTime.getTime()}, minBookingTime=${minBookingTime}`)
 
       // Verificar si el slot colisiona con citas existentes
       const isBooked = bookedSlots.some((booked) =>

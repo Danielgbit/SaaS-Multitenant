@@ -46,7 +46,7 @@ export function AppointmentCardV2({
   return (
     <button
       onClick={onClick}
-      className="w-full text-left p-3 rounded-xl transition-all duration-200 hover:scale-[1.02] cursor-pointer group relative overflow-hidden"
+      className="w-full text-left p-4 rounded-xl transition-all duration-200 hover:scale-[1.02] cursor-pointer group relative overflow-hidden"
       style={{
         backgroundColor: st.bg,
         border: `1px solid ${st.color}30`,
@@ -78,9 +78,9 @@ export function AppointmentCardV2({
         </span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <div
-          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
           style={{ backgroundColor: COLORS.primary }}
         >
           {clientInitial}

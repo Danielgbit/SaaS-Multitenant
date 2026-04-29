@@ -133,6 +133,7 @@ export interface EmployeeWithWorkload extends Employee {
   maxPerDay: number
   workloadLevel: WorkloadLevel
   dailyBreakdown: Record<string, number>
+  hasConfiguredSchedule: boolean
 }
 
 // Employee Selector Types

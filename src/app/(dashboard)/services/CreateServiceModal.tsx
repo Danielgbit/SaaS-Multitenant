@@ -1,18 +1,21 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X, Scissors, Clock, DollarSign, Loader2 } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { X, Scissors, Clock, DollarSign, Loader2, Check } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { createService } from '@/actions/services/createService'
+import { parseDuration, formatDurationDisplay, needsParsing, formatDurationInput } from '@/lib/utils/parseDuration'
+import { formatPriceInput, parsePriceToNumber } from '@/lib/utils/parsePrice'
 
 function useColors() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  
+
   return {
     primary: isDark ? '#38BDF8' : '#0F4C5C',
     primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
-    primaryGradient: isDark 
+    primaryGradient: isDark
       ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
       : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
     surface: isDark ? '#0F172A' : '#FFFFFF',
@@ -39,37 +42,121 @@ interface CreateServiceModalProps {
 export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [durationDisplay, setDurationDisplay] = useState<string | null>(null)
+  const [durationValue, setDurationValue] = useState('')
+  const [priceValue, setPriceValue] = useState('')
+  const [priceDisplay, setPriceDisplay] = useState<string | null>(null)
   const COLORS = useColors()
 
   if (!isOpen) return null
+
+  function handleDurationChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value
+    setDurationValue(value)
+
+    if (!value) {
+      setDurationDisplay(null)
+      return
+    }
+
+    if (needsParsing(value)) {
+      const parsed = parseDuration(value)
+      if (parsed !== null) {
+        setDurationDisplay(formatDurationDisplay(parsed))
+      } else {
+        setDurationDisplay(null)
+      }
+    } else {
+      const numericValue = parseInt(value, 10)
+      if (!isNaN(numericValue) && numericValue > 0) {
+        setDurationDisplay(formatDurationDisplay(numericValue))
+      } else {
+        setDurationDisplay(null)
+      }
+    }
+  }
+
+  function handleDurationBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const value = e.target.value
+    if (!value) return
+
+    const formatted = formatDurationInput(value)
+    setDurationValue(formatted)
+
+    if (formatted !== value) {
+      const parsed = parseDuration(formatted)
+      if (parsed !== null) {
+        setDurationDisplay(formatDurationDisplay(parsed))
+      }
+    }
+  }
+
+  function handlePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value.replace(/[^\d]/g, '')
+    const formatted = formatPriceInput(raw)
+    setPriceValue(formatted)
+
+    if (formatted) {
+      const num = parsePriceToNumber(formatted)
+      setPriceDisplay(num.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }))
+    } else {
+      setPriceDisplay(null)
+    }
+  }
+
+  function handlePriceBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const value = e.target.value
+    if (!value) return
+
+    const raw = value.replace(/[^\d]/g, '')
+    if (!raw) return
+
+    const num = parseInt(raw, 10)
+    if (isNaN(num) || num === 0) return
+
+    if (num < 100) {
+      const multiplied = num * 1000
+      const formatted = formatPriceInput(multiplied.toString())
+      setPriceValue(formatted)
+      setPriceDisplay(multiplied.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }))
+    }
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     const formData = new FormData(e.currentTarget)
-    
+
     const name = formData.get('name') as string
-    const durationStr = formData.get('duration') as string
-    const priceStr = formData.get('price') as string
 
-    const duration = parseInt(durationStr, 10)
-    const price = parseInt(priceStr, 10) * 1000
-
-    if (isNaN(duration) || duration <= 0) {
-      setError('La duración debe ser un número válido mayor a 0.')
+    const duration = parseDuration(durationValue)
+    if (duration === null) {
+      setError('La duración debe ser un número válido (ej: 90, 1:30, 2h, 2.5)')
       return
     }
 
-    if (isNaN(price) || price < 0) {
-      setError('El precio debe ser un número válido mayor o igual a 0.')
+    if (duration < 5) {
+      setError('La duración mínima es 5 minutos.')
+      return
+    }
+
+    const price = parsePriceToNumber(priceValue)
+
+    if (price === 0) {
+      setError('El precio debe ser un número válido.')
+      return
+    }
+
+    if (price < 0) {
+      setError('El precio no puede ser negativo.')
       return
     }
 
     startTransition(async () => {
-      const result = await createService({ 
-        name, 
-        duration, 
-        price 
+      const result = await createService({
+        name,
+        duration,
+        price
       })
 
       if (!result.error) {
@@ -80,7 +167,7 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
     })
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200"
       role="dialog"
@@ -90,7 +177,7 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
       {/* Overlay */}
       <div
         className="absolute inset-0 transition-opacity"
-        style={{ 
+        style={{
           backgroundColor: COLORS.overlay,
           backdropFilter: 'blur(4px)'
         }}
@@ -99,7 +186,7 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
       />
 
       {/* Dialog Panel */}
-      <div 
+      <div
         className="relative z-10 w-full max-w-lg mx-4 max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200"
         style={{
           backgroundColor: COLORS.surface,
@@ -109,24 +196,24 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
         }}
       >
         {/* Header con gradiente */}
-        <div 
+        <div
           className="relative p-5 border-b overflow-hidden"
-          style={{ 
+          style={{
             borderColor: COLORS.border,
             background: COLORS.primaryGradient,
           }}
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          
+
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20">
                 <Scissors className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 
+                <h2
                   id="create-service-title"
-                  className="text-xl font-semibold text-white" 
+                  className="text-xl font-semibold text-white"
                   style={{ fontFamily: "'Cormorant Garamond', serif" }}
                 >
                   Nuevo Servicio
@@ -149,9 +236,9 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
         <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 80px)' }}>
           {/* Error Banner */}
           {error && (
-            <div 
+            <div
               className="p-4 rounded-xl flex items-start gap-3 animate-in slide-in-from-top-2"
-              style={{ 
+              style={{
                 backgroundColor: COLORS.errorLight,
                 border: `1px solid ${COLORS.error}30`
               }}
@@ -175,7 +262,7 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
                 Nombre del servicio <span className="text-red-500" aria-hidden="true">*</span>
               </label>
               <div className="relative group">
-                <div 
+                <div
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center transition-colors"
                   style={{ color: COLORS.textMuted }}
                 >
@@ -188,7 +275,7 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
                   required
                   placeholder="Ej. Corte de cabello, Spa facial"
                   className={`w-full pl-12 pr-4 min-h-[48px] rounded-xl border text-base transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
-                  style={{ 
+                  style={{
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
                     borderRadius: '10px',
                     borderColor: COLORS.border,
@@ -207,10 +294,10 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
                   className="text-sm font-semibold tracking-wide"
                   style={{ color: COLORS.textPrimary }}
                 >
-                  Duración (min) <span className="text-red-500" aria-hidden="true">*</span>
+                  Duración <span className="text-red-500" aria-hidden="true">*</span>
                 </label>
                 <div className="relative group">
-                  <div 
+                  <div
                     className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center transition-colors"
                     style={{ color: COLORS.textMuted }}
                   >
@@ -219,21 +306,33 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
                   <input
                     id="create-service-duration"
                     name="duration"
-                    type="number"
-                    min="5"
-                    step="5"
+                    type="text"
                     required
-                    placeholder="30"
+                    placeholder="90, 1:30, 2h"
+                    autoComplete="off"
+                    value={durationValue}
+                    onChange={handleDurationChange}
+                    onBlur={handleDurationBlur}
                     className="w-full pl-12 pr-4 min-h-[48px] rounded-xl border text-base transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
-                    style={{ 
+                    style={{
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
                       borderRadius: '10px',
-                      borderColor: COLORS.border,
+                      borderColor: durationDisplay ? COLORS.success : COLORS.border,
                       color: COLORS.textPrimary,
                       backgroundColor: COLORS.surface,
                     }}
                   />
                 </div>
+                {/* Duration Helper */}
+                {durationDisplay && (
+                  <div className="flex items-center gap-1.5 text-xs animate-in fade-in duration-200" style={{ color: COLORS.success }}>
+                    <Check className="w-3 h-3" />
+                    <span>{durationDisplay}</span>
+                  </div>
+                )}
+                <p className="text-xs" style={{ color: COLORS.textMuted }}>
+                  Ej: 90, 1:30, 2h, 2.5 hrs
+                </p>
               </div>
 
               {/* Input: Price */}
@@ -246,7 +345,7 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
                   Costo <span className="text-red-500" aria-hidden="true">*</span>
                 </label>
                 <div className="relative group">
-                  <div 
+                  <div
                     className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center transition-colors"
                     style={{ color: COLORS.textMuted }}
                   >
@@ -255,22 +354,33 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
                   <input
                     id="create-service-price"
                     name="price"
-                    type="number"
-                    min="0"
-                    step="1000"
+                    type="text"
                     required
                     placeholder="20"
-                    title="Ingresa el precio en miles (ej: 20 = $20.000 COP)"
+                    value={priceValue}
+                    onChange={handlePriceChange}
+                    onBlur={handlePriceBlur}
+                    autoComplete="off"
                     className="w-full pl-12 pr-4 min-h-[48px] rounded-xl border text-base transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
                     style={{
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
                       borderRadius: '10px',
-                      borderColor: COLORS.border,
+                      borderColor: priceDisplay ? COLORS.success : COLORS.border,
                       color: COLORS.textPrimary,
                       backgroundColor: COLORS.surface,
                     }}
                   />
                 </div>
+                {/* Price Helper */}
+                {priceDisplay && (
+                  <div className="flex items-center gap-1.5 text-xs animate-in fade-in duration-200" style={{ color: COLORS.success }}>
+                    <Check className="w-3 h-3" />
+                    <span>= {priceDisplay}</span>
+                  </div>
+                )}
+                <p className="text-xs" style={{ color: COLORS.textMuted }}>
+                  Ej: 20, 35.000, 100.000
+                </p>
               </div>
             </div>
           </div>
@@ -281,8 +391,8 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
               type="button"
               onClick={onClose}
               className="w-full sm:w-1/2 px-5 min-h-[48px] rounded-xl border text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={{ 
-                borderColor: COLORS.border, 
+              style={{
+                borderColor: COLORS.border,
                 color: COLORS.textPrimary,
                 backgroundColor: COLORS.surface,
               }}
@@ -293,7 +403,7 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
               type="submit"
               disabled={isPending}
               className="w-full sm:w-1/2 px-5 min-h-[48px] rounded-xl text-white text-sm font-semibold shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={{ 
+              style={{
                 background: COLORS.primaryGradient,
               }}
             >
@@ -310,6 +420,7 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
         </form>
 
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

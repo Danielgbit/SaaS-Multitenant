@@ -126,10 +126,26 @@ export async function createConfirmation(
 
   console.log('[createConfirmation] Confirmation created:', confirmation.id)
 
+  // Actualizar el status del appointment si existe
+  if (appointment_id) {
+    const { error: aptError } = await (supabase as any)
+      .from('appointments')
+      .update({
+        status: 'completed',
+        confirmation_status: 'completed',
+      })
+      .eq('id', appointment_id)
+
+    if (aptError) {
+      console.error('[createConfirmation] Appointment update error:', aptError)
+    }
+  }
+
   // Revalidar paths
   revalidatePath('/dashboard/confirmations/employee')
   revalidatePath('/dashboard/confirmations/reception')
   revalidatePath('/dashboard/my-services')
+  revalidatePath('/payroll')
 
   return { success: true, confirmationId: confirmation.id }
 }

@@ -121,12 +121,7 @@ export async function createAppointment(
   const startDate = new Date(normalizedStartTime)
   const endDate = new Date(startDate.getTime() + service.duration * 60 * 1000)
 
-  console.log('[DEBUG createAppointment] start_time received:', start_time)
-  console.log('[DEBUG createAppointment] normalizedStartTime:', normalizedStartTime)
-  console.log('[DEBUG createAppointment] startDate.getTime():', startDate.getTime())
-
   // 8. VERIFICAR DISPONIBILIDAD (prevenir race conditions)
-  // Obtenemos los slots disponibles para esa fecha
   const dateStr = start_time.split('T')[0]
 
   try {
@@ -137,34 +132,21 @@ export async function createAppointment(
       organizationId: organization_id,
     })
 
-    console.log('[DEBUG createAppointment] generateSlots params:', { employeeId: employee_id, serviceId: service_id, date: dateStr, organizationId: organization_id })
-    console.log('[DEBUG createAppointment] slots count:', availableSlots.length)
-    console.log('[DEBUG createAppointment] available slots:', JSON.stringify(availableSlots.slice(0, 5), null, 2))
+    if (availableSlots.length === 0) {
+      return { error: 'No hay horarios disponibles para este día. El empleado puede tener el día libre o el spa cerrado.' }
+    }
 
-    // Buscar si el slot solicitado está disponible
-    // Comparar usando string comparison para evitar timezone issues
     const slotAvailable = availableSlots.some(
       (slot) => {
-        // Normalizar slot time para comparar (quitar Z si tiene)
         const slotNormalized = slot.start_time.endsWith('Z')
           ? slot.start_time.slice(0, -1)
           : slot.start_time
-        const match = slot.available && slotNormalized === normalizedStartTime
-        console.log('[DEBUG createAppointment] Comparing slot:', {
-          slotStartTime: slot.start_time,
-          slotNormalized: slotNormalized,
-          normalizedStartTime: normalizedStartTime,
-          slotAvailable: slot.available,
-          match: match
-        })
-        return match
+        return slot.available && slotNormalized === normalizedStartTime
       }
     )
 
-    console.log('[DEBUG createAppointment] slotAvailable result:', slotAvailable)
-
     if (!slotAvailable) {
-      return { error: 'El horario ya no está disponible. Por favor selecciona otro.' }
+      return { error: 'El horario seleccionado ya no está disponible. Por favor elige otro horario.' }
     }
   } catch (genError) {
     console.error('Error verifying slot availability:', genError)
