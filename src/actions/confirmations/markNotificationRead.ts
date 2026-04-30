@@ -52,8 +52,7 @@ export async function markNotificationRead(
   }
 
   try {
-    // @ts-ignore
-    revalidateTag(`notifications-${user.id}`)
+    revalidateTag(`notifications-${user.id}`, { maxAge: 60 })
   } catch (e) {
     console.warn('[markNotificationRead] revalidateTag error:', e)
   }
@@ -87,8 +86,7 @@ export async function markAllNotificationsRead(
   }
 
   try {
-    // @ts-ignore
-    revalidateTag(`notifications-${user.id}`)
+    revalidateTag(`notifications-${user.id}`, { maxAge: 60 })
   } catch (e) {
     console.warn('[markAllNotificationsRead] revalidateTag error:', e)
   }

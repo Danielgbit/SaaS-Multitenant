@@ -139,6 +139,14 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // Confirm Service Modal (bypass when employee didn't confirm)
+  const [showConfirmServiceModal, setShowConfirmServiceModal] = useState(false)
+  const [pendingConfirmService, setPendingConfirmService] = useState<AppointmentWithDetails | null>(null)
+
+  // Confirm Appointment Modal (bypass when client didn't confirm via WhatsApp)
+  const [showConfirmAppointmentModal, setShowConfirmAppointmentModal] = useState(false)
+  const [pendingConfirmAppointment, setPendingConfirmAppointment] = useState<AppointmentWithDetails | null>(null)
+
   // Employee filter hook
   const {
     selectedEmployeeId,
@@ -375,6 +383,73 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     setEditSearch({ client: '', service: '', employee: '' })
     setShowEditDropdowns({ client: false, service: false, employee: false })
     setEditSlots([]); setShowTimeWarning(false)
+  }
+
+  const handleAdminConfirmService = (apt: AppointmentWithDetails) => {
+    setPendingConfirmService(apt)
+    setShowConfirmServiceModal(true)
+  }
+
+  const confirmServiceFromModal = async (reason?: string) => {
+    if (!pendingConfirmService) return
+
+    const formData = new FormData()
+    formData.append('appointmentId', pendingConfirmService.id)
+    formData.append('reason', reason || 'Confirmado por admin desde calendario')
+
+    setUpdatingStatus(true)
+    try {
+      const { markManually } = await import('@/actions/confirmations/markManually')
+      const result = await markManually({ success: false }, formData)
+      if (result.error) {
+        alert(result.error)
+        return
+      }
+      setSelectedAppointment(null)
+      setCurrentDate(new Date(currentDate))
+    } catch (e) {
+      console.error(e)
+      alert('Error al confirmar servicio')
+    } finally {
+      setUpdatingStatus(false)
+      setShowConfirmServiceModal(false)
+      setPendingConfirmService(null)
+    }
+  }
+
+  const handleConfirmAppointment = (apt: AppointmentWithDetails) => {
+    setPendingConfirmAppointment(apt)
+    setShowConfirmAppointmentModal(true)
+  }
+
+  const confirmAppointmentFromModal = async (reason?: string) => {
+    if (!pendingConfirmAppointment) return
+
+    setUpdatingStatus(true)
+    try {
+      const res = await fetch('/api/appointments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appointment_id: pendingConfirmAppointment.id,
+          status: 'confirmed'
+        })
+      })
+      const data = await res.json()
+      if (data.error) {
+        alert(data.error)
+        return
+      }
+      setSelectedAppointment(null)
+      setCurrentDate(new Date(currentDate))
+    } catch (e) {
+      console.error(e)
+      alert('Error al confirmar la cita')
+    } finally {
+      setUpdatingStatus(false)
+      setShowConfirmAppointmentModal(false)
+      setPendingConfirmAppointment(null)
+    }
   }
 
   const fetchEditSlots = async () => {
@@ -916,13 +991,25 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
             >
               {/* Confirmar - solo visible si NO está confirmado y no es empleado */}
               {userRole !== 'empleado' && selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && selectedAppointment.status !== 'confirmed' && (
-                <button 
-                  onClick={() => handleStatus('confirmed')} 
+                <button
+                  onClick={() => handleConfirmAppointment(selectedAppointment)}
                   disabled={updatingStatus}
                   className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:brightness-110 cursor-pointer"
                   style={{ backgroundColor: '#10B981', color: '#FFF' }}
                 >
                   Confirmar
+                </button>
+              )}
+
+              {/* Confirmar Servicio - si empleado NO marcó Listo */}
+              {userRole !== 'empleado' && selectedAppointment.status === 'confirmed' && selectedAppointment.confirmation_status !== 'completed' && (
+                <button
+                  onClick={() => handleAdminConfirmService(selectedAppointment)}
+                  disabled={updatingStatus}
+                  className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:brightness-110 cursor-pointer"
+                  style={{ backgroundColor: '#F59E0B', color: '#FFF' }}
+                >
+                  Confirmar Servicio
                 </button>
               )}
               
@@ -1557,6 +1644,170 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
             <div className="px-6 py-4 flex gap-3" style={{ borderTop: `1px solid ${COLORS.border}` }}>
               <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle }}>Cancelar</button>
               <button onClick={handleDelete} disabled={isDeleting} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.error, color: '#FFF' }}>{isDeleting ? <Loader2 className="w-4 h-4 inline animate-spin" /> : 'Eliminar'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Service Modal (bypass when employee didn't confirm) */}
+      {showConfirmServiceModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setShowConfirmServiceModal(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl overflow-hidden"
+            style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-6 text-center">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                style={{ backgroundColor: COLORS.warningLight }}
+              >
+                <AlertTriangle className="w-8 h-8" style={{ color: COLORS.warning }} />
+              </div>
+              <h3 className="text-xl font-semibold mb-2" style={{ color: COLORS.textPrimary }}>
+                Confirmar Servicio
+              </h3>
+              <p className="text-sm mb-2" style={{ color: COLORS.textSecondary }}>
+                El empleado no ha confirmado el servicio.<br />
+                ¿Estás seguro que fue realizado?
+              </p>
+              <p className="text-xs" style={{ color: COLORS.textMuted }}>
+                Esta acción quedará registrada en el historial.
+              </p>
+            </div>
+
+            <div className="px-6 pb-4">
+              <input
+                type="text"
+                id="confirmServiceReason"
+                placeholder="Razón (opcional): Ej: Empleado se fue temprano"
+                className="w-full px-4 py-3 rounded-xl text-sm border transition-colors duration-200"
+                style={{
+                  borderColor: COLORS.border,
+                  backgroundColor: COLORS.surface,
+                  color: COLORS.textPrimary
+                }}
+              />
+            </div>
+
+            <div className="px-6 py-4 flex gap-3" style={{ borderTop: `1px solid ${COLORS.border}` }}>
+              <button
+                onClick={() => setShowConfirmServiceModal(false)}
+                className="flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-colors duration-200"
+                style={{
+                  color: COLORS.textSecondary,
+                  backgroundColor: COLORS.surfaceSubtle
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  const reasonInput = document.getElementById('confirmServiceReason') as HTMLInputElement
+                  const reason = reasonInput?.value?.trim()
+                  confirmServiceFromModal(reason || undefined)
+                }}
+                disabled={updatingStatus}
+                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
+                style={{
+                  backgroundColor: COLORS.warning,
+                  color: '#FFF',
+                  opacity: updatingStatus ? 0.5 : 1,
+                  cursor: updatingStatus ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {updatingStatus ? (
+                  <Loader2 className="w-4 h-4 inline animate-spin" />
+                ) : (
+                  'Confirmar Servicio'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Appointment Modal (bypass when client didn't confirm via WhatsApp) */}
+      {showConfirmAppointmentModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setShowConfirmAppointmentModal(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl overflow-hidden"
+            style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-6 text-center">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                style={{ backgroundColor: COLORS.warningLight }}
+              >
+                <AlertTriangle className="w-8 h-8" style={{ color: COLORS.warning }} />
+              </div>
+              <h3 className="text-xl font-semibold mb-2" style={{ color: COLORS.textPrimary }}>
+                Confirmar Cita
+              </h3>
+              <p className="text-sm mb-2" style={{ color: COLORS.textSecondary }}>
+                El cliente no ha confirmado la cita.<br />
+                ¿Estás seguro que el cliente asistirá?
+              </p>
+              <p className="text-xs" style={{ color: COLORS.textMuted }}>
+                Esta acción quedará registrada en el historial.
+              </p>
+            </div>
+
+            <div className="px-6 pb-4">
+              <input
+                type="text"
+                id="confirmAppointmentReason"
+                placeholder="Razón (opcional): Ej: Cliente llamó para confirmar"
+                className="w-full px-4 py-3 rounded-xl text-sm border transition-colors duration-200"
+                style={{
+                  borderColor: COLORS.border,
+                  backgroundColor: COLORS.surface,
+                  color: COLORS.textPrimary
+                }}
+              />
+            </div>
+
+            <div className="px-6 py-4 flex gap-3" style={{ borderTop: `1px solid ${COLORS.border}` }}>
+              <button
+                onClick={() => setShowConfirmAppointmentModal(false)}
+                className="flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-colors duration-200"
+                style={{
+                  color: COLORS.textSecondary,
+                  backgroundColor: COLORS.surfaceSubtle
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  const reasonInput = document.getElementById('confirmAppointmentReason') as HTMLInputElement
+                  const reason = reasonInput?.value?.trim()
+                  confirmAppointmentFromModal(reason || undefined)
+                }}
+                disabled={updatingStatus}
+                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
+                style={{
+                  backgroundColor: COLORS.success,
+                  color: '#FFF',
+                  opacity: updatingStatus ? 0.5 : 1,
+                  cursor: updatingStatus ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {updatingStatus ? (
+                  <Loader2 className="w-4 h-4 inline animate-spin" />
+                ) : (
+                  'Confirmar Cita'
+                )}
+              </button>
             </div>
           </div>
         </div>

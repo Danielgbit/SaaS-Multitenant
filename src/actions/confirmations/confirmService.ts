@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidateTag } from 'next/cache'
+import { revalidateTag, revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { ConfirmServiceSchema, type ConfirmServiceState } from './schemas'
 
@@ -129,14 +129,12 @@ export async function confirmService(
   }
 
   try {
-    // @ts-ignore
-    revalidateTag(`confirmations-${appointment.organization_id}`)
+    revalidateTag(`confirmations-${appointment.organization_id}`, { maxAge: 60 })
   } catch (e) {
     console.warn('[confirmService] revalidateTag error:', e)
   }
   try {
-    // @ts-ignore
-    revalidateTag(`pending-${appointment.organization_id}`)
+    revalidateTag(`pending-${appointment.organization_id}`, { maxAge: 60 })
   } catch (e) {
     console.warn('[confirmService] revalidateTag error:', e)
   }

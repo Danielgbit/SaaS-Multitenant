@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidateTag } from 'next/cache'
+import { revalidateTag, revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { MarkManuallySchema, type MarkManuallyState } from './schemas'
 
@@ -96,16 +96,19 @@ export async function markManually(
   }
 
   try {
-    // @ts-ignore
-    revalidateTag(`confirmations-${appointment.organization_id}`)
+    revalidateTag(`confirmations-${appointment.organization_id}`, { maxAge: 60 })
   } catch (e) {
     console.warn('[markManually] revalidateTag error:', e)
   }
   try {
-    // @ts-ignore
-    revalidateTag(`pending-${appointment.organization_id}`)
+    revalidateTag(`pending-${appointment.organization_id}`, { maxAge: 60 })
   } catch (e) {
     console.warn('[markManually] revalidateTag error:', e)
+  }
+  try {
+    revalidatePath('/payroll')
+  } catch (e) {
+    console.warn('[markManually] revalidatePath /payroll error:', e)
   }
 
   return { success: true, logId: log.id }

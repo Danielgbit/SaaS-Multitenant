@@ -148,14 +148,12 @@ export async function markCompleted(
   }
 
   try {
-    // @ts-ignore
-    revalidateTag(`confirmations-${appointment.organization_id}`)
+    revalidateTag(`confirmations-${appointment.organization_id}`, { maxAge: 60 })
   } catch (e) {
     console.warn('[markCompleted] revalidateTag error:', e)
   }
   try {
-    // @ts-ignore
-    revalidateTag(`pending-${appointment.organization_id}`)
+    revalidateTag(`pending-${appointment.organization_id}`, { maxAge: 60 })
   } catch (e) {
     console.warn('[markCompleted] revalidateTag error:', e)
   }
