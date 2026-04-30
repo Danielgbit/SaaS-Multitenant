@@ -10,30 +10,61 @@ interface AppointmentCardProps {
   STATUS_CONFIG: Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }>
   formatTime: (dateString: string) => string
   onClick: () => void
+  compact?: boolean
 }
 
-export function AppointmentCard({ 
-  apt, 
-  COLORS, 
-  STATUS_CONFIG, 
+export function AppointmentCard({
+  apt,
+  COLORS,
+  STATUS_CONFIG,
   formatTime,
-  onClick 
+  onClick,
+  compact = false
 }: AppointmentCardProps) {
-  const st = STATUS_CONFIG[apt.status] || { 
-    color: COLORS.textSecondary, 
-    bg: COLORS.borderLight, 
-    label: apt.status, 
-    icon: null 
+  const st = STATUS_CONFIG[apt.status] || {
+    color: COLORS.textSecondary,
+    bg: COLORS.borderLight,
+    label: apt.status,
+    icon: null
+  }
+
+  const isConfirmed = apt.confirmation_status === 'confirmed'
+
+  if (compact || isConfirmed) {
+    return (
+      <button
+        onClick={onClick}
+        className="w-full text-left p-2 rounded-lg transition-all duration-200 cursor-pointer opacity-60 hover:opacity-80"
+        style={{
+          backgroundColor: st.bg,
+          border: `1px solid ${st.color}20`,
+          minHeight: '40px',
+        }}
+      >
+        <div className="flex items-center gap-1.5">
+          <Clock className="w-3 h-3 flex-shrink-0" style={{ color: st.color }} />
+          <span className="text-xs font-semibold" style={{ color: st.color }}>
+            {formatTime(apt.start_time)}
+          </span>
+          <span
+            className="text-xs truncate flex-1"
+            style={{ color: COLORS.textPrimary }}
+          >
+            {apt.client?.name || 'Cliente'}
+          </span>
+        </div>
+      </button>
+    )
   }
 
   return (
-    <button 
+    <button
       onClick={onClick}
-      className="w-full text-left p-3 rounded-xl transition-all hover:scale-[1.02]"
-      style={{ 
-        backgroundColor: st.bg, 
-        border: `1px solid ${st.color}30`, 
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)' 
+      className="w-full text-left p-3 rounded-xl transition-all hover:scale-[1.02] cursor-pointer"
+      style={{
+        backgroundColor: st.bg,
+        border: `1px solid ${st.color}30`,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
       }}
     >
       <div className="flex items-center gap-2 mb-2">
@@ -52,7 +83,7 @@ export function AppointmentCard({
         </span>
       </div>
       {apt.service && (
-        <div 
+        <div
           className="mt-2 pt-2 border-t text-xs"
           style={{ borderColor: st.color + '40', color: COLORS.textMuted }}
         >

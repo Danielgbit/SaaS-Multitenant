@@ -30,7 +30,7 @@ export async function markManually(
 
   const { data: appointment, error: apptError } = await (supabase as any)
     .from('appointments')
-    .select('id, organization_id, confirmation_status, price_adjustment')
+    .select('id, organization_id, employee_id, client_id, confirmation_status, price_adjustment')
     .eq('id', appointmentId)
     .single()
 
@@ -95,13 +95,64 @@ export async function markManually(
     return { error: 'Error al marcar la cita. Intenta de nuevo.' }
   }
 
+  // Create appointment_confirmations record so it appears in /confirmations
+  const { data: confirmation, error: confError } = await (supabase as any)
+    .from('appointment_confirmations')
+    .insert({
+      organization_id: appointment.organization_id,
+      employee_id: appointment.employee_id,
+      appointment_id: appointmentId,
+      services: [],
+      total_amount: currentPrice,
+      confirmation_type: 'scheduled',
+      status: 'pending_reception',
+      employee_confirmed_at: now,
+      client_name: null,
+      client_phone: null,
+      notes: reason ? `Confirmado por admin: ${reason}` : null,
+    })
+    .select('id')
+    .single()
+
+  if (confError) {
+    console.error('[markManually] Confirmation insert error:', confError)
+    // Don't return error - the appointment was already updated
+  }
+
+  // Send service_ready notification to staff
+  const { data: orgMembers, error: membersError } = await (supabase as any)
+    .from('organization_members')
+    .select('user_id')
+    .eq('organization_id', appointment.organization_id)
+    .in('role', ['owner', 'admin', 'staff'])
+
+  if (!membersError && orgMembers) {
+    const notificationEntries = orgMembers.map((member: any) => ({
+      organization_id: appointment.organization_id,
+      user_id: member.user_id,
+      type: 'service_ready',
+      title: 'Servicio completado',
+      message: 'Un servicio está listo para cobrar. Revisa /confirmations.',
+      metadata: {
+        appointment_id: appointmentId,
+        confirmation_id: confirmation?.id || null
+      }
+    }))
+
+    await (supabase as any)
+      .from('notifications')
+      .insert(notificationEntries)
+  }
+
   try {
-    revalidateTag(`confirmations-${appointment.organization_id}`, { maxAge: 60 })
+    // @ts-ignore - revalidateTag typing issue
+    revalidateTag(`confirmations-${appointment.organization_id}`)
   } catch (e) {
     console.warn('[markManually] revalidateTag error:', e)
   }
   try {
-    revalidateTag(`pending-${appointment.organization_id}`, { maxAge: 60 })
+    // @ts-ignore - revalidateTag typing issue
+    revalidateTag(`pending-${appointment.organization_id}`)
   } catch (e) {
     console.warn('[markManually] revalidateTag error:', e)
   }

@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Settings, Building2, Clock, Bell, Loader2, Check, AlertCircle } from 'lucide-react'
+import { Settings, Building2, Clock, Bell, Loader2, Check, AlertCircle, Database } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { updateBookingSettings } from '@/actions/settings/updateBookingSettings'
 import { updateOrganization } from '@/actions/settings/updateOrganization'
+import { DataRetentionClient } from '@/components/dashboard/settings/DataRetentionClient'
 
 function useColors() {
   const { theme } = useTheme()
@@ -49,6 +50,7 @@ const TABS = [
   { id: 'organization', label: 'Organización', icon: Building2 },
   { id: 'schedule', label: 'Horario', icon: Clock },
   { id: 'notifications', label: 'Notificaciones', icon: Bell },
+  { id: 'data-retention', label: 'Retención', icon: Database },
 ]
 
 interface BookingSettings {
@@ -60,6 +62,8 @@ interface BookingSettings {
   online_booking_enabled: boolean
   spa_opening_time: string
   spa_closing_time: string
+  auto_retention_days: number
+  auto_purge_enabled: boolean
 }
 
 interface Organization {
@@ -705,6 +709,13 @@ export default function SettingsClient({
                 </a>
               </div>
             </div>
+          )}
+
+          {/* Data Retention Tab */}
+          {activeTab === 'data-retention' && (
+            <DataRetentionClient
+              organizationId={organizationId}
+            />
           )}
         </div>
       )}
