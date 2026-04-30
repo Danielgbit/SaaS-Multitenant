@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { setupAppointmentsRealtime } from '@/components/providers/AppointmentRealtimeProvider'
 import { useTheme } from 'next-themes'
 import { useRouter } from 'next/navigation'
 import { 
@@ -241,6 +242,38 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     }
     fetchData()
   }, [organizationId, currentDate, supabase, weekDates])
+
+  useEffect(() => {
+    if (!organizationId) return
+
+    const cleanup = setupAppointmentsRealtime(
+      organizationId,
+      ({ eventType, new: updatedApt, old: oldApt }) => {
+        if (eventType === 'UPDATE' && updatedApt) {
+          setAppointments(prev => {
+            if (!prev.find(apt => apt.id === updatedApt.id)) return prev
+            return prev.map(apt =>
+              apt.id === updatedApt.id
+                ? { ...apt, ...updatedApt }
+                : apt
+            )
+          })
+        }
+        if (eventType === 'INSERT' && updatedApt) {
+          setAppointments(prev => {
+            const exists = prev.find(apt => apt.id === updatedApt.id)
+            if (exists) return prev
+            return [...prev, updatedApt]
+          })
+        }
+        if (eventType === 'DELETE' && oldApt) {
+          setAppointments(prev => prev.filter(apt => apt.id !== oldApt.id))
+        }
+      }
+    )
+
+    return cleanup
+  }, [organizationId])
 
   useEffect(() => {
     if (selectedAppointmentId && appointments.length > 0) {

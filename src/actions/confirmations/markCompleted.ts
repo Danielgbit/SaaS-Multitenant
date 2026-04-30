@@ -79,7 +79,28 @@ export async function markCompleted(
   }
 
   const now = new Date().toISOString()
-  const basePrice = appointment.price_adjustment || 0
+
+  // Get prices from appointment_services with employee override support
+  const { data: appointmentServices } = await (supabase as any)
+    .from('appointment_services')
+    .select('service_id, services(price)')
+    .eq('appointment_id', appointmentId)
+
+  let basePrice = 0
+  for (const as of appointmentServices || []) {
+    // Check for employee-specific price override
+    const { data: employeeService } = await (supabase as any)
+      .from('employee_services')
+      .select('price_override')
+      .eq('employee_id', appointment.employee_id)
+      .eq('service_id', as.service_id)
+      .single()
+
+    // Use override if exists, otherwise use base price
+    const price = employeeService?.price_override || as.services?.price || 0
+    basePrice += price
+  }
+
   const finalPrice = basePrice + (priceAdjustment || 0)
 
   const { data: log, error: logError } = await (supabase as any)
@@ -148,12 +169,14 @@ export async function markCompleted(
   }
 
   try {
-    revalidateTag(`confirmations-${appointment.organization_id}`, { maxAge: 60 })
+    // @ts-ignore - revalidateTag typing issue
+    revalidateTag(`confirmations-${appointment.organization_id}`)
   } catch (e) {
     console.warn('[markCompleted] revalidateTag error:', e)
   }
   try {
-    revalidateTag(`pending-${appointment.organization_id}`, { maxAge: 60 })
+    // @ts-ignore - revalidateTag typing issue
+    revalidateTag(`pending-${appointment.organization_id}`)
   } catch (e) {
     console.warn('[markCompleted] revalidateTag error:', e)
   }

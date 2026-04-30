@@ -58,7 +58,27 @@ export async function markManually(
   }
 
   const now = new Date().toISOString()
-  const currentPrice = appointment.price_adjustment || 0
+
+  // Get prices from appointment_services with employee override support
+  const { data: appointmentServices } = await (supabase as any)
+    .from('appointment_services')
+    .select('service_id, services(price)')
+    .eq('appointment_id', appointmentId)
+
+  let currentPrice = 0
+  for (const as of appointmentServices || []) {
+    // Check for employee-specific price override
+    const { data: employeeService } = await (supabase as any)
+      .from('employee_services')
+      .select('price_override')
+      .eq('employee_id', appointment.employee_id)
+      .eq('service_id', as.service_id)
+      .single()
+
+    // Use override if exists, otherwise use base price
+    const price = employeeService?.price_override || as.services?.price || 0
+    currentPrice += price
+  }
 
   const { data: log, error: logError } = await (supabase as any)
     .from('confirmation_logs')
@@ -160,6 +180,11 @@ export async function markManually(
     revalidatePath('/payroll')
   } catch (e) {
     console.warn('[markManually] revalidatePath /payroll error:', e)
+  }
+  try {
+    revalidatePath('/calendar')
+  } catch (e) {
+    console.warn('[markManually] revalidatePath /calendar error:', e)
   }
 
   return { success: true, logId: log.id }

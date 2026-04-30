@@ -471,6 +471,62 @@ Empleado marca "Listo ✓" → Supabase Realtime → Asistente recibe notificaci
 
 ---
 
+## Completado: Sistema de Purga de Citas Antiguas (2026-04-30)
+
+### ✅ Implementado
+
+#### Funcionalidades
+
+| Feature | Descripción |
+|---------|-------------|
+| **Citas confirmadas compactas** | `confirmation_status === 'confirmed'` se muestran con `opacity-60`, `p-2`, `text-xs` en calendario |
+| **Purga automática** | Toggle en settings + umbral configurable (30/60/90 días) |
+| **Purga manual** | Modal con dry-run + confirmación con texto "ELIMINAR" |
+| **Protección facturas** | `invoice_id IS NULL` previene eliminar citas facturadas |
+| **Cron nocturno** | `POST /api/cron/purge-appointments` diario a las 2-3 AM |
+
+#### Archivos Creados
+
+| Archivo | Descripción |
+|---------|-------------|
+| `supabase/migrations/20260427000000_data_retention_settings.sql` | Columnas `auto_retention_days`, `auto_purge_enabled`, `invoice_id` |
+| `src/lib/cleanup-helpers.ts` | Helpers reutilizables para purge |
+| `src/actions/appointments/purgeAppointments.ts` | Server actions (purge, updateRetention, getRetention) |
+| `src/app/api/cron/purge-appointments/route.ts` | Endpoint cron |
+| `src/components/dashboard/settings/DataRetentionClient.tsx` | UI glass premium |
+| `src/app/(dashboard)/settings/data-retention/page.tsx` | Ruta `/settings/data-retention` |
+
+#### UI de Configuración
+
+Ubicación: `/settings` → Tab "Retención"
+- Toggle para habilitar purga automática
+- Selector de días (30/60/90)
+- Botón "Limpiar ahora" con modal de confirmación
+- Info tooltip sobre citas facturadas protegidas
+
+#### Pendiente: CRON_SECRET para Producción
+
+| Item | Estado | Descripción |
+|------|--------|-------------|
+| `CRON_SECRET` en `.env` | 🔄 Pendiente | Token para proteger endpoints cron |
+| Configuración cron-job.org | 🔄 Pendiente | Programar `POST /api/cron/purge-appointments` diario |
+
+**Nota:** El endpoint actualmente soporta `CRON_SECRET` pero no está configurado. Se requiere para producción.
+
+---
+
+## Completado: Fix revalidatePath + revalidateTag (2026-04-30)
+
+### ✅ Errores Corregidos
+
+| Archivo | Error | Fix |
+|---------|-------|-----|
+| `markManually.ts` | `revalidatePath is not defined` | Agregado import |
+| `confirmService.ts` | `revalidatePath is not defined` | Agregado import |
+| 6 archivos | `revalidateTag` single-arg deprecated | Agregado `{ maxAge: 60 }` |
+
+---
+
 ## Completado: UI/UX Premium del Sistema de Confirmaciones (2026-04-20)
 
 ### ✅ Implementado
