@@ -132,3 +132,62 @@ export async function executePurge(
 
   return { deletedCount: (deleted || []).length }
 }
+
+export async function getAppointmentsByFilters(
+  organizationId: string,
+  options: {
+    search?: string
+    status?: 'completed' | 'cancelled' | 'no_show' | 'all'
+    limit?: number
+  }
+): Promise<PurgeCandidate[]> {
+  const supabase = await createClient()
+  const { search, status = 'all', limit = 200 } = options
+
+  let query = supabase
+    .from('appointments')
+    .select(`
+      id,
+      client_id,
+      employee_id,
+      start_time,
+      end_time,
+      status,
+      confirmation_status,
+      price_adjustment,
+      clients!inner(name),
+      employees!inner(name)
+    `)
+    .eq('organization_id', organizationId)
+    .in('status', ['completed', 'cancelled', 'no_show'])
+    .is('invoice_id', null)
+    .order('end_time', { ascending: false })
+    .limit(limit)
+
+  if (search && search.trim()) {
+    query = query.or(
+      `clients.name.ilike.%${search}%,employees.name.ilike.%${search}%`
+    )
+  }
+
+  if (status !== 'all') {
+    query = query.eq('status', status)
+  }
+
+  const { data, error } = await query
+
+  if (error) throw error
+
+  return (data || []).map((apt: any) => ({
+    id: apt.id,
+    client_id: apt.client_id,
+    employee_id: apt.employee_id,
+    start_time: apt.start_time,
+    end_time: apt.end_time,
+    status: apt.status,
+    confirmation_status: apt.confirmation_status,
+    price_adjustment: apt.price_adjustment,
+    client_name: apt.clients?.name,
+    employee_name: apt.employees?.name,
+  }))
+}

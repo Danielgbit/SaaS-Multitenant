@@ -105,6 +105,55 @@ export async function purgeAppointments(
   }
 }
 
+export async function deleteAppointmentsByIds(
+  organizationId: string,
+  appointmentIds: string[]
+): Promise<{ success: boolean; deletedCount?: number; error?: string }> {
+  const supabase = await createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { success: false, error: 'No autorizado' }
+  }
+
+  const { data: orgMember } = await (supabase as any)
+    .from('organization_members')
+    .select('organization_id, role')
+    .eq('user_id', user.id)
+    .eq('organization_id', organizationId)
+    .single()
+
+  if (!orgMember || !['owner', 'admin'].includes(orgMember.role)) {
+    return { success: false, error: 'No tienes permiso' }
+  }
+
+  if (!appointmentIds || appointmentIds.length === 0) {
+    return { success: false, error: 'No hay citas seleccionadas' }
+  }
+
+  try {
+    const { data: deleted, error: deleteError } = await supabase
+      .from('appointments')
+      .delete()
+      .eq('organization_id', organizationId)
+      .in('id', appointmentIds)
+      .select('id')
+
+    if (deleteError) throw deleteError
+
+    revalidatePath('/calendar')
+    revalidatePath('/dashboard')
+    revalidatePath('/payroll')
+
+    return { success: true, deletedCount: (deleted || []).length }
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : 'Error al eliminar',
+    }
+  }
+}
+
 export async function updateRetentionSettings(
   organizationId: string,
   settings: { auto_retention_days?: number; auto_purge_enabled?: boolean }
