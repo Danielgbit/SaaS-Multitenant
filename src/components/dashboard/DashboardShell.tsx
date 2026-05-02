@@ -102,7 +102,6 @@ function DashboardShellContent({
               onMenuToggle={() => setMobileNavOpen(true)}
               showHamburger
               onConfirmationsToggle={() => setConfirmationsPanelOpen(!confirmationsPanelOpen)}
-              queueCount={queueCount}
             />
 
             {role !== 'empleado' && organizationId && (
