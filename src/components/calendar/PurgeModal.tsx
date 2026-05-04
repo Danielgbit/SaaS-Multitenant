@@ -143,8 +143,8 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
     if (result.success) {
       setPurgePreview({
         count: result.count || 0,
-        oldestDate: result.oldestDate,
-        candidates: result.candidates || [],
+        oldestDate: result.oldestDate ?? null,
+        candidates: (result.candidates || []) as any,
       })
     } else {
       setMessage({ type: 'error', text: result.error || 'Error al previsualizar' })

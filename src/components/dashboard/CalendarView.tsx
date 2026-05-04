@@ -556,7 +556,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
         ))}
       </div>
       {/* Skeleton Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-7 min-h-[500px]">
+      <div className="grid grid-cols-1 sm:grid-cols-7 min-h-[500px]">
         {[...Array(7)].map((_, i) => (
           <div suppressHydrationWarning key={i} className={`p-3 border-r border-slate-200 dark:border-slate-600 ${i === 6 ? '' : ''}`}>
             {[...Array(3)].map((_, j) => (
@@ -687,7 +687,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
       })()}
 
       {/* Week days */}
-      <div className="grid grid-cols-7" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
+      <div className="grid grid-cols-1 sm:grid-cols-7" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
         {weekDates.map((date, i) => (
           <div 
             key={i} 
@@ -1854,7 +1854,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
       {/* FAB - Purge Appointments */}
       {(() => {
         const cleanableCount = appointments.filter(
-          apt => ['completed', 'cancelled', 'no_show'].includes(apt.status) && !apt.invoice_id
+          apt => ['completed', 'cancelled', 'no_show'].includes(apt.status) && !(apt as any).invoice_id
         ).length
 
         if (!mounted || cleanableCount === 0) return null

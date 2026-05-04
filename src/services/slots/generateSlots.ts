@@ -42,11 +42,11 @@ export interface EmployeeAvailabilityOverride {
   date: string
   start_time: string | null
   end_time: string | null
-  is_day_off: boolean
+  is_day_off: boolean | null
   reason: string | null
   created_by: string | null
-  created_at: string
-  updated_at: string
+  created_at: string | null
+  updated_at: string | null
 }
 
 // =============================================================================

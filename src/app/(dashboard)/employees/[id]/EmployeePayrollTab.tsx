@@ -43,10 +43,10 @@ type EmployeeWithPayroll = {
   name: string
   default_commission_rate: number
   payment_type: PaymentType
-  contract_type: ContractType
+  contract_type?: string
   base_salary: number | null
-  has_transport_subsidy: boolean
-  force_transport_subsidy: boolean
+  has_transport_subsidy?: boolean
+  force_transport_subsidy?: boolean
   salary_frequency: SalaryFrequency | null
   max_debt_limit: number
   debt_warning_threshold: number
@@ -80,7 +80,7 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [contractType, setContractType] = useState<ContractType>(employee.contract_type || 'prestacion')
+  const [contractType, setContractType] = useState<ContractType>(employee.contract_type as ContractType || 'prestacion')
   const [commissionRate, setCommissionRate] = useState(employee.default_commission_rate || 60)
   const [paymentType, setPaymentType] = useState<PaymentType>(employee.payment_type || 'porcentaje')
   const [baseSalary, setBaseSalary] = useState(employee.base_salary?.toString() || '')

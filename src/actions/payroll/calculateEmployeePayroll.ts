@@ -41,7 +41,6 @@ export async function calculateEmployeePayroll(input: CalculateInput): Promise<{
     .from('appointments')
     .select(`
       id,
-      date,
       start_time,
       is_commissionable,
       appointment_services (
@@ -55,8 +54,8 @@ export async function calculateEmployeePayroll(input: CalculateInput): Promise<{
     `)
     .eq('employee_id', input.employee_id)
     .eq('status', 'completed')
-    .gte('date', input.period_start)
-    .lte('date', input.period_end)
+    .gte('start_time', input.period_start)
+    .lte('start_time', input.period_end)
 
   if (!appointments) {
     return {
@@ -99,7 +98,7 @@ export async function calculateEmployeePayroll(input: CalculateInput): Promise<{
 
       commissions.push({
         appointment_id: apt.id,
-        date: apt.date,
+        date: new Date(apt.start_time).toISOString().split('T')[0],
         service_name: service.name,
         service_price: servicePrice,
         commission_rate: input.percentage,

@@ -85,7 +85,7 @@ export function Header({ organizationConnected, organizationName, role, userId, 
 
         <NotificationCenter
           userId={userId || ''}
-          role={role}
+          role={role ?? null}
           onOpenConfirmationsPanel={onConfirmationsToggle}
         />
 

@@ -126,18 +126,19 @@ export async function createPayrollPeriod(input: {
   }> = []
 
   for (const emp of employees) {
+    const employee = emp as any
     // Calculate payroll for this employee
     const calcResult = await calculateEmployeePayroll({
       employee_id: emp.id,
       period_start: periodStart,
       period_end: periodEnd,
-      contract_type: emp.contract_type || 'prestacion',
-      payment_type: emp.payment_type || 'porcentaje',
-      percentage: emp.percentage || emp.default_commission_rate || 60,
-      base_salary: emp.base_salary || emp.fixed_salary,
-      salary_frequency: emp.salary_frequency,
-      has_transport_subsidy: emp.has_transport_subsidy || false,
-      force_transport_subsidy: emp.force_transport_subsidy || false,
+      contract_type: employee.contract_type || 'prestacion',
+      payment_type: employee.payment_type || 'porcentaje',
+      percentage: employee.percentage || employee.default_commission_rate || 60,
+      base_salary: employee.base_salary || employee.fixed_salary,
+      salary_frequency: employee.salary_frequency,
+      has_transport_subsidy: employee.has_transport_subsidy || false,
+      force_transport_subsidy: employee.force_transport_subsidy || false,
     })
 
     if (!calcResult.success || !calcResult.data) {
@@ -158,12 +159,12 @@ export async function createPayrollPeriod(input: {
     payrollItems.push({
       payroll_period_id: periodRecord.id,
       employee_id: emp.id,
-      contract_type: emp.contract_type || 'prestacion',
-      payment_type: emp.payment_type || 'porcentaje',
+      contract_type: employee.contract_type || 'prestacion',
+      payment_type: employee.payment_type || 'porcentaje',
       total_services: calc.total_services,
       gross_commission: calc.gross_commission,
       base_salary: calc.base_salary,
-      salary_frequency: emp.salary_frequency,
+      salary_frequency: employee.salary_frequency,
       has_transport_subsidy: calc.transport_subsidy > 0,
       transport_subsidy_amount: calc.transport_subsidy,
       health_deduction: calc.health_deduction,
@@ -171,7 +172,7 @@ export async function createPayrollPeriod(input: {
       total_deductions: calc.total_deductions,
       gross_pay: calc.gross_pay,
       net_pay: finalNet,
-      loans_deducted: Math.min(totalDebt, finalNet), // Can't deduct more than net
+      loans_deducted: Math.min(totalDebt, finalNet),
     })
 
     totalNet += finalNet

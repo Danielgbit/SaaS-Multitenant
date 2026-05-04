@@ -35,13 +35,13 @@ export function EmployeeSelectorBar({
 
   return (
     <div
-      className="w-full overflow-x-auto scrollbar-hide"
+      className="w-full overflow-x-auto"
       style={{
         backgroundColor: COLORS.surface,
         borderBottom: `1px solid ${COLORS.border}`,
       }}
     >
-      <div className="flex items-center gap-3 px-4 py-3 min-w-max">
+      <div className="flex items-center gap-3 px-4 py-3 min-w-0">
         <button
           onClick={() => onSelect('all')}
           className={`
@@ -116,15 +116,7 @@ export function EmployeeSelectorBar({
         </div>
       </div>
 
-      <style jsx global>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
+      
     </div>
   )
 }

@@ -15,7 +15,10 @@ interface EmployeeTabsProps {
   employee: Employee & {
     default_commission_rate: number
     payment_type: PaymentType
-    fixed_salary: number | null
+    base_salary: number | null
+    contract_type?: string
+    has_transport_subsidy?: boolean
+    force_transport_subsidy?: boolean
     salary_frequency: SalaryFrequency | null
     max_debt_limit: number
     debt_warning_threshold: number

@@ -71,7 +71,7 @@ interface Organization {
   slug: string
 }
 
-const defaultBookingSettings: BookingSettings = {
+const defaultBookingSettings: Required<BookingSettings> = {
   slot_interval: 30,
   buffer_minutes: 0,
   max_days_ahead: 60,
@@ -80,6 +80,8 @@ const defaultBookingSettings: BookingSettings = {
   online_booking_enabled: true,
   spa_opening_time: '09:00',
   spa_closing_time: '20:00',
+  auto_retention_days: 90,
+  auto_purge_enabled: false,
 }
 
 export default function SettingsClient({ 
@@ -97,8 +99,19 @@ export default function SettingsClient({
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const COLORS = useColors()
   
-  const [bookingSettings, setBookingSettings] = useState<BookingSettings>(
-    initialBookingSettings || defaultBookingSettings
+  const [bookingSettings, setBookingSettings] = useState<Required<BookingSettings>>(
+    {
+      slot_interval: initialBookingSettings?.slot_interval ?? 30,
+      buffer_minutes: initialBookingSettings?.buffer_minutes ?? 0,
+      max_days_ahead: initialBookingSettings?.max_days_ahead ?? 60,
+      min_notice_hours: initialBookingSettings?.min_notice_hours ?? 24,
+      timezone: initialBookingSettings?.timezone ?? 'Europe/Madrid',
+      online_booking_enabled: initialBookingSettings?.online_booking_enabled ?? true,
+      spa_opening_time: initialBookingSettings?.spa_opening_time ?? '09:00',
+      spa_closing_time: initialBookingSettings?.spa_closing_time ?? '20:00',
+      auto_retention_days: initialBookingSettings?.auto_retention_days ?? 90,
+      auto_purge_enabled: initialBookingSettings?.auto_purge_enabled ?? false,
+    }
   )
 
   const [orgSettings, setOrgSettings] = useState({
@@ -110,7 +123,7 @@ export default function SettingsClient({
     setSaving(true)
     setMessage(null)
     
-    const result = await updateBookingSettings(organizationId, bookingSettings)
+    const result = await updateBookingSettings(organizationId, bookingSettings as any)
     
     if (result.success) {
       setMessage({ type: 'success', text: 'Configuración guardada correctamente' })

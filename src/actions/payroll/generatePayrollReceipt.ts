@@ -89,10 +89,10 @@ export async function generatePayrollReceipt(input: {
 
   const grossServices = commission.total_services
   const commissionAmount = commission.total_commission
-  const fixedSalary = commission.fixed_salary || 0
+  const fixedSalary = commission.base_salary || 0
 
   let netAmount: number
-  if (commission.payment_type === 'salary') {
+  if (commission.payment_type === 'fijo') {
     netAmount = fixedSalary - loansDeducted
   } else if (commission.payment_type === 'mixed') {
     if (input.is_salary_separate) {

@@ -32,5 +32,16 @@ export async function getOverridesForEmployee(
     return []
   }
 
-  return data ?? []
+  return (data ?? []).map(d => ({
+    id: d.id,
+    employee_id: d.employee_id,
+    date: d.date,
+    start_time: d.start_time ?? '',
+    end_time: d.end_time ?? '',
+    is_day_off: d.is_day_off ?? false,
+    reason: d.reason ?? null,
+    created_at: d.created_at ?? '',
+    created_by: d.created_by ?? null,
+    updated_at: d.updated_at ?? '',
+  }))
 }

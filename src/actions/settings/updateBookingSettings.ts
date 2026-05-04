@@ -12,8 +12,8 @@ const BookingSettingsSchema = z.object({
   min_notice_hours: z.number().min(0).max(168).default(24),
   timezone: z.string().default('UTC'),
   online_booking_enabled: z.boolean().default(true),
-  spa_opening_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).default('09:00'),
-  spa_closing_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).default('20:00'),
+  spa_opening_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).optional().nullable().default('09:00'),
+  spa_closing_time: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).optional().nullable().default('20:00'),
   auto_retention_days: z.number().min(30).max(365).default(90),
   auto_purge_enabled: z.boolean().default(false),
 })

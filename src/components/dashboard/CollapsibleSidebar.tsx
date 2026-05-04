@@ -220,7 +220,7 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
   return (
     <aside 
       className={`
-        md:flex flex-col z-30 transition-all duration-300 ease-out flex-shrink-0 border-r
+        hidden md:flex flex-col z-30 transition-all duration-300 ease-out flex-shrink-0 border-r
         bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700
       `}
       style={{ width: isCollapsed ? '72px' : '260px' }}

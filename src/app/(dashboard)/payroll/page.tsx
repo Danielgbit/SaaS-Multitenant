@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getPayrollSettings } from '@/actions/payroll/getPayrollSettings'
-import { getPendingLoans } from '@/actions/payroll/getPendingLoans'
-import { PayrollClient } from '@/components/dashboard/payroll/PayrollClient'
+import { getPayrollDashboard } from '@/actions/payroll/getPayrollDashboard'
+import { PayrollDashboard } from '@/components/dashboard/payroll/PayrollDashboard'
 
 export const metadata = {
   title: 'Nómina | Prügressy',
@@ -27,38 +26,18 @@ export default async function PayrollPage() {
     redirect('/payroll/mi')
   }
 
-  const settingsResult = await getPayrollSettings(orgMember.organization_id)
-
-  const { data: employees } = await (supabase as any)
-    .from('employees')
-    .select(`
-      *,
-      employee_loans(*)
-    `)
-    .eq('organization_id', orgMember.organization_id)
-    .eq('active', true)
-    .order('name')
-
-  const employeesWithDebt = await Promise.all(
-    (employees || []).map(async (emp: any) => {
-      const loansResult = await getPendingLoans(emp.id)
-      const totalDebt = (loansResult.data || []).reduce(
-        (sum: number, l: any) => sum + l.remaining_amount,
-        0
-      )
-      return {
-        ...emp,
-        total_pending_debt: totalDebt,
-      }
-    })
-  )
+  const dashboardResult = await getPayrollDashboard(orgMember.organization_id)
 
   return (
-    <PayrollClient
-      employees={employeesWithDebt || []}
-      organizationId={orgMember.organization_id}
-      settings={settingsResult.data}
-      userRole={orgMember.role}
+    <PayrollDashboard
+      dashboardData={dashboardResult.data || {
+        current_period: null,
+        previous_periods: [],
+        pending_periods: [],
+        total_pending_net: 0,
+        total_pending_employees: 0,
+        employees_ready_to_pay: 0,
+      }}
     />
   )
 }

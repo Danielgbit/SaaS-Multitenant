@@ -154,7 +154,7 @@ export async function calculateCommission(
       total_commission: Number(totalCommission.toFixed(2)),
       default_rate: employee.default_commission_rate,
       payment_type: employee.payment_type,
-      fixed_salary: employee.fixed_salary,
+      base_salary: employee.base_salary || employee.fixed_salary,
       dayGroups,
     },
   }
