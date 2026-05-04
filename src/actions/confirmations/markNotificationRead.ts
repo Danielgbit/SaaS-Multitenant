@@ -52,7 +52,8 @@ export async function markNotificationRead(
   }
 
   try {
-    revalidateTag(`notifications-${user.id}`, { maxAge: 60 })
+    // @ts-ignore - revalidateTag typing issue
+    revalidateTag(`notifications-${user.id}`)
   } catch (e) {
     console.warn('[markNotificationRead] revalidateTag error:', e)
   }
@@ -86,7 +87,8 @@ export async function markAllNotificationsRead(
   }
 
   try {
-    revalidateTag(`notifications-${user.id}`, { maxAge: 60 })
+    // @ts-ignore - revalidateTag typing issue
+    revalidateTag(`notifications-${user.id}`)
   } catch (e) {
     console.warn('[markAllNotificationsRead] revalidateTag error:', e)
   }

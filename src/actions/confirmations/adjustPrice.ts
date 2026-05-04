@@ -91,12 +91,14 @@ export async function adjustPrice(
   }
 
   try {
-    revalidateTag(`confirmations-${appointment.organization_id}`, { maxAge: 60 })
+    // @ts-ignore - revalidateTag typing issue
+    revalidateTag(`confirmations-${appointment.organization_id}`)
   } catch (e) {
     console.warn('[adjustPrice] revalidateTag error:', e)
   }
   try {
-    revalidateTag(`pending-${appointment.organization_id}`, { maxAge: 60 })
+    // @ts-ignore - revalidateTag typing issue
+    revalidateTag(`pending-${appointment.organization_id}`)
   } catch (e) {
     console.warn('[adjustPrice] revalidateTag error:', e)
   }

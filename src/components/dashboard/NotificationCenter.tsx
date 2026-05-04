@@ -361,8 +361,6 @@ export function NotificationCenter({
     { key: 'reminders', label: 'Recordatorios' },
   ]
 
-  if (typeof window === 'undefined') return null
-
   const button = (
     <button
       ref={buttonRef}
@@ -370,6 +368,7 @@ export function NotificationCenter({
       className="relative p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] dark:focus-visible:ring-[#38BDF8]"
       aria-label="Notificaciones"
       aria-expanded={isOpen}
+      suppressHydrationWarning
     >
       <Bell className="w-5 h-5" />
       {unreadCountForBadge > 0 && (

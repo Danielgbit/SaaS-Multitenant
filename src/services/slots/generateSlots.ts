@@ -32,6 +32,8 @@ export interface BookingSettings {
   online_booking_enabled: boolean
   spa_opening_time: string   // hora de apertura del spa (ej: "09:00")
   spa_closing_time: string   // hora de cierre del spa (ej: "20:00")
+  auto_retention_days?: number  // días de retención antes de purgar
+  auto_purge_enabled?: boolean  // si el purge automático está activo
 }
 
 export interface EmployeeAvailabilityOverride {

@@ -357,7 +357,7 @@ export async function updateAppointmentStatus(
         .eq('id', appointment_id)
         .single()
 
-      if (!appointmentData?.client_id) {
+      if (!appointmentData?.client_id || !appointmentData?.employee_id) {
         return { success: true }
       }
 

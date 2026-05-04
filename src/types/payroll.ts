@@ -1,3 +1,5 @@
+import type { ContractType, PaymentType } from './employees'
+
 // =====================================================
 // organization_payroll_settings
 // =====================================================
@@ -10,6 +12,7 @@ export type OrganizationPayrollSettings = {
   payroll_type: PayrollType
   week_starts_on: number
   month_day: number
+  cut_off_day: number
   allow_advance_payments: boolean
   created_at: string
   updated_at: string
@@ -19,11 +22,142 @@ export type UpdatePayrollSettingsInput = {
   payroll_type?: PayrollType
   week_starts_on?: number
   month_day?: number
+  cut_off_day?: number
   allow_advance_payments?: boolean
 }
 
 // =====================================================
-// employee_loans
+// payroll_config (global - no org)
+// =====================================================
+
+export type PayrollConfig = {
+  id: string
+  year: number
+  smmlv: number
+  transport_subsidy: number
+  health_rate: number
+  pension_rate: number
+  created_at: string
+  updated_at: string
+}
+
+// =====================================================
+// PAYROLL PERIODS
+// =====================================================
+
+export type PeriodStatus = 'draft' | 'approved' | 'paid'
+
+export type PayrollPeriod = {
+  id: string
+  organization_id: string
+  period: string  // 'YYYY-MM'
+  status: PeriodStatus
+  total_employees: number
+  total_gross_pay: number
+  total_deductions: number
+  total_transport_subsidy: number
+  total_net_pay: number
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type CreatePayrollPeriodInput = {
+  organization_id: string
+  period: string  // 'YYYY-MM'
+  notes?: string
+}
+
+// =====================================================
+// PAYROLL ITEMS
+// =====================================================
+
+export type PayrollItem = {
+  id: string
+  payroll_period_id: string
+  employee_id: string
+  contract_type: ContractType
+  payment_type: PaymentType
+
+  // Commissions
+  total_services: number
+  gross_commission: number
+
+  // Fixed salary
+  base_salary: number
+  salary_frequency: string | null
+
+  // Transport
+  has_transport_subsidy: boolean
+  transport_subsidy_amount: number
+
+  // Deductions
+  health_deduction: number
+  pension_deduction: number
+  total_deductions: number
+
+  // Totals
+  gross_pay: number
+  net_pay: number
+
+  // Loans
+  loans_deducted: number
+
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type PayrollItemWithEmployee = PayrollItem & {
+  employee: {
+    id: string
+    name: string
+  }
+}
+
+// =====================================================
+// PERIOD COMMISSIONS (persisted)
+// =====================================================
+
+export type PeriodCommission = {
+  id: string
+  payroll_item_id: string
+  appointment_id: string
+  service_date: string
+  service_name: string
+  service_value: number
+  percentage_applied: number
+  commission_amount: number
+  created_at: string
+}
+
+// =====================================================
+// PAYROLL ITEM LOANS
+// =====================================================
+
+export type PayrollItemLoan = {
+  id: string
+  payroll_item_id: string
+  loan_id: string
+  amount_deducted: number
+  created_at: string
+}
+
+// =====================================================
+// DASHBOARD SUMMARY
+// =====================================================
+
+export type PayrollDashboardSummary = {
+  current_period: PayrollPeriod | null
+  previous_periods: PayrollPeriod[]
+  pending_periods: PayrollPeriod[]
+  total_pending_net: number
+  total_pending_employees: number
+  employees_ready_to_pay: number
+}
+
+// =====================================================
+// EMPLOYEE LOANS
 // =====================================================
 
 export type LoanConcept = 'passage' | 'food' | 'product' | 'advance' | 'other'
@@ -59,7 +193,7 @@ export type UpdateLoanInput = {
 }
 
 // =====================================================
-// payroll_receipts
+// LEGACY: payroll_receipts (transitional - to be deprecated)
 // =====================================================
 
 export type ReceiptStatus = 'draft' | 'pending' | 'paid'
@@ -142,8 +276,8 @@ export type CommissionSummary = {
   total_commissionable: number
   total_commission: number
   default_rate: number
-  payment_type: 'commission' | 'salary' | 'mixed'
-  fixed_salary: number | null
+  payment_type: PaymentType
+  base_salary: number | null
 }
 
 export type PendingLoanSummary = {
@@ -174,4 +308,36 @@ export type DayGroup = {
 
 export type CommissionWithDayGroups = CommissionSummary & {
   dayGroups: DayGroup[]
+}
+
+// =====================================================
+// CALCULATION HELPERS
+// =====================================================
+
+export type CalculatePayrollInput = {
+  employee_id: string
+  period_start: string
+  period_end: string
+  contract_type: ContractType
+  payment_type: PaymentType
+  percentage: number
+  base_salary: number | null
+  salary_frequency: string | null
+  has_transport_subsidy: boolean
+  force_transport_subsidy: boolean
+}
+
+export type PayrollCalculationResult = {
+  total_services: number
+  gross_commission: number
+  base_salary: number
+  transport_subsidy: number
+  health_deduction: number
+  pension_deduction: number
+  total_deductions: number
+  gross_pay: number
+  net_pay: number
+  loans_deducted: number
+  final_net: number
+  commissions: CommissionBreakdown[]
 }

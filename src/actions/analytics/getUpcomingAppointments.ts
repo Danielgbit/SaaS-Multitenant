@@ -55,8 +55,8 @@ export async function getUpcomingAppointments(
   }
 
   // Fetch client and employee names
-  const clientIds = [...new Set((data || []).map(a => a.client_id).filter(Boolean))]
-  const employeeIds = [...new Set((data || []).map(a => a.employee_id).filter(Boolean))]
+  const clientIds = [...new Set((data || []).map(a => a.client_id).filter((id): id is string => Boolean(id)))]
+  const employeeIds = [...new Set((data || []).map(a => a.employee_id).filter((id): id is string => Boolean(id)))]
 
   const [{ data: clients }, { data: employees }] = await Promise.all([
     clientIds.length > 0 
@@ -71,8 +71,8 @@ export async function getUpcomingAppointments(
   const employeesMap = new Map((employees || []).map(e => [e.id, e]))
 
   const appointments = (data || []).map(apt => {
-    const client = clientsMap.get(apt.client_id)
-    const employee = employeesMap.get(apt.employee_id)
+    const client = apt.client_id ? clientsMap.get(apt.client_id) : undefined
+    const employee = apt.employee_id ? employeesMap.get(apt.employee_id) : undefined
     const service = (apt.appointment_services as any[])?.[0]?.services
 
     return {

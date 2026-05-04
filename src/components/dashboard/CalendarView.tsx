@@ -198,55 +198,56 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     return date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!organizationId) return
-      setLoading(true)
-      setError(null)
-      try {
-        const startDate = formatDateKey(weekDates[0])
-        const endDate = formatDateKey(weekDates[6])
-        const [aptRes, empRes, cliRes, srvRes] = await Promise.all([
-          supabase.from('appointments').select(`
-            *,
-            appointment_services(
-              service_id,
-              services(name, price, duration)
-            )
-          `).eq('organization_id', organizationId).gte('start_time', `${startDate}T00:00:00.000Z`).lte('start_time', `${endDate}T23:59:59.999Z`).order('start_time'),
-          supabase.from('employees').select('*').eq('organization_id', organizationId),
-          supabase.from('clients').select('*').eq('organization_id', organizationId),
-          supabase.from('services').select('*').eq('organization_id', organizationId),
-        ])
-        if (aptRes.error) throw aptRes.error
-        if (empRes.error) throw empRes.error
-        if (cliRes.error) throw cliRes.error
-        if (srvRes.error) throw srvRes.error
+  const fetchAppointmentsData = useCallback(async () => {
+    if (!organizationId) return
+    setLoading(true)
+    setError(null)
+    try {
+      const startDate = formatDateKey(weekDates[0])
+      const endDate = formatDateKey(weekDates[6])
+      const [aptRes, empRes, cliRes, srvRes] = await Promise.all([
+        supabase.from('appointments').select(`
+          *,
+          appointment_services(
+            service_id,
+            services(name, price, duration)
+          )
+        `).eq('organization_id', organizationId).gte('start_time', `${startDate}T00:00:00.000Z`).lte('start_time', `${endDate}T23:59:59.999Z`).order('start_time'),
+        supabase.from('employees').select('*').eq('organization_id', organizationId),
+        supabase.from('clients').select('*').eq('organization_id', organizationId),
+        supabase.from('services').select('*').eq('organization_id', organizationId),
+      ])
+      if (aptRes.error) throw aptRes.error
+      if (empRes.error) throw empRes.error
+      if (cliRes.error) throw cliRes.error
+      if (srvRes.error) throw srvRes.error
 
-        const empMap = new Map<string, Employee>()
-        empRes.data?.forEach(e => empMap.set(e.id, e))
-        const cliMap = new Map<string, Client>()
-        cliRes.data?.forEach(c => cliMap.set(c.id, c))
-        const srvMap = new Map<string, Service>()
-        srvRes.data?.forEach(s => srvMap.set(s.id, s))
+      const empMap = new Map<string, Employee>()
+      empRes.data?.forEach(e => empMap.set(e.id, e))
+      const cliMap = new Map<string, Client>()
+      cliRes.data?.forEach(c => cliMap.set(c.id, c))
+      const srvMap = new Map<string, Service>()
+      srvRes.data?.forEach(s => srvMap.set(s.id, s))
 
-        const withDetails: AppointmentWithDetails[] = (aptRes.data ?? []).map((apt: any) => ({
-          ...apt,
-          employee: empMap.get(apt.employee_id),
-          client: cliMap.get(apt.client_id),
-          service: (apt.appointment_services as any[])?.[0]?.services ?? undefined
-        }))
-        setAppointments(withDetails)
-        setEmployees(empRes.data ?? [])
-        setClients(cliRes.data ?? [])
-        setServices(srvRes.data ?? [])
-      } catch (err) {
-        console.error('Error:', err)
-        setError('Error al cargar')
-      } finally { setLoading(false) }
-    }
-    fetchData()
+      const withDetails: AppointmentWithDetails[] = (aptRes.data ?? []).map((apt: any) => ({
+        ...apt,
+        employee: empMap.get(apt.employee_id),
+        client: cliMap.get(apt.client_id),
+        service: (apt.appointment_services as any[])?.[0]?.services ?? undefined
+      }))
+      setAppointments(withDetails)
+      setEmployees(empRes.data ?? [])
+      setClients(cliRes.data ?? [])
+      setServices(srvRes.data ?? [])
+    } catch (err) {
+      console.error('Error:', err)
+      setError('Error al cargar')
+    } finally { setLoading(false) }
   }, [organizationId, currentDate, supabase, weekDates])
+
+  useEffect(() => {
+    fetchAppointmentsData()
+  }, [fetchAppointmentsData])
 
   useEffect(() => {
     if (!organizationId) return
@@ -1850,59 +1851,59 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
           </div>
         </div>
       )}
-    </div>
+      {/* FAB - Purge Appointments */}
+      {(() => {
+        const cleanableCount = appointments.filter(
+          apt => ['completed', 'cancelled', 'no_show'].includes(apt.status) && !apt.invoice_id
+        ).length
 
-    {/* FAB - Purge Appointments */}
-    {(() => {
-      const cleanableCount = appointments.filter(
-        apt => ['completed', 'cancelled', 'no_show'].includes(apt.status) && !apt.invoice_id
-      ).length
+        if (!mounted || cleanableCount === 0) return null
 
-      if (!mounted || cleanableCount === 0) return null
-
-      return (
-        <>
-          <button
-            onClick={() => setShowPurgeModal(true)}
-            className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 z-50 animate-in slide-in-from-bottom-4"
-            style={{
-              backgroundColor: COLORS.isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(15, 76, 92, 0.08)',
-              border: `2px solid ${COLORS.isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(15, 76, 92, 0.15)'}`,
-              boxShadow: `0 4px 20px ${COLORS.isDark ? 'rgba(0,0,0,0.3)' : 'rgba(15, 76, 92, 0.15)'}`,
-            }}
-            aria-label={`Limpiar ${cleanableCount} citas completadas`}
-          >
-            <span
-              className="absolute -top-1 -right-1 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs font-medium"
+        return (
+          <>
+            <button
+              onClick={() => setShowPurgeModal(true)}
+              className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 z-50 animate-in slide-in-from-bottom-4"
               style={{
-                backgroundColor: COLORS.error,
-                color: '#FFFFFF',
-                padding: '0 6px',
+                backgroundColor: COLORS.isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(15, 76, 92, 0.08)',
+                border: `2px solid ${COLORS.isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(15, 76, 92, 0.15)'}`,
+                boxShadow: `0 4px 20px ${COLORS.isDark ? 'rgba(0,0,0,0.3)' : 'rgba(15, 76, 92, 0.15)'}`,
               }}
+              aria-label={`Limpiar ${cleanableCount} citas completadas`}
             >
-              {cleanableCount > 9 ? '9+' : cleanableCount}
-            </span>
-            <Trash2
-              className="w-5 h-5"
-              style={{ color: COLORS.isDark ? '#38BDF8' : '#0F4C5C' }}
-            />
-          </button>
+              <span
+                className="absolute -top-1 -right-1 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs font-medium"
+                style={{
+                  backgroundColor: COLORS.error,
+                  color: '#FFFFFF',
+                  padding: '0 6px',
+                }}
+              >
+                {cleanableCount > 9 ? '9+' : cleanableCount}
+              </span>
+              <Trash2
+                className="w-5 h-5"
+                style={{ color: COLORS.isDark ? '#38BDF8' : '#0F4C5C' }}
+              />
+            </button>
 
-          {showPurgeModal && (
-            <PurgeModal
-              organizationId={organizationId}
-              initialTab="selection"
-              onClose={() => setShowPurgeModal(false)}
-              onSuccess={() => {
-                setTimeout(() => {
-                  setShowPurgeModal(false)
-                }, 2000)
-              }}
-            />
-          )}
-        </>
-      )
-    })()}
+            {showPurgeModal && (
+              <PurgeModal
+                organizationId={organizationId}
+                initialTab="selection"
+                onClose={() => setShowPurgeModal(false)}
+                onSuccess={() => {
+                  fetchAppointmentsData()
+                  setTimeout(() => {
+                    setShowPurgeModal(false)
+                  }, 2000)
+                }}
+              />
+            )}
+          </>
+        )
+      })()}
+    </div>
   )
 }
 

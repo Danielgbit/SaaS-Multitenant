@@ -57,7 +57,7 @@ export async function getRecentActivity(
     .limit(limit)
 
   // Fetch client names
-  const clientIds = [...new Set((appointments || []).map(a => a.client_id).filter(Boolean))]
+  const clientIds = [...new Set((appointments || []).map(a => a.client_id).filter((id): id is string => Boolean(id)))]
   const { data: clients } = clientIds.length > 0
     ? await supabase.from('clients').select('id, name').in('id', clientIds)
     : { data: [] }

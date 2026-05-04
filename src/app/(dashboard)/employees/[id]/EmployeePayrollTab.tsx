@@ -9,10 +9,12 @@ import {
   AlertTriangle,
   Save,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Briefcase,
+  Users
 } from 'lucide-react'
 import { updateEmployeePayroll } from '@/actions/employees/updateEmployeePayroll'
-import type { Employee, PaymentType, SalaryFrequency } from '@/types/employees'
+import type { ContractType, PaymentType, SalaryFrequency } from '@/types/employees'
 
 function useColors() {
   const { theme } = useTheme()
@@ -36,10 +38,15 @@ function useColors() {
   }
 }
 
-type EmployeeWithPayroll = Employee & {
+type EmployeeWithPayroll = {
+  id: string
+  name: string
   default_commission_rate: number
   payment_type: PaymentType
-  fixed_salary: number | null
+  contract_type: ContractType
+  base_salary: number | null
+  has_transport_subsidy: boolean
+  force_transport_subsidy: boolean
   salary_frequency: SalaryFrequency | null
   max_debt_limit: number
   debt_warning_threshold: number
@@ -50,10 +57,15 @@ interface EmployeePayrollTabProps {
   organizationId: string
 }
 
+const contractTypeOptions: { value: ContractType; label: string; description: string }[] = [
+  { value: 'prestacion', label: 'Prestación de Servicios', description: 'Sin deducciones de salud/pensión. Común en barberos, esteticistas, especialistas independientes.' },
+  { value: 'laboral', label: 'Contrato Laboral', description: 'Con deducciones de 8% (salud + pensión). Para empleados formales como recepcionistas, auxiliares.' },
+]
+
 const paymentTypeOptions: { value: PaymentType; label: string; description: string }[] = [
-  { value: 'commission', label: 'Solo Comisión', description: 'Paga únicamente por servicios realizados' },
-  { value: 'salary', label: 'Sueldo Fijo', description: 'Paga un salario fijo independientemente de servicios' },
-  { value: 'mixed', label: 'Mixto', description: 'Sueldo fijo + comisión por servicios extra' },
+  { value: 'porcentaje', label: 'Solo Comisión', description: 'Paga únicamente por servicios realizados. Recomendado para barberos, esteticistas.' },
+  { value: 'fijo', label: 'Sueldo Fijo', description: 'Paga un salario fijo independientemente de servicios. Para recepcionistas, personal administrativo.' },
+  { value: 'mixed', label: 'Mixto', description: 'Sueldo base fijo + comisión por servicios extra. Para empleados que combinan roles.' },
 ]
 
 const salaryFrequencyOptions: { value: SalaryFrequency; label: string }[] = [
@@ -68,11 +80,14 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [contractType, setContractType] = useState<ContractType>(employee.contract_type || 'prestacion')
   const [commissionRate, setCommissionRate] = useState(employee.default_commission_rate || 60)
-  const [paymentType, setPaymentType] = useState<PaymentType>(employee.payment_type || 'commission')
-  const [fixedSalary, setFixedSalary] = useState(employee.fixed_salary?.toString() || '')
+  const [paymentType, setPaymentType] = useState<PaymentType>(employee.payment_type || 'porcentaje')
+  const [baseSalary, setBaseSalary] = useState(employee.base_salary?.toString() || '')
+  const [hasTransportSubsidy, setHasTransportSubsidy] = useState(employee.has_transport_subsidy || false)
+  const [forceTransportSubsidy, setForceTransportSubsidy] = useState(employee.force_transport_subsidy || false)
   const [salaryFrequency, setSalaryFrequency] = useState<SalaryFrequency>(
-    employee.salary_frequency || 'weekly'
+    employee.salary_frequency || 'monthly'
   )
   const [maxDebtLimit, setMaxDebtLimit] = useState(employee.max_debt_limit?.toString() || '200')
   const [debtWarningThreshold, setDebtWarningThreshold] = useState(
@@ -86,10 +101,13 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
 
     const result = await updateEmployeePayroll({
       id: employee.id,
+      contract_type: contractType,
       default_commission_rate: commissionRate,
       payment_type: paymentType,
-      fixed_salary: fixedSalary ? parseFloat(fixedSalary) : null,
-      salary_frequency: paymentType === 'salary' ? salaryFrequency : null,
+      base_salary: baseSalary ? parseFloat(baseSalary) : null,
+      has_transport_subsidy: hasTransportSubsidy,
+      force_transport_subsidy: forceTransportSubsidy,
+      salary_frequency: paymentType === 'fijo' || paymentType === 'mixed' ? salaryFrequency : null,
       max_debt_limit: parseFloat(maxDebtLimit),
       debt_warning_threshold: parseFloat(debtWarningThreshold),
     })
@@ -106,6 +124,54 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
 
   return (
     <div className="space-y-6">
+      {/* Contract Type */}
+      <div>
+        <label
+          className="block text-sm font-medium mb-3"
+          style={{ color: COLORS.textPrimary }}
+        >
+          <div className="flex items-center gap-2">
+            <Briefcase className="w-4 h-4" style={{ color: COLORS.primary }} />
+            Tipo de Vinculación
+          </div>
+        </label>
+        <div className="space-y-2">
+          {contractTypeOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setContractType(opt.value)}
+              className="w-full p-4 rounded-xl border-2 text-left transition-all duration-200"
+              style={{
+                borderColor: contractType === opt.value ? COLORS.primary : COLORS.border,
+                backgroundColor: contractType === opt.value ? COLORS.primary + '08' : COLORS.surface,
+              }}
+            >
+              <p
+                className="font-medium"
+                style={{ color: contractType === opt.value ? COLORS.primary : COLORS.textPrimary }}
+              >
+                {opt.label}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: COLORS.textMuted }}>
+                {opt.description}
+              </p>
+            </button>
+          ))}
+        </div>
+        {contractType === 'laboral' && (
+          <p className="text-xs mt-2 flex items-center gap-1" style={{ color: COLORS.success }}>
+            <CheckCircle2 className="w-3 h-3" />
+            Se aplicarán deducciones de salud (4%) y pensión (4%)
+          </p>
+        )}
+        {contractType === 'prestacion' && (
+          <p className="text-xs mt-2 flex items-center gap-1" style={{ color: COLORS.textMuted }}>
+            Sin deducciones de ley. El empleado gestiona sus propios aportes.
+          </p>
+        )}
+      </div>
+
       {/* Commission Rate */}
       <div>
         <label
@@ -154,7 +220,7 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
         >
           <div className="flex items-center gap-2">
             <DollarSign className="w-4 h-4" style={{ color: COLORS.primary }} />
-            Tipo de Pago
+            Modalidad de Pago
           </div>
         </label>
         <div className="space-y-2">
@@ -184,7 +250,7 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
       </div>
 
       {/* Fixed Salary (if applicable) */}
-      {paymentType !== 'commission' && (
+      {paymentType !== 'porcentaje' && (
         <div
           className="p-4 rounded-xl space-y-4"
           style={{ backgroundColor: COLORS.surfaceSubtle }}
@@ -194,7 +260,7 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
               className="block text-sm font-medium mb-2"
               style={{ color: COLORS.textPrimary }}
             >
-              Sueldo Fijo
+              Salario Base
             </label>
             <div className="relative">
               <span
@@ -207,8 +273,8 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
                 type="number"
                 step="0.01"
                 min="0"
-                value={fixedSalary}
-                onChange={(e) => setFixedSalary(e.target.value)}
+                value={baseSalary}
+                onChange={(e) => setBaseSalary(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 rounded-xl border text-sm"
                 style={{
                   borderColor: COLORS.border,
@@ -243,6 +309,37 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Transport Subsidy */}
+          <div className="space-y-3 pt-2">
+            <label
+              className="flex items-center gap-3 cursor-pointer"
+              style={{ color: COLORS.textPrimary }}
+            >
+              <input
+                type="checkbox"
+                checked={hasTransportSubsidy}
+                onChange={(e) => setHasTransportSubsidy(e.target.checked)}
+                className="w-5 h-5 rounded"
+              />
+              <span className="text-sm">Recibe auxilio de transporte</span>
+            </label>
+
+            {hasTransportSubsidy && (
+              <label
+                className="flex items-center gap-3 cursor-pointer ml-8"
+                style={{ color: COLORS.textSecondary }}
+              >
+                <input
+                  type="checkbox"
+                  checked={forceTransportSubsidy}
+                  onChange={(e) => setForceTransportSubsidy(e.target.checked)}
+                  className="w-4 h-4 rounded"
+                />
+                <span className="text-xs">Forzar aunque gane más de 2 SMMLV</span>
+              </label>
+            )}
           </div>
         </div>
       )}

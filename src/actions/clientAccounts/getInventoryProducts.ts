@@ -75,7 +75,7 @@ export async function getInventoryCategories(
     return { success: false, error: error.message }
   }
 
-  const categories = [...new Set((data || []).map((item: any) => item.category).filter(Boolean))] as string[]
+  const categories = [...new Set((data || []).map((item: any) => item.category).filter((c: any): c is string => Boolean(c)))] as string[]
   return { success: true, data: categories }
 }
 

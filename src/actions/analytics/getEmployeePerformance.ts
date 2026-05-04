@@ -65,7 +65,7 @@ export async function getEmployeePerformance(
   }
 
   // Get employee names
-  const employeeIds = [...new Set((appointments || []).map(a => a.employee_id).filter(Boolean))]
+  const employeeIds = [...new Set((appointments || []).map(a => a.employee_id).filter((id): id is string => Boolean(id)))]
   const { data: employees } = employeeIds.length > 0
     ? await supabase.from('employees').select('id, name').in('id', employeeIds)
     : { data: [] }
