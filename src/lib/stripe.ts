@@ -39,9 +39,8 @@ export const stripe = {
 } as unknown as Stripe
 
 export const STRIPE_PRICE_IDS = {
-  basic: null,
-  professional: process.env.STRIPE_PRICE_PRO_MONTHLY || 'price_pro_monthly',
-  enterprise: process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY || 'price_enterprise_monthly',
+  basic: process.env.STRIPE_PRICE_BASIC_MONTHLY || null,
+  professional: process.env.STRIPE_PRICE_PRO_MONTHLY || null,
 } as const
 
 export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || ''

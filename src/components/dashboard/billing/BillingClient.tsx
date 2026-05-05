@@ -18,6 +18,7 @@ import {
 import { createCheckoutSession } from '@/actions/billing/createCheckoutSession'
 import { cancelSubscription } from '@/actions/billing/cancelSubscription'
 import { reactivateSubscription } from '@/actions/billing/reactivateSubscription'
+import { PromoCodeInput } from './PromoCodeInput'
 import { formatCurrency, getTrialDaysRemaining } from '@/lib/billing/utils'
 
 function useColors() {
@@ -277,6 +278,9 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
               </button>
             </div>
           )}
+
+          {/* Promo Code Input */}
+          <PromoCodeInput />
         </div>
       )}
 

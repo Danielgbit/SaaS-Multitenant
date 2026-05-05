@@ -4,6 +4,7 @@ import { createServerClient } from '@supabase/ssr'
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  const hostname = request.nextUrl.hostname
 
   if (pathname.startsWith('/api/cron/')) {
     return NextResponse.next()
@@ -32,6 +33,12 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse
   }
 
+  const BYPASS_SUBSCRIPTION_CHECK =
+    process.env.BYPASS_SUBSCRIPTION_CHECK === 'true' && hostname === 'localhost'
+
+  const BYPASS_ADMIN_AUTH =
+    process.env.BYPASS_ADMIN_AUTH === 'true' && hostname === 'localhost'
+
   const { data: orgMember } = await supabase
     .from('organization_members')
     .select('role, organization_id')
@@ -41,6 +48,16 @@ export async function proxy(request: NextRequest) {
   const role = orgMember?.role
   const isStaff = role === 'staff'
   const isEmpleado = role === 'empleado'
+
+  if (pathname.startsWith('/admin')) {
+    if (!BYPASS_ADMIN_AUTH) {
+      if (role !== 'owner_saas') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard'
+        return NextResponse.redirect(url)
+      }
+    }
+  }
 
   if (isEmpleado && pathname.startsWith('/payroll') && !pathname.startsWith('/payroll/mi')) {
     const url = request.nextUrl.clone()
@@ -76,6 +93,30 @@ export async function proxy(request: NextRequest) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)
+    }
+  }
+
+  if (!BYPASS_SUBSCRIPTION_CHECK && orgMember?.organization_id) {
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('status, trial_ends_at')
+      .eq('organization_id', orgMember.organization_id)
+      .single()
+
+    if (subscription?.status === 'trial' && subscription.trial_ends_at) {
+      const trialEnds = new Date(subscription.trial_ends_at)
+      const now = new Date()
+      if (trialEnds < now) {
+        if (
+          !pathname.startsWith('/dashboard/billing') &&
+          !pathname.startsWith('/login') &&
+          !pathname.startsWith('/admin')
+        ) {
+          const url = request.nextUrl.clone()
+          url.pathname = '/dashboard/billing'
+          return NextResponse.redirect(url)
+        }
+      }
     }
   }
 
