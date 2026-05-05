@@ -5,7 +5,7 @@ export { getPayrollConfig, getCurrentPayrollConfig, updatePayrollConfig } from '
 // Period Management
 export { createPayrollPeriod } from './createPayrollPeriod'
 export { getPayrollDashboard, getPayrollPeriods, getPayrollPeriodById } from './getPayrollDashboard'
-export { approvePayrollPeriod, markPayrollPeriodAsPaid, deletePayrollPeriod } from './managePayrollPeriod'
+export { approvePayrollPeriod, markPayrollPeriodAsPaid, deletePayrollPeriod, managePayrollPeriod } from './managePayrollPeriod'
 
 // Payroll Items
 export { getPayrollItems, getPayrollItemById, getPeriodCommissions } from './getPayrollItems'
@@ -20,3 +20,6 @@ export { getPendingLoans, getEmployeeDebtInfo } from './getPendingLoans'
 
 // Legacy receipts (for backwards compatibility)
 export { generatePayrollReceipt, getPayrollReceipts } from './generatePayrollReceipt'
+
+// Email Receipt
+export { sendPayrollReceiptEmail } from './sendPayrollReceiptEmail'

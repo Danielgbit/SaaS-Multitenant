@@ -203,6 +203,7 @@ export type PayrollReceipt = {
   id: string
   employee_id: string
   organization_id: string
+  payroll_period_id?: string
   payment_date: string
   period_type: PeriodType
   period_start: string
@@ -217,6 +218,9 @@ export type PayrollReceipt = {
   notes: string | null
   created_at: string
   updated_at: string
+  payment_method?: string
+  payment_reference?: string
+  paid_at?: string
 }
 
 export type PayrollReceiptService = {

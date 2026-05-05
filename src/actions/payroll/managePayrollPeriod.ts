@@ -56,7 +56,11 @@ export async function approvePayrollPeriod(periodId: string): Promise<{
   return { success: true }
 }
 
-export async function markPayrollPeriodAsPaid(periodId: string, paymentDate?: string): Promise<{
+export async function markPayrollPeriodAsPaid(
+  periodId: string,
+  paymentMethod?: string,
+  paymentReference?: string
+): Promise<{
   success: boolean
   error?: string
 }> {
@@ -95,8 +99,11 @@ export async function markPayrollPeriodAsPaid(periodId: string, paymentDate?: st
   }
 
   const updateData: Record<string, any> = { status: 'paid' }
-  if (paymentDate) {
-    updateData.notes = `Pagado el ${paymentDate}`
+  if (paymentMethod) {
+    updateData.payment_method = paymentMethod
+  }
+  if (paymentReference) {
+    updateData.payment_reference = paymentReference
   }
 
   const { error } = await (supabase as any)
@@ -165,4 +172,28 @@ export async function deletePayrollPeriod(periodId: string): Promise<{
   revalidatePath('/payroll')
 
   return { success: true }
+}
+
+// Unified manager for payroll period actions
+export type PayrollPeriodAction = 'approve' | 'markPaid' | 'delete'
+
+export async function managePayrollPeriod(input: {
+  periodId: string
+  action: PayrollPeriodAction
+  paymentMethod?: string
+  paymentReference?: string
+}): Promise<{
+  success: boolean
+  error?: string
+}> {
+  switch (input.action) {
+    case 'approve':
+      return approvePayrollPeriod(input.periodId)
+    case 'markPaid':
+      return markPayrollPeriodAsPaid(input.periodId, input.paymentMethod, input.paymentReference)
+    case 'delete':
+      return deletePayrollPeriod(input.periodId)
+    default:
+      return { success: false, error: 'Acción no válida' }
+  }
 }

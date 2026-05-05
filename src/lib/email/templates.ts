@@ -1,12 +1,13 @@
 import { getRoleLabel } from '@/lib/rbac'
 
-export type EmailType = 
+export type EmailType =
   | 'appointment_confirmation'
   | 'appointment_reminder'
   | 'appointment_cancelled'
   | 'appointment_completed'
   | 'appointment_no_show'
   | 'employee_invitation'
+  | 'payroll_receipt'
 
 function getAccessDescription(role: string): string {
   switch (role) {
@@ -34,6 +35,11 @@ interface EmailVariables {
   phone?: string
   invitationUrl?: string
   role?: string
+  period?: string
+  netPay?: string
+  paymentMethod?: string
+  paymentReference?: string
+  paidAt?: string
 }
 
 const getEmailStyles = () => `
@@ -319,7 +325,7 @@ export function getEmailTemplate(
   type: EmailType,
   variables: EmailVariables
 ): { subject: string; html: string } {
-  const { businessName, clientName, serviceName, employeeName, date, time, duration, price, location, phone, invitationUrl, role } = variables
+  const { businessName, clientName, serviceName, employeeName, date, time, duration, price, location, phone, invitationUrl, role, period, netPay, paymentMethod, paymentReference, paidAt } = variables
 
   const subjectMap: Record<EmailType, string> = {
     appointment_confirmation: `Confirmacion de tu cita en ${businessName}`,
@@ -328,6 +334,7 @@ export function getEmailTemplate(
     appointment_completed: `Gracias por tu visita a ${businessName}!`,
     appointment_no_show: `Informacion sobre tu cita en ${businessName}`,
     employee_invitation: `Te han invitado a unirte a ${businessName}`,
+    payroll_receipt: `Tu recibo de pago - ${period || businessName}`,
   }
 
   const templates: Record<EmailType, string> = {
@@ -607,6 +614,68 @@ export function getEmailTemplate(
           <p class="footer-text">¿Tienes alguna pregunta?</p>
           <p class="footer-text">
             <a href="mailto:soporte@prugressy.com" class="footer-link">Contactanos</a>
+          </p>
+          <div class="divider"></div>
+          <p class="footer-text">
+            © ${new Date().getFullYear()} Prügressy. Todos los derechos reservados.
+          </p>
+        </div>
+      </div>
+    `,
+
+    payroll_receipt: `
+      <div class="email-wrapper">
+        <div class="header">
+          <div class="header-content">
+            <div class="logo">Prügressy<span class="logo-accent">.</span></div>
+            <p class="header-subtitle">Recibo de pago</p>
+          </div>
+        </div>
+        <div class="content">
+          <p class="greeting">Hola ${employeeName},</p>
+          <p class="intro-text">Te confirmamos tu pago de <strong>${period}</strong>. Tu recibo esta adjunto en este correo.</p>
+          
+          <div class="highlight-box">
+            <div class="highlight-title">Valor neto a pagar</div>
+            <div class="highlight-value">${netPay}</div>
+          </div>
+          
+          <div class="details-grid">
+            <div class="detail-item">
+              <div class="detail-label">Periodo</div>
+              <div class="detail-value">${period}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Metodo de pago</div>
+              <div class="detail-value">${paymentMethod || 'No especificado'}</div>
+            </div>
+            ${paymentReference ? `
+            <div class="detail-item">
+              <div class="detail-label">Referencia</div>
+              <div class="detail-value">${paymentReference}</div>
+            </div>
+            ` : ''}
+            ${paidAt ? `
+            <div class="detail-item">
+              <div class="detail-label">Fecha de pago</div>
+              <div class="detail-value">${paidAt}</div>
+            </div>
+            ` : ''}
+          </div>
+          
+          <div class="expiry-notice" style="margin-top: 24px; background: #f0fdfa; border-left-color: #10b981;">
+            <p class="expiry-text" style="color: #065f46;">Si tienes alguna duda sobre este pago, comunicate con tu empleador directamente.</p>
+          </div>
+          
+          <div class="cta-section" style="padding: 24px 0;">
+            <p class="cta-text">Gracias por tu trabajo!</p>
+          </div>
+        </div>
+        <div class="footer">
+          <p class="footer-brand">Prügressy</p>
+          <p class="footer-text">¿Tienes alguna pregunta?</p>
+          <p class="footer-text">
+            <a href="mailto:soporte@pruegressy.com" class="footer-link">Contactanos</a>
           </p>
           <div class="divider"></div>
           <p class="footer-text">
