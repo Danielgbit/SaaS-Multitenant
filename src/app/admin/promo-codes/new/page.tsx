@@ -5,7 +5,7 @@ import { useFormStatus } from 'react-dom'
 import { createCode, type CreateCodeState } from '@/actions/admin/promoCodes/createCode'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { ArrowLeftIcon } from 'lucide-react'
 import Link from 'next/link'
 
 const CODE_TYPES = [

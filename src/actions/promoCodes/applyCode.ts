@@ -43,7 +43,7 @@ export async function applyCode(
     .select('id')
     .eq('promo_code_id', promoCode.id)
     .eq('organization_id', orgMember.organization_id)
-    .single()
+    .single() as any
 
   if (existingUse) {
     return { error: 'Ya usaste este código' }
@@ -70,7 +70,7 @@ export async function applyCode(
 
       await supabase
         .from('subscriptions')
-        .update({ trial_ends_at: newTrialEndsAt.toISOString() })
+        .update({ trial_ends_at: newTrialEndsAt.toISOString() } as any)
         .eq('organization_id', orgMember.organization_id)
       break
     }
@@ -85,7 +85,7 @@ export async function applyCode(
         .update({
           status: 'grace_period',
           trial_ends_at: newTrialEndsAt.toISOString(),
-        })
+        } as any)
         .eq('organization_id', orgMember.organization_id)
       break
     }
@@ -100,11 +100,11 @@ export async function applyCode(
     .insert({
       promo_code_id: promoCode.id,
       organization_id: orgMember.organization_id,
-    })
+    } as any)
 
   await supabase
     .from('promo_codes')
-    .update({ used_count: promoCode.usedCount + 1 })
+    .update({ used_count: promoCode.usedCount + 1 } as any)
     .eq('id', promoCode.id)
 
   revalidatePath('/dashboard/billing')

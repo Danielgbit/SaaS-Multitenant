@@ -24,7 +24,7 @@ export async function validateCode(code: string): Promise<ValidateCodeResult> {
     .select('id, code, name, type, value, max_uses, used_count')
     .eq('code', code.toUpperCase())
     .eq('is_active', true)
-    .single()
+    .single() as any
 
   if (!promoCode) {
     return { valid: false, error: 'Código no válido' }

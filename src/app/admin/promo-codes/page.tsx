@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { PlusIcon, TicketIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, TicketIcon } from 'lucide-react'
 
 export const metadata = {
   title: 'Códigos Promocionales - Admin',

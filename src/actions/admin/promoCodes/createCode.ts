@@ -54,7 +54,7 @@ export async function createCode(
   const validated = createCodeSchema.safeParse(rawData)
 
   if (!validated.success) {
-    return { error: validated.error.errors[0].message }
+    return { error: validated.error.issues[0].message }
   }
 
   const { data: existing } = await supabase
@@ -78,7 +78,7 @@ export async function createCode(
       expires_at: validated.data.expiresAt || null,
       valid_until: validated.data.validUntil || null,
       created_by: user.id,
-    })
+    } as any)
     .select('id')
     .single()
 

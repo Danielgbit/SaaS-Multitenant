@@ -16,8 +16,15 @@ import Link from 'next/link'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isDark = mounted ? resolvedTheme === 'dark' : false
+
   return {
     primary: isDark ? '#38BDF8' : '#0F4C5C',
     primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',

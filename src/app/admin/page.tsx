@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { TicketIcon, BuildingOfficeIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/outline'
+import { TicketIcon, BuildingOfficeIcon, ArrowTrendingUpIcon } from 'lucide-react'
 
 export const metadata = {
   title: 'Admin - Prügressy',

@@ -7,7 +7,7 @@ import {
   BuildingOfficeIcon,
   HomeIcon,
   ArrowRightOnRectangleIcon,
-} from '@heroicons/react/24/outline'
+} from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface AdminNavProps {
