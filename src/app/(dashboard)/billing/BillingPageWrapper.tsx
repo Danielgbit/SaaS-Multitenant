@@ -1,20 +1,9 @@
 'use client'
 
-import { useTheme } from 'next-themes'
-import { BillingClient } from '@/components/dashboard/billing/BillingClient'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
-  return {
-    surface: isDark ? '#0F172A' : '#FAFAF9',
-    surfaceSubtle: isDark ? '#1E293B' : '#FFFFFF',
-    textPrimary: isDark ? '#F1F5F9' : '#1A2B32',
-    textSecondary: isDark ? '#94A3B8' : '#5A6B70',
-    border: isDark ? '#334155' : '#E8ECEE',
-    isDark,
-  }
+  return useThemeColors()
 }
 
 export function BillingPageWrapper({ 

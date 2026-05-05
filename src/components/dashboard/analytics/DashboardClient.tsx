@@ -2,49 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { useTheme } from 'next-themes'
-import { 
-  Calendar, 
-  DollarSign, 
-  Users, 
-  CheckCircle2,
-  TrendingUp,
-  XCircle
-} from 'lucide-react'
-import { getDashboardData } from '@/actions/analytics/getDashboardData'
-import { StatsCard } from './StatsCard'
-import { TrendChart } from './TrendChart'
-import { TopServicesList } from './TopServicesList'
-import { PeriodSelector } from './PeriodSelector'
-import { UpcomingAppointments } from './UpcomingAppointments'
-import { RecentActivity } from './RecentActivity'
-import { EmployeePerformance } from './EmployeePerformance'
-import { AlertsPanel } from './AlertsPanel'
-import { PayrollSummaryWidget } from './PayrollSummaryWidget'
-import { BusinessHealthWidget } from './BusinessHealthWidget'
-import { QuickActionsWidget } from './QuickActionsWidget'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
-  return {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
-    success: '#16A34A',
-    surface: isDark ? '#0F172A' : '#FFFFFF',
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
-    surfaceElevated: isDark ? '#1E293B' : '#FFFFFF',
-    border: isDark ? '#334155' : '#E2E8F0',
-    borderLight: isDark ? '#1E293B' : '#F0F3F4',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    glass: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
-    gradientFrom: isDark ? '#38BDF8' : '#0F4C5C',
-    gradientTo: isDark ? '#0EA5E9' : '#0C3E4A',
-    isDark,
-  }
+  return useThemeColors()
+}
 }
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'last7days' | 'last30days'

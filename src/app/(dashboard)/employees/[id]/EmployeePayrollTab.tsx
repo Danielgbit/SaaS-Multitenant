@@ -1,41 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useTheme } from 'next-themes'
-import {
-  DollarSign,
-  Percent,
-  TrendingUp,
-  AlertTriangle,
-  Save,
-  Loader2,
-  CheckCircle2,
-  Briefcase,
-  Users
-} from 'lucide-react'
-import { updateEmployeePayroll } from '@/actions/employees/updateEmployeePayroll'
-import type { ContractType, PaymentType, SalaryFrequency } from '@/types/employees'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-
-  return {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    surface: isDark ? '#0F172A' : '#FFFFFF',
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
-    border: isDark ? '#334155' : '#E2E8F0',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    success: '#16A34A',
-    successLight: isDark ? '#064E3B' : '#DCFCE7',
-    warning: '#F59E0B',
-    warningLight: isDark ? '#78350F' : '#FEF3C7',
-    error: '#DC2626',
-    errorLight: isDark ? '#450A0A' : '#FEE2E2',
-    isDark,
-  }
+  return useThemeColors()
+}
 }
 
 type EmployeeWithPayroll = {

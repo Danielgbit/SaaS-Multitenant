@@ -8,13 +8,10 @@ import {
   TrendingUp, Check, X, ArrowRight, Sparkles,
   Smartphone, Landmark, Calendar, MessageSquare
 } from 'lucide-react'
-import { useTheme } from 'next-themes'
-import { confirmByReception } from '@/actions/confirmations/confirmByReception'
-import type { AppointmentConfirmation } from '@/actions/confirmations/types'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
-interface ReceptionConfirmationsProps {
-  confirmations: (AppointmentConfirmation & { employee_name?: string; start_time?: string; completed_at?: string | null })[]
-  organizationId: string
+function useColors() {
+  return useThemeColors()
 }
 
 type FilterStatus = 'pending' | 'completed' | 'all'

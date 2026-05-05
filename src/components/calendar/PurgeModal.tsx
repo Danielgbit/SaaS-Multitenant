@@ -2,44 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { useTheme } from 'next-themes'
-import {
-  Trash2,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  Calendar,
-  ChevronRight,
-  Search,
-  X,
-  Check
-} from 'lucide-react'
-import { purgeAppointments, deleteAppointmentsByIds } from '@/actions/appointments/purgeAppointments'
-import { getAppointmentsByFilters } from '@/lib/cleanup-helpers'
-import type { PurgeCandidate } from '@/lib/cleanup-helpers'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-
-  return {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
-    surface: isDark ? '#0F172A' : '#FFFFFF',
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
-    border: isDark ? '#334155' : '#E2E8F0',
-    overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    success: '#16A34A',
-    successLight: isDark ? '#064E3B' : '#DCFCE7',
-    warning: '#F59E0B',
-    warningLight: isDark ? '#78350F' : '#FEF3C7',
-    error: '#DC2626',
-    errorLight: isDark ? '#450A0A' : '#FEE2E2',
-    isDark,
-  }
+  return useThemeColors()
+}
 }
 
 interface PurgeModalProps {

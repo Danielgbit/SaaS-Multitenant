@@ -22,33 +22,10 @@ import {
 import { LoanModal } from './LoanModal'
 import { PeriodSelector } from './PeriodSelector'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-
-  return {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
-    primaryGradient: isDark
-      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
-      : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
-    surface: isDark ? '#0F172A' : '#FFFFFF',
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
-    surfaceGlass: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-    border: isDark ? '#334155' : '#E2E8F0',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    success: '#16A34A',
-    successLight: isDark ? '#064E3B' : '#DCFCE7',
-    warning: '#F59E0B',
-    warningLight: isDark ? '#78350F' : '#FEF3C7',
-    error: '#DC2626',
-    errorLight: isDark ? '#450A0A' : '#FEE2E2',
-    amber: '#F59E0B',
-    isDark,
-  }
+  return useThemeColors()
 }
 
 type Employee = {

@@ -53,9 +53,15 @@ import { formatTime, convertTo24Hour, formatDuration } from '@/lib/utils/formatT
 import React from 'react'
 
 function useColors(): CalendarColors & { isDark: boolean } {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isDark = mounted ? resolvedTheme === 'dark' : false
+
   return {
     isDark,
     primary: isDark ? '#38BDF8' : '#0F4C5C',

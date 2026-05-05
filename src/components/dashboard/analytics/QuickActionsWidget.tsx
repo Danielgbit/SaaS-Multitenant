@@ -1,38 +1,10 @@
 'use client'
 
-import { useTheme } from 'next-themes'
-import Link from 'next/link'
-import { 
-  Plus, 
-  Calendar, 
-  DollarSign, 
-  UserPlus,
-  Receipt,
-  Wallet,
-  Settings
-} from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
-  return {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
-    surface: isDark ? '#0F172A' : '#FFFFFF',
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
-    border: isDark ? '#334155' : '#E2E8F0',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    success: '#16A34A',
-    successLight: isDark ? '#064E3B' : '#D1FAE5',
-    warning: '#F59E0B',
-    warningLight: isDark ? '#78350F' : '#FEF3C7',
-    error: '#DC2626',
-    errorLight: isDark ? '#450A0A' : '#FEE2E2',
-    isDark,
-  }
+  return useThemeColors()
+}
 }
 
 const quickActions = [

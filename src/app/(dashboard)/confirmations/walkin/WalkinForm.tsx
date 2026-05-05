@@ -8,40 +8,11 @@ import {
   CreditCard, Banknote, DollarSign, X, ShoppingCart,
   CheckCircle, AlertCircle
 } from 'lucide-react'
-import { useTheme } from 'next-themes'
-import { createConfirmation } from '@/actions/confirmations/createConfirmation'
-import { formatDuration } from '@/lib/utils/formatTime'
-import type { ConfirmationService } from '@/actions/confirmations/types'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
-  return {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
-    primaryGradient: isDark 
-      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
-      : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
-    surface: isDark ? '#1E293B' : '#FFFFFF',
-    surfaceSubtle: isDark ? '#0F172A' : '#F1F5F9',
-    surfaceGlass: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
-    border: isDark ? '#334155' : '#CBD5E1',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#64748B',
-    success: '#16A34A',
-    successLight: isDark ? '#064E3B' : '#DCFCE7',
-    successDark: isDark ? '#6EE7B7' : '#059669',
-    warning: '#F59E0B',
-    warningLight: isDark ? '#451A03' : '#FEF3C7',
-    danger: '#DC2626',
-    dangerLight: isDark ? '#450A0A' : '#FEE2E2',
-    purple: '#8B5CF6',
-    purpleLight: isDark ? '#2E1065' : '#EDE9FE',
-    overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.5)',
-    isDark,
-  }
+  return useThemeColors()
+}
 }
 
 interface Service {

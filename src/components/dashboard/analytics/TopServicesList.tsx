@@ -1,36 +1,13 @@
 'use client'
 
-import { useTheme } from 'next-themes'
-import { Scissors, Sparkles } from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
-interface TopServicesListProps {
-  services: Array<{
-    serviceId: string
-    serviceName: string
-    count: number
-    percentage: number
-    revenue: number
-  }>
-  loading?: boolean
+function useColors() {
+  return useThemeColors()
 }
 
 export function TopServicesList({ services, loading }: TopServicesListProps) {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
-  const COLORS = {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    success: '#16A34A',
-    surface: isDark ? '#0F172A' : '#FFFFFF',
-    surfaceGlass: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
-    border: isDark ? '#334155' : '#E2E8F0',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    gold: '#D97706',
-    goldLight: '#FEF3C7',
-  }
+  const COLORS = useColors()
 
   if (loading) {
     return (

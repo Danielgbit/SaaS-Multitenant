@@ -1,34 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTheme } from 'next-themes'
-import { Activity, CheckCircle2, XCircle, UserPlus, Clock, Loader2 } from 'lucide-react'
-import { getRecentActivity } from '@/actions/analytics/getRecentActivity'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
-  return {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primarySubtle: isDark ? 'rgba(56, 189, 248, 0.1)' : 'rgba(15, 76, 92, 0.08)',
-    surface: isDark ? '#0F172A' : '#FFFFFF',
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
-    surfaceGlass: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-    border: isDark ? '#334155' : '#E2E8F0',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    success: '#16A34A',
-    successLight: isDark ? '#064E3B' : '#DCFCE7',
-    error: '#DC2626',
-    errorLight: isDark ? '#450A0A' : '#FEE2E2',
-    warning: '#F59E0B',
-    warningLight: isDark ? '#78350F' : '#FEF3C7',
-    info: '#0EA5E9',
-    infoLight: isDark ? '#0c4a6e' : '#E0F2FE',
-    isDark,
-  }
+  return useThemeColors()
+}
 }
 
 interface Activity {

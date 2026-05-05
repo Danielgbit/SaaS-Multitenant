@@ -1,45 +1,13 @@
 'use client'
 
-import { useTheme } from 'next-themes'
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  Area,
-  AreaChart
-} from 'recharts'
-import { Calendar, TrendingUp } from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
-interface TrendChartProps {
-  data: Array<{
-    date: string
-    label: string
-    appointments: number
-    completed: number
-    revenue: number
-  }>
-  loading?: boolean
+function useColors() {
+  return useThemeColors()
 }
 
 export function TrendChart({ data, loading }: TrendChartProps) {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
-  const COLORS = {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryLight: isDark ? '#0EA5E9' : '#E6F1F4',
-    success: '#16A34A',
-    surface: isDark ? '#0F172A' : '#FFFFFF',
-    surfaceGlass: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
-    border: isDark ? '#334155' : '#E2E8F0',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-  }
+  const COLORS = useColors()
 
   function CustomTooltip({ active, payload, label }: any) {
     if (!active || !payload?.length) return null

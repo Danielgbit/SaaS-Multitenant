@@ -1,60 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useTheme } from 'next-themes'
-import { X, Loader2, UserCircle, Check, AlertCircle, HelpCircle, MessageCircle, Mail, Phone, PhoneCall, User, BellOff } from 'lucide-react'
-import { createClient } from '@/actions/clients/createClient'
-import { updateClient } from '@/actions/clients/updateClient'
-import type { Database } from '@/../types/supabase'
-import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
-
-type Client = Database['public']['Tables']['clients']['Row']
-
-type ConfirmationMethod = 'whatsapp' | 'phone_call' | 'in_person' | 'none'
-
-interface EditClientModalProps {
-  client: Client | null
-  organizationId: string
-  isOpen: boolean
-  onClose: () => void
-  onSuccess: () => void
-}
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
-  return {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
-    primaryGradient: isDark 
-      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
-      : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
-    surface: isDark ? '#0F172A' : '#FFFFFF',
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
-    surfaceGlass: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.95)',
-    border: isDark ? '#334155' : '#E2E8F0',
-    borderFocus: isDark ? '#38BDF8' : '#0F4C5C',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#64748B',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    error: '#DC2626',
-    errorLight: isDark ? '#450A0A' : '#FEF2F2',
-    success: '#16A34A',
-    successLight: isDark ? '#064E3B' : '#ECFDF5',
-    warning: '#F59E0B',
-    warningLight: isDark ? '#78350F' : '#FEF3C7',
-    overlay: isDark ? 'rgba(0, 0, 0, 0.75)' : 'rgba(15, 23, 42, 0.5)',
-    radius: {
-      lg: '20px',
-      md: '12px',
-      sm: '8px',
-    },
-    shadow: '0 25px 60px -12px rgba(0, 0, 0, 0.35)',
-    shadowInput: '0 2px 8px rgba(0, 0, 0, 0.08)',
-    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-    isDark,
-  }
+  return useThemeColors()
 }
 
 function FloatingInput({

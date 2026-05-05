@@ -1,9 +1,11 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { UserCircle, Phone, Mail, Calendar, Pencil, Trash2, CheckCircle2 } from 'lucide-react'
 import type { Database } from '@/../types/supabase'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 type Client = Database['public']['Tables']['clients']['Row']
 
@@ -21,29 +23,10 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase()
 }
 
+import { useThemeColors } from '@/hooks/useThemeColors'
+
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
-  return {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
-    primaryGradient: isDark 
-      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
-      : 'linear-gradient(135deg, #0F4C5C 0%, #1A6B7C 100%)',
-    surface: isDark ? '#0F172A' : '#FFFFFF',
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
-    surfaceGlass: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.8)',
-    border: isDark ? '#334155' : '#E2E8F0',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    success: '#16A34A',
-    successLight: isDark ? '#064E3B' : '#D1FAE5',
-    error: '#DC2626',
-    errorLight: isDark ? '#450A0A' : '#FEE2E2',
-    isDark,
-  }
+  return useThemeColors()
 }
 
 export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
@@ -230,37 +213,30 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
 }
 
 export function ClientCardSkeleton() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
-  const colors = {
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
-    border: isDark ? '#334155' : '#E2E8F0',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-  }
+  const COLORS = useColors()
 
   return (
-    <div 
+    <div
       className="p-5 rounded-2xl border animate-pulse"
       style={{
-        backgroundColor: colors.surfaceSubtle,
-        borderColor: colors.border,
+        backgroundColor: COLORS.surfaceSubtle,
+        borderColor: COLORS.border,
       }}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div 
             className="w-12 h-12 rounded-full"
-            style={{ backgroundColor: colors.textMuted + '30' }}
+            style={{ backgroundColor: COLORS.textMuted + '30' }}
           />
           <div className="space-y-2">
             <div 
               className="h-4 w-32 rounded"
-              style={{ backgroundColor: colors.textMuted + '30' }}
+              style={{ backgroundColor: COLORS.textMuted + '30' }}
             />
             <div 
               className="h-3 w-20 rounded"
-              style={{ backgroundColor: colors.textMuted + '20' }}
+              style={{ backgroundColor: COLORS.textMuted + '20' }}
             />
           </div>
         </div>
@@ -269,32 +245,32 @@ export function ClientCardSkeleton() {
       <div className="space-y-2 mb-4">
         <div 
           className="h-3 w-24 rounded"
-          style={{ backgroundColor: colors.textMuted + '20' }}
+          style={{ backgroundColor: COLORS.textMuted + '20' }}
         />
         <div 
           className="h-3 w-36 rounded"
-          style={{ backgroundColor: colors.textMuted + '20' }}
+          style={{ backgroundColor: COLORS.textMuted + '20' }}
         />
       </div>
 
       <div 
         className="h-12 rounded-xl mb-4"
-        style={{ backgroundColor: colors.textMuted + '10' }}
+        style={{ backgroundColor: COLORS.textMuted + '10' }}
       />
 
-      <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: colors.border }}>
+      <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: COLORS.border }}>
         <div 
           className="h-3 w-20 rounded"
-          style={{ backgroundColor: colors.textMuted + '20' }}
+          style={{ backgroundColor: COLORS.textMuted + '20' }}
         />
         <div className="flex gap-1">
           <div 
             className="w-8 h-8 rounded-lg"
-            style={{ backgroundColor: colors.textMuted + '20' }}
+            style={{ backgroundColor: COLORS.textMuted + '20' }}
           />
           <div 
             className="w-8 h-8 rounded-lg"
-            style={{ backgroundColor: colors.textMuted + '20' }}
+            style={{ backgroundColor: COLORS.textMuted + '20' }}
           />
         </div>
       </div>

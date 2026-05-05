@@ -8,19 +8,10 @@ import {
   Loader2
 } from 'lucide-react'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
-import type { PayrollItemWithEmployee } from '@/types/payroll'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
-type PendingChange = {
-  itemId: string
-  employeeName: string
-  field: string
-  oldValue: any
-  newValue: any
-  impact?: {
-    field: string
-    oldValue: number
-    newValue: number
-  }
+function useColors() {
+  return useThemeColors()
 }
 
 interface ChangesPreviewModalProps {
@@ -28,24 +19,6 @@ interface ChangesPreviewModalProps {
   onCancel: () => void
   onConfirm: () => void
   loading: boolean
-}
-
-function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  return {
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    surface: isDark ? '#0F172A' : '#FFFFFF',
-    surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
-    border: isDark ? '#334155' : '#E2E8F0',
-    textPrimary: isDark ? '#F1F5F9' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    success: '#16A34A',
-    warning: '#F59E0B',
-    error: '#DC2626',
-    isDark,
-  }
 }
 
 const FIELD_LABELS: Record<string, string> = {

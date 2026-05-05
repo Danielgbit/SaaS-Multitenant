@@ -27,13 +27,19 @@ import { createClient } from '@/lib/supabase/client'
 import { getRoleLabel, isEmpleado } from '@/lib/rbac'
 
 function useColors() {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isDark = mounted ? resolvedTheme === 'dark' : false
+
   return {
     primary: isDark ? '#38BDF8' : '#0F4C5C',
     primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
-    primaryGradient: isDark 
+    primaryGradient: isDark
       ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
       : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
     surface: isDark ? '#1E293B' : '#FFFFFF',
@@ -419,9 +425,15 @@ interface HamburgerButtonProps {
 }
 
 export function HamburgerButton({ onClick }: HamburgerButtonProps) {
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-  
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isDark = mounted ? resolvedTheme === 'dark' : false
+
   return (
     <button
       onClick={onClick}
