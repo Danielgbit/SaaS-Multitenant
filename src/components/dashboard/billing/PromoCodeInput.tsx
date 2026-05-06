@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useFormState } from 'react-dom'
-import { useFormStatus } from 'react-dom'
+import { useFormState, useFormStatus } from 'react-dom'
 import { applyCode, type ApplyCodeState } from '@/actions/promoCodes/applyCode'
 import { validateCode, type ValidateCodeResult } from '@/actions/promoCodes/validateCode'
 import { TicketIcon, CheckCircle2, XCircle, Loader2, Gift, ArrowRight, Sparkles } from 'lucide-react'

@@ -1,6 +1,6 @@
 'use client'
 
-import { useFormState } from 'react-dom'
+import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { createCode, type CreateCodeState } from '@/actions/admin/promoCodes/createCode'
 import { useRouter } from 'next/navigation'
@@ -18,7 +18,7 @@ const CODE_TYPES = [
 const initialState: CreateCodeState = {}
 
 export default function NewPromoCodePage() {
-  const [state, formAction] = useFormState(createCode, initialState)
+  const [state, formAction] = useActionState(createCode, initialState)
   const router = useRouter()
   const { pending } = useFormStatus()
 
