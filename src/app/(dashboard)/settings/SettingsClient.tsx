@@ -7,7 +7,6 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 function useColors() {
   return useThemeColors()
 }
-}
 
 const TIMEZONES = [
   { value: 'UTC', label: 'UTC' },

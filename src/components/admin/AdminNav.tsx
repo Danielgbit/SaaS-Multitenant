@@ -4,9 +4,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   TicketIcon,
-  BuildingOfficeIcon,
+  BuildingIcon,
   HomeIcon,
-  ArrowRightOnRectangleIcon,
+  LogOut,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -39,7 +39,7 @@ export function AdminNav({ userEmail }: AdminNavProps) {
     {
       href: '/admin/organizations',
       label: 'Organizaciones',
-      icon: BuildingOfficeIcon,
+      icon: BuildingIcon,
       exact: false,
     },
   ]
@@ -96,7 +96,7 @@ export function AdminNav({ userEmail }: AdminNavProps) {
               onClick={handleSignOut}
               className="flex items-center gap-2 px-3 py-2 text-sm text-[#475569] hover:text-[#0F172A] hover:bg-[#E6F1F4] dark:hover:bg-slate-800 rounded-md transition-colors cursor-pointer"
             >
-              <ArrowRightOnRectangleIcon className="w-4 h-4" />
+              <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Salir</span>
             </button>
           </div>

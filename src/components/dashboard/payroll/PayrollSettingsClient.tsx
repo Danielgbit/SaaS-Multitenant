@@ -6,7 +6,6 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 function useColors() {
   return useThemeColors()
 }
-}
 
 type PayrollSettings = {
   payroll_type: PayrollType

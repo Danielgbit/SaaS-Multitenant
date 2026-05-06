@@ -30,7 +30,6 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 function useColors() {
   return useThemeColors()
 }
-}
 
 type Employee = {
   id: string

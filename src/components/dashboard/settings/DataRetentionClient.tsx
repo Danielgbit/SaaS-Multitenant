@@ -6,7 +6,6 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 function useColors() {
   return useThemeColors()
 }
-}
 
 interface RetentionSettings {
   auto_retention_days: number

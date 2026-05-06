@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { TicketIcon, BuildingOfficeIcon, ArrowTrendingUpIcon } from 'lucide-react'
+import { TicketIcon, BuildingIcon, TrendingUp } from 'lucide-react'
 
 export const metadata = {
   title: 'Admin - Prügressy',
@@ -42,13 +42,13 @@ export default async function AdminPage() {
           label="Organizaciones"
           value={orgCount ?? 0}
           href="/admin/organizations"
-          icon={BuildingOfficeIcon}
+          icon={BuildingIcon}
         />
         <StatCard
           label="Suscripciones Activas"
           value={activeSubscriptions ?? 0}
           href="/admin/organizations"
-          icon={ArrowTrendingUpIcon}
+          icon={TrendingUp}
         />
         <StatCard
           label="Códigos Activos"
@@ -69,7 +69,7 @@ export default async function AdminPage() {
           title="Ver organizaciones"
           description="Lista de todos los negocios registrados"
           href="/admin/organizations"
-          icon={BuildingOfficeIcon}
+          icon={BuildingIcon}
         />
       </div>
     </div>

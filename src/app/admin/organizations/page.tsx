@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { BuildingOfficeIcon } from 'lucide-react'
+import { BuildingIcon } from 'lucide-react'
 
 export const metadata = {
   title: 'Organizaciones - Admin',
@@ -112,7 +112,7 @@ export default async function OrganizationsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-[#0F4C5C]/10 flex items-center justify-center">
-                            <BuildingOfficeIcon className="w-4 h-4 text-[#0F4C5C]" />
+                            <BuildingIcon className="w-4 h-4 text-[#0F4C5C]" />
                           </div>
                           <span className="font-medium text-[#0F172A] dark:text-white">
                             {org.name}
@@ -140,7 +140,7 @@ export default async function OrganizationsPage() {
         </div>
       ) : (
         <div className="bg-white dark:bg-slate-800 rounded-lg border border-[#E2E8F0] dark:border-slate-700 p-12 text-center">
-          <BuildingOfficeIcon className="w-12 h-12 mx-auto text-[#94A3B8]" />
+          <BuildingIcon className="w-12 h-12 mx-auto text-[#94A3B8]" />
           <h3 className="mt-4 text-lg font-medium text-[#0F172A] dark:text-white">
             No hay organizaciones
           </h3>

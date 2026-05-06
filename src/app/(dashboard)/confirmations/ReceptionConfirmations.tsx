@@ -142,35 +142,6 @@ function PaymentMethodButton({
   )
 }
 
-function useColors() {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
-
-  return {
-    bg: isDark ? '#0F172A' : '#FAFAF9',
-    surface: isDark ? '#1E293B' : '#FFFFFF',
-    surfaceHover: isDark ? '#334155' : '#F8FAFC',
-    border: isDark ? '#334155' : '#E2E8F0',
-    borderHover: isDark ? '#475569' : '#CBD5E1',
-    textPrimary: isDark ? '#F8FAFC' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#475569',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryHover: isDark ? '#0EA5E9' : '#0C3E4A',
-    primaryLight: isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(15, 76, 92, 0.08)',
-    primaryGlow: isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(15, 76, 92, 0.2)',
-    success: '#16A34A',
-    successLight: isDark ? 'rgba(22, 163, 74, 0.15)' : 'rgba(22, 163, 74, 0.1)',
-    successGlow: isDark ? 'rgba(22, 163, 74, 0.25)' : 'rgba(22, 163, 74, 0.2)',
-    warning: '#F59E0B',
-    warningLight: isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.1)',
-    danger: '#DC2626',
-    dangerLight: isDark ? 'rgba(220, 38, 38, 0.15)' : 'rgba(220, 38, 38, 0.1)',
-    dangerGlow: isDark ? 'rgba(220, 38, 38, 0.25)' : 'rgba(220, 38, 38, 0.2)',
-    isDark,
-  }
-}
-
 export function ReceptionConfirmations({ confirmations, organizationId }: ReceptionConfirmationsProps) {
   const router = useRouter()
   const [filter, setFilter] = useState<FilterStatus>('pending')

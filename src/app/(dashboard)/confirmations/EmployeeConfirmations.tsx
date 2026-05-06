@@ -12,7 +12,6 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 function useColors() {
   return useThemeColors()
 }
-}
 
 interface EmployeeConfirmationsProps {
   confirmations: AppointmentConfirmation[]

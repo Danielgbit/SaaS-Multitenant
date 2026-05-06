@@ -7,7 +7,6 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 function useColors() {
   return useThemeColors()
 }
-}
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'last7days' | 'last30days'
 

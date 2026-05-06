@@ -23,7 +23,6 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 function useColors() {
   return useThemeColors()
 }
-}
 
 const MONTHS_ES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -125,7 +124,7 @@ function PeriodCard({ period, colors, onExpand, expanded }: PeriodCardProps) {
 
         <div className="flex items-center justify-between">
           <Link
-            href={`/payroll/${period.id}`}
+            href={`/payroll/period/${period.id}`}
             className="flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80"
             style={{ color: colors.primary }}
           >
