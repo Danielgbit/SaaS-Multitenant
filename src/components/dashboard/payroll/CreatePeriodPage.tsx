@@ -74,6 +74,7 @@ export function CreatePeriodPage({
 }: CreatePeriodPageProps) {
   const COLORS = useColors()
   const router = useRouter()
+  const now = new Date()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [creationMode, setCreationMode] = useState<CreationMode>('select')

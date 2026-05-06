@@ -1,11 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTheme } from 'next-themes'
 import {
   CheckCircle2,
-  CreditCard,
-  Calendar,
   Loader2,
   Zap,
   X,
@@ -24,10 +21,6 @@ import { reactivateSubscription } from '@/actions/billing/reactivateSubscription
 import { PromoCodeInput } from './PromoCodeInput'
 import { formatCurrency, getTrialDaysRemaining } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
-
-function useColors() {
-  return useThemeColors()
-}
 
 interface Plan {
   id: string
@@ -61,7 +54,7 @@ interface BillingClientProps {
 }
 
 export function BillingClient({ plans, subscription, organizationId }: BillingClientProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [mounted, setMounted] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
@@ -81,11 +74,10 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
   const handleUpgrade = async (planId: string) => {
     const result = await createCheckoutSession({ planId, organizationId })
     if (result.success && result.url) {
-      window.location.href = result.url
+      window.location.replace(result.url)
     }
   }
 
-  const currentPlan = plans.find(p => p.name === subscription?.planName)
   const isTrial = subscription?.status === 'trial'
   const trialDays = subscription?.trial_ends_at ? getTrialDaysRemaining(subscription.trial_ends_at) : 0
   const currency = subscription?.planCurrency || 'COP'
@@ -97,21 +89,21 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
   if (!mounted) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#0F4C5C] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: COLORS.primary }} />
       </div>
     )
   }
 
   return (
     <div className="space-y-10">
-      {/* Current Plan Hero Card - Premium Glassmorphism */}
+      {/* Current Plan Hero Card */}
       {subscription && (
         <div className="relative group">
           {/* Ambient glow behind card */}
           <div
             className="absolute -inset-1 rounded-3xl opacity-50 blur-xl"
             style={{
-              background: 'linear-gradient(135deg, rgba(15, 76, 92, 0.4), rgba(15, 76, 92, 0.1))',
+              background: `linear-gradient(135deg, ${COLORS.primary}40, ${COLORS.primary}10)`,
             }}
           />
 
@@ -119,10 +111,10 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
           <div
             className="relative overflow-hidden rounded-3xl"
             style={{
-              background: 'rgba(255, 255, 255, 0.85)',
+              backgroundColor: COLORS.surfaceGlass,
               backdropFilter: 'blur(24px)',
-              border: '1px solid rgba(255, 255, 255, 0.6)',
-              boxShadow: '0 8px 32px rgba(15, 76, 92, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+              border: `1px solid ${COLORS.borderLight}`,
+              boxShadow: `0 8px 32px ${COLORS.primary}12, inset 0 1px 0 rgba(255,255,255,0.8)`,
             }}
           >
             {/* Gradient accent bar at top */}
@@ -130,8 +122,8 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
               className="absolute top-0 left-0 right-0 h-1"
               style={{
                 background: isTrial
-                  ? 'linear-gradient(90deg, #F59E0B, #FBBF24, #F59E0B)'
-                  : 'linear-gradient(90deg, #0F4C5C, #1A6B7C, #0F4C5C)',
+                  ? `linear-gradient(90deg, ${COLORS.amber}, ${COLORS.amberLight}, ${COLORS.amber})`
+                  : COLORS.primaryGradient,
               }}
             />
 
@@ -139,13 +131,13 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
             <div
               className="absolute -top-24 -right-24 w-64 h-64 rounded-full opacity-20"
               style={{
-                background: 'radial-gradient(circle, rgba(15, 76, 92, 0.3) 0%, transparent 70%)',
+                background: `radial-gradient(circle, ${COLORS.primary}30 0%, transparent 70%)`,
               }}
             />
             <div
               className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full opacity-10"
               style={{
-                background: 'radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, transparent 70%)',
+                background: `radial-gradient(circle, ${COLORS.amber}20 0%, transparent 70%)`,
               }}
             />
 
@@ -158,11 +150,11 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                     className="relative w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg"
                     style={{
                       background: isTrial
-                        ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1))'
-                        : 'linear-gradient(135deg, rgba(15, 76, 92, 0.15), rgba(26, 107, 124, 0.1))',
+                        ? `linear-gradient(135deg, ${COLORS.amber}20, ${COLORS.amberLight}10)`
+                        : `linear-gradient(135deg, ${COLORS.primary}15, ${COLORS.primaryLight}10)`,
                       border: isTrial
-                        ? '1px solid rgba(245, 158, 11, 0.3)'
-                        : '1px solid rgba(15, 76, 92, 0.2)',
+                        ? `1px solid ${COLORS.amber}30`
+                        : `1px solid ${COLORS.primary}20`,
                     }}
                   >
                     <div
@@ -171,9 +163,9 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                     />
                     <div className="relative">
                       {isTrial ? (
-                        <Clock className="w-8 h-8 text-amber-500" />
+                        <Clock className="w-8 h-8" style={{ color: COLORS.amber }} />
                       ) : (
-                        <Crown className="w-8 h-8 text-teal-600" />
+                        <Crown className="w-8 h-8" style={{ color: COLORS.primary }} />
                       )}
                     </div>
                   </div>
@@ -183,7 +175,7 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                       <h2
                         className="text-3xl font-bold tracking-tight"
                         style={{
-                          color: '#0F172A',
+                          color: COLORS.textPrimary,
                           fontFamily: "'Cormorant Garamond', serif"
                         }}
                       >
@@ -193,12 +185,14 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                         className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm"
                         style={{
                           background: isTrial
-                            ? 'linear-gradient(135deg, #FEF3C7, #FDE68A)'
-                            : 'linear-gradient(135deg, #D1FAE5, #A7F3D0)',
-                          color: isTrial ? '#92400E' : '#065F46',
+                            ? COLORS.warningLight
+                            : COLORS.successLight,
+                          color: isTrial
+                            ? COLORS.warning
+                            : COLORS.success,
                           border: isTrial
-                            ? '1px solid rgba(245, 158, 11, 0.3)'
-                            : '1px solid rgba(16, 185, 129, 0.3)',
+                            ? `1px solid ${COLORS.amber}30`
+                            : `1px solid ${COLORS.success}30`,
                         }}
                       >
                         {subscription.status === 'active' ? (
@@ -214,12 +208,12 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                     <p
                       className="text-base"
                       style={{
-                        color: '#64748B',
+                        color: COLORS.textSecondary,
                         fontFamily: "'Plus Jakarta Sans', sans-serif"
                       }}
                     >
                       {isTrial
-                        ? <span className="font-medium text-amber-600">{trialDays} días restantes</span>
+                        ? <span className="font-medium" style={{ color: COLORS.amber }}>{trialDays} días restantes</span>
                         : `${formatCurrency(subscription.planPrice, currency)}/mes · Renovación mensual`}
                     </p>
                   </div>
@@ -232,15 +226,9 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                       onClick={() => setShowCancelModal(true)}
                       className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
                       style={{
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        color: '#DC2626',
-                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
+                        backgroundColor: `${COLORS.error}10`,
+                        color: COLORS.error,
+                        border: `1px solid ${COLORS.error}20`,
                       }}
                     >
                       Cancelar plan
@@ -248,21 +236,11 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                   )}
                   {isTrial && (
                     <button
-                      onClick={() => window.location.href = '/dashboard/billing?portal=true'}
+                      onClick={() => window.location.replace('/dashboard/billing?portal=true')}
                       className="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer shadow-md"
                       style={{
-                        background: 'linear-gradient(135deg, #0F4C5C, #1A6B7C)',
+                        background: COLORS.primaryGradient,
                         color: '#FFFFFF',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #1A6B7C, #0F4C5C)'
-                        e.currentTarget.style.transform = 'translateY(-1px)'
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 76, 92, 0.3)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #0F4C5C, #1A6B7C)'
-                        e.currentTarget.style.transform = 'translateY(0)'
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 76, 92, 0.2)'
                       }}
                     >
                       Configurar pago
@@ -270,18 +248,12 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                   )}
                   {!isTrial && (
                     <button
-                      onClick={() => window.location.href = '/dashboard/billing?portal=true'}
+                      onClick={() => window.location.replace('/dashboard/billing?portal=true')}
                       className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
                       style={{
-                        background: 'rgba(15, 76, 92, 0.1)',
-                        color: '#0F4C5C',
-                        border: '1px solid rgba(15, 76, 92, 0.2)',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(15, 76, 92, 0.15)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(15, 76, 92, 0.1)'
+                        backgroundColor: `${COLORS.primary}10`,
+                        color: COLORS.primary,
+                        border: `1px solid ${COLORS.primary}20`,
                       }}
                     >
                       Métodos de pago
@@ -295,14 +267,14 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                 <div
                   className="relative p-5 rounded-2xl mb-8 overflow-hidden"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(251, 191, 36, 0.04))',
-                    border: '1px solid rgba(245, 158, 11, 0.2)',
+                    background: `${COLORS.amber}08`,
+                    border: `1px solid ${COLORS.amber}20`,
                   }}
                 >
                   <div
                     className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10"
                     style={{
-                      background: 'radial-gradient(circle, rgba(245, 158, 11, 0.4) 0%, transparent 70%)',
+                      background: `radial-gradient(circle, ${COLORS.amber}40 0%, transparent 70%)`,
                       transform: 'translate(30%, -30%)',
                     }}
                   />
@@ -310,22 +282,22 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1))',
-                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        background: `${COLORS.amber}20`,
+                        border: `1px solid ${COLORS.amber}30`,
                       }}
                     >
-                      <Gift className="w-6 h-6 text-amber-500" />
+                      <Gift className="w-6 h-6" style={{ color: COLORS.amber }} />
                     </div>
                     <div>
                       <p
-                        className="font-medium text-slate-800 mb-1"
-                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        className="font-medium mb-1"
+                        style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                       >
                         Disfruta de todas las funcionalidades
                       </p>
                       <p
                         className="text-sm"
-                        style={{ color: '#64748B', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                       >
                         Tu período de prueba está activo. Al finalizar, elige el plan que mejor se adapte a tu negocio.
                       </p>
@@ -339,30 +311,30 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                 <div
                   className="relative p-5 rounded-2xl mb-8 overflow-hidden"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(251, 191, 36, 0.04))',
-                    border: '1px solid rgba(245, 158, 11, 0.2)',
+                    background: `${COLORS.warning}08`,
+                    border: `1px solid ${COLORS.warning}20`,
                   }}
                 >
                   <div className="relative flex items-start gap-4">
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1))',
-                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        background: `${COLORS.warning}20`,
+                        border: `1px solid ${COLORS.warning}30`,
                       }}
                     >
-                      <AlertTriangle className="w-6 h-6 text-amber-500" />
+                      <AlertTriangle className="w-6 h-6" style={{ color: COLORS.warning }} />
                     </div>
                     <div className="flex-1">
                       <p
-                        className="font-medium text-slate-800 mb-2"
-                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        className="font-medium mb-2"
+                        style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                       >
                         Tu suscripción se cancelará al final del período
                       </p>
                       <p
                         className="text-sm mb-4"
-                        style={{ color: '#64748B', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                       >
                         Puedes reactivarla en cualquier momento sin perder tu información.
                       </p>
@@ -373,7 +345,7 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                         }}
                         className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
                         style={{
-                          background: 'linear-gradient(135deg, #0F4C5C, #1A6B7C)',
+                          background: COLORS.primaryGradient,
                           color: '#FFFFFF',
                         }}
                       >
@@ -388,15 +360,15 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
               <div
                 className="relative overflow-hidden rounded-2xl"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.6)',
+                  backgroundColor: COLORS.surfaceGlass,
                   backdropFilter: 'blur(16px)',
-                  border: '1px solid rgba(15, 76, 92, 0.1)',
+                  border: `1px solid ${COLORS.border}`,
                 }}
               >
                 <div
                   className="absolute inset-0"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(15, 76, 92, 0.02) 0%, transparent 50%)',
+                    background: `linear-gradient(135deg, ${COLORS.primary}02 0%, transparent 50%)`,
                   }}
                 />
                 <div className="relative p-6">
@@ -413,13 +385,13 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
         <div className="text-center">
           <h2
             className="text-4xl font-bold mb-3"
-            style={{ color: '#0F172A', fontFamily: "'Cormorant Garamond', serif" }}
+            style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
           >
             Elige tu plan
           </h2>
           <p
             className="text-base"
-            style={{ color: '#64748B', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
             Sin costos ocultos. Cancela cuando quieras.
           </p>
@@ -442,7 +414,7 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                   <div
                     className="absolute -inset-2 rounded-3xl opacity-40 blur-xl"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(15, 76, 92, 0.5), rgba(15, 76, 92, 0.2))',
+                      background: `linear-gradient(135deg, ${COLORS.primary}50, ${COLORS.primary}20)`,
                     }}
                   />
                 )}
@@ -452,15 +424,15 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                   className="relative h-full rounded-3xl overflow-hidden transition-all duration-300"
                   style={{
                     background: isPopular
-                      ? 'linear-gradient(145deg, rgba(15, 76, 92, 0.95), rgba(26, 107, 124, 0.9))'
-                      : 'rgba(255, 255, 255, 0.85)',
+                      ? COLORS.primaryGradient
+                      : COLORS.surface,
                     backdropFilter: 'blur(20px)',
                     border: isPopular
-                      ? '1px solid rgba(255, 255, 255, 0.2)'
-                      : '1px solid rgba(255, 255, 255, 0.8)',
+                      ? `1px solid rgba(255,255,255,0.2)`
+                      : `1px solid ${COLORS.border}`,
                     boxShadow: isPopular
-                      ? '0 20px 60px rgba(15, 76, 92, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                      : '0 8px 32px rgba(15, 76, 92, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+                      ? `0 20px 60px ${COLORS.primary}35, inset 0 1px 0 rgba(255,255,255,0.2)`
+                      : `0 8px 32px ${COLORS.primary}08, inset 0 1px 0 rgba(255,255,255,0.8)`,
                   }}
                 >
                   {/* Gradient overlay for popular */}
@@ -479,18 +451,17 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                       <div
                         className="relative px-4 py-2 rounded-full"
                         style={{
-                          background: 'rgba(251, 191, 36, 0.95)',
-                          boxShadow: '0 4px 16px rgba(251, 191, 36, 0.4)',
+                          backgroundColor: COLORS.amber,
+                          boxShadow: `0 4px 16px ${COLORS.amber}40`,
                         }}
                       >
                         <div
-                          className="absolute inset-0 rounded-full"
+                          className="absolute inset-0 rounded-full animate-shimmer"
                           style={{
                             background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
-                            animation: 'shimmer 2s infinite',
                           }}
                         />
-                        <span className="relative flex items-center gap-1.5 text-sm font-bold text-amber-900">
+                        <span className="relative flex items-center gap-1.5 text-sm font-bold" style={{ color: '#92400E' }}>
                           <Star className="w-4 h-4 fill-amber-900" />
                           Más popular
                         </span>
@@ -501,34 +472,34 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                   <div className="relative p-8">
                     {/* Plan Header */}
                     <div className="mb-8">
-                      <div className={`flex items-center gap-4 mb-6 ${isPopular ? 'text-white' : ''}`}>
+                      <div className="flex items-center gap-4 mb-6">
                         <div
                           className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
                           style={{
                             background: isPopular
-                              ? 'rgba(255, 255, 255, 0.2)'
-                              : 'linear-gradient(135deg, rgba(15, 76, 92, 0.1), rgba(26, 107, 124, 0.05))',
+                              ? 'rgba(255,255,255,0.2)'
+                              : `${COLORS.primary}10`,
                             border: isPopular
-                              ? '1px solid rgba(255, 255, 255, 0.3)'
-                              : '1px solid rgba(15, 76, 92, 0.1)',
+                              ? `1px solid rgba(255,255,255,0.3)`
+                              : `1px solid ${COLORS.primary}10`,
                           }}
                         >
                           {isBasic ? (
                             <Shield
                               className="w-7 h-7"
-                              style={{ color: isPopular ? '#FFFFFF' : '#0F4C5C' }}
+                              style={{ color: isPopular ? '#FFFFFF' : COLORS.primary }}
                             />
                           ) : (
                             <Sparkles
                               className="w-7 h-7"
-                              style={{ color: isPopular ? '#FCD34D' : '#0F4C5C' }}
+                              style={{ color: isPopular ? COLORS.amber : COLORS.primary }}
                             />
                           )}
                         </div>
                         <h3
                           className="text-2xl font-bold"
                           style={{
-                            color: isPopular ? '#FFFFFF' : '#0F172A',
+                            color: isPopular ? '#FFFFFF' : COLORS.textPrimary,
                             fontFamily: "'Cormorant Garamond', serif"
                           }}
                         >
@@ -540,7 +511,7 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                         <span
                           className="text-5xl font-bold"
                           style={{
-                            color: isPopular ? '#FFFFFF' : '#0F172A',
+                            color: isPopular ? '#FFFFFF' : COLORS.textPrimary,
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
@@ -549,7 +520,7 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                         <span
                           className="text-base"
                           style={{
-                            color: isPopular ? 'rgba(255,255,255,0.7)' : '#64748B',
+                            color: isPopular ? 'rgba(255,255,255,0.7)' : COLORS.textSecondary,
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
@@ -561,7 +532,7 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                         <p
                           className="mt-3 text-sm"
                           style={{
-                            color: isPopular ? 'rgba(255,255,255,0.7)' : '#64748B',
+                            color: isPopular ? 'rgba(255,255,255,0.7)' : COLORS.textSecondary,
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
@@ -577,26 +548,26 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                           className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                           style={{
                             background: isPopular
-                              ? 'rgba(255, 255, 255, 0.2)'
-                              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                              ? 'rgba(255,255,255,0.2)'
+                              : COLORS.successLight,
                             border: isPopular
-                              ? '1px solid rgba(255, 255, 255, 0.2)'
-                              : '1px solid rgba(16, 185, 129, 0.2)',
+                              ? `1px solid rgba(255,255,255,0.2)`
+                              : `1px solid ${COLORS.success}20`,
                           }}
                         >
                           <CheckCircle2
                             className="w-4 h-4"
-                            style={{ color: isPopular ? '#FFFFFF' : '#059669' }}
+                            style={{ color: isPopular ? '#FFFFFF' : COLORS.success }}
                           />
                         </div>
                         <span
                           className="text-sm"
                           style={{
-                            color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                            color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary,
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
-                          <strong className={isPopular ? 'text-white' : 'text-slate-800'}>{getEmployeeLabel(plan.max_employees)}</strong> empleados
+                          <strong style={{ color: isPopular ? '#FFFFFF' : COLORS.textPrimary }}>{getEmployeeLabel(plan.max_employees)}</strong> empleados
                         </span>
                       </li>
                       <li className="flex items-center gap-4">
@@ -604,26 +575,26 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                           className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                           style={{
                             background: isPopular
-                              ? 'rgba(255, 255, 255, 0.2)'
-                              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                              ? 'rgba(255,255,255,0.2)'
+                              : COLORS.successLight,
                             border: isPopular
-                              ? '1px solid rgba(255, 255, 255, 0.2)'
-                              : '1px solid rgba(16, 185, 129, 0.2)',
+                              ? `1px solid rgba(255,255,255,0.2)`
+                              : `1px solid ${COLORS.success}20`,
                           }}
                         >
                           <CheckCircle2
                             className="w-4 h-4"
-                            style={{ color: isPopular ? '#FFFFFF' : '#059669' }}
+                            style={{ color: isPopular ? '#FFFFFF' : COLORS.success }}
                           />
                         </div>
                         <span
                           className="text-sm"
                           style={{
-                            color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                            color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary,
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
-                          <strong className={isPopular ? 'text-white' : 'text-slate-800'}>{getServiceLabel(plan.max_services)}</strong> servicios
+                          <strong style={{ color: isPopular ? '#FFFFFF' : COLORS.textPrimary }}>{getServiceLabel(plan.max_services)}</strong> servicios
                         </span>
                       </li>
                       <li className="flex items-center gap-4">
@@ -631,26 +602,26 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                           className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                           style={{
                             background: isPopular
-                              ? 'rgba(255, 255, 255, 0.2)'
-                              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                              ? 'rgba(255,255,255,0.2)'
+                              : COLORS.successLight,
                             border: isPopular
-                              ? '1px solid rgba(255, 255, 255, 0.2)'
-                              : '1px solid rgba(16, 185, 129, 0.2)',
+                              ? `1px solid rgba(255,255,255,0.2)`
+                              : `1px solid ${COLORS.success}20`,
                           }}
                         >
                           <CheckCircle2
                             className="w-4 h-4"
-                            style={{ color: isPopular ? '#FFFFFF' : '#059669' }}
+                            style={{ color: isPopular ? '#FFFFFF' : COLORS.success }}
                           />
                         </div>
                         <span
                           className="text-sm"
                           style={{
-                            color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                            color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary,
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
-                          <strong className={isPopular ? 'text-white' : 'text-slate-800'}>{getInventoryLabel(plan.max_inventory_items)}</strong> productos inventario
+                          <strong style={{ color: isPopular ? '#FFFFFF' : COLORS.textPrimary }}>{getInventoryLabel(plan.max_inventory_items)}</strong> productos inventario
                         </span>
                       </li>
                       {plan.whatsapp_enabled && (
@@ -659,26 +630,26 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                             className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{
                               background: isPopular
-                                ? 'rgba(255, 255, 255, 0.2)'
-                                : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                                ? 'rgba(255,255,255,0.2)'
+                                : COLORS.successLight,
                               border: isPopular
-                                ? '1px solid rgba(255, 255, 255, 0.2)'
-                                : '1px solid rgba(16, 185, 129, 0.2)',
+                                ? `1px solid rgba(255,255,255,0.2)`
+                                : `1px solid ${COLORS.success}20`,
                             }}
                           >
                             <CheckCircle2
                               className="w-4 h-4"
-                              style={{ color: isPopular ? '#FFFFFF' : '#059669' }}
+                              style={{ color: isPopular ? '#FFFFFF' : COLORS.success }}
                             />
                           </div>
                           <span
                             className="text-sm"
                             style={{
-                              color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                              color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary,
                               fontFamily: "'Plus Jakarta Sans', sans-serif"
                             }}
                           >
-                            <strong className={isPopular ? 'text-white' : 'text-slate-800'}>WhatsApp</strong> Premium incluido
+                            <strong style={{ color: isPopular ? '#FFFFFF' : COLORS.textPrimary }}>WhatsApp</strong> Premium incluido
                           </span>
                         </li>
                       )}
@@ -687,26 +658,26 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                           className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                           style={{
                             background: isPopular
-                              ? 'rgba(255, 255, 255, 0.2)'
-                              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                              ? 'rgba(255,255,255,0.2)'
+                              : COLORS.successLight,
                             border: isPopular
-                              ? '1px solid rgba(255, 255, 255, 0.2)'
-                              : '1px solid rgba(16, 185, 129, 0.2)',
+                              ? `1px solid rgba(255,255,255,0.2)`
+                              : `1px solid ${COLORS.success}20`,
                           }}
                         >
                           <TrendingUp
                             className="w-4 h-4"
-                            style={{ color: isPopular ? '#FFFFFF' : '#059669' }}
+                            style={{ color: isPopular ? '#FFFFFF' : COLORS.success }}
                           />
                         </div>
                         <span
                           className="text-sm"
                           style={{
-                            color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                            color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary,
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
-                          <strong className={isPopular ? 'text-white' : 'text-slate-800'}>Analytics</strong> completo
+                          <strong style={{ color: isPopular ? '#FFFFFF' : COLORS.textPrimary }}>Analytics</strong> completo
                         </span>
                       </li>
                       {!isBasic && (
@@ -715,26 +686,26 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                             className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{
                               background: isPopular
-                                ? 'rgba(251, 191, 36, 0.3)'
-                                : 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(251, 191, 36, 0.05))',
+                                ? `${COLORS.amber}30`
+                                : COLORS.amberLight,
                               border: isPopular
-                                ? '1px solid rgba(251, 191, 36, 0.3)'
-                                : '1px solid rgba(245, 158, 11, 0.2)',
+                                ? `1px solid ${COLORS.amber}30`
+                                : `1px solid ${COLORS.amber}20`,
                             }}
                           >
                             <Zap
                               className="w-4 h-4"
-                              style={{ color: isPopular ? '#FCD34D' : '#F59E0B' }}
+                              style={{ color: isPopular ? COLORS.amber : COLORS.amber }}
                             />
                           </div>
                           <span
                             className="text-sm"
                             style={{
-                              color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                              color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary,
                               fontFamily: "'Plus Jakarta Sans', sans-serif"
                             }}
                           >
-                            <strong className={isPopular ? 'text-white' : 'text-slate-800'}>Soporte</strong> prioritario
+                            <strong style={{ color: isPopular ? '#FFFFFF' : COLORS.textPrimary }}>Soporte</strong> prioritario
                           </span>
                         </li>
                       )}
@@ -747,59 +718,28 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                       className="relative w-full py-4 rounded-2xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-3 overflow-hidden cursor-pointer"
                       style={{
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        background: isCurrentPlan
+                          ? COLORS.surfaceSubtle
+                          : isPopular
+                          ? '#FFFFFF'
+                          : COLORS.primary,
+                        color: isCurrentPlan
+                          ? COLORS.textMuted
+                          : isPopular
+                          ? COLORS.primary
+                          : '#FFFFFF',
                       }}
                     >
-                      {/* Shimmer overlay for non-current */}
-                      {!isCurrentPlan && (
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            background: isPopular
-                              ? 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)'
-                              : 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
-                            animation: 'shimmer 3s infinite',
-                          }}
-                        />
-                      )}
-
-                      <span className="relative z-10">
-                        {isCurrentPlan ? (
-                          <>
-                            <CheckCircle2 className="w-5 h-5 inline mr-2" />
-                            Plan actual
-                          </>
-                        ) : (
-                          <>
-                            {isTrial ? 'Elegir plan' : 'Cambiar plan'}
-                            <ArrowRight className="w-5 h-5 inline ml-2" />
-                          </>
-                        )}
-                      </span>
-
-                      {!isCurrentPlan && (
-                        <div
-                          className="absolute inset-0 rounded-2xl"
-                          style={{
-                            background: isPopular
-                              ? 'linear-gradient(135deg, #FFFFFF, #F8FAFC)'
-                              : 'linear-gradient(135deg, #0F4C5C, #1A6B7C)',
-                            opacity: 0,
-                          }}
-                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1' }}
-                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0' }}
-                        />
-                      )}
-
-                      {isCurrentPlan && (
-                        <div
-                          className="absolute inset-0 rounded-2xl"
-                          style={{
-                            background: isPopular
-                              ? 'rgba(255,255,255,0.1)'
-                              : 'rgba(15, 76, 92, 0.05)',
-                            color: isPopular ? 'rgba(255,255,255,0.5)' : 'rgba(15, 76, 92, 0.4)',
-                          }}
-                        />
+                      {isCurrentPlan ? (
+                        <>
+                          <CheckCircle2 className="w-5 h-5" />
+                          Plan actual
+                        </>
+                      ) : (
+                        <>
+                          {isTrial ? 'Elegir plan' : 'Cambiar plan'}
+                          <ArrowRight className="w-5 h-5" />
+                        </>
                       )}
                     </button>
                   </div>
@@ -810,8 +750,8 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                   className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                   style={{
                     boxShadow: isPopular
-                      ? '0 0 60px rgba(15, 76, 92, 0.4)'
-                      : '0 0 40px rgba(15, 76, 92, 0.15)',
+                      ? `0 0 60px ${COLORS.primary}40`
+                      : `0 0 40px ${COLORS.primary}15`,
                   }}
                 />
               </div>
@@ -825,14 +765,14 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 backdrop-blur-md"
-            style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)' }}
+            style={{ backgroundColor: COLORS.overlay }}
             onClick={() => setShowCancelModal(false)}
           />
 
           <div
             className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-scale-in"
             style={{
-              background: 'rgba(255, 255, 255, 0.95)',
+              backgroundColor: COLORS.surface,
               backdropFilter: 'blur(24px)',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             }}
@@ -841,7 +781,7 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
             <div
               className="relative p-8"
               style={{
-                background: 'linear-gradient(135deg, #0F4C5C, #1A6B7C)',
+                background: COLORS.primaryGradient,
               }}
             >
               {/* Decorative orb */}
@@ -857,7 +797,7 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                   <div
                     className="w-14 h-14 rounded-2xl flex items-center justify-center"
                     style={{
-                      background: 'rgba(255, 255, 255, 0.2)',
+                      background: 'rgba(255,255,255,0.2)',
                       backdropFilter: 'blur(8px)',
                     }}
                   >
@@ -886,7 +826,7 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
             <div className="p-8">
               <p
                 className="text-base mb-8"
-                style={{ color: '#64748B', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 Perderás acceso a todas las funcionalidades premium al final del período de facturación actual.
                 Tu información se mantendrá guardada por 30 días.
@@ -897,16 +837,10 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                   onClick={() => setShowCancelModal(false)}
                   className="flex-1 py-4 rounded-2xl font-medium transition-all duration-200 cursor-pointer"
                   style={{
-                    border: '1px solid rgba(15, 76, 92, 0.2)',
-                    color: '#475569',
+                    border: `1px solid ${COLORS.border}`,
+                    color: COLORS.textSecondary,
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    background: 'rgba(15, 76, 92, 0.05)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(15, 76, 92, 0.1)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(15, 76, 92, 0.05)'
+                    backgroundColor: 'transparent',
                   }}
                 >
                   Mantener suscripción
@@ -916,15 +850,9 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                   disabled={isCancelling}
                   className="flex-1 py-4 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer"
                   style={{
-                    background: isCancelling ? '#9CA3AF' : '#EF4444',
+                    background: isCancelling ? COLORS.textMuted : COLORS.error,
                     color: '#FFFFFF',
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isCancelling) e.currentTarget.style.background = '#DC2626'
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isCancelling) e.currentTarget.style.background = '#EF4444'
                   }}
                 >
                   {isCancelling && <Loader2 className="w-5 h-5 animate-spin" />}
@@ -967,6 +895,9 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite;
         }
       `}</style>
     </div>

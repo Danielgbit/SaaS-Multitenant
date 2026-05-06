@@ -157,18 +157,11 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
 
   return (
     <div className="space-y-8">
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
-      `}</style>
-
       {/* Header */}
       <div
         className="relative overflow-hidden rounded-2xl p-6 md:p-8"
         style={{ background: COLORS.primaryGradient }}
       >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-        <div className="relative flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
               <Wallet className="w-6 h-6 text-white" />

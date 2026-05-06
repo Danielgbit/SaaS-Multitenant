@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { useActionState } from 'react'
+import { useState, useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { applyCode, type ApplyCodeState } from '@/actions/promoCodes/applyCode'
 import { validateCode, type ValidateCodeResult } from '@/actions/promoCodes/validateCode'
