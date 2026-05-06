@@ -15,6 +15,8 @@ interface CalculateInput {
   salary_frequency: string | null
   has_transport_subsidy: boolean
   force_transport_subsidy: boolean
+  employment_type: 'full_time' | 'part_time'
+  part_time_percentage: number
 }
 
 export async function calculateEmployeePayroll(input: CalculateInput): Promise<{
@@ -107,13 +109,18 @@ export async function calculateEmployeePayroll(input: CalculateInput): Promise<{
     }
   }
 
-  // Calculate base salary based on payment type
+  // Calculate employment factor for part-time employees
+  const employmentFactor = input.employment_type === 'part_time'
+    ? (input.part_time_percentage / 100)
+    : 1
+
+  // Calculate base salary based on payment type (apply part-time factor)
   let baseSalary = 0
   if (input.payment_type === 'fijo' || input.payment_type === 'mixed') {
-    baseSalary = input.base_salary || 0
+    baseSalary = (input.base_salary || 0) * employmentFactor
   }
 
-  // Calculate transport subsidy
+  // Calculate transport subsidy (also proportional to part-time factor)
   // Transport subsidy applies if: (gross commission + base salary) <= 2 * SMMLV
   // OR if force_transport_subsidy is true
   let transportSubsidy = 0
@@ -121,7 +128,7 @@ export async function calculateEmployeePayroll(input: CalculateInput): Promise<{
 
   if (input.force_transport_subsidy || input.has_transport_subsidy) {
     if (input.force_transport_subsidy || totalEarnings <= config.smmlv * 2) {
-      transportSubsidy = config.transport_subsidy
+      transportSubsidy = config.transport_subsidy * employmentFactor
     }
   }
 

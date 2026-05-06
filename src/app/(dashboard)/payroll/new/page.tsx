@@ -33,16 +33,46 @@ export default async function NewPayrollPeriodPage() {
   // Get active employees
   const { data: employees } = await (supabase as any)
     .from('employees')
-    .select('id, name, contract_type, payment_type, percentage, base_salary')
+    .select('id, name, contract_type, payment_type, percentage, base_salary, employment_type, part_time_percentage')
     .eq('organization_id', orgMember.organization_id)
     .eq('active', true)
     .order('name')
+
+  // Find previous period for "copy from" feature
+  const now = new Date()
+  const currentMonth = now.getMonth() + 1
+  const currentYear = now.getFullYear()
+  let previousPeriod = null
+
+  if (currentMonth === 1) {
+    const prevResult = await (supabase as any)
+      .from('payroll_periods')
+      .select('period, total_employees')
+      .eq('organization_id', orgMember.organization_id)
+      .eq('period', `${currentYear - 1}-12`)
+      .single()
+    if (prevResult?.data) {
+      previousPeriod = prevResult.data
+    }
+  } else {
+    const prevMonth = (currentMonth - 1).toString().padStart(2, '0')
+    const prevResult = await (supabase as any)
+      .from('payroll_periods')
+      .select('period, total_employees')
+      .eq('organization_id', orgMember.organization_id)
+      .eq('period', `${currentYear}-${prevMonth}`)
+      .single()
+    if (prevResult?.data) {
+      previousPeriod = prevResult.data
+    }
+  }
 
   return (
     <CreatePeriodPage
       organizationId={orgMember.organization_id}
       employees={employees || []}
       existingPeriods={existingPeriods}
+      previousPeriod={previousPeriod}
     />
   )
 }

@@ -19,6 +19,7 @@ export type ContractType = 'laboral' | 'prestacion'
 export type PaymentType = 'fijo' | 'porcentaje' | 'mixed'
 export type SalaryFrequency = 'weekly' | 'biweekly' | 'monthly'
 export type PeriodStatus = 'draft' | 'approved' | 'paid'
+export type EmploymentType = 'full_time' | 'part_time'
 
 export type UpdateEmployeePayrollInput = {
   id: string
@@ -31,6 +32,8 @@ export type UpdateEmployeePayrollInput = {
   salary_frequency?: SalaryFrequency | null
   max_debt_limit?: number
   debt_warning_threshold?: number
+  employment_type?: EmploymentType
+  part_time_percentage?: number
 }
 
 export type EmployeeWithPayrollConfig = Employee & {
@@ -43,6 +46,8 @@ export type EmployeeWithPayrollConfig = Employee & {
   salary_frequency: SalaryFrequency | null
   max_debt_limit: number
   debt_warning_threshold: number
+  employment_type: EmploymentType
+  part_time_percentage: number
 }
 
 // Legacy aliases for backwards compatibility during transition

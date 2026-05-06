@@ -1,6 +1,7 @@
 'use client'
 
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { BillingClient } from '@/components/dashboard/billing/BillingClient'
 
 function useColors() {
   return useThemeColors()

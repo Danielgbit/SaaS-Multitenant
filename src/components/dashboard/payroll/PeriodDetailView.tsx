@@ -585,9 +585,21 @@ export function PeriodDetailView({
                           >
                             {(item.employee as any)?.name?.charAt(0)?.toUpperCase() || '?'}
                           </div>
-                          <span className="font-medium" style={{ color: COLORS.textPrimary }}>
-                            {(item.employee as any)?.name || 'Empleado'}
-                          </span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium" style={{ color: COLORS.textPrimary }}>
+                                {(item.employee as any)?.name || 'Empleado'}
+                              </span>
+                              {item.base_salary > 0 && item.base_salary < 1500000 && (
+                                <span
+                                  className="px-2 py-0.5 rounded-full text-xs font-medium"
+                                  style={{ backgroundColor: COLORS.warning + '20', color: COLORS.warning }}
+                                >
+                                  Medio tiempo
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="p-4">

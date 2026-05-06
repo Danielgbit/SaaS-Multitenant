@@ -15,6 +15,8 @@ const UpdateEmployeePayrollSchema = z.object({
   salary_frequency: z.enum(['weekly', 'biweekly', 'monthly']).nullable().optional(),
   max_debt_limit: z.number().min(0).optional(),
   debt_warning_threshold: z.number().min(0).max(100).optional(),
+  employment_type: z.enum(['full_time', 'part_time']).optional(),
+  part_time_percentage: z.number().min(1).max(100).optional(),
 })
 
 export async function updateEmployeePayroll(input: {
@@ -28,6 +30,8 @@ export async function updateEmployeePayroll(input: {
   salary_frequency?: 'weekly' | 'biweekly' | 'monthly' | null
   max_debt_limit?: number
   debt_warning_threshold?: number
+  employment_type?: 'full_time' | 'part_time'
+  part_time_percentage?: number
 }): Promise<{ success: boolean; error?: string }> {
   const parsed = UpdateEmployeePayrollSchema.safeParse(input)
   if (!parsed.success) {
@@ -94,6 +98,12 @@ export async function updateEmployeePayroll(input: {
   }
   if (input.debt_warning_threshold !== undefined) {
     updateData.debt_warning_threshold = input.debt_warning_threshold
+  }
+  if (input.employment_type !== undefined) {
+    updateData.employment_type = input.employment_type
+  }
+  if (input.part_time_percentage !== undefined) {
+    updateData.part_time_percentage = input.part_time_percentage
   }
 
   const { error } = await supabase

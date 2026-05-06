@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
-import { 
-  CheckCircle2, 
-  CreditCard, 
+import {
+  CheckCircle2,
+  CreditCard,
   Calendar,
   Loader2,
   Zap,
@@ -13,7 +13,10 @@ import {
   Shield,
   Sparkles,
   ArrowRight,
-  Crown
+  Crown,
+  Gift,
+  Clock,
+  TrendingUp
 } from 'lucide-react'
 import { createCheckoutSession } from '@/actions/billing/createCheckoutSession'
 import { cancelSubscription } from '@/actions/billing/cancelSubscription'
@@ -100,256 +103,432 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
   }
 
   return (
-    <div className="space-y-8">
-      {/* Current Plan Hero Card - Page Header Pattern */}
+    <div className="space-y-10">
+      {/* Current Plan Hero Card - Premium Glassmorphism */}
       {subscription && (
-        <div 
-          className="relative overflow-hidden rounded-2xl p-6 md:p-8"
-          style={{ 
-            background: COLORS.primaryGradient,
-          }}
-        >
-          {/* Decorations */}
-          <div 
-            className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10"
-            style={{ 
-              backgroundColor: '#FFFFFF',
-              transform: 'translate(30%, -30%)' 
-            }} 
+        <div className="relative group">
+          {/* Ambient glow behind card */}
+          <div
+            className="absolute -inset-1 rounded-3xl opacity-50 blur-xl"
+            style={{
+              background: 'linear-gradient(135deg, rgba(15, 76, 92, 0.4), rgba(15, 76, 92, 0.1))',
+            }}
           />
-          <div 
-            className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-10"
-            style={{ 
-              backgroundColor: '#FFFFFF',
-              transform: 'translate(-30%, 30%)' 
-            }} 
-          />
-          <div 
-            className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full opacity-5"
-            style={{ 
-              backgroundColor: '#FFFFFF',
-              transform: 'translate(50%, -50%)' 
-            }} 
-          />
-          
-          {/* Content */}
-          <div className="relative flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div 
-                className="w-14 h-14 rounded-xl flex items-center justify-center backdrop-blur-sm"
-                style={{ 
-                  backgroundColor: isTrial ? 'rgba(245, 158, 11, 0.3)' : 'rgba(255, 255, 255, 0.2)' 
-                }}
-              >
-                {isTrial ? (
-                  <Calendar className="w-7 h-7 text-amber-300" />
-                ) : (
-                  <Crown className="w-7 h-7 text-white" />
-                )}
-              </div>
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <h3 
-                    className="text-2xl font-bold tracking-tight text-white"
-                    style={{ fontFamily: "'Cormorant Garamond', serif" }}
-                  >
-                    {subscription.planName}
-                  </h3>
-                  <span 
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-                    style={{ 
-                      backgroundColor: isTrial ? COLORS.amberLight : 'rgba(255,255,255,0.2)',
-                      color: isTrial ? '#92400E' : 'rgba(255,255,255,0.9)'
+
+          {/* Main Glass Card */}
+          <div
+            className="relative overflow-hidden rounded-3xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255, 255, 255, 0.6)',
+              boxShadow: '0 8px 32px rgba(15, 76, 92, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+            }}
+          >
+            {/* Gradient accent bar at top */}
+            <div
+              className="absolute top-0 left-0 right-0 h-1"
+              style={{
+                background: isTrial
+                  ? 'linear-gradient(90deg, #F59E0B, #FBBF24, #F59E0B)'
+                  : 'linear-gradient(90deg, #0F4C5C, #1A6B7C, #0F4C5C)',
+              }}
+            />
+
+            {/* Decorative gradient orbs */}
+            <div
+              className="absolute -top-24 -right-24 w-64 h-64 rounded-full opacity-20"
+              style={{
+                background: 'radial-gradient(circle, rgba(15, 76, 92, 0.3) 0%, transparent 70%)',
+              }}
+            />
+            <div
+              className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full opacity-10"
+              style={{
+                background: 'radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, transparent 70%)',
+              }}
+            />
+
+            <div className="relative p-8 md:p-10">
+              {/* Header Row */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+                <div className="flex items-center gap-5">
+                  {/* Icon with glass effect */}
+                  <div
+                    className="relative w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg"
+                    style={{
+                      background: isTrial
+                        ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1))'
+                        : 'linear-gradient(135deg, rgba(15, 76, 92, 0.15), rgba(26, 107, 124, 0.1))',
+                      border: isTrial
+                        ? '1px solid rgba(245, 158, 11, 0.3)'
+                        : '1px solid rgba(15, 76, 92, 0.2)',
                     }}
                   >
-                    {subscription.status === 'active' ? (
-                      <CheckCircle2 className="w-3 h-3" />
-                    ) : (
-                      <Calendar className="w-3 h-3" />
-                    )}
-                    {subscription.status === 'active' ? 'Activo' : 
-                     subscription.status === 'trial' ? 'Prueba gratis' : subscription.status}
-                  </span>
+                    <div
+                      className="absolute inset-0 rounded-2xl backdrop-blur-sm"
+                      style={{ background: 'rgba(255,255,255,0.5)' }}
+                    />
+                    <div className="relative">
+                      {isTrial ? (
+                        <Clock className="w-8 h-8 text-amber-500" />
+                      ) : (
+                        <Crown className="w-8 h-8 text-teal-600" />
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h2
+                        className="text-3xl font-bold tracking-tight"
+                        style={{
+                          color: '#0F172A',
+                          fontFamily: "'Cormorant Garamond', serif"
+                        }}
+                      >
+                        {subscription.planName}
+                      </h2>
+                      <span
+                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm"
+                        style={{
+                          background: isTrial
+                            ? 'linear-gradient(135deg, #FEF3C7, #FDE68A)'
+                            : 'linear-gradient(135deg, #D1FAE5, #A7F3D0)',
+                          color: isTrial ? '#92400E' : '#065F46',
+                          border: isTrial
+                            ? '1px solid rgba(245, 158, 11, 0.3)'
+                            : '1px solid rgba(16, 185, 129, 0.3)',
+                        }}
+                      >
+                        {subscription.status === 'active' ? (
+                          <CheckCircle2 className="w-4 h-4" />
+                        ) : (
+                          <Clock className="w-4 h-4" />
+                        )}
+                        {subscription.status === 'active' ? 'Activo'
+                          : subscription.status === 'trial' ? 'Prueba gratis'
+                          : subscription.status}
+                      </span>
+                    </div>
+                    <p
+                      className="text-base"
+                      style={{
+                        color: '#64748B',
+                        fontFamily: "'Plus Jakarta Sans', sans-serif"
+                      }}
+                    >
+                      {isTrial
+                        ? <span className="font-medium text-amber-600">{trialDays} días restantes</span>
+                        : `${formatCurrency(subscription.planPrice, currency)}/mes · Renovación mensual`}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sm text-white/80">
-                  {isTrial 
-                    ? `${trialDays} días restantes` 
-                    : `${formatCurrency(subscription.planPrice, currency)}/mes · Renovación mensual`}
-                </p>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-3">
+                  {!isTrial && !subscription.cancelAtPeriodEnd && (
+                    <button
+                      onClick={() => setShowCancelModal(true)}
+                      className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        color: '#DC2626',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
+                      }}
+                    >
+                      Cancelar plan
+                    </button>
+                  )}
+                  {isTrial && (
+                    <button
+                      onClick={() => window.location.href = '/dashboard/billing?portal=true'}
+                      className="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer shadow-md"
+                      style={{
+                        background: 'linear-gradient(135deg, #0F4C5C, #1A6B7C)',
+                        color: '#FFFFFF',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #1A6B7C, #0F4C5C)'
+                        e.currentTarget.style.transform = 'translateY(-1px)'
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 76, 92, 0.3)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #0F4C5C, #1A6B7C)'
+                        e.currentTarget.style.transform = 'translateY(0)'
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 76, 92, 0.2)'
+                      }}
+                    >
+                      Configurar pago
+                    </button>
+                  )}
+                  {!isTrial && (
+                    <button
+                      onClick={() => window.location.href = '/dashboard/billing?portal=true'}
+                      className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
+                      style={{
+                        background: 'rgba(15, 76, 92, 0.1)',
+                        color: '#0F4C5C',
+                        border: '1px solid rgba(15, 76, 92, 0.2)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(15, 76, 92, 0.15)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(15, 76, 92, 0.1)'
+                      }}
+                    >
+                      Métodos de pago
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Trial Info Banner - Glass Effect */}
+              {isTrial && (
+                <div
+                  className="relative p-5 rounded-2xl mb-8 overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(251, 191, 36, 0.04))',
+                    border: '1px solid rgba(245, 158, 11, 0.2)',
+                  }}
+                >
+                  <div
+                    className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(245, 158, 11, 0.4) 0%, transparent 70%)',
+                      transform: 'translate(30%, -30%)',
+                    }}
+                  />
+                  <div className="relative flex items-start gap-4">
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1))',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                      }}
+                    >
+                      <Gift className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <div>
+                      <p
+                        className="font-medium text-slate-800 mb-1"
+                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                      >
+                        Disfruta de todas las funcionalidades
+                      </p>
+                      <p
+                        className="text-sm"
+                        style={{ color: '#64748B', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                      >
+                        Tu período de prueba está activo. Al finalizar, elige el plan que mejor se adapte a tu negocio.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Cancellation Warning */}
+              {!isTrial && subscription.cancelAtPeriodEnd && (
+                <div
+                  className="relative p-5 rounded-2xl mb-8 overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(251, 191, 36, 0.04))',
+                    border: '1px solid rgba(245, 158, 11, 0.2)',
+                  }}
+                >
+                  <div className="relative flex items-start gap-4">
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1))',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                      }}
+                    >
+                      <AlertTriangle className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p
+                        className="font-medium text-slate-800 mb-2"
+                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                      >
+                        Tu suscripción se cancelará al final del período
+                      </p>
+                      <p
+                        className="text-sm mb-4"
+                        style={{ color: '#64748B', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                      >
+                        Puedes reactivarla en cualquier momento sin perder tu información.
+                      </p>
+                      <button
+                        onClick={async () => {
+                          await reactivateSubscription({ organizationId })
+                          window.location.reload()
+                        }}
+                        className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
+                        style={{
+                          background: 'linear-gradient(135deg, #0F4C5C, #1A6B7C)',
+                          color: '#FFFFFF',
+                        }}
+                      >
+                        Reactivar suscripción
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Promo Code Input - Glass Card */}
+              <div
+                className="relative overflow-hidden rounded-2xl"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  backdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(15, 76, 92, 0.1)',
+                }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(15, 76, 92, 0.02) 0%, transparent 50%)',
+                  }}
+                />
+                <div className="relative p-6">
+                  <PromoCodeInput />
+                </div>
               </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-2">
-              {!isTrial && !subscription.cancelAtPeriodEnd && (
-                <button
-                  onClick={() => setShowCancelModal(true)}
-                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-white/10"
-                  style={{ color: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.1)' }}
-                >
-                  Cancelar plan
-                </button>
-              )}
-              {isTrial && (
-                <button
-                  onClick={() => window.location.href = '/dashboard/billing?portal=true'}
-                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 backdrop-blur-sm"
-                  style={{ color: '#0F4C5C', backgroundColor: 'rgba(255,255,255,0.9)' }}
-                >
-                  Configurar pago
-                </button>
-              )}
-              {!isTrial && (
-                <button
-                  onClick={() => window.location.href = '/dashboard/billing?portal=true'}
-                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 backdrop-blur-sm"
-                  style={{ color: '#0F4C5C', backgroundColor: 'rgba(255,255,255,0.9)' }}
-                >
-                  Métodos de pago
-                </button>
-              )}
-            </div>
           </div>
-
-          {/* Trial Info Banner */}
-          {isTrial && (
-            <div 
-              className="relative mt-6 p-4 rounded-xl"
-              style={{ 
-                backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                border: '1px solid rgba(245, 158, 11, 0.3)'
-              }}
-            >
-              <p className="text-sm text-amber-100">
-                Disfruta de todas las funcionalidades durante tu período de prueba. 
-                Al finalizar, elige el plan que mejor se adapte a tu negocio.
-              </p>
-            </div>
-          )}
-
-          {/* Cancellation Warning */}
-          {!isTrial && subscription.cancelAtPeriodEnd && (
-            <div 
-              className="relative mt-6 p-4 rounded-xl"
-              style={{ 
-                backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                border: '1px solid rgba(245, 158, 11, 0.3)'
-              }}
-            >
-              <p className="text-sm text-amber-100 mb-3">
-                Tu suscripción se cancelará al final del período de facturación. 
-                Puedes reactivarla en cualquier momento.
-              </p>
-              <button
-                onClick={async () => {
-                  await reactivateSubscription({ organizationId })
-                  window.location.reload()
-                }}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                style={{ color: '#92400E', backgroundColor: 'rgba(255,255,255,0.9)' }}
-              >
-                Reactivar suscripción
-              </button>
-            </div>
-          )}
-
-          {/* Promo Code Input */}
-          <PromoCodeInput />
         </div>
       )}
 
       {/* Plans Section */}
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="text-center">
-          <h2 
-            className="text-3xl font-semibold mb-2"
-            style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+          <h2
+            className="text-4xl font-bold mb-3"
+            style={{ color: '#0F172A', fontFamily: "'Cormorant Garamond', serif" }}
           >
             Elige tu plan
           </h2>
-          <p style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <p
+            className="text-base"
+            style={{ color: '#64748B', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          >
             Sin costos ocultos. Cancela cuando quieras.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {plans.map((plan, index) => {
             const isCurrentPlan = subscription?.planName === plan.name
             const isPopular = plan.name === 'Profesional' || plan.name === 'Premium'
             const isBasic = plan.name === 'Básico'
-            
+
             return (
-              <div 
+              <div
                 key={plan.id}
-                className="relative animate-fade-in-up"
-                style={{ animationDelay: `${index * 75}ms` }}
+                className="relative group animate-fade-in-up"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
-                {/* Glassmorphism Card */}
-                <div 
-                  className="group relative h-full rounded-2xl overflow-hidden transition-all duration-300 cursor-default"
-                  style={{ 
-                    background: isPopular 
-                      ? COLORS.primaryGradient
-                      : COLORS.surfaceGlass,
-                    border: `1px solid ${isPopular ? 'transparent' : COLORS.border}`,
-                    boxShadow: isPopular 
-                      ? '0 25px 50px -12px rgba(15, 76, 92, 0.25)' 
-                      : '0 4px 24px rgba(15, 76, 92, 0.08)',
-                    backdropFilter: 'blur(12px)',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isPopular) {
-                      e.currentTarget.style.transform = 'translateY(-4px)'
-                      e.currentTarget.style.boxShadow = '0 12px 40px rgba(15, 76, 92, 0.15)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isPopular) {
-                      e.currentTarget.style.transform = 'translateY(0)'
-                      e.currentTarget.style.boxShadow = '0 4px 24px rgba(15, 76, 92, 0.08)'
-                    }
+                {/* Ambient glow for popular */}
+                {isPopular && (
+                  <div
+                    className="absolute -inset-2 rounded-3xl opacity-40 blur-xl"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(15, 76, 92, 0.5), rgba(15, 76, 92, 0.2))',
+                    }}
+                  />
+                )}
+
+                {/* Glass Card */}
+                <div
+                  className="relative h-full rounded-3xl overflow-hidden transition-all duration-300"
+                  style={{
+                    background: isPopular
+                      ? 'linear-gradient(145deg, rgba(15, 76, 92, 0.95), rgba(26, 107, 124, 0.9))'
+                      : 'rgba(255, 255, 255, 0.85)',
+                    backdropFilter: 'blur(20px)',
+                    border: isPopular
+                      ? '1px solid rgba(255, 255, 255, 0.2)'
+                      : '1px solid rgba(255, 255, 255, 0.8)',
+                    boxShadow: isPopular
+                      ? '0 20px 60px rgba(15, 76, 92, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                      : '0 8px 32px rgba(15, 76, 92, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
                   }}
                 >
-                  {/* Popular Badge */}
+                  {/* Gradient overlay for popular */}
                   {isPopular && (
-                    <div className="absolute top-4 right-4 z-10">
-                      <div 
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-sm"
-                        style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: 'radial-gradient(ellipse at top right, rgba(255,255,255,0.15) 0%, transparent 60%)',
+                      }}
+                    />
+                  )}
+
+                  {/* Popular Badge - Shimmer Effect */}
+                  {isPopular && (
+                    <div className="absolute top-5 right-5 z-10">
+                      <div
+                        className="relative px-4 py-2 rounded-full"
+                        style={{
+                          background: 'rgba(251, 191, 36, 0.95)',
+                          boxShadow: '0 4px 16px rgba(251, 191, 36, 0.4)',
+                        }}
                       >
-                        <Star className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-                        <span className="text-xs font-semibold text-white">Más popular</span>
+                        <div
+                          className="absolute inset-0 rounded-full"
+                          style={{
+                            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                            animation: 'shimmer 2s infinite',
+                          }}
+                        />
+                        <span className="relative flex items-center gap-1.5 text-sm font-bold text-amber-900">
+                          <Star className="w-4 h-4 fill-amber-900" />
+                          Más popular
+                        </span>
                       </div>
                     </div>
                   )}
 
-                  <div className="p-6 md:p-8">
+                  <div className="relative p-8">
                     {/* Plan Header */}
-                    <div className="mb-6">
-                      <div className={`flex items-center gap-3 mb-4 ${isPopular ? 'text-white' : ''}`}>
-                        <div 
-                          className="w-12 h-12 rounded-xl flex items-center justify-center"
-                          style={{ 
-                            backgroundColor: isPopular 
-                              ? 'rgba(255, 255, 255, 0.2)' 
-                              : `${COLORS.primary}15` 
+                    <div className="mb-8">
+                      <div className={`flex items-center gap-4 mb-6 ${isPopular ? 'text-white' : ''}`}>
+                        <div
+                          className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
+                          style={{
+                            background: isPopular
+                              ? 'rgba(255, 255, 255, 0.2)'
+                              : 'linear-gradient(135deg, rgba(15, 76, 92, 0.1), rgba(26, 107, 124, 0.05))',
+                            border: isPopular
+                              ? '1px solid rgba(255, 255, 255, 0.3)'
+                              : '1px solid rgba(15, 76, 92, 0.1)',
                           }}
                         >
                           {isBasic ? (
-                            <Shield 
-                              className="w-6 h-6" 
-                              style={{ color: isPopular ? '#FFFFFF' : COLORS.primary }} 
+                            <Shield
+                              className="w-7 h-7"
+                              style={{ color: isPopular ? '#FFFFFF' : '#0F4C5C' }}
                             />
                           ) : (
-                            <Sparkles 
-                              className="w-6 h-6" 
-                              style={{ color: isPopular ? '#FCD34D' : COLORS.primary }} 
+                            <Sparkles
+                              className="w-7 h-7"
+                              style={{ color: isPopular ? '#FCD34D' : '#0F4C5C' }}
                             />
                           )}
                         </div>
-                        <h3 
-                          className="text-xl font-semibold"
-                          style={{ 
-                            color: isPopular ? '#FFFFFF' : COLORS.textPrimary,
+                        <h3
+                          className="text-2xl font-bold"
+                          style={{
+                            color: isPopular ? '#FFFFFF' : '#0F172A',
                             fontFamily: "'Cormorant Garamond', serif"
                           }}
                         >
@@ -357,20 +536,20 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                         </h3>
                       </div>
 
-                      <div className="flex items-baseline gap-2">
-                        <span 
-                          className="text-4xl font-bold"
-                          style={{ 
-                            color: isPopular ? '#FFFFFF' : COLORS.textPrimary,
+                      <div className="flex items-baseline gap-3">
+                        <span
+                          className="text-5xl font-bold"
+                          style={{
+                            color: isPopular ? '#FFFFFF' : '#0F172A',
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
                           {formatCurrency(plan.price, plan.currency || 'COP')}
                         </span>
-                        <span 
-                          className="text-sm"
-                          style={{ 
-                            color: isPopular ? 'rgba(255,255,255,0.7)' : COLORS.textSecondary,
+                        <span
+                          className="text-base"
+                          style={{
+                            color: isPopular ? 'rgba(255,255,255,0.7)' : '#64748B',
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
@@ -379,10 +558,10 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                       </div>
 
                       {plan.description && (
-                        <p 
-                          className="mt-2 text-sm"
-                          style={{ 
-                            color: isPopular ? 'rgba(255,255,255,0.7)' : COLORS.textSecondary,
+                        <p
+                          className="mt-3 text-sm"
+                          style={{
+                            color: isPopular ? 'rgba(255,255,255,0.7)' : '#64748B',
                             fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
@@ -392,307 +571,342 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                     </div>
 
                     {/* Features */}
-                    <ul className="space-y-3 mb-8">
-                      <li 
-                        className="flex items-center gap-3 text-sm"
-                        style={{ color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary }}
-                      >
-                        <div 
-                          className="w-5 h-5 rounded-lg flex items-center justify-center"
-                          style={{ 
-                            backgroundColor: isPopular 
-                              ? 'rgba(255, 255, 255, 0.2)' 
-                              : COLORS.successLight 
+                    <ul className="space-y-4 mb-8">
+                      <li className="flex items-center gap-4">
+                        <div
+                          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: isPopular
+                              ? 'rgba(255, 255, 255, 0.2)'
+                              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                            border: isPopular
+                              ? '1px solid rgba(255, 255, 255, 0.2)'
+                              : '1px solid rgba(16, 185, 129, 0.2)',
                           }}
                         >
-                          <CheckCircle2 
-                            className="w-3.5 h-3.5" 
-                            style={{ color: isPopular ? '#FFFFFF' : COLORS.success }} 
+                          <CheckCircle2
+                            className="w-4 h-4"
+                            style={{ color: isPopular ? '#FFFFFF' : '#059669' }}
                           />
                         </div>
-                        <span 
-                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        <span
+                          className="text-sm"
+                          style={{
+                            color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                            fontFamily: "'Plus Jakarta Sans', sans-serif"
+                          }}
                         >
-                          <strong>{getEmployeeLabel(plan.max_employees)}</strong> empleados
+                          <strong className={isPopular ? 'text-white' : 'text-slate-800'}>{getEmployeeLabel(plan.max_employees)}</strong> empleados
                         </span>
                       </li>
-                      <li 
-                        className="flex items-center gap-3 text-sm"
-                        style={{ color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary }}
-                      >
-                        <div 
-                          className="w-5 h-5 rounded-lg flex items-center justify-center"
-                          style={{ 
-                            backgroundColor: isPopular 
-                              ? 'rgba(255, 255, 255, 0.2)' 
-                              : COLORS.successLight 
+                      <li className="flex items-center gap-4">
+                        <div
+                          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: isPopular
+                              ? 'rgba(255, 255, 255, 0.2)'
+                              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                            border: isPopular
+                              ? '1px solid rgba(255, 255, 255, 0.2)'
+                              : '1px solid rgba(16, 185, 129, 0.2)',
                           }}
                         >
-                          <CheckCircle2 
-                            className="w-3.5 h-3.5" 
-                            style={{ color: isPopular ? '#FFFFFF' : COLORS.success }} 
+                          <CheckCircle2
+                            className="w-4 h-4"
+                            style={{ color: isPopular ? '#FFFFFF' : '#059669' }}
                           />
                         </div>
-                        <span 
-                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        <span
+                          className="text-sm"
+                          style={{
+                            color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                            fontFamily: "'Plus Jakarta Sans', sans-serif"
+                          }}
                         >
-                          <strong>{getServiceLabel(plan.max_services)}</strong> servicios
+                          <strong className={isPopular ? 'text-white' : 'text-slate-800'}>{getServiceLabel(plan.max_services)}</strong> servicios
                         </span>
                       </li>
-                      <li 
-                        className="flex items-center gap-3 text-sm"
-                        style={{ color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary }}
-                      >
-                        <div 
-                          className="w-5 h-5 rounded-lg flex items-center justify-center"
-                          style={{ 
-                            backgroundColor: isPopular 
-                              ? 'rgba(255, 255, 255, 0.2)' 
-                              : COLORS.successLight 
+                      <li className="flex items-center gap-4">
+                        <div
+                          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: isPopular
+                              ? 'rgba(255, 255, 255, 0.2)'
+                              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                            border: isPopular
+                              ? '1px solid rgba(255, 255, 255, 0.2)'
+                              : '1px solid rgba(16, 185, 129, 0.2)',
                           }}
                         >
-                          <CheckCircle2 
-                            className="w-3.5 h-3.5" 
-                            style={{ color: isPopular ? '#FFFFFF' : COLORS.success }} 
+                          <CheckCircle2
+                            className="w-4 h-4"
+                            style={{ color: isPopular ? '#FFFFFF' : '#059669' }}
                           />
                         </div>
-                        <span 
-                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        <span
+                          className="text-sm"
+                          style={{
+                            color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                            fontFamily: "'Plus Jakarta Sans', sans-serif"
+                          }}
                         >
-                          <strong>{getInventoryLabel(plan.max_inventory_items)}</strong> productos inventario
+                          <strong className={isPopular ? 'text-white' : 'text-slate-800'}>{getInventoryLabel(plan.max_inventory_items)}</strong> productos inventario
                         </span>
                       </li>
                       {plan.whatsapp_enabled && (
-                        <li 
-                          className="flex items-center gap-3 text-sm"
-                          style={{ color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary }}
-                        >
-                          <div 
-                            className="w-5 h-5 rounded-lg flex items-center justify-center"
-                            style={{ 
-                              backgroundColor: isPopular 
-                                ? 'rgba(255, 255, 255, 0.2)' 
-                                : COLORS.successLight 
+                        <li className="flex items-center gap-4">
+                          <div
+                            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                            style={{
+                              background: isPopular
+                                ? 'rgba(255, 255, 255, 0.2)'
+                                : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                              border: isPopular
+                                ? '1px solid rgba(255, 255, 255, 0.2)'
+                                : '1px solid rgba(16, 185, 129, 0.2)',
                             }}
                           >
-                            <CheckCircle2 
-                              className="w-3.5 h-3.5" 
-                              style={{ color: isPopular ? '#FFFFFF' : COLORS.success }} 
+                            <CheckCircle2
+                              className="w-4 h-4"
+                              style={{ color: isPopular ? '#FFFFFF' : '#059669' }}
                             />
                           </div>
-                          <span 
-                            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                          <span
+                            className="text-sm"
+                            style={{
+                              color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                              fontFamily: "'Plus Jakarta Sans', sans-serif"
+                            }}
                           >
-                            <strong>WhatsApp</strong> Premium incluido
+                            <strong className={isPopular ? 'text-white' : 'text-slate-800'}>WhatsApp</strong> Premium incluido
                           </span>
                         </li>
                       )}
-                      <li 
-                        className="flex items-center gap-3 text-sm"
-                        style={{ color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary }}
-                      >
-                        <div 
-                          className="w-5 h-5 rounded-lg flex items-center justify-center"
-                          style={{ 
-                            backgroundColor: isPopular 
-                              ? 'rgba(255, 255, 255, 0.2)' 
-                              : COLORS.successLight 
+                      <li className="flex items-center gap-4">
+                        <div
+                          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: isPopular
+                              ? 'rgba(255, 255, 255, 0.2)'
+                              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                            border: isPopular
+                              ? '1px solid rgba(255, 255, 255, 0.2)'
+                              : '1px solid rgba(16, 185, 129, 0.2)',
                           }}
                         >
-                          <CheckCircle2 
-                            className="w-3.5 h-3.5" 
-                            style={{ color: isPopular ? '#FFFFFF' : COLORS.success }} 
+                          <TrendingUp
+                            className="w-4 h-4"
+                            style={{ color: isPopular ? '#FFFFFF' : '#059669' }}
                           />
                         </div>
-                        <span 
-                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                        >
-                          <strong>Analytics</strong> completo
-                        </span>
-                      </li>
-                      <li 
-                        className="flex items-center gap-3 text-sm"
-                        style={{ color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary }}
-                      >
-                        <div 
-                          className="w-5 h-5 rounded-lg flex items-center justify-center"
-                          style={{ 
-                            backgroundColor: isPopular 
-                              ? 'rgba(255, 255, 255, 0.2)' 
-                              : COLORS.successLight 
+                        <span
+                          className="text-sm"
+                          style={{
+                            color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                            fontFamily: "'Plus Jakarta Sans', sans-serif"
                           }}
                         >
-                          <CheckCircle2 
-                            className="w-3.5 h-3.5" 
-                            style={{ color: isPopular ? '#FFFFFF' : COLORS.success }} 
-                          />
-                        </div>
-                        <span 
-                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                        >
-                          <strong>Email</strong> confirmaciones
+                          <strong className={isPopular ? 'text-white' : 'text-slate-800'}>Analytics</strong> completo
                         </span>
                       </li>
                       {!isBasic && (
-                        <li 
-                          className="flex items-center gap-3 text-sm"
-                          style={{ color: isPopular ? 'rgba(255,255,255,0.9)' : COLORS.textSecondary }}
-                        >
-                          <div 
-                            className="w-5 h-5 rounded-lg flex items-center justify-center"
-                            style={{ 
-                              backgroundColor: isPopular 
-                                ? 'rgba(245, 158, 11, 0.4)' 
-                                : COLORS.amberLight 
+                        <li className="flex items-center gap-4">
+                          <div
+                            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                            style={{
+                              background: isPopular
+                                ? 'rgba(251, 191, 36, 0.3)'
+                                : 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(251, 191, 36, 0.05))',
+                              border: isPopular
+                                ? '1px solid rgba(251, 191, 36, 0.3)'
+                                : '1px solid rgba(245, 158, 11, 0.2)',
                             }}
                           >
-                            <Zap 
-                              className="w-3.5 h-3.5" 
-                              style={{ color: isPopular ? '#FCD34D' : COLORS.amber }} 
+                            <Zap
+                              className="w-4 h-4"
+                              style={{ color: isPopular ? '#FCD34D' : '#F59E0B' }}
                             />
                           </div>
-                          <span 
-                            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                          <span
+                            className="text-sm"
+                            style={{
+                              color: isPopular ? 'rgba(255,255,255,0.9)' : '#475569',
+                              fontFamily: "'Plus Jakarta Sans', sans-serif"
+                            }}
                           >
-                            <strong>Soporte</strong> prioritario
+                            <strong className={isPopular ? 'text-white' : 'text-slate-800'}>Soporte</strong> prioritario
                           </span>
                         </li>
                       )}
                     </ul>
 
-                    {/* CTA Button */}
+                    {/* CTA Button - Premium Style */}
                     <button
                       onClick={() => handleUpgrade(plan.id)}
                       disabled={isCurrentPlan}
-                      className="w-full py-3.5 rounded-xl font-semibold text-base transition-all duration-200 flex items-center justify-center gap-2"
+                      className="relative w-full py-4 rounded-2xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-3 overflow-hidden cursor-pointer"
                       style={{
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
-                        ...(isCurrentPlan 
-                          ? isPopular
-                            ? { backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', cursor: 'not-allowed' }
-                            : { backgroundColor: COLORS.surfaceSubtle, color: COLORS.textMuted, cursor: 'not-allowed' }
-                          : isPopular
-                          ? { backgroundColor: '#FFFFFF', color: COLORS.primary }
-                          : { backgroundColor: COLORS.primary, color: '#FFFFFF' }
-                        ),
-                        ...(!isCurrentPlan && !isPopular && {
-                          '--hover-bg': COLORS.primaryLight,
-                        }),
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isCurrentPlan && !isPopular) {
-                          e.currentTarget.style.backgroundColor = COLORS.primaryLight
-                        } else if (!isCurrentPlan && isPopular) {
-                          e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isCurrentPlan && !isPopular) {
-                          e.currentTarget.style.backgroundColor = COLORS.primary
-                        } else if (!isCurrentPlan && isPopular) {
-                          e.currentTarget.style.backgroundColor = '#FFFFFF'
-                        }
                       }}
                     >
-                      {isCurrentPlan ? (
-                        <>
-                          <CheckCircle2 className="w-5 h-5" />
-                          Plan actual
-                        </>
-                      ) : (
-                        <>
-                          {isTrial ? 'Elegir plan' : 'Cambiar plan'}
-                          <ArrowRight className="w-5 h-5" />
-                        </>
+                      {/* Shimmer overlay for non-current */}
+                      {!isCurrentPlan && (
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            background: isPopular
+                              ? 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)'
+                              : 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
+                            animation: 'shimmer 3s infinite',
+                          }}
+                        />
+                      )}
+
+                      <span className="relative z-10">
+                        {isCurrentPlan ? (
+                          <>
+                            <CheckCircle2 className="w-5 h-5 inline mr-2" />
+                            Plan actual
+                          </>
+                        ) : (
+                          <>
+                            {isTrial ? 'Elegir plan' : 'Cambiar plan'}
+                            <ArrowRight className="w-5 h-5 inline ml-2" />
+                          </>
+                        )}
+                      </span>
+
+                      {!isCurrentPlan && (
+                        <div
+                          className="absolute inset-0 rounded-2xl"
+                          style={{
+                            background: isPopular
+                              ? 'linear-gradient(135deg, #FFFFFF, #F8FAFC)'
+                              : 'linear-gradient(135deg, #0F4C5C, #1A6B7C)',
+                            opacity: 0,
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1' }}
+                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0' }}
+                        />
+                      )}
+
+                      {isCurrentPlan && (
+                        <div
+                          className="absolute inset-0 rounded-2xl"
+                          style={{
+                            background: isPopular
+                              ? 'rgba(255,255,255,0.1)'
+                              : 'rgba(15, 76, 92, 0.05)',
+                            color: isPopular ? 'rgba(255,255,255,0.5)' : 'rgba(15, 76, 92, 0.4)',
+                          }}
+                        />
                       )}
                     </button>
                   </div>
                 </div>
+
+                {/* Hover glow effect (desktop only) */}
+                <div
+                  className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                  style={{
+                    boxShadow: isPopular
+                      ? '0 0 60px rgba(15, 76, 92, 0.4)'
+                      : '0 0 40px rgba(15, 76, 92, 0.15)',
+                  }}
+                />
               </div>
             )
           })}
         </div>
       </div>
 
-      {/* Cancel Modal - Gradient Header Pattern */}
+      {/* Cancel Modal - Premium Glass */}
       {showCancelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0"
-            style={{ backgroundColor: COLORS.overlay }}
+          <div
+            className="absolute inset-0 backdrop-blur-md"
+            style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)' }}
             onClick={() => setShowCancelModal(false)}
           />
-          <div 
-            className="relative w-full max-w-md rounded-2xl overflow-hidden shadow-2xl animate-scale-in"
-            style={{ 
-              backgroundColor: COLORS.surface,
+
+          <div
+            className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-scale-in"
+            style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(24px)',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             }}
           >
-            {/* Header with gradient */}
-            <div 
-              className="relative p-6 overflow-hidden"
-              style={{ 
-                background: COLORS.primaryGradient,
+            {/* Gradient Header */}
+            <div
+              className="relative p-8"
+              style={{
+                background: 'linear-gradient(135deg, #0F4C5C, #1A6B7C)',
               }}
             >
-              <div 
-                className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10"
-                style={{ 
-                  backgroundColor: '#FFFFFF',
-                  transform: 'translate(30%, -30%)' 
-                }} 
+              {/* Decorative orb */}
+              <div
+                className="absolute -top-16 -right-16 w-48 h-48 rounded-full opacity-20"
+                style={{
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%)',
+                }}
               />
-              
+
               <div className="relative flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/20">
-                    <X className="w-6 h-6 text-white" />
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      backdropFilter: 'blur(8px)',
+                    }}
+                  >
+                    <X className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <h2 
-                      className="text-xl font-semibold text-white"
+                    <h2
+                      className="text-2xl font-bold text-white"
                       style={{ fontFamily: "'Cormorant Garamond', serif" }}
                     >
                       Cancelar suscripción
                     </h2>
-                    <p className="text-xs text-white/80">Esta acción no se puede deshacer</p>
+                    <p className="text-sm text-white/70">Esta acción no se puede deshacer</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowCancelModal(false)}
-                  className="p-2 rounded-lg transition-colors duration-200 hover:bg-white/20"
+                  className="p-3 rounded-xl transition-colors duration-200 cursor-pointer hover:bg-white/20"
                 >
-                  <X className="w-5 h-5 text-white" />
+                  <X className="w-6 h-6 text-white" />
                 </button>
               </div>
             </div>
 
             {/* Content */}
-            <div className="p-6">
-              <p 
-                className="text-sm mb-6"
-                style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            <div className="p-8">
+              <p
+                className="text-base mb-8"
+                style={{ color: '#64748B', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
-                Perderás acceso a todas las funcionalidades premium al final del período de facturación actual. 
+                Perderás acceso a todas las funcionalidades premium al final del período de facturación actual.
                 Tu información se mantendrá guardada por 30 días.
               </p>
 
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button
                   onClick={() => setShowCancelModal(false)}
-                  className="flex-1 py-3 rounded-xl font-medium transition-colors duration-200"
-                  style={{ 
-                    border: `1px solid ${COLORS.border}`,
-                    color: COLORS.textSecondary,
+                  className="flex-1 py-4 rounded-2xl font-medium transition-all duration-200 cursor-pointer"
+                  style={{
+                    border: '1px solid rgba(15, 76, 92, 0.2)',
+                    color: '#475569',
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    backgroundColor: 'transparent'
+                    background: 'rgba(15, 76, 92, 0.05)',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle
+                    e.currentTarget.style.background = 'rgba(15, 76, 92, 0.1)'
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent'
+                    e.currentTarget.style.background = 'rgba(15, 76, 92, 0.05)'
                   }}
                 >
                   Mantener suscripción
@@ -700,20 +914,20 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
                 <button
                   onClick={handleCancel}
                   disabled={isCancelling}
-                  className="flex-1 py-3 rounded-xl font-medium transition-colors duration-200 flex items-center justify-center gap-2"
-                  style={{ 
-                    backgroundColor: COLORS.error,
+                  className="flex-1 py-4 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer"
+                  style={{
+                    background: isCancelling ? '#9CA3AF' : '#EF4444',
                     color: '#FFFFFF',
-                    fontFamily: "'Plus Jakarta Sans', sans-serif"
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#B91C1C'
+                    if (!isCancelling) e.currentTarget.style.background = '#DC2626'
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = COLORS.error
+                    if (!isCancelling) e.currentTarget.style.background = '#EF4444'
                   }}
                 >
-                  {isCancelling && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isCancelling && <Loader2 className="w-5 h-5 animate-spin" />}
                   {isCancelling ? 'Cancelando...' : 'Sí, cancelar'}
                 </button>
               </div>
@@ -726,7 +940,7 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
         @keyframes fade-in-up {
           from {
             opacity: 0;
-            transform: translateY(16px);
+            transform: translateY(24px);
           }
           to {
             opacity: 1;
@@ -734,13 +948,13 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
           }
         }
         .animate-fade-in-up {
-          animation: fade-in-up 0.4s ease-out forwards;
+          animation: fade-in-up 0.5s ease-out forwards;
           opacity: 0;
         }
         @keyframes scale-in {
           from {
             opacity: 0;
-            transform: scale(0.96);
+            transform: scale(0.95);
           }
           to {
             opacity: 1;
@@ -748,9 +962,32 @@ export function BillingClient({ plans, subscription, organizationId }: BillingCl
           }
         }
         .animate-scale-in {
-          animation: scale-in 0.2s ease-out forwards;
+          animation: scale-in 0.3s ease-out forwards;
+        }
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
       `}</style>
     </div>
+  )
+}
+
+function AlertTriangle({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
   )
 }

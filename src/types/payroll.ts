@@ -329,6 +329,8 @@ export type CalculatePayrollInput = {
   salary_frequency: string | null
   has_transport_subsidy: boolean
   force_transport_subsidy: boolean
+  employment_type: 'full_time' | 'part_time'
+  part_time_percentage: number
 }
 
 export type PayrollCalculationResult = {

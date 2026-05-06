@@ -9,12 +9,14 @@ import { getPendingLoans } from './getPendingLoans'
 const CreatePeriodSchema = z.object({
   organization_id: z.string().uuid(),
   period: z.string().regex(/^\d{4}-\d{2}$/, 'Formato inválido. Use YYYY-MM'),
+  employee_ids: z.array(z.string().uuid()).optional(),
 })
 
 export async function createPayrollPeriod(input: {
   organization_id: string
   period: string  // 'YYYY-MM'
   notes?: string
+  employee_ids?: string[]
 }): Promise<{
   success: boolean
   data?: {
@@ -60,12 +62,18 @@ export async function createPayrollPeriod(input: {
     return { success: false, error: `Ya existe un período ${input.period} para esta organización` }
   }
 
-  // Get active employees
-  const { data: employees } = await supabase
+  // Get active employees (filter by selected if provided)
+  let employeesQuery = supabase
     .from('employees')
     .select('*')
     .eq('organization_id', input.organization_id)
     .eq('active', true)
+
+  if (input.employee_ids && input.employee_ids.length > 0) {
+    employeesQuery = employeesQuery.in('id', input.employee_ids)
+  }
+
+  const { data: employees } = await employeesQuery
 
   if (!employees || employees.length === 0) {
     return { success: false, error: 'No hay empleados activos' }
@@ -139,6 +147,8 @@ export async function createPayrollPeriod(input: {
       salary_frequency: employee.salary_frequency,
       has_transport_subsidy: employee.has_transport_subsidy || false,
       force_transport_subsidy: employee.force_transport_subsidy || false,
+      employment_type: employee.employment_type || 'full_time',
+      part_time_percentage: employee.part_time_percentage || 100,
     })
 
     if (!calcResult.success || !calcResult.data) {

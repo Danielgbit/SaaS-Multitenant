@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Briefcase, Percent, DollarSign, AlertTriangle, CheckCircle2, Clock } from 'lucide-react'
 
 function useColors() {
   return useThemeColors()
@@ -19,6 +20,8 @@ type EmployeeWithPayroll = {
   salary_frequency: SalaryFrequency | null
   max_debt_limit: number
   debt_warning_threshold: number
+  employment_type?: EmploymentType
+  part_time_percentage?: number
 }
 
 interface EmployeePayrollTabProps {
@@ -62,6 +65,12 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
   const [debtWarningThreshold, setDebtWarningThreshold] = useState(
     employee.debt_warning_threshold?.toString() || '80'
   )
+  const [employmentType, setEmploymentType] = useState<EmploymentType>(
+    (employee.employment_type as EmploymentType) || 'full_time'
+  )
+  const [partTimePercentage, setPartTimePercentage] = useState(
+    employee.part_time_percentage || 100
+  )
 
   const handleSave = async () => {
     setSaving(true)
@@ -79,6 +88,8 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
       salary_frequency: paymentType === 'fijo' || paymentType === 'mixed' ? salaryFrequency : null,
       max_debt_limit: parseFloat(maxDebtLimit),
       debt_warning_threshold: parseFloat(debtWarningThreshold),
+      employment_type: employmentType,
+      part_time_percentage: employmentType === 'part_time' ? partTimePercentage : 100,
     })
 
     setSaving(false)
@@ -140,6 +151,102 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
           </p>
         )}
       </div>
+
+      {/* Employment Type - Only for laboral contracts */}
+      {contractType === 'laboral' && (
+        <div>
+          <label
+            className="block text-sm font-medium mb-3"
+            style={{ color: COLORS.textPrimary }}
+          >
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" style={{ color: COLORS.primary }} />
+              Tipo de Jornada
+            </div>
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setEmploymentType('full_time')
+                setPartTimePercentage(100)
+              }}
+              className="p-4 rounded-xl border-2 text-left transition-all duration-200"
+              style={{
+                borderColor: employmentType === 'full_time' ? COLORS.primary : COLORS.border,
+                backgroundColor: employmentType === 'full_time' ? COLORS.primary + '08' : COLORS.surface,
+              }}
+            >
+              <p
+                className="font-medium"
+                style={{ color: employmentType === 'full_time' ? COLORS.primary : COLORS.textPrimary }}
+              >
+                Tiempo Completo
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: COLORS.textMuted }}>
+                100% del salario
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setEmploymentType('part_time')}
+              className="p-4 rounded-xl border-2 text-left transition-all duration-200"
+              style={{
+                borderColor: employmentType === 'part_time' ? COLORS.primary : COLORS.border,
+                backgroundColor: employmentType === 'part_time' ? COLORS.primary + '08' : COLORS.surface,
+              }}
+            >
+              <p
+                className="font-medium"
+                style={{ color: employmentType === 'part_time' ? COLORS.primary : COLORS.textPrimary }}
+              >
+                Medio Tiempo
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: COLORS.textMuted }}>
+                % del salario mínimo
+              </p>
+            </button>
+          </div>
+
+          {employmentType === 'part_time' && (
+            <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: COLORS.textPrimary }}
+              >
+                Porcentaje del salario mínimo
+              </label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min="10"
+                  max="90"
+                  step="5"
+                  value={partTimePercentage}
+                  onChange={(e) => setPartTimePercentage(Number(e.target.value))}
+                  className="flex-1 h-2 rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, ${COLORS.primary} 0%, ${COLORS.primary} ${partTimePercentage}%, ${COLORS.border} ${partTimePercentage}%, ${COLORS.border} 100%)`,
+                  }}
+                />
+                <div
+                  className="w-20 px-4 py-2 rounded-xl border text-center font-semibold"
+                  style={{
+                    borderColor: COLORS.border,
+                    color: COLORS.primary,
+                    backgroundColor: COLORS.surface,
+                  }}
+                >
+                  {partTimePercentage}%
+                </div>
+              </div>
+              <p className="text-xs mt-2" style={{ color: COLORS.textMuted }}>
+                El salario y auxilio de transporte se calcularán proporcional al porcentaje
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Commission Rate */}
       <div>

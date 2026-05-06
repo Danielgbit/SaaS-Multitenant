@@ -22,9 +22,9 @@ CREATE TABLE IF NOT EXISTS promo_codes (
 );
 
 -- =====================================================
--- Table: promo_code_uses
+-- Table: promo_code_usages
 -- =====================================================
-CREATE TABLE IF NOT EXISTS promo_code_uses (
+CREATE TABLE IF NOT EXISTS promo_code_usages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   promo_code_id UUID REFERENCES promo_codes(id) ON DELETE CASCADE,
   organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
@@ -38,14 +38,14 @@ CREATE TABLE IF NOT EXISTS promo_code_uses (
 CREATE INDEX IF NOT EXISTS idx_promo_codes_code ON promo_codes(code);
 CREATE INDEX IF NOT EXISTS idx_promo_codes_active ON promo_codes(is_active) WHERE is_active = true;
 CREATE INDEX IF NOT EXISTS idx_promo_codes_expires ON promo_codes(expires_at) WHERE expires_at IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_promo_code_uses_org ON promo_code_uses(organization_id);
-CREATE INDEX IF NOT EXISTS idx_promo_code_uses_code ON promo_code_uses(promo_code_id);
+CREATE INDEX IF NOT EXISTS idx_promo_code_usages_org ON promo_code_usages(organization_id);
+CREATE INDEX IF NOT EXISTS idx_promo_code_usages_code ON promo_code_usages(promo_code_id);
 
 -- =====================================================
 -- RLS Policies
 -- =====================================================
 ALTER TABLE promo_codes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE promo_code_uses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE promo_code_usages ENABLE ROW LEVEL SECURITY;
 
 -- Admin (owner_saas) can do everything
 CREATE POLICY "Admin full access promo_codes" ON promo_codes
@@ -66,7 +66,7 @@ CREATE POLICY "Read active promo_codes" ON promo_codes
   );
 
 -- Promo code uses - admin sees all
-CREATE POLICY "Admin read promo_code_uses" ON promo_code_uses
+CREATE POLICY "Admin read promo_code_usages" ON promo_code_usages
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM organization_members
@@ -76,13 +76,13 @@ CREATE POLICY "Admin read promo_code_uses" ON promo_code_uses
   );
 
 -- Users can read their own promo code uses
-CREATE POLICY "Users read own promo_code_uses" ON promo_code_uses
+CREATE POLICY "Users read own promo_code_usages" ON promo_code_usages
   FOR SELECT USING (organization_id IN (
     SELECT organization_id FROM organization_members WHERE user_id = auth.uid()
   ));
 
 -- Users can insert promo code uses (their own org)
-CREATE POLICY "Insert promo_code_uses" ON promo_code_uses
+CREATE POLICY "Insert promo_code_usages" ON promo_code_usages
   FOR INSERT WITH CHECK (organization_id IN (
     SELECT organization_id FROM organization_members WHERE user_id = auth.uid()
   ));
