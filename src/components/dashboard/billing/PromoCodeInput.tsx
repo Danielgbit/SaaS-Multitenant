@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useFormState, useFormStatus } from 'react-dom'
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { applyCode, type ApplyCodeState } from '@/actions/promoCodes/applyCode'
 import { validateCode, type ValidateCodeResult } from '@/actions/promoCodes/validateCode'
 import { TicketIcon, CheckCircle2, XCircle, Loader2, Gift, ArrowRight, Sparkles } from 'lucide-react'
@@ -76,20 +77,20 @@ export function PromoCodeInput() {
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center"
           style={{
-            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(251, 191, 36, 0.05))',
-            border: '1px solid rgba(245, 158, 11, 0.2)',
+            backgroundColor: COLORS.amberLight,
+            border: `1px solid ${COLORS.amber}30`,
           }}
         >
-          <TicketIcon className="w-5 h-5 text-amber-500" />
+          <TicketIcon className="w-5 h-5" style={{ color: COLORS.amber }} />
         </div>
         <div>
           <h3
-            className="font-semibold text-slate-800"
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            className="font-semibold"
+            style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
             ¿Tienes un código de prueba?
           </h3>
-          <p className="text-xs text-slate-500">Obtén días extra o descuentos especiales</p>
+          <p className="text-xs" style={{ color: COLORS.textSecondary }}>Obtén días extra o descuentos especiales</p>
         </div>
       </div>
 
@@ -99,25 +100,17 @@ export function PromoCodeInput() {
           <div
             className="relative overflow-hidden rounded-xl transition-all duration-300"
             style={{
-              background: 'rgba(255, 255, 255, 0.8)',
+              backgroundColor: COLORS.surface,
               border: validationError
-                ? '1px solid rgba(239, 68, 68, 0.4)'
+                ? `1px solid ${COLORS.error}40`
                 : preview
-                ? '1px solid rgba(16, 185, 129, 0.4)'
+                ? `1px solid ${COLORS.success}40`
                 : isFocused
-                ? '1px solid rgba(15, 76, 92, 0.4)'
-                : '1px solid rgba(15, 76, 92, 0.15)',
-              boxShadow: isFocused
-                ? '0 4px 16px rgba(15, 76, 92, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
-                : 'inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+                ? `1px solid ${COLORS.primary}60`
+                : `1px solid ${COLORS.border}`,
+              boxShadow: isFocused ? `0 0 0 3px ${COLORS.primary}15` : 'none',
             }}
           >
-            <div
-              className="absolute inset-0"
-              style={{
-                background: 'linear-gradient(135deg, rgba(15, 76, 92, 0.02) 0%, transparent 50%)',
-              }}
-            />
             <input
               type="text"
               value={code}
@@ -125,18 +118,21 @@ export function PromoCodeInput() {
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               placeholder="Ej: PRUEBA30"
-              className="relative w-full px-4 py-3.5 text-sm font-mono uppercase tracking-wider bg-transparent text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors"
-              style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}
+              className="w-full px-4 py-3.5 text-sm font-mono uppercase tracking-wider bg-transparent"
+              style={{
+                color: COLORS.textPrimary,
+                fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+              }}
               aria-label="Código promocional"
             />
             {validating && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" style={{ color: COLORS.amber }} />
               </div>
             )}
             {!validating && preview && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                <CheckCircle2 className="w-5 h-5" style={{ color: COLORS.success }} />
               </div>
             )}
           </div>
@@ -145,27 +141,11 @@ export function PromoCodeInput() {
           type="button"
           onClick={handleValidate}
           disabled={!code.trim() || validating}
-          className="px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center gap-2"
+          className="px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer"
           style={{
-            background: code.trim()
-              ? 'linear-gradient(135deg, #0F4C5C, #1A6B7C)'
-              : 'rgba(15, 76, 92, 0.1)',
-            color: code.trim() ? '#FFFFFF' : 'rgba(15, 76, 92, 0.4)',
-            boxShadow: code.trim() ? '0 4px 12px rgba(15, 76, 92, 0.2)' : 'none',
-          }}
-          onMouseEnter={(e) => {
-            if (code.trim() && !validating) {
-              e.currentTarget.style.background = 'linear-gradient(135deg, #1A6B7C, #0F4C5C)'
-              e.currentTarget.style.transform = 'translateY(-1px)'
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(15, 76, 92, 0.3)'
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (code.trim() && !validating) {
-              e.currentTarget.style.background = 'linear-gradient(135deg, #0F4C5C, #1A6B7C)'
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 76, 92, 0.2)'
-            }
+            backgroundColor: code.trim() ? COLORS.primary : COLORS.surfaceSubtle,
+            color: code.trim() ? '#FFFFFF' : COLORS.textMuted,
+            boxShadow: code.trim() ? '0 2px 8px rgba(15, 76, 92, 0.15)' : 'none',
           }}
         >
           Validar
@@ -177,17 +157,17 @@ export function PromoCodeInput() {
         <div
           className="flex items-center gap-3 p-4 rounded-xl animate-fade-in"
           style={{
-            background: 'rgba(239, 68, 68, 0.08)',
-            border: '1px solid rgba(239, 68, 68, 0.2)',
+            backgroundColor: COLORS.errorLight,
+            border: `1px solid ${COLORS.error}25`,
           }}
         >
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(239, 68, 68, 0.15)' }}
+            style={{ backgroundColor: `${COLORS.error}15` }}
           >
-            <XCircle className="w-4 h-4 text-red-500" />
+            <XCircle className="w-4 h-4" style={{ color: COLORS.error }} />
           </div>
-          <p className="text-sm text-red-600 font-medium">{validationError}</p>
+          <p className="text-sm font-medium" style={{ color: COLORS.error }}>{validationError}</p>
         </div>
       )}
 
@@ -196,41 +176,27 @@ export function PromoCodeInput() {
         <div
           className="relative overflow-hidden rounded-2xl p-5 animate-fade-in"
           style={{
-            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.04))',
-            border: '1px solid rgba(16, 185, 129, 0.25)',
+            backgroundColor: COLORS.successLight,
+            border: `1px solid ${COLORS.success}25`,
           }}
         >
-          {/* Decorative glow */}
-          <div
-            className="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-20"
-            style={{
-              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, transparent 70%)',
-            }}
-          />
-
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1))',
-                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    backgroundColor: `${COLORS.success}15`,
+                    border: `1px solid ${COLORS.success}30`,
                   }}
                 >
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <CheckCircle2 className="w-5 h-5" style={{ color: COLORS.success }} />
                 </div>
                 <div>
-                  <p
-                    className="text-sm font-semibold text-emerald-700"
-                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                  >
+                  <p className="text-sm font-semibold" style={{ color: COLORS.success, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Código válido
                   </p>
-                  <p
-                    className="text-xs text-emerald-600/70"
-                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                  >
+                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     Listo para aplicar
                   </p>
                 </div>
@@ -238,8 +204,8 @@ export function PromoCodeInput() {
               <div
                 className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider"
                 style={{
-                  background: 'rgba(16, 185, 129, 0.15)',
-                  color: '#059669',
+                  backgroundColor: `${COLORS.success}15`,
+                  color: COLORS.success,
                   fontFamily: "'JetBrains Mono', monospace",
                 }}
               >
@@ -250,30 +216,24 @@ export function PromoCodeInput() {
             <div
               className="flex items-center gap-3 p-3 rounded-xl mb-4"
               style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                border: '1px solid rgba(16, 185, 129, 0.15)',
+                backgroundColor: COLORS.surface,
+                border: `1px solid ${COLORS.border}`,
               }}
             >
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1))',
-                  border: '1px solid rgba(245, 158, 11, 0.2)',
+                  backgroundColor: COLORS.amberLight,
+                  border: `1px solid ${COLORS.amber}20`,
                 }}
               >
-                {getTypeIcon(preview.type)}
+                <span style={{ color: COLORS.amber }}>{getTypeIcon(preview.type)}</span>
               </div>
               <div>
-                <p
-                  className="text-sm font-medium text-slate-700"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                >
+                <p className="text-sm font-medium" style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   {preview.name}
                 </p>
-                <p
-                  className="text-xs text-slate-500"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                >
+                <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   {getTypeLabel(preview.type, preview.value)}
                 </p>
               </div>
@@ -292,17 +252,17 @@ export function PromoCodeInput() {
         <div
           className="flex items-center gap-3 p-4 rounded-xl animate-fade-in"
           style={{
-            background: 'rgba(239, 68, 68, 0.08)',
-            border: '1px solid rgba(239, 68, 68, 0.2)',
+            backgroundColor: COLORS.errorLight,
+            border: `1px solid ${COLORS.error}25`,
           }}
         >
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(239, 68, 68, 0.15)' }}
+            style={{ backgroundColor: `${COLORS.error}15` }}
           >
-            <XCircle className="w-4 h-4 text-red-500" />
+            <XCircle className="w-4 h-4" style={{ color: COLORS.error }} />
           </div>
-          <p className="text-sm text-red-600 font-medium">{state.error}</p>
+          <p className="text-sm font-medium" style={{ color: COLORS.error }}>{state.error}</p>
         </div>
       )}
 
@@ -311,17 +271,17 @@ export function PromoCodeInput() {
         <div
           className="flex items-center gap-3 p-4 rounded-xl animate-fade-in"
           style={{
-            background: 'rgba(16, 185, 129, 0.08)',
-            border: '1px solid rgba(16, 185, 129, 0.25)',
+            backgroundColor: COLORS.successLight,
+            border: `1px solid ${COLORS.success}25`,
           }}
         >
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(16, 185, 129, 0.15)' }}
+            style={{ backgroundColor: `${COLORS.success}15` }}
           >
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <CheckCircle2 className="w-4 h-4" style={{ color: COLORS.success }} />
           </div>
-          <p className="text-sm text-emerald-700 font-medium">
+          <p className="text-sm font-medium" style={{ color: COLORS.success }}>
             ¡Código aplicado exitosamente!
           </p>
         </div>
@@ -348,21 +308,9 @@ function ApplyButton() {
       disabled={pending}
       className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
       style={{
-        background: pending ? 'rgba(15, 76, 92, 0.5)' : 'linear-gradient(135deg, #0F4C5C, #1A6B7C)',
+        backgroundColor: pending ? COLORS.primaryLight : COLORS.primary,
         color: '#FFFFFF',
         fontFamily: "'Plus Jakarta Sans', sans-serif",
-      }}
-      onMouseEnter={(e) => {
-        if (!pending) {
-          e.currentTarget.style.background = 'linear-gradient(135deg, #1A6B7C, #0F4C5C)'
-          e.currentTarget.style.transform = 'translateY(-1px)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!pending) {
-          e.currentTarget.style.background = 'linear-gradient(135deg, #0F4C5C, #1A6B7C)'
-          e.currentTarget.style.transform = 'translateY(0)'
-        }
       }}
     >
       {pending ? (
