@@ -48,10 +48,6 @@ export function ClientAccountsClient({
 
   return (
     <div className="space-y-6">
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
-      `}</style>
-
       {/* Header */}
       <div
         className="relative overflow-hidden rounded-2xl p-6 md:p-8"

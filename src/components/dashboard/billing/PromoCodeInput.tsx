@@ -5,10 +5,12 @@ import { useFormStatus } from 'react-dom'
 import { applyCode, type ApplyCodeState } from '@/actions/promoCodes/applyCode'
 import { validateCode, type ValidateCodeResult } from '@/actions/promoCodes/validateCode'
 import { TicketIcon, CheckCircle2, XCircle, Loader2, Gift, ArrowRight, Sparkles } from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 const initialState: ApplyCodeState = {}
 
 export function PromoCodeInput() {
+  const COLORS = useThemeColors()
   const [state, formAction] = useActionState(applyCode, initialState)
   const [code, setCode] = useState('')
   const [validating, setValidating] = useState(false)
@@ -300,6 +302,7 @@ export function PromoCodeInput() {
 }
 
 function ApplyButton() {
+  const COLORS = useThemeColors()
   const { pending } = useFormStatus()
   return (
     <button

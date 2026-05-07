@@ -89,7 +89,7 @@ function PeriodCard({ period, colors, onExpand, expanded }: PeriodCardProps) {
             <div>
               <h3
                 className="text-lg font-semibold"
-                style={{ color: colors.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
+                style={{ color: colors.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
               >
                 {label}
               </h3>
@@ -162,6 +162,9 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
         className="relative overflow-hidden rounded-2xl p-6 md:p-8"
         style={{ background: COLORS.primaryGradient }}
       >
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+        <div className="relative flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
               <Wallet className="w-6 h-6 text-white" />
@@ -172,7 +175,7 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
               </p>
               <h1
                 className="text-3xl font-bold text-white"
-                style={{ fontFamily: 'Cormorant Garamond, serif' }}
+                style={{ fontFamily: 'var(--font-cormorant-garamond)' }}
               >
                 Payroll
               </h1>
@@ -265,7 +268,7 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
         <div>
           <h2
             className="text-xl font-semibold mb-4"
-            style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
+            style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
           >
             Período Actual
           </h2>
@@ -285,7 +288,7 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
         <div>
           <h2
             className="text-xl font-semibold mb-4"
-            style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
+            style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
           >
             Períodos Pendientes
           </h2>
@@ -321,7 +324,7 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
           </div>
           <h3
             className="text-xl font-semibold mb-2"
-            style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
+            style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
           >
             Sin períodos de nómina
           </h3>
@@ -344,7 +347,7 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
         <div>
           <h2
             className="text-xl font-semibold mb-4"
-            style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
+            style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
           >
             Períodos Anteriores
           </h2>

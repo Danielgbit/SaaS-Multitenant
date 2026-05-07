@@ -23,8 +23,6 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase()
 }
 
-import { useThemeColors } from '@/hooks/useThemeColors'
-
 function useColors() {
   return useThemeColors()
 }

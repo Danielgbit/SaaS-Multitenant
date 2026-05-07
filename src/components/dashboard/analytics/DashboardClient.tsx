@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { Calendar, DollarSign, Users, TrendingUp, XCircle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
 function useColors() {
