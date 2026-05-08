@@ -29,6 +29,8 @@ import {
 } from 'lucide-react'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { toast } from 'sonner'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 function useColors() {
   return useThemeColors()
@@ -142,6 +144,7 @@ export function PeriodDetailView({
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [editingValues, setEditingValues] = useState<EditingValues>({})
   const [showPreviewModal, setShowPreviewModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -230,9 +233,6 @@ export function PeriodDetailView({
   }
 
   const handleDelete = async () => {
-    if (!confirm('¿Estás seguro de eliminar este período? Esta acción no se puede deshacer.')) {
-      return
-    }
     setLoading(true)
     setError(null)
     try {
@@ -242,14 +242,21 @@ export function PeriodDetailView({
         action: 'delete',
       })
       if (result.success) {
+        toast.success('Período eliminado correctamente')
+        setShowDeleteModal(false)
         window.location.href = '/payroll'
       } else {
-        setError(result.error || 'Error al eliminar')
+        const msg = result.error || 'Error al eliminar'
+        setError(msg)
+        toast.error(msg)
       }
     } catch (e) {
-      setError('Error inesperado')
+      const msg = 'Error inesperado'
+      setError(msg)
+      toast.error(msg)
     }
     setLoading(false)
+    setShowDeleteModal(false)
   }
 
   const startEditing = (item: PayrollItemWithEmployee) => {
@@ -414,10 +421,12 @@ export function PeriodDetailView({
                   Aprobar
                 </button>
                 <button
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteModal(true)}
                   disabled={loading}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-all duration-200 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                   style={{ backgroundColor: 'rgba(220,38,38,0.6)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#DC2626'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(220,38,38,0.6)'}
                 >
                   <Trash2 className="w-4 h-4" />
                   Eliminar
@@ -779,6 +788,17 @@ export function PeriodDetailView({
           </div>
         )}
       </div>
+
+      {/* Delete Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Eliminar período de nómina"
+        description={`¿Estás seguro de eliminar "${label}"? Se eliminarán todos los datos de nómina asociados. Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        variant="danger"
+      />
 
       {/* Payment Modal */}
       {showPaymentModal && (
