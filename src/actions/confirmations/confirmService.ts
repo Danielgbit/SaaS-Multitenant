@@ -171,5 +171,12 @@ export async function confirmService(
     console.warn('[confirmService] revalidatePath /calendar error:', e)
   }
 
+  // Auto-agregar a nómina (fire-and-forget)
+  import('@/actions/payroll/addAppointmentToPayroll').then((m) =>
+    m.addAppointmentToPayroll(appointmentId).catch((e) => {
+      console.error('[confirmService] payroll auto-add error:', e)
+    })
+  )
+
   return { success: true, appointmentId }
 }

@@ -18,6 +18,9 @@ export { calculateCommission } from './calculateCommission'
 export { createEmployeeLoan, getEmployeeLoans, updateEmployeeLoan } from './createEmployeeLoan'
 export { getPendingLoans, getEmployeeDebtInfo } from './getPendingLoans'
 
+// Auto-add to payroll from confirmation
+export { addAppointmentToPayroll } from './addAppointmentToPayroll'
+
 // Legacy receipts (for backwards compatibility)
 export { generatePayrollReceipt, getPayrollReceipts } from './generatePayrollReceipt'
 

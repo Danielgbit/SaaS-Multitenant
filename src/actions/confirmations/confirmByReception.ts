@@ -124,6 +124,15 @@ export async function confirmByReception(
 
   console.log('[confirmByReception] Confirmation updated:', confirmation_id, 'to', newStatus)
 
+  // Auto-agregar a nómina cuando se completa el pago
+  if (action === 'complete' && confirmation.appointment_id) {
+    import('@/actions/payroll/addAppointmentToPayroll').then((m) =>
+      m.addAppointmentToPayroll(confirmation.appointment_id!).catch((e) => {
+        console.error('[confirmByReception] payroll auto-add error:', e)
+      })
+    )
+  }
+
   // Revalidar paths
   revalidatePath('/dashboard/confirmations/reception')
   revalidatePath('/dashboard/confirmations/employee')

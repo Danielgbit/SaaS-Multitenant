@@ -53,13 +53,35 @@ export async function createPayrollPeriod(input: {
   // Check if period already exists
   const { data: existing } = await (supabase as any)
     .from('payroll_periods')
-    .select('id')
+    .select('id, status')
     .eq('organization_id', input.organization_id)
     .eq('period', input.period)
     .single()
 
+  let periodRecord: any = null
+
   if (existing) {
-    return { success: false, error: `Ya existe un período ${input.period} para esta organización` }
+    if (existing.status !== 'draft') {
+      return { success: false, error: `El período ${input.period} ya está ${existing.status}. Solo se pueden regenerar borradores.` }
+    }
+    // Limpiar datos anteriores y regenerar desde cero
+    const { data: existingItems } = await (supabase as any)
+      .from('payroll_items')
+      .select('id')
+      .eq('payroll_period_id', existing.id)
+
+    if (existingItems && existingItems.length > 0) {
+      const itemIds = existingItems.map((i: any) => i.id)
+      await (supabase as any)
+        .from('period_commissions')
+        .delete()
+        .in('payroll_item_id', itemIds)
+      await (supabase as any)
+        .from('payroll_items')
+        .delete()
+        .eq('payroll_period_id', existing.id)
+    }
+    periodRecord = existing
   }
 
   // Get active employees (filter by selected if provided)
@@ -96,20 +118,23 @@ export async function createPayrollPeriod(input: {
     return { success: false, error: `No hay configuración de nómina para ${year}` }
   }
 
-  // Create payroll period
-  const { data: periodRecord, error: periodError } = await (supabase as any)
-    .from('payroll_periods')
-    .insert({
-      organization_id: input.organization_id,
-      period: input.period,
-      status: 'draft',
-      notes: input.notes || null,
-    })
-    .select()
-    .single()
+  // Create payroll period if doesn't exist yet
+  if (!periodRecord) {
+    const { data: newPeriod, error: periodError } = await (supabase as any)
+      .from('payroll_periods')
+      .insert({
+        organization_id: input.organization_id,
+        period: input.period,
+        status: 'draft',
+        notes: input.notes || null,
+      })
+      .select()
+      .single()
 
-  if (periodError) {
-    return { success: false, error: periodError.message }
+    if (periodError) {
+      return { success: false, error: periodError.message }
+    }
+    periodRecord = newPeriod
   }
 
   // Process each employee
