@@ -2,11 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useTheme } from 'next-themes'
 import {
   ChevronRight,
   Plus,
-  Loader2,
   ChevronDown,
   Calendar,
   Users,
@@ -14,11 +12,11 @@ import {
   TrendingUp,
   CheckCircle,
   Clock,
-  AlertCircle,
-  DollarSign
+  DollarSign,
 } from 'lucide-react'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { PayrollPeriodWithEmployees, PeriodEmployeeSummary } from '@/types/payroll'
 
 function useColors() {
   return useThemeColors()
@@ -26,10 +24,10 @@ function useColors() {
 
 const MONTHS_ES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ]
 
-function parsePeriod(period: string): { month: number; year: number; label: string } {
+function parsePeriod(period: string) {
   const [year, month] = period.split('-').map(Number)
   return {
     month,
@@ -41,10 +39,34 @@ function parsePeriod(period: string): { month: number; year: number; label: stri
 function StatusBadge({ status }: { status: string }) {
   const COLORS = useColors()
   const config = {
-    draft: { bg: COLORS.warning + '20', color: COLORS.warning, icon: Clock, label: 'Borrador' },
-    approved: { bg: COLORS.primary + '20', color: COLORS.primary, icon: CheckCircle, label: 'Aprobado' },
-    paid: { bg: COLORS.success + '20', color: COLORS.success, icon: CheckCircle, label: 'Pagado' },
-  }[status] || { bg: COLORS.textMuted + '20', color: COLORS.textMuted, icon: Clock, label: status }
+    draft: {
+      bg: COLORS.warning + '20',
+      color: COLORS.warning,
+      icon: Clock,
+      label: 'Borrador',
+      pulse: false,
+    },
+    approved: {
+      bg: COLORS.primary + '20',
+      color: COLORS.primary,
+      icon: CheckCircle,
+      label: 'Aprobado',
+      pulse: false,
+    },
+    paid: {
+      bg: COLORS.success + '20',
+      color: COLORS.success,
+      icon: CheckCircle,
+      label: 'Pagado',
+      pulse: false,
+    },
+  }[status] || {
+    bg: COLORS.textMuted + '20',
+    color: COLORS.textMuted,
+    icon: Clock,
+    label: status,
+    pulse: false,
+  }
 
   const Icon = config.icon
 
@@ -59,25 +81,109 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
+function EmployeeRow({
+  employee,
+  colors,
+  compact,
+}: {
+  employee: PeriodEmployeeSummary
+  colors: ReturnType<typeof useColors>
+  compact: boolean
+}) {
+  const initial = employee.name.charAt(0).toUpperCase()
+
+  const contractLabel = employee.contract_type === 'laboral' ? 'Laboral' : 'Prestación'
+  const contractColor = employee.contract_type === 'laboral' ? colors.primary : colors.success
+
+  let payLabel = ''
+  let payColor = colors.textMuted
+  if (employee.payment_type === 'porcentaje') {
+    payLabel = `${employee.commission_rate}%`
+    payColor = colors.warning
+  } else if (employee.payment_type === 'fijo') {
+    payLabel = 'Fijo'
+    payColor = colors.primary
+  } else if (employee.payment_type === 'mixed') {
+    payLabel = `Mixto · ${employee.commission_rate}%`
+    payColor = colors.primary
+  }
+
+  return (
+    <Link
+      href={`/payroll/${employee.id}`}
+      className="flex items-center justify-between p-2.5 rounded-xl transition-all duration-200 cursor-pointer"
+      style={{ backgroundColor: colors.surfaceSubtle }}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.border)}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.surfaceSubtle)}
+    >
+      <div className="flex items-center gap-2.5 min-w-0 min-h-[44px]">
+        <div
+          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
+          style={{ backgroundColor: colors.primary }}
+        >
+          {initial}
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0">
+          <span className="text-sm font-medium truncate" style={{ color: colors.textPrimary }}>
+            {employee.name}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span
+              className="text-xs px-1.5 py-0.5 rounded-md font-medium"
+              style={{ backgroundColor: contractColor + '20', color: contractColor }}
+            >
+              {contractLabel}
+            </span>
+            {payLabel && (
+              <span
+                className="text-xs px-1.5 py-0.5 rounded-md font-medium"
+                style={{ backgroundColor: payColor + '20', color: payColor }}
+              >
+                {payLabel}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="text-right shrink-0 ml-3">
+        <p className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
+          {formatCurrencyCOP(employee.net_pay)}
+        </p>
+        {!compact && (
+          <p className="text-xs" style={{ color: colors.textMuted }}>
+            {employee.services_count} servicios
+          </p>
+        )}
+      </div>
+    </Link>
+  )
+}
+
 interface PeriodCardProps {
-  period: PayrollPeriod
+  period: PayrollPeriodWithEmployees
   colors: ReturnType<typeof useColors>
   onExpand?: () => void
   expanded?: boolean
+  variant?: 'current' | 'pending' | 'previous'
 }
 
-function PeriodCard({ period, colors, onExpand, expanded }: PeriodCardProps) {
-  const { month, year, label } = parsePeriod(period.period)
+function PeriodCard({ period, colors, onExpand, expanded, variant = 'pending' }: PeriodCardProps) {
+  const { label } = parsePeriod(period.period)
+  const isPaid = period.status === 'paid'
+  const hasEmployees = period.employees && period.employees.length > 0
 
   return (
     <div
       className="rounded-2xl border overflow-hidden transition-all duration-200 hover:shadow-lg"
       style={{
         backgroundColor: colors.surfaceGlass,
-        borderColor: colors.border,
+        borderColor: variant === 'current' ? colors.primary : colors.border,
+        borderWidth: variant === 'current' ? 2 : 1,
+        opacity: isPaid ? 0.75 : 1,
       }}
     >
       <div className="p-5">
+        {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <div
@@ -101,27 +207,35 @@ function PeriodCard({ period, colors, onExpand, expanded }: PeriodCardProps) {
           <StatusBadge status={period.status} />
         </div>
 
+        {/* Metrics */}
         <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="text-center p-3 rounded-xl" style={{ backgroundColor: colors.surfaceSubtle }}>
-            <p className="text-xs mb-1" style={{ color: colors.textMuted }}>Total Bruto</p>
+            <p className="text-xs mb-1" style={{ color: colors.textMuted }}>
+              Total Bruto
+            </p>
             <p className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
               {formatCurrencyCOP(period.total_gross_pay || 0)}
             </p>
           </div>
           <div className="text-center p-3 rounded-xl" style={{ backgroundColor: colors.surfaceSubtle }}>
-            <p className="text-xs mb-1" style={{ color: colors.textMuted }}>Deducciones</p>
+            <p className="text-xs mb-1" style={{ color: colors.textMuted }}>
+              Deducciones
+            </p>
             <p className="text-sm font-semibold" style={{ color: colors.warning }}>
               -{formatCurrencyCOP(period.total_deductions || 0)}
             </p>
           </div>
           <div className="text-center p-3 rounded-xl" style={{ backgroundColor: colors.surfaceSubtle }}>
-            <p className="text-xs mb-1" style={{ color: colors.textMuted }}>Neto a Pagar</p>
+            <p className="text-xs mb-1" style={{ color: colors.textMuted }}>
+              Neto a Pagar
+            </p>
             <p className="text-sm font-bold" style={{ color: colors.success }}>
               {formatCurrencyCOP(period.total_net_pay || 0)}
             </p>
           </div>
         </div>
 
+        {/* Actions */}
         <div className="flex items-center justify-between">
           <Link
             href={`/payroll/period/${period.id}`}
@@ -131,17 +245,41 @@ function PeriodCard({ period, colors, onExpand, expanded }: PeriodCardProps) {
             Ver detalle
             <ChevronRight className="w-4 h-4" />
           </Link>
-          {onExpand && (
+          {onExpand && !isPaid && hasEmployees && (
             <button
               onClick={onExpand}
-              className="flex items-center gap-1 text-sm"
+              className="flex items-center gap-1 text-sm transition-colors hover:opacity-80 cursor-pointer"
               style={{ color: colors.textMuted }}
             >
               {expanded ? 'Ocultar' : 'Ver'} empleados
-              <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
             </button>
           )}
         </div>
+
+        {/* Expanded employee list */}
+        {expanded && hasEmployees && (
+          <div className="mt-4 pt-4 border-t" style={{ borderColor: colors.border }}>
+            <div className="space-y-2">
+              {period.employees.map((emp) => (
+                <EmployeeRow
+                  key={emp.id}
+                  employee={emp}
+                  colors={colors}
+                  compact={variant === 'previous'}
+                />
+              ))}
+            </div>
+            <Link
+              href={`/payroll/period/${period.id}`}
+              className="flex items-center justify-center gap-1.5 mt-3 text-sm font-medium transition-colors hover:opacity-80"
+              style={{ color: colors.primary }}
+            >
+              Ver detalle completo
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -154,6 +292,10 @@ interface PayrollDashboardProps {
 export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
   const COLORS = useColors()
   const [expandedPeriod, setExpandedPeriod] = useState<string | null>(null)
+
+  const toggleExpand = (id: string) => {
+    setExpandedPeriod(expandedPeriod === id ? null : id)
+  }
 
   return (
     <div className="space-y-8">
@@ -183,102 +325,74 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
           </div>
           <Link
             href="/payroll/new"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold backdrop-blur-sm transition-all duration-200 hover:bg-white/10 text-white"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold backdrop-blur-sm transition-all duration-200 hover:bg-white/10 text-white"
             style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
           >
             <Plus className="w-4 h-4" />
             Crear Período
           </Link>
-          </div>
         </div>
+      </div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div
-          className="p-5 rounded-2xl border"
-          style={{ backgroundColor: COLORS.surfaceGlass, borderColor: COLORS.border }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.primary + '15' }}>
-              <Wallet className="w-4 h-4" style={{ color: COLORS.primary }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Pendiente
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.warning }}>
-            {formatCurrencyCOP(dashboardData.total_pending_net)}
-          </p>
-        </div>
-
-        <div
-          className="p-5 rounded-2xl border"
-          style={{ backgroundColor: COLORS.surfaceGlass, borderColor: COLORS.border }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.success + '15' }}>
-              <CheckCircle className="w-4 h-4" style={{ color: COLORS.success }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Listos para Pagar
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.success }}>
-            {dashboardData.employees_ready_to_pay}
-          </p>
-        </div>
-
-        <div
-          className="p-5 rounded-2xl border"
-          style={{ backgroundColor: COLORS.surfaceGlass, borderColor: COLORS.border }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.primary + '15' }}>
-              <Users className="w-4 h-4" style={{ color: COLORS.primary }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Empleados Pendientes
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
-            {dashboardData.total_pending_employees}
-          </p>
-        </div>
-
-        <div
-          className="p-5 rounded-2xl border"
-          style={{ backgroundColor: COLORS.surfaceGlass, borderColor: COLORS.border }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.success + '15' }}>
-              <TrendingUp className="w-4 h-4" style={{ color: COLORS.success }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Períodos Activos
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
-            {dashboardData.pending_periods?.length || 0}
-          </p>
-        </div>
+        <StatCard
+          label="Pendiente por pagar"
+          value={formatCurrencyCOP(dashboardData.total_pending_net)}
+          icon={DollarSign}
+          color={COLORS.warning}
+          bgColor={COLORS.warning + '15'}
+          colors={COLORS}
+        />
+        <StatCard
+          label="Listos para pagar"
+          value={`${dashboardData.employees_ready_to_pay} empleados`}
+          icon={CheckCircle}
+          color={COLORS.success}
+          bgColor={COLORS.success + '15'}
+          colors={COLORS}
+        />
+        <StatCard
+          label="Empleados en nómina"
+          value={`${dashboardData.total_pending_employees} pendientes`}
+          icon={Users}
+          color={COLORS.primary}
+          bgColor={COLORS.primary + '15'}
+          colors={COLORS}
+        />
+        <StatCard
+          label="Períodos activos"
+          value={`${dashboardData.pending_periods?.length || 0} abiertos`}
+          icon={TrendingUp}
+          color={COLORS.success}
+          bgColor={COLORS.success + '15'}
+          colors={COLORS}
+        />
       </div>
 
       {/* Current Period */}
       {dashboardData.current_period && (
         <div>
-          <h2
-            className="text-xl font-semibold mb-4"
-            style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
-          >
-            Período Actual
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2
+              className="text-xl font-semibold"
+              style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
+            >
+              Período Actual
+            </h2>
+            <span
+              className="text-xs px-2.5 py-1 rounded-full font-medium"
+              style={{ backgroundColor: COLORS.primary + '15', color: COLORS.primary }}
+            >
+              Activo
+            </span>
+          </div>
           <PeriodCard
             period={dashboardData.current_period}
             colors={COLORS}
-            expanded={expandedPeriod === dashboardData.current_period?.id}
-            onExpand={() => setExpandedPeriod(
-              expandedPeriod === dashboardData.current_period?.id ? null : dashboardData.current_period?.id ?? null
-            )}
+            variant="current"
+            expanded={expandedPeriod === dashboardData.current_period.id}
+            onExpand={() => toggleExpand(dashboardData.current_period!.id)}
           />
         </div>
       )}
@@ -298,8 +412,9 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
                 key={period.id}
                 period={period}
                 colors={COLORS}
+                variant="pending"
                 expanded={expandedPeriod === period.id}
-                onExpand={() => setExpandedPeriod(expandedPeriod === period.id ? null : period.id)}
+                onExpand={() => toggleExpand(period.id)}
               />
             ))}
           </div>
@@ -309,11 +424,10 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
       {/* No Periods State */}
       {!dashboardData.current_period && dashboardData.pending_periods?.length === 0 && (
         <div
-          className="text-center py-16 px-6 rounded-2xl border"
+          className="text-center py-16 px-6 rounded-2xl border border-dashed"
           style={{
             backgroundColor: COLORS.surfaceGlass,
             borderColor: COLORS.border,
-            borderStyle: 'dashed',
           }}
         >
           <div
@@ -353,11 +467,51 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {dashboardData.previous_periods.map((period) => (
-              <PeriodCard key={period.id} period={period} colors={COLORS} />
+              <PeriodCard
+                key={period.id}
+                period={period}
+                colors={COLORS}
+                variant="previous"
+              />
             ))}
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+  bgColor,
+  colors,
+}: {
+  label: string
+  value: string
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+  color: string
+  bgColor: string
+  colors: ReturnType<typeof useColors>
+}) {
+  return (
+    <div
+      className="p-5 rounded-2xl border"
+      style={{ backgroundColor: colors.surfaceGlass, borderColor: colors.border }}
+    >
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-lg" style={{ backgroundColor: bgColor }}>
+          <Icon className="w-4 h-4" style={{ color }} />
+        </div>
+        <span className="text-xs font-medium" style={{ color: colors.textMuted }}>
+          {label}
+        </span>
+      </div>
+      <p className="text-lg font-bold" style={{ color }}>
+        {value}
+      </p>
     </div>
   )
 }

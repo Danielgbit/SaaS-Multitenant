@@ -112,6 +112,7 @@ export type PayrollItemWithEmployee = PayrollItem & {
   employee: {
     id: string
     name: string
+    percentage?: number
   }
 }
 
@@ -147,10 +148,24 @@ export type PayrollItemLoan = {
 // DASHBOARD SUMMARY
 // =====================================================
 
+export type PeriodEmployeeSummary = {
+  id: string
+  name: string
+  services_count: number
+  net_pay: number
+  contract_type: string
+  payment_type: string
+  commission_rate: number
+}
+
+export type PayrollPeriodWithEmployees = PayrollPeriod & {
+  employees: PeriodEmployeeSummary[]
+}
+
 export type PayrollDashboardSummary = {
-  current_period: PayrollPeriod | null
-  previous_periods: PayrollPeriod[]
-  pending_periods: PayrollPeriod[]
+  current_period: PayrollPeriodWithEmployees | null
+  previous_periods: PayrollPeriodWithEmployees[]
+  pending_periods: PayrollPeriodWithEmployees[]
   total_pending_net: number
   total_pending_employees: number
   employees_ready_to_pay: number

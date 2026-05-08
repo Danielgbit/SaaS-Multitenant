@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  CheckCircle, XCircle, AlertTriangle, Clock, User,
-  DollarSign, CreditCard, Banknote, Loader2, Package,
-  TrendingUp, Check, X, ArrowRight, Sparkles,
-  Smartphone, Landmark, Calendar, MessageSquare
+  CheckCircle, XCircle, Clock,
+  Loader2,
+  TrendingUp, Check, X, Sparkles,
+  Calendar, MessageSquare, CreditCard, Ban, Receipt
 } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { confirmByReception } from '@/actions/confirmations/confirmByReception'
+import { PaymentModal } from '@/components/dashboard/PaymentModal'
 
 function useColors() {
   return useThemeColors()
@@ -33,128 +35,46 @@ function getAvatarColor(name: string): string {
 
 function getInitials(name: string): string {
   if (!name) return '??'
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
-function getTimeUrgency(completedAt: string | null | undefined): { color: string; bg: string; label: string; animate: boolean } {
-  if (!completedAt) {
-    return { color: '#16A34A', bg: 'rgba(22, 163, 74, 0.15)', label: 'Reciente', animate: false }
-  }
-
-  const now = new Date().getTime()
-  const completed = new Date(completedAt).getTime()
-  const diffMin = Math.floor((now - completed) / 60000)
-
-  if (diffMin < 5) {
-    return { color: '#16A34A', bg: 'rgba(22, 163, 74, 0.15)', label: 'Reciente', animate: false }
-  }
-  if (diffMin < 15) {
-    return { color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.15)', label: `${diffMin} min`, animate: false }
-  }
-  return { color: '#F97316', bg: 'rgba(249, 115, 22, 0.15)', label: `${diffMin} min`, animate: true }
+function getTimeUrgency(completedAt: string | null | undefined) {
+  if (!completedAt) return { color: '#16A34A', bg: 'rgba(22, 163, 74, 0.12)', label: 'Reciente', pulse: false }
+  const diffMin = Math.floor((Date.now() - new Date(completedAt).getTime()) / 60000)
+  if (diffMin < 10) return { color: '#16A34A', bg: 'rgba(22, 163, 74, 0.12)', label: `${diffMin} min`, pulse: false }
+  if (diffMin < 25) return { color: '#D97706', bg: 'rgba(217, 119, 6, 0.12)', label: `${diffMin} min`, pulse: false }
+  return { color: '#DC2626', bg: 'rgba(220, 38, 38, 0.12)', label: `${diffMin} min`, pulse: true }
 }
 
 function formatTime(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit', hour12: true })
+  return new Date(dateString).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
   const today = new Date()
-  const tomorrow = new Date(today)
-  tomorrow.setDate(tomorrow.getDate() + 1)
-
-  if (date.toDateString() === today.toDateString()) {
-    return 'Hoy'
-  }
-  if (date.toDateString() === tomorrow.toDateString()) {
-    return 'Mañana'
-  }
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1)
+  if (date.toDateString() === today.toDateString()) return 'Hoy'
+  if (date.toDateString() === tomorrow.toDateString()) return 'Mañana'
   return date.toLocaleDateString('es-CO', { month: 'short', day: 'numeric' })
 }
 
-const PAYMENT_METHODS = [
-  {
-    id: 'efectivo',
-    label: 'Efectivo',
-    icon: Banknote,
-    acceptedMethods: 'Cualquier monto en dinero físico'
-  },
-  {
-    id: 'transferencia',
-    label: 'Transferencia',
-    icon: Landmark,
-    acceptedMethods: 'Nequi • Daviplata • PSE • Bancolombia • QR'
-  },
-  {
-    id: 'tarjeta',
-    label: 'Tarjeta',
-    icon: CreditCard,
-    acceptedMethods: 'Débito • Crédito'
-  },
-]
-
-function PaymentMethodButton({
-  method,
-  isSelected,
-  onClick,
-  disabled,
-  colors
-}: {
-  method: typeof PAYMENT_METHODS[0]
-  isSelected: boolean
-  onClick: () => void
-  disabled: boolean
-  colors: ReturnType<typeof useColors>
-}) {
-  const Icon = method.icon
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="flex-1 py-4 px-3 rounded-xl text-sm font-semibold flex flex-col items-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-      style={{
-        fontFamily: "'Plus Jakarta Sans', sans-serif",
-        backgroundColor: isSelected ? colors.primary : colors.surfaceHover,
-        color: isSelected ? '#FFFFFF' : colors.textSecondary,
-        border: `2px solid ${isSelected ? colors.primary : 'transparent'}`,
-        boxShadow: isSelected ? `0 0 0 3px ${colors.primary}25` : 'none',
-        minHeight: '80px',
-      }}
-    >
-      <Icon className="w-6 h-6" />
-      <span className="font-semibold">{method.label}</span>
-      <span
-        className="text-[10px] font-normal opacity-80 text-center leading-tight px-1"
-        style={{ maxWidth: '120px' }}
-      >
-        {method.acceptedMethods}
-      </span>
-    </button>
-  )
+interface ReceptionConfirmationsProps {
+  confirmations: any[]
+  organizationId: string
 }
 
 export function ReceptionConfirmations({ confirmations, organizationId }: ReceptionConfirmationsProps) {
   const router = useRouter()
   const [filter, setFilter] = useState<FilterStatus>('pending')
   const [processing, setProcessing] = useState<string | null>(null)
-  const [selectedPayment, setSelectedPayment] = useState<Record<string, string>>({})
   const [showSuccess, setShowSuccess] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [payingConf, setPayingConf] = useState<any | null>(null)
   const COLORS = useColors()
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
 
   const filteredConfirmations = confirmations.filter(c => {
     if (filter === 'pending') return c.status === 'pending_reception'
@@ -170,100 +90,37 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
     .filter(c => c.status === 'completed')
     .reduce((sum, c) => sum + c.total_amount, 0)
 
-  const handleAction = async (confirmationId: string, action: 'complete' | 'no_show' | 'not_performed') => {
+  const handleNoShow = async (confirmationId: string) => {
     setProcessing(confirmationId)
-
-    const result = await confirmByReception({
-      confirmation_id: confirmationId,
-      organization_id: organizationId,
-      action,
-      payment_method: selectedPayment[confirmationId],
-    })
-
+    const result = await confirmByReception({ confirmation_id: confirmationId, organization_id: organizationId, action: 'no_show' })
     setProcessing(null)
-
-    if (result.success) {
-      setShowSuccess(confirmationId)
-      setTimeout(() => {
-        setShowSuccess(null)
-        router.refresh()
-      }, 1200)
-    }
+    if (result.success) { setShowSuccess(confirmationId); setTimeout(() => { setShowSuccess(null); router.refresh() }, 1200) }
   }
 
-  const getStatusConfig = (status: string) => {
-    switch (status) {
-      case 'pending_employee':
-        return {
-          label: 'Esperando empleado',
-          color: COLORS.warning,
-          bg: COLORS.warningLight,
-          glow: COLORS.warning,
-          gradient: COLORS.warningLight,
-          icon: Clock
-        }
-      case 'pending_reception':
-        return {
-          label: 'Por cobrar',
-          color: COLORS.primary,
-          bg: COLORS.primaryLight,
-          glow: COLORS.primaryGlow,
-          gradient: COLORS.primaryLight,
-          icon: AlertTriangle
-        }
-      case 'completed':
-        return {
-          label: 'Completado',
-          color: COLORS.success,
-          bg: COLORS.successLight,
-          glow: COLORS.successGlow,
-          gradient: COLORS.successLight,
-          icon: CheckCircle
-        }
-      case 'no_show':
-        return {
-          label: 'No asistió',
-          color: COLORS.danger,
-          bg: COLORS.dangerLight,
-          glow: COLORS.dangerGlow,
-          gradient: COLORS.dangerLight,
-          icon: XCircle
-        }
-      case 'not_performed':
-        return {
-          label: 'No realizado',
-          color: COLORS.textMuted,
-          bg: COLORS.surfaceHover,
-          glow: 'transparent',
-          gradient: COLORS.surfaceHover,
-          icon: X
-        }
-      default:
-        return {
-          label: status,
-          color: COLORS.textMuted,
-          bg: COLORS.surfaceHover,
-          glow: 'transparent',
-          gradient: COLORS.surfaceHover,
-          icon: Package
-        }
-    }
+  const handleNotPerformed = async (confirmationId: string) => {
+    setProcessing(confirmationId)
+    const result = await confirmByReception({ confirmation_id: confirmationId, organization_id: organizationId, action: 'not_performed' })
+    setProcessing(null)
+    if (result.success) { setShowSuccess(confirmationId); setTimeout(() => { setShowSuccess(null); router.refresh() }, 1200) }
   }
 
-  const getBorderColor = (status: string) => {
-    switch (status) {
-      case 'pending_reception':
-        return COLORS.primary
-      case 'completed':
-        return COLORS.success
-      case 'no_show':
-        return COLORS.danger
-      case 'pending_employee':
-        return COLORS.warning
-      default:
-        return COLORS.border
-    }
+  const openPayment = (conf: any) => {
+    setPayingConf(conf)
+    setShowPaymentModal(true)
   }
+
+  const handlePaymentConfirm = async (paymentMethod: string, notes?: string) => {
+    if (!payingConf) return { success: false, error: 'Error interno' }
+    return await confirmByReception({
+      confirmation_id: payingConf.id,
+      organization_id: organizationId,
+      action: 'complete',
+      payment_method: paymentMethod,
+      notes,
+    })
+  }
+
+  const isDark = COLORS.isDark
 
   if (!mounted) return null
 
@@ -274,7 +131,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
   ]
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: COLORS.bg }}>
+    <div className="min-h-screen" style={{ backgroundColor: COLORS.isDark ? '#0F172A' : '#FAFAF9' }}>
       {/* Header */}
       <div className="px-8 pt-8 pb-6">
         <div className="max-w-6xl mx-auto">
@@ -288,12 +145,9 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
             </span>
           </div>
 
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+          <div className="flex items-end justify-between gap-6">
             <div>
-              <h1
-                className="text-4xl font-bold tracking-tight"
-                style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}
-              >
+              <h1 className="text-4xl font-bold tracking-tight" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
                 Pagos por Cobrar
               </h1>
               <p className="mt-1 text-sm" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -303,92 +157,74 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                 }
               </p>
             </div>
+          </div>
 
-            {/* Stats Row */}
-            <div className="flex gap-4 overflow-x-auto pb-2 lg:pb-0">
-              <div
-                className="flex-shrink-0 px-5 py-3 rounded-2xl border transition-colors"
-                style={{
-                  backgroundColor: COLORS.surface,
-                  borderColor: COLORS.border,
-                  borderWidth: 1,
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.warningLight }}>
-                    <AlertTriangle className="w-4 h-4" style={{ color: COLORS.warning }} />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
-                      {pendingCount}
-                    </p>
-                    <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                      Pendientes
-                    </p>
-                  </div>
+          {/* Bento Stats Row */}
+          <div className="grid grid-cols-4 gap-4 mt-6">
+            {/* Today Income - Larger */}
+            <div
+              className="col-span-4 sm:col-span-2 rounded-2xl p-5 transition-colors relative overflow-hidden"
+              style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 opacity-5" style={{ background: `radial-gradient(circle, ${COLORS.primary} 0%, transparent 70%)` }} />
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primaryLight }}>
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    Ingreso hoy
+                  </p>
+                  <p className="text-3xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                    {formatCurrencyCOP(todayIncome)}
+                  </p>
                 </div>
               </div>
+            </div>
 
-              <div
-                className="flex-shrink-0 px-5 py-3 rounded-2xl border transition-colors"
-                style={{
-                  backgroundColor: COLORS.surface,
-                  borderColor: COLORS.border,
-                  borderWidth: 1,
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.successLight }}>
-                    <TrendingUp className="w-4 h-4" style={{ color: COLORS.success }} />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
-                      {formatCurrencyCOP(todayIncome)}
-                    </p>
-                    <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                      Hoy
-                    </p>
-                  </div>
+            {/* Pending */}
+            <div className="rounded-2xl p-4 transition-colors" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${COLORS.warning}18` }}>
+                  <Clock className="w-5 h-5" style={{ color: COLORS.warning }} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                    {pendingCount}
+                  </p>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    Pendientes
+                  </p>
                 </div>
               </div>
+            </div>
 
-              <div
-                className="flex-shrink-0 px-5 py-3 rounded-2xl border transition-colors"
-                style={{
-                  backgroundColor: COLORS.surface,
-                  borderColor: COLORS.border,
-                  borderWidth: 1,
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.successLight }}>
-                    <CheckCircle className="w-4 h-4" style={{ color: COLORS.success }} />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
-                      {completedCount}
-                    </p>
-                    <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                      Completados
-                    </p>
-                  </div>
+            {/* Completed */}
+            <div className="rounded-2xl p-4 transition-colors" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${COLORS.success}18` }}>
+                  <CheckCircle className="w-5 h-5" style={{ color: COLORS.success }} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                    {completedCount}
+                  </p>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    Completados
+                  </p>
                 </div>
               </div>
+            </div>
 
-              <div
-                className="flex-shrink-0 px-5 py-3 rounded-2xl border transition-colors"
-                style={{
-                  backgroundColor: COLORS.surface,
-                  borderColor: COLORS.border,
-                  borderWidth: 1,
-                }}
-              >
+            {/* No Shows */}
+            {noShowCount > 0 && (
+              <div className="rounded-2xl p-4 transition-colors" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.dangerLight }}>
-                    <XCircle className="w-4 h-4" style={{ color: COLORS.danger }} />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${COLORS.error}18` }}>
+                    <XCircle className="w-5 h-5" style={{ color: COLORS.error }} />
                   </div>
                   <div>
-                    <p className="text-xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                    <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
                       {noShowCount}
                     </p>
                     <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -397,7 +233,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -405,10 +241,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
       {/* Filter Tabs */}
       <div className="px-8 mb-8">
         <div className="max-w-6xl mx-auto">
-          <div
-            className="inline-flex p-1 rounded-xl"
-            style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}
-          >
+          <div className="inline-flex p-1 rounded-xl" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
             {filterOptions.map((opt) => (
               <button
                 key={opt.value}
@@ -422,13 +255,10 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                 }}
               >
                 {opt.label}
-                <span
-                  className="ml-2 px-2 py-0.5 rounded-full text-xs"
-                  style={{
-                    backgroundColor: filter === opt.value ? 'rgba(255,255,255,0.25)' : COLORS.border,
-                    color: filter === opt.value ? '#FFFFFF' : COLORS.textMuted,
-                  }}
-                >
+                <span className="ml-2 px-2 py-0.5 rounded-full text-xs" style={{
+                  backgroundColor: filter === opt.value ? 'rgba(255,255,255,0.25)' : COLORS.border,
+                  color: filter === opt.value ? '#FFFFFF' : COLORS.textMuted,
+                }}>
                   {opt.count}
                 </span>
               </button>
@@ -441,336 +271,222 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
       <div className="px-8 pb-12">
         <div className="max-w-6xl mx-auto">
           {filteredConfirmations.length === 0 ? (
-            <div
-              className="text-center py-20 rounded-3xl border"
-              style={{
-                backgroundColor: COLORS.surface,
-                borderColor: COLORS.border,
-                borderWidth: 1,
-              }}
-            >
-              <div
-                className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
-                style={{ backgroundColor: COLORS.primaryLight }}
-              >
-                <Package className="w-8 h-8" style={{ color: COLORS.primary }} />
+            <div className="text-center py-24 rounded-3xl border" style={{
+              backgroundColor: COLORS.surface,
+              borderColor: COLORS.border,
+            }}>
+              <div className="w-20 h-20 mx-auto mb-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primaryLight }}>
+                {filter === 'completed' ? (
+                  <CheckCircle className="w-10 h-10 text-white" />
+                ) : (
+                  <Receipt className="w-10 h-10 text-white" />
+                )}
               </div>
-              <h3
-                className="text-xl font-semibold mb-2"
-                style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}
-              >
-                Sin confirmaciones
+              <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                {filter === 'pending' ? 'Sin pagos pendientes' : filter === 'completed' ? 'Sin completados hoy' : 'Sin confirmaciones'}
               </h3>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}>
-                Las confirmaciones aparecerán aquí cuando haya pagos pendientes.
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }} className="max-w-sm mx-auto">
+                {filter === 'pending'
+                  ? 'Los pagos pendientes aparecerán aquí cuando los empleados marquen servicios como completados.'
+                  : filter === 'completed'
+                    ? 'No hay pagos completados hoy. Vuelve más tarde.'
+                    : 'Las confirmaciones aparecerán aquí cuando haya pagos pendientes o completados.'
+                }
               </p>
             </div>
           ) : (
-            <div className="grid gap-5">
+            <div className="grid gap-4">
               {filteredConfirmations.map((conf, index) => {
-                const status = getStatusConfig(conf.status)
-                const StatusIcon = status.icon
                 const isPending = conf.status === 'pending_reception'
+                const isComplete = conf.status === 'completed'
+                const isNoShow = conf.status === 'no_show'
+                const isNotPerformed = conf.status === 'not_performed'
                 const isSuccess = showSuccess === conf.id
-                const isHovered = hoveredCard === conf.id
-                const borderColor = getBorderColor(conf.status)
+
+                const urgency = getTimeUrgency(conf.completed_at)
+                const borderColor = isPending ? COLORS.primary : isComplete ? COLORS.success : isNoShow ? COLORS.error : COLORS.textMuted
 
                 return (
                   <div
                     key={conf.id}
-                    onMouseEnter={() => setHoveredCard(conf.id)}
-                    onMouseLeave={() => setHoveredCard(null)}
-                    className="rounded-2xl overflow-hidden transition-all duration-200"
+                    className="rounded-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
                     style={{
+                      animationDelay: `${index * 60}ms`,
+                      animationFillMode: 'backwards',
                       backgroundColor: COLORS.surface,
-                      borderLeft: `4px solid ${borderColor}`,
+                      borderLeft: `5px solid ${borderColor}`,
                       borderRight: `1px solid ${COLORS.border}`,
                       borderTop: `1px solid ${COLORS.border}`,
                       borderBottom: `1px solid ${COLORS.border}`,
-                      boxShadow: isHovered
-                        ? `0 8px 24px rgba(0, 0, 0, 0.08), 0 0 0 1px ${borderColor}30`
-                        : `0 1px 3px rgba(0, 0, 0, 0.04)`,
-                      opacity: isSuccess ? 0.7 : 1,
+                      opacity: isSuccess ? 0.5 : 1,
+                      transition: 'opacity 0.3s ease, box-shadow 0.2s ease, transform 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSuccess) {
+                        e.currentTarget.style.transform = 'translateY(-2px)'
+                        e.currentTarget.style.boxShadow = `0 8px 24px rgba(0,0,0,0.08), 0 0 0 1px ${borderColor}25`
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)'
+                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'
                     }}
                   >
-                    {/* Card Header with gradient */}
-                    <div
-                      className="px-6 py-5"
-                      style={{
-                        background: `linear-gradient(90deg, ${status.gradient} 0%, ${COLORS.surface} 60%)`,
-                        borderBottom: `1px solid ${COLORS.border}`,
-                      }}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        {/* Left side: Avatar + Info */}
-                        <div className="flex items-start gap-3">
-                          {/* Avatar */}
-                          <div
-                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                            style={{ backgroundColor: getAvatarColor(conf.employee_name || 'U') }}
-                          >
-                            {getInitials(conf.employee_name || 'Usuario')}
-                          </div>
-
-                          {/* Client & Employee Info */}
-                          <div className="min-w-0">
-                            {/* Client Name */}
-                            <h3
-                              className="text-lg font-bold truncate"
-                              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}
-                            >
+                    {/* Card Header */}
+                    <div className="px-6 py-4 flex items-start justify-between gap-4" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ backgroundColor: getAvatarColor(conf.employee_name || 'U') }}>
+                          {getInitials(conf.employee_name || 'Usuario')}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold truncate" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}>
                               {conf.client_name || 'Cliente'}
                             </h3>
-
-                            {/* Employee & Time Info */}
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                              <span className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                                <span style={{ color: COLORS.textMuted }}>Hecho por:</span>{' '}
-                                <span className="font-medium">{conf.employee_name || 'Empleado'}</span>
-                              </span>
-                              {conf.start_time && (
-                                <>
-                                  <span className="text-xs" style={{ color: COLORS.textMuted }}>•</span>
-                                  <span className="text-xs flex items-center gap-1" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                                    <Calendar className="w-3 h-3" />
-                                    {formatTime(conf.start_time)} • {formatDate(conf.start_time)}
-                                  </span>
-                                </>
-                              )}
-                            </div>
-
-                            {/* Notes (if exists) */}
-                            {conf.notes && (
-                              <div
-                                className="flex items-start gap-1.5 mt-2 px-2.5 py-1.5 rounded-lg"
-                                style={{ backgroundColor: COLORS.surfaceHover }}
-                              >
-                                <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: COLORS.textMuted }} />
-                                <p className="text-xs italic" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                                  {conf.notes}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Right side: Amount + Status */}
-                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                          <div className="text-right">
-                            <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
-                              {formatCurrencyCOP(conf.total_amount)}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {isPending && (
-                              <span
-                                className={`text-[10px] font-semibold px-2 py-1 rounded-full ${getTimeUrgency(conf.completed_at).animate ? 'animate-pulse' : ''}`}
-                                style={{
-                                  backgroundColor: getTimeUrgency(conf.completed_at).bg,
-                                  color: getTimeUrgency(conf.completed_at).color,
-                                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                                }}
-                              >
-                                ⏱ {getTimeUrgency(conf.completed_at).label}
-                              </span>
-                            )}
-                            <span
-                              className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                              style={{
-                                backgroundColor: status.bg,
-                                color: status.color,
-                                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                              }}
-                            >
-                              {status.label}
+                            <span className="text-xs px-2 py-0.5 rounded-full" style={{
+                              backgroundColor: conf.confirmation_type === 'walkin' ? `${COLORS.warning}15` : `${COLORS.primary}15`,
+                              color: conf.confirmation_type === 'walkin' ? COLORS.warning : COLORS.primary,
+                              fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            }}>
+                              {conf.confirmation_type === 'walkin' ? 'Walk-in' : 'Programada'}
                             </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                            <span className="text-xs" style={{ color: COLORS.textSecondary }}>
+                              <span style={{ color: COLORS.textMuted }}>por</span>{' '}
+                              <span className="font-medium">{conf.employee_name || 'Empleado'}</span>
+                            </span>
+                            {conf.start_time && (
+                              <>
+                                <span className="text-xs" style={{ color: COLORS.textMuted }}>•</span>
+                                <span className="text-xs flex items-center gap-1" style={{ color: COLORS.textMuted }}>
+                                  <Calendar className="w-3 h-3" />
+                                  {formatTime(conf.start_time)} • {formatDate(conf.start_time)}
+                                </span>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
 
-                      {/* Bottom row: Type badge */}
-                      <div className="flex items-center gap-2 mt-3">
-                        <span
-                          className="text-xs px-2 py-0.5 rounded-full"
-                          style={{
-                            backgroundColor: conf.confirmation_type === 'walkin' ? COLORS.warningLight : COLORS.primaryLight,
-                            color: conf.confirmation_type === 'walkin' ? COLORS.warning : COLORS.primary,
+                      {/* Amount + Status */}
+                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                          {formatCurrencyCOP(conf.total_amount)}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          {isPending && urgency.label !== 'Reciente' && (
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${urgency.pulse ? 'animate-pulse' : ''}`}
+                              style={{ backgroundColor: urgency.bg, color: urgency.color, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              <Clock className="w-3 h-3" />
+                              {urgency.label}
+                            </span>
+                          )}
+                          <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{
+                            backgroundColor: isPending ? `${COLORS.primary}15` : isComplete ? `${COLORS.success}15` : isNoShow ? `${COLORS.error}15` : `${COLORS.textMuted}15`,
+                            color: isPending ? COLORS.primary : isComplete ? COLORS.success : isNoShow ? COLORS.error : COLORS.textMuted,
                             fontFamily: "'Plus Jakarta Sans', sans-serif",
-                          }}
-                        >
-                          {conf.confirmation_type === 'walkin' ? 'Walk-in' : 'Programada'}
-                        </span>
+                          }}>
+                            {isPending ? 'Por cobrar' : isComplete ? 'Pagado' : isNoShow ? 'No asistió' : 'No realizado'}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
                     {/* Card Body */}
-                    <div className="p-6">
+                    <div className="px-6 py-4">
                       {/* Services */}
-                      <div className="mb-6">
-                        <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Servicios
-                        </p>
-                        <div className="space-y-2">
-                          {conf.services.map((service, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between px-4 py-3 rounded-xl"
-                              style={{ backgroundColor: COLORS.surfaceHover }}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.successLight }}>
-                                  <Check className="w-4 h-4" style={{ color: COLORS.success }} />
+                      {conf.services?.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Servicios
+                          </p>
+                          <div className="space-y-1.5">
+                            {conf.services.map((service: any, idx: number) => (
+                              <div key={idx} className="flex items-center justify-between px-3.5 py-2.5 rounded-xl" style={{ backgroundColor: COLORS.isDark ? '#0F172A' : '#F8FAFC' }}>
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: `${COLORS.success}18` }}>
+                                    <Check className="w-3.5 h-3.5" style={{ color: COLORS.success }} />
+                                  </div>
+                                  <span className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
+                                    {service.service_name}
+                                  </span>
                                 </div>
-                                <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary, fontWeight: 500 }}>
-                                  {service.service_name}
+                                <span className="text-sm font-semibold" style={{ color: COLORS.textSecondary }}>
+                                  {formatCurrencyCOP(service.price)}
                                 </span>
                               </div>
-                              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary, fontWeight: 600 }}>
-                                {formatCurrencyCOP(service.price)}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Payment Methods - Only show for pending */}
-                      {isPending && (
-                        <div className="mb-5">
-                          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Método de pago
-                          </p>
-
-                          <div className="grid grid-cols-3 gap-3">
-                            {PAYMENT_METHODS.map((method) => {
-                              const Icon = method.icon
-                              const isSelected = selectedPayment[conf.id] === method.id
-                              return (
-                                <button
-                                  key={method.id}
-                                  type="button"
-                                  onClick={() => setSelectedPayment(prev => ({ ...prev, [conf.id]: method.id }))}
-                                  disabled={processing === conf.id}
-                                  className="flex-1 py-4 px-3 rounded-xl text-sm font-semibold flex flex-col items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-                                  style={{
-                                    fontFamily: "'Plus Jakarta Sans', sans-serif",
-                                    backgroundColor: isSelected ? COLORS.primary : COLORS.surfaceHover,
-                                    color: isSelected ? '#FFFFFF' : COLORS.textSecondary,
-                                    border: `2px solid ${isSelected ? COLORS.primary : 'transparent'}`,
-                                    boxShadow: isSelected ? `0 0 0 3px ${COLORS.primary}25` : 'none',
-                                    minHeight: '88px',
-                                  }}
-                                >
-                                  <Icon className="w-6 h-6" />
-                                  <span className="font-semibold">{method.label}</span>
-                                  <span
-                                    className="text-[10px] font-normal opacity-80 text-center leading-tight px-1"
-                                    style={{ maxWidth: '130px' }}
-                                  >
-                                    {method.acceptedMethods}
-                                  </span>
-                                </button>
-                              )
-                            })}
+                            ))}
                           </div>
                         </div>
                       )}
 
-                      {/* Actions */}
+                      {/* Notes */}
+                      {conf.notes && (
+                        <div className="flex items-start gap-2 px-3.5 py-2 rounded-xl mb-4" style={{ backgroundColor: COLORS.isDark ? '#0F172A' : '#F8FAFC' }}>
+                          <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: COLORS.textMuted }} />
+                          <p className="text-xs italic" style={{ color: COLORS.textSecondary }}>{conf.notes}</p>
+                        </div>
+                      )}
+
+                      {/* Pending Actions */}
                       {isPending && (
-                        <div className="grid grid-cols-3 gap-3 mt-4">
-                          <button
-                            type="button"
-                            onClick={() => handleAction(conf.id, 'no_show')}
-                            disabled={processing === conf.id}
-                            className="py-3.5 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-                            style={{
-                              fontFamily: "'Plus Jakarta Sans', sans-serif",
-                              backgroundColor: COLORS.dangerLight,
-                              color: COLORS.danger,
-                            }}
-                          >
-                            <XCircle className="w-4 h-4" />
+                        <div className="flex gap-2.5">
+                          <button type="button" onClick={() => handleNoShow(conf.id)} disabled={processing === conf.id}
+                            className="flex-1 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                            style={{ backgroundColor: `${COLORS.error}12`, color: COLORS.error }}>
+                            <Ban className="w-4 h-4" />
                             No asistió
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAction(conf.id, 'not_performed')}
-                            disabled={processing === conf.id}
-                            className="py-3.5 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-                            style={{
-                              fontFamily: "'Plus Jakarta Sans', sans-serif",
-                              backgroundColor: COLORS.surfaceHover,
-                              color: COLORS.textSecondary,
-                            }}
-                          >
-                            <AlertTriangle className="w-4 h-4" />
+                          <button type="button" onClick={() => handleNotPerformed(conf.id)} disabled={processing === conf.id}
+                            className="flex-1 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                            style={{ backgroundColor: COLORS.isDark ? '#0F172A' : '#F1F5F9', color: COLORS.textSecondary }}>
+                            <X className="w-4 h-4" />
                             No realizado
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAction(conf.id, 'complete')}
-                            disabled={processing === conf.id || !selectedPayment[conf.id]}
-                            className="py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-                            style={{
-                              fontFamily: "'Plus Jakarta Sans', sans-serif",
-                              backgroundColor: isSuccess ? COLORS.success : COLORS.primary,
-                              color: '#FFFFFF',
-                              boxShadow: isSuccess ? `0 0 20px ${COLORS.success}40` : `0 4px 12px ${COLORS.primary}30`,
-                            }}
-                          >
-                            {processing === conf.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : isSuccess ? (
-                              <>
-                                <Sparkles className="w-4 h-4" />
-                                Listo!
-                              </>
-                            ) : (
-                              <>
-                                Cobrar
-                                <ArrowRight className="w-4 h-4" />
-                              </>
-                            )}
-                          </button>
+                          {isSuccess ? (
+                            <div className="flex-1 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
+                              style={{ backgroundColor: COLORS.success, color: '#FFFFFF' }}>
+                              <Sparkles className="w-4 h-4" />
+                              Listo!
+                            </div>
+                          ) : (
+                            <button type="button" onClick={() => openPayment(conf)} disabled={processing === conf.id || isSuccess}
+                              className="flex-1 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                              style={{
+                                backgroundColor: COLORS.primary,
+                                color: '#FFFFFF',
+                                boxShadow: `0 4px 12px ${COLORS.primary}30`,
+                              }}>
+                              {processing === conf.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <><CreditCard className="w-4 h-4" /> Cobrar</>
+                              )}
+                            </button>
+                          )}
                         </div>
                       )}
 
                       {/* Completed State */}
-                      {conf.status === 'completed' && (
-                        <div
-                          className="flex items-center gap-3 p-4 rounded-xl"
-                          style={{ backgroundColor: COLORS.successLight }}
-                        >
+                      {isComplete && (
+                        <div className="flex items-center gap-3 p-3.5 rounded-xl" style={{ backgroundColor: `${COLORS.success}12` }}>
                           <CheckCircle className="w-5 h-5" style={{ color: COLORS.success }} />
                           <div>
-                            <span className="font-semibold" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.success }}>
-                              Pagado
-                            </span>
-                            <span className="text-sm ml-2" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                              {conf.payment_method} • {formatCurrencyCOP(conf.total_amount)}
+                            <span className="font-semibold text-sm" style={{ color: COLORS.success }}>Pagado</span>
+                            <span className="text-sm ml-2" style={{ color: COLORS.textSecondary }}>
+                              {conf.payment_method ? `${conf.payment_method} • ` : ''}{formatCurrencyCOP(conf.total_amount)}
                             </span>
                           </div>
                         </div>
                       )}
 
-                      {/* No Show / Not Performed State */}
-                      {(conf.status === 'no_show' || conf.status === 'not_performed') && (
-                        <div
-                          className="flex items-center gap-3 p-4 rounded-xl"
-                          style={{
-                            backgroundColor: conf.status === 'no_show' ? COLORS.dangerLight : COLORS.surfaceHover,
-                          }}
-                        >
-                          {conf.status === 'no_show' ? (
-                            <XCircle className="w-5 h-5" style={{ color: COLORS.danger }} />
-                          ) : (
-                            <X className="w-5 h-5" style={{ color: COLORS.textMuted }} />
-                          )}
-                          <span style={{
-                            fontFamily: "'Plus Jakarta Sans', sans-serif",
-                            color: conf.status === 'no_show' ? COLORS.danger : COLORS.textMuted,
-                          }}>
-                            {conf.status === 'no_show' ? 'Cliente no asistió' : 'Servicio no realizado'}
+                      {/* No Show / Not Performed */}
+                      {(isNoShow || isNotPerformed) && (
+                        <div className="flex items-center gap-3 p-3.5 rounded-xl" style={{ backgroundColor: isNoShow ? `${COLORS.error}12` : `${COLORS.textMuted}10` }}>
+                          {isNoShow ? <XCircle className="w-5 h-5" style={{ color: COLORS.error }} /> : <X className="w-5 h-5" style={{ color: COLORS.textMuted }} />}
+                          <span className="text-sm font-medium" style={{ color: isNoShow ? COLORS.error : COLORS.textMuted }}>
+                            {isNoShow ? 'Cliente no asistió' : 'Servicio no realizado'}
                           </span>
                         </div>
                       )}
@@ -782,6 +498,22 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
           )}
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {payingConf && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => { setShowPaymentModal(false); setPayingConf(null); router.refresh() }}
+          onSuccess={() => { setShowPaymentModal(false); setPayingConf(null); router.refresh() }}
+          clientName={payingConf.client_name || 'Cliente'}
+          services={(payingConf.services || []).map((s: any) => ({ name: s.service_name, price: s.price }))}
+          employeeName={payingConf.employee_name || 'Empleado'}
+          totalPrice={payingConf.total_amount}
+          completedAt={payingConf.completed_at}
+          onConfirm={handlePaymentConfirm}
+          appointmentId={payingConf.appointment_id}
+        />
+      )}
     </div>
   )
 }

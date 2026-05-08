@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, Bell, AlertTriangle, CheckCircle2, Loader2, User, Clock, DollarSign, Info } from 'lucide-react'
+import { X, Bell, AlertTriangle, CheckCircle2, Loader2, User, Clock, DollarSign, Info, CreditCard } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { PaymentModal } from './PaymentModal'
 import { AdjustPriceModal } from './AdjustPriceModal'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import type { PendingConfirmationWithDetails } from '@/types/confirmations'
 
 interface ConfirmationsPanelProps {
@@ -31,80 +32,83 @@ function ConfirmationCard({
   confirmation,
   onPay,
   onAdjust,
+  colors,
 }: {
   confirmation: PendingConfirmationWithDetails
   onPay: (c: PendingConfirmationWithDetails) => void
   onAdjust: (c: PendingConfirmationWithDetails) => void
+  colors: ReturnType<typeof useThemeColors>
 }) {
   const isNeedsReview = confirmation.confirmation_status === 'needs_review'
-  const isOld = isNeedsReview || (confirmation.completed_at && 
-    (new Date().getTime() - new Date(confirmation.completed_at).getTime()) > 60 * 60 * 1000)
+  const isUrgent = confirmation.completed_at && 
+    (new Date().getTime() - new Date(confirmation.completed_at).getTime()) > 30 * 60 * 1000
 
   return (
     <div
-      className={`
-        relative p-4 rounded-xl border transition-all duration-200
-        ${isNeedsReview
-          ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/40'
-          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-        }
-        hover:shadow-md
-      `}
+      className="rounded-xl border transition-all duration-200 hover:shadow-md"
+      style={{
+        backgroundColor: isNeedsReview ? '#FEF3C7' : colors.surface,
+        borderColor: isNeedsReview ? '#D97706' : colors.border,
+        borderLeft: isNeedsReview ? '3px solid #D97706' : `3px solid ${colors.primary}`,
+      }}
     >
-      {isNeedsReview && (
-        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
-          <AlertTriangle className="w-3.5 h-3.5 text-white" />
-        </div>
-      )}
-
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-semibold text-slate-900 dark:text-slate-100 truncate">
-              {confirmation.clients?.name || 'Cliente'}
-            </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              {formatTimeAgo(confirmation.completed_at || confirmation.start_time || '')}
-            </span>
-          </div>
-
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-            {(confirmation as any).employees?.name || 'Profesional'}
-          </p>
-
-          <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
-              {new Date(confirmation.start_time || '').toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-            <span className="flex items-center gap-1">
-              <DollarSign className="w-3.5 h-3.5" />
-              ${(confirmation.price_adjustment || 0).toLocaleString('es-CO')}
-            </span>
-          </div>
-
-          {confirmation.notes && (
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 italic">
-              Nota: {confirmation.notes}
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-sm truncate" style={{ color: colors.textPrimary }}>
+                {confirmation.clients?.name || 'Cliente'}
+              </span>
+              {isNeedsReview && (
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" style={{ color: '#D97706' }} />
+              )}
+            </div>
+            <p className="text-xs mt-0.5" style={{ color: colors.textSecondary }}>
+              {(confirmation as any).employees?.name || 'Profesional'}
             </p>
+          </div>
+          <span className="text-xs flex-shrink-0" style={{ color: colors.textMuted }}>
+            {formatTimeAgo(confirmation.completed_at || confirmation.start_time || '')}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3 text-xs mb-2" style={{ color: colors.textMuted }}>
+          <span className="flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" />
+            {new Date(confirmation.start_time || '').toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+          <span className="flex items-center gap-1 font-semibold" style={{ color: colors.success }}>
+            <DollarSign className="w-3.5 h-3.5" />
+            ${(confirmation.price_adjustment || 0).toLocaleString('es-CO')}
+          </span>
+          {isUrgent && (
+            <span className="flex items-center gap-1 animate-pulse" style={{ color: '#DC2626' }}>
+              <AlertTriangle className="w-3.5 h-3.5" />
+              Urgente
+            </span>
           )}
         </div>
-      </div>
 
-      <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-        <button
-          onClick={() => onPay(confirmation)}
-          className="flex-1 h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
-        >
-          <DollarSign className="w-4 h-4" />
-          Cobrar
-        </button>
-        <button
-          onClick={() => onAdjust(confirmation)}
-          className="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-        >
-          Ajustar
-        </button>
+        {confirmation.notes && (
+          <p className="text-xs flex items-start gap-1 mt-2 p-2 rounded-lg" style={{ backgroundColor: colors.isDark ? '#0F172A' : '#F8FAFC' }}>
+            <Info className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: colors.textMuted }} />
+            <span style={{ color: colors.textSecondary }}>{confirmation.notes}</span>
+          </p>
+        )}
+
+        <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${colors.border}` }}>
+          <button onClick={() => onPay(confirmation)}
+            className="flex-1 h-9 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            style={{ backgroundColor: colors.primary, color: '#FFFFFF' }}>
+            <CreditCard className="w-4 h-4" />
+            Cobrar
+          </button>
+          <button onClick={() => onAdjust(confirmation)}
+            className="h-9 px-3 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            style={{ border: `1px solid ${colors.border}`, color: colors.textSecondary }}>
+            Ajustar
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -120,6 +124,8 @@ export function ConfirmationsPanel({
   const [selectedConfirmation, setSelectedConfirmation] = useState<PendingConfirmationWithDetails | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showAdjustModal, setShowAdjustModal] = useState(false)
+  const [newItemPulse, setNewItemPulse] = useState(false)
+  const COLORS = useThemeColors()
 
   const fetchPending = useCallback(async () => {
     const supabase = createClient()
@@ -148,53 +154,29 @@ export function ConfirmationsPanel({
       .order('start_time', { ascending: false })
 
     if (!error && data) {
+      const prevCount = confirmations.length
       setConfirmations(data)
+      if (data.length > prevCount && prevCount > 0) {
+        setNewItemPulse(true)
+        setTimeout(() => setNewItemPulse(false), 2000)
+      }
     }
     setLoading(false)
   }, [organizationId])
 
   useEffect(() => {
-    if (isOpen) {
-      fetchPending()
-    }
+    if (isOpen) fetchPending()
   }, [isOpen, fetchPending])
 
   useEffect(() => {
     if (!isOpen) return
-
     const supabase = createClient()
-
     const channel = supabase
       .channel(`confirmations-${organizationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `organization_id=eq.${organizationId}`,
-        },
-        () => {
-          fetchPending()
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'appointments',
-          filter: `organization_id=eq.${organizationId}`,
-        },
-        () => {
-          fetchPending()
-        }
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `organization_id=eq.${organizationId}` }, () => fetchPending())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'appointments', filter: `organization_id=eq.${organizationId}` }, () => fetchPending())
       .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    return () => { supabase.removeChannel(channel) }
   }, [isOpen, organizationId, fetchPending])
 
   const handlePay = useCallback((confirmation: PendingConfirmationWithDetails) => {
@@ -216,32 +198,29 @@ export function ConfirmationsPanel({
 
   return (
     <>
-      <div
-        className="fixed inset-0 z-40 bg-slate-900/20 dark:bg-slate-950/40 backdrop-blur-sm"
-        onClick={handleClose}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0 z-40 bg-slate-900/20 dark:bg-slate-950/40 backdrop-blur-sm"
+        onClick={handleClose} aria-hidden="true" />
 
-      <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-white dark:bg-[#0F172A] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700/60">
+      <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
+        style={{ backgroundColor: COLORS.surface }}>
+
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Bell className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+              <Bell className="w-5 h-5" style={{ color: COLORS.textSecondary }} />
               {confirmations.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                <span className={`absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-white text-[10px] font-bold flex items-center justify-center ${newItemPulse ? 'animate-ping' : ''}`}
+                  style={{ backgroundColor: COLORS.error }}>
                   {confirmations.length > 9 ? '9+' : confirmations.length}
                 </span>
               )}
             </div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            <h2 className="text-lg font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
               Confirmaciones
             </h2>
           </div>
-          <button
-            onClick={handleClose}
-            aria-label="Cerrar panel"
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
+          <button onClick={handleClose} aria-label="Cerrar panel"
+            className="p-2 rounded-xl transition-colors" style={{ color: COLORS.textMuted }}>
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -249,12 +228,14 @@ export function ConfirmationsPanel({
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 text-slate-400 animate-spin" />
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.textMuted }} />
             </div>
           ) : confirmations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <CheckCircle2 className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3" />
-              <p className="text-slate-500 dark:text-slate-400">
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${COLORS.success}15` }}>
+                <CheckCircle2 className="w-8 h-8" style={{ color: COLORS.success }} />
+              </div>
+              <p style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 No hay servicios pendientes
               </p>
             </div>
@@ -265,6 +246,7 @@ export function ConfirmationsPanel({
                 confirmation={confirmation}
                 onPay={handlePay}
                 onAdjust={handleAdjust}
+                colors={COLORS}
               />
             ))
           )}
@@ -276,18 +258,21 @@ export function ConfirmationsPanel({
           <PaymentModal
             appointmentId={selectedConfirmation.id}
             clientName={selectedConfirmation.clients?.name || 'Cliente'}
-            serviceName={selectedConfirmation.notes || 'Servicio'}
+            services={[{ name: selectedConfirmation.notes || 'Servicio', price: selectedConfirmation.price_adjustment || 0 }]}
             employeeName={(selectedConfirmation as any).employees?.name || 'Profesional'}
             totalPrice={selectedConfirmation.price_adjustment || 0}
             completedAt={selectedConfirmation.completed_at}
             isOpen={showPaymentModal}
-            onClose={() => {
-              setShowPaymentModal(false)
-              fetchPending()
-            }}
-            onSuccess={() => {
-              setShowPaymentModal(false)
-              fetchPending()
+            onClose={() => { setShowPaymentModal(false); fetchPending() }}
+            onSuccess={() => { setShowPaymentModal(false); fetchPending() }}
+            onConfirm={async (method, notes) => {
+              const formData = new FormData()
+              formData.set('appointmentId', selectedConfirmation.id)
+              formData.set('paymentMethod', method)
+              if (notes) formData.set('notes', notes)
+              const { confirmService } = await import('@/actions/confirmations/confirmService')
+              const result = await confirmService({ success: false }, formData)
+              return result
             }}
           />
 
@@ -296,10 +281,7 @@ export function ConfirmationsPanel({
             currentPrice={selectedConfirmation.price_adjustment || 0}
             isOpen={showAdjustModal}
             onClose={() => setShowAdjustModal(false)}
-            onSuccess={() => {
-              setShowAdjustModal(false)
-              fetchPending()
-            }}
+            onSuccess={() => { setShowAdjustModal(false); fetchPending() }}
           />
         </>
       )}

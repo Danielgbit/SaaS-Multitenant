@@ -14,6 +14,8 @@ interface ConfirmModalProps {
   cancelText?: string
   variant?: 'danger' | 'warning' | 'info'
   icon?: ReactNode
+  extraContent?: ReactNode
+  confirmDisabled?: boolean
 }
 
 const variantConfig = {
@@ -47,6 +49,8 @@ export default function ConfirmModal({
   cancelText = 'Cancelar',
   variant = 'danger',
   icon,
+  extraContent,
+  confirmDisabled = false,
 }: ConfirmModalProps) {
   const COLORS = useThemeColors()
   const [loading, setLoading] = useState(false)
@@ -133,11 +137,18 @@ export default function ConfirmModal({
 
         {/* Description */}
         <div
-          className="mb-6 text-center text-sm leading-relaxed"
+          className="mb-4 text-center text-sm leading-relaxed"
           style={{ color: COLORS.textSecondary }}
         >
           {description}
         </div>
+
+        {/* Extra content */}
+        {extraContent && (
+          <div className="mb-6">
+            {extraContent}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3">
@@ -161,7 +172,7 @@ export default function ConfirmModal({
           </button>
           <button
             onClick={handleConfirm}
-            disabled={loading}
+            disabled={loading || confirmDisabled}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 disabled:opacity-70 min-h-[44px] cursor-pointer"
             style={{ backgroundColor: COLORS[cfg.buttonBg as keyof typeof COLORS] as string }}
             onMouseEnter={(e) => {

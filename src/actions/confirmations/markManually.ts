@@ -187,12 +187,5 @@ export async function markManually(
     console.warn('[markManually] revalidatePath /calendar error:', e)
   }
 
-  // Auto-agregar a nómina (fire-and-forget)
-  import('@/actions/payroll/addAppointmentToPayroll').then((m) =>
-    m.addAppointmentToPayroll(appointmentId).catch((e) => {
-      console.error('[markManually] payroll auto-add error:', e)
-    })
-  )
-
   return { success: true, logId: log.id }
 }

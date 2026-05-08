@@ -145,6 +145,8 @@ export function PeriodDetailView({
   const [editingValues, setEditingValues] = useState<EditingValues>({})
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showApproveModal, setShowApproveModal] = useState(false)
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -412,7 +414,7 @@ export function PeriodDetailView({
             {period.status === 'draft' && (
               <>
                 <button
-                  onClick={handleApprove}
+                  onClick={() => setShowApproveModal(true)}
                   disabled={loading}
                   className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
                   style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
@@ -421,7 +423,7 @@ export function PeriodDetailView({
                   Aprobar
                 </button>
                 <button
-                  onClick={() => setShowDeleteModal(true)}
+                  onClick={() => { setShowDeleteModal(true); setDeleteConfirmed(false) }}
                   disabled={loading}
                   className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-all duration-200 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                   style={{ backgroundColor: 'rgba(220,38,38,0.6)' }}
@@ -441,6 +443,19 @@ export function PeriodDetailView({
               >
                 <CreditCard className="w-4 h-4" />
                 Marcar Pagado
+              </button>
+            )}
+            {period.status === 'approved' && (
+              <button
+                onClick={() => { setShowDeleteModal(true); setDeleteConfirmed(false) }}
+                disabled={loading}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-all duration-200 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                style={{ backgroundColor: 'rgba(220,38,38,0.4)' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(220,38,38,0.8)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(220,38,38,0.4)'}
+              >
+                <Trash2 className="w-4 h-4" />
+                Eliminar
               </button>
             )}
           </div>
@@ -661,9 +676,25 @@ export function PeriodDetailView({
                           />
                         ) : (
                           <span style={{ color: COLORS.textPrimary }}>
-                            {item.payment_type === 'porcentaje'
-                              ? (item.gross_commission > 0 ? formatCurrencyCOP(item.gross_commission) : '-')
-                              : formatCurrencyCOP(item.base_salary || 0)}
+                            {item.payment_type === 'porcentaje' && item.gross_commission > 0
+                              ? <>
+                                  <span className="text-xs font-medium" style={{ color: COLORS.warning }}>
+                                    {(item.employee as any)?.percentage || 60}%
+                                  </span>
+                                  <span className="mx-1" style={{ color: COLORS.textMuted }}>·</span>
+                                  {formatCurrencyCOP(item.gross_commission)}
+                                </>
+                              : item.payment_type === 'mixed' && item.base_salary > 0
+                                ? <>
+                                    {formatCurrencyCOP(item.base_salary)}
+                                    <span className="mx-1" style={{ color: COLORS.textMuted }}>+</span>
+                                    <span className="text-xs font-medium" style={{ color: COLORS.warning }}>
+                                      {(item.employee as any)?.percentage || 60}%
+                                    </span>
+                                  </>
+                                : item.payment_type === 'porcentaje'
+                                  ? '-'
+                                  : formatCurrencyCOP(item.base_salary || 0)}
                           </span>
                         )}
                       </td>
@@ -794,10 +825,66 @@ export function PeriodDetailView({
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
-        title="Eliminar período de nómina"
-        description={`¿Estás seguro de eliminar "${label}"? Se eliminarán todos los datos de nómina asociados. Esta acción no se puede deshacer.`}
+        title={period.status === 'approved' ? 'Eliminar período aprobado' : 'Eliminar período de nómina'}
+        description={period.status === 'approved'
+          ? `"${label}" ya fue aprobado. Si lo eliminas perderás todos los datos de nómina de este período. Los empleados se verán afectados.`
+          : `¿Estás seguro de eliminar "${label}"? Se eliminarán todos los datos de nómina asociados. Esta acción no se puede deshacer.`}
         confirmText="Eliminar"
-        variant="danger"
+        variant={period.status === 'approved' ? 'warning' : 'danger'}
+        confirmDisabled={period.status === 'approved' && !deleteConfirmed}
+        extraContent={period.status === 'approved' ? (
+          <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-xl transition-colors"
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = (COLORS as any).surfaceSubtle}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <input
+              type="checkbox"
+              checked={deleteConfirmed}
+              onChange={(e) => setDeleteConfirmed(e.target.checked)}
+              className="w-4 h-4 rounded"
+              style={{ accentColor: COLORS.error }}
+            />
+            <span className="text-xs font-medium" style={{ color: COLORS.textSecondary }}>
+              Entiendo que esto eliminará datos ya aprobados y no podré recuperarlos
+            </span>
+          </label>
+        ) : undefined}
+      />
+
+      {/* Approve Modal */}
+      <ConfirmModal
+        isOpen={showApproveModal}
+        onClose={() => setShowApproveModal(false)}
+        onConfirm={handleApprove}
+        title={`Aprobar período ${label}`}
+        description={
+          <div className="space-y-2 text-left">
+            <p>Al aprobar el período se confirmarán los siguientes valores:</p>
+            <div className="rounded-xl p-3 space-y-1.5" style={{ backgroundColor: (COLORS as any).surfaceSubtle }}>
+              <div className="flex justify-between text-sm">
+                <span style={{ color: COLORS.textMuted }}>Empleados</span>
+                <span className="font-medium" style={{ color: COLORS.textPrimary }}>{period.total_employees || 0}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span style={{ color: COLORS.textMuted }}>Total Bruto</span>
+                <span className="font-medium" style={{ color: COLORS.textPrimary }}>{formatCurrencyCOP(period.total_gross_pay || 0)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span style={{ color: COLORS.textMuted }}>Deducciones</span>
+                <span className="font-medium" style={{ color: COLORS.warning }}>-{formatCurrencyCOP(period.total_deductions || 0)}</span>
+              </div>
+              <div className="flex justify-between text-sm pt-1.5 border-t" style={{ borderColor: COLORS.border }}>
+                <span className="font-semibold" style={{ color: COLORS.textPrimary }}>Neto a Pagar</span>
+                <span className="font-semibold" style={{ color: COLORS.success }}>{formatCurrencyCOP(period.total_net_pay || 0)}</span>
+              </div>
+            </div>
+            <p className="text-xs" style={{ color: COLORS.warning }}>
+              Una vez aprobado no podrás editar los valores del período.
+            </p>
+          </div>
+        }
+        confirmText="Aprobar período"
+        variant="info"
       />
 
       {/* Payment Modal */}
@@ -806,6 +893,7 @@ export function PeriodDetailView({
           onClose={() => setShowPaymentModal(false)}
           onConfirm={handleMarkPaid}
           loading={loading}
+          totalNetPay={formatCurrencyCOP(period.total_net_pay || 0)}
         />
       )}
 
@@ -829,10 +917,12 @@ function PaymentModalWrapper({
   onClose,
   onConfirm,
   loading,
+  totalNetPay,
 }: {
   onClose: () => void
   onConfirm: (method: PaymentMethod, reference?: string) => void
   loading: boolean
+  totalNetPay: string
 }) {
   const COLORS = useColors()
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('efectivo')
@@ -853,6 +943,19 @@ function PaymentModalWrapper({
         </h3>
 
         <div className="space-y-4">
+          {/* Total summary */}
+          <div
+            className="flex items-center justify-between p-3 rounded-xl"
+            style={{ backgroundColor: COLORS.surfaceSubtle }}
+          >
+            <span className="text-sm font-medium" style={{ color: COLORS.textSecondary }}>
+              Total a pagar
+            </span>
+            <span className="text-lg font-bold" style={{ color: COLORS.success }}>
+              {totalNetPay}
+            </span>
+          </div>
+
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textSecondary }}>
               Método de pago

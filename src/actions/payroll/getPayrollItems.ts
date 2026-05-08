@@ -21,7 +21,8 @@ export async function getPayrollItems(periodId: string): Promise<{
       *,
       employee:employees (
         id,
-        name
+        name,
+        percentage
       )
     `)
     .eq('payroll_period_id', periodId)

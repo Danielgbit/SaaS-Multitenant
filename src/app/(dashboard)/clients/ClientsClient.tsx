@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Users, Plus, Search, X, UserCircle } from 'lucide-react'
 
 function useColors() {
   return useThemeColors()
@@ -55,16 +56,6 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
 
   return (
     <>
-      <style jsx global>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-in {
-          animation: fadeInUp 0.3s ease-out forwards;
-        }
-      `}</style>
-
       <div className="space-y-6">
         {/* Header with gradient */}
         <div 
@@ -314,7 +305,7 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
             {filtered.map((client, index) => (
               <div 
                 key={client.id}
-                className="animate-in"
+                className="animate-fade-in"
                 style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
               >
                 <ClientCard

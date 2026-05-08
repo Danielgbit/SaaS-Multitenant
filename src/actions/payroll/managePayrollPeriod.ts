@@ -143,8 +143,8 @@ export async function deletePayrollPeriod(periodId: string): Promise<{
     return { success: false, error: 'Período no encontrado' }
   }
 
-  if (period.status !== 'draft') {
-    return { success: false, error: 'Solo se pueden eliminar períodos en estado draft' }
+  if (period.status === 'paid') {
+    return { success: false, error: 'No se pueden eliminar períodos que ya fueron pagados' }
   }
 
   // Check if user is owner/admin

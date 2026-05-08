@@ -1,7 +1,34 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { PayrollDashboardSummary, PayrollPeriod } from '@/types/payroll'
+import type { PayrollDashboardSummary, PeriodEmployeeSummary } from '@/types/payroll'
+
+async function enrichPeriodEmployees(supabase: any, period: any) {
+  if (!period) return period
+  const { data: items } = await (supabase as any)
+    .from('payroll_items')
+    .select(`
+      employee_id,
+      total_services,
+      net_pay,
+      contract_type,
+      payment_type,
+      employee:employees(name, percentage)
+    `)
+    .eq('payroll_period_id', period.id)
+
+  const employees: PeriodEmployeeSummary[] = (items || []).map((item: any) => ({
+    id: item.employee_id,
+    name: item.employee?.name || 'Empleado',
+    services_count: item.total_services || 0,
+    net_pay: item.net_pay || 0,
+    contract_type: item.contract_type || 'prestacion',
+    payment_type: item.payment_type || 'porcentaje',
+    commission_rate: item.employee?.percentage || 60,
+  }))
+
+  return { ...period, employees }
+}
 
 export async function getPayrollDashboard(organizationId: string): Promise<{
   success: boolean
@@ -44,15 +71,19 @@ export async function getPayrollDashboard(organizationId: string): Promise<{
     ?.filter((p: any) => p.status === 'approved')
     .reduce((sum: number, p: any) => sum + (p.total_employees || 0), 0) || 0
 
-  // Previous periods (last 6)
+  // Previous periods (last 6) and enrich all periods with employee data
   const previousPeriods = periods?.filter((p: any) => p.status === 'paid').slice(0, 6) || []
+
+  const enrichedCurrent = currentPeriodRecord ? await enrichPeriodEmployees(supabase, currentPeriodRecord) : null
+  const enrichedPending = await Promise.all(pendingPeriods.map((p: any) => enrichPeriodEmployees(supabase, p)))
+  const enrichedPrevious = await Promise.all(previousPeriods.map((p: any) => enrichPeriodEmployees(supabase, p)))
 
   return {
     success: true,
     data: {
-      current_period: currentPeriodRecord,
-      previous_periods: previousPeriods as PayrollPeriod[],
-      pending_periods: pendingPeriods as PayrollPeriod[],
+      current_period: enrichedCurrent,
+      previous_periods: enrichedPrevious,
+      pending_periods: enrichedPending,
       total_pending_net: totalPendingNet,
       total_pending_employees: totalPendingEmployees,
       employees_ready_to_pay: employeesReadyToPay,
