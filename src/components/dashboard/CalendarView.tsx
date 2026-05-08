@@ -777,6 +777,22 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
               </span>
             </div>
           ))}
+          {/* Purge button */}
+          {mounted && (
+            <button
+              onClick={() => setShowPurgeModal(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 hover:scale-[1.02] hover:brightness-110 cursor-pointer"
+              style={{
+                backgroundColor: COLORS.warning + '14',
+                border: `1px solid ${COLORS.warning}30`,
+                color: COLORS.warning,
+              }}
+              aria-label="Limpiar citas completadas"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Limpiar</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1301,58 +1317,19 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
           </div>
         </div>
       )}
-      {/* FAB - Purge Appointments */}
-      {(() => {
-        const cleanableCount = appointments.filter(
-          apt => ['completed', 'cancelled', 'no_show'].includes(apt.status) && !(apt as any).invoice_id
-        ).length
-
-        if (!mounted || cleanableCount === 0) return null
-
-        return (
-          <>
-            <button
-              onClick={() => setShowPurgeModal(true)}
-              className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 z-50 animate-in slide-in-from-bottom-4"
-              style={{
-                backgroundColor: COLORS.isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(15, 76, 92, 0.08)',
-                border: `2px solid ${COLORS.isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(15, 76, 92, 0.15)'}`,
-                boxShadow: `0 4px 20px ${COLORS.isDark ? 'rgba(0,0,0,0.3)' : 'rgba(15, 76, 92, 0.15)'}`,
-              }}
-              aria-label={`Limpiar ${cleanableCount} citas completadas`}
-            >
-              <span
-                className="absolute -top-1 -right-1 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs font-medium"
-                style={{
-                  backgroundColor: COLORS.error,
-                  color: '#FFFFFF',
-                  padding: '0 6px',
-                }}
-              >
-                {cleanableCount > 9 ? '9+' : cleanableCount}
-              </span>
-              <Trash2
-                className="w-5 h-5"
-                style={{ color: COLORS.isDark ? '#38BDF8' : '#0F4C5C' }}
-              />
-            </button>
-
-            {showPurgeModal && (
-              <PurgeModal
-                organizationId={organizationId}
-                initialTab="selection"
-                onClose={() => setShowPurgeModal(false)}
-                onSuccess={() => {
-                  fetchAppointmentsData()
-                  setTimeout(() => {
-                    setShowPurgeModal(false)
-                  }, 2000)
-                }}
-              />
-            )}
-          </>
-        )
-      })()}
+      {showPurgeModal && (
+        <PurgeModal
+          organizationId={organizationId}
+          initialTab="selection"
+          onClose={() => setShowPurgeModal(false)}
+          onSuccess={() => {
+            fetchAppointmentsData()
+            setTimeout(() => {
+              setShowPurgeModal(false)
+            }, 2000)
+          }}
+        />
+      )}
     </div>
   )
 }

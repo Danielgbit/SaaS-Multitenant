@@ -475,6 +475,20 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
               />
             ))}
           </div>
+          <div className="flex justify-center mt-4">
+            <Link
+              href="/payroll/history"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:opacity-80"
+              style={{
+                backgroundColor: COLORS.surfaceSubtle,
+                color: COLORS.primary,
+                border: `1px solid ${COLORS.border}`,
+              }}
+            >
+              Ver todos los períodos anteriores
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       )}
     </div>

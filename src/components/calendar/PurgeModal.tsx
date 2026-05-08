@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import { Trash2, X, Check, Calendar, Search, Loader2 } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { PurgeCandidate } from '@/lib/cleanup-helpers'
+import { getAppointmentsByFilters } from '@/lib/cleanup-helpers'
+import { purgeAppointments, deleteAppointmentsByIds } from '@/actions/appointments/purgeAppointments'
 
 function useColors() {
   return useThemeColors()
@@ -201,71 +205,79 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: COLORS.overlay }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+      style={{ backgroundColor: COLORS.overlay, backdropFilter: 'blur(4px)' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
     >
       <div
-        className="w-full max-w-2xl rounded-2xl border overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
         style={{
           backgroundColor: COLORS.surface,
-          borderColor: COLORS.border,
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         }}
       >
-        {/* Header */}
+        {/* ── Header with gradient ── */}
         <div
-          className="flex items-center justify-between px-6 py-4 border-b"
-          style={{ borderColor: COLORS.border }}
+          className="px-5 sm:px-6 py-4 sm:py-5 relative overflow-hidden flex-shrink-0"
+          style={{
+            background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
+            color: '#FFF',
+          }}
         >
-          <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: COLORS.warning + '15' }}
-            >
-              <Trash2 className="w-5 h-5" style={{ color: COLORS.warning }} />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/8 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+
+          <div className="relative">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                  <Trash2 className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3
+                    className="text-xl font-semibold"
+                    style={{ fontFamily: 'Cormorant Garamond, serif' }}
+                  >
+                    Limpiar citas
+                  </h3>
+                  <p className="text-xs text-white/70">
+                    Elimina citas completadas, canceladas o no asistidas
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-xl hover:bg-white/20 transition-colors"
+                aria-label="Cerrar modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <h3
-              className="text-xl font-semibold"
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                color: COLORS.textPrimary
-              }}
-            >
-              Limpiar citas
-            </h3>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg transition-colors cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
-            style={{ color: COLORS.textMuted }}
-            aria-label="Cerrar modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex px-6 pt-4 gap-2">
+        {/* ── Tabs ── */}
+        <div className="flex px-5 sm:px-6 pt-4 sm:pt-5 gap-2 border-b" style={{ borderColor: COLORS.border }}>
           <button
             onClick={() => setActiveTab('selection')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 cursor-pointer"
+            className="relative flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-200"
             style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              backgroundColor: activeTab === 'selection' ? COLORS.primary : COLORS.surfaceSubtle,
-              color: activeTab === 'selection' ? '#FFFFFF' : COLORS.textSecondary,
+              fontFamily: 'Plus Jakarta Sans, sans-serif',
+              color: activeTab === 'selection' ? COLORS.primary : COLORS.textMuted,
+              borderBottom: activeTab === 'selection' ? `2px solid ${COLORS.primary}` : '2px solid transparent',
+              marginBottom: '-1px',
             }}
           >
             <Check className="w-4 h-4" />
             Por selección
             {appointmentsList.length > 0 && (
               <span
-                className="ml-1 px-2 py-0.5 rounded-full text-xs"
+                className="px-2 py-0.5 rounded-full text-[11px] font-medium"
                 style={{
-                  backgroundColor: activeTab === 'selection' ? 'rgba(255,255,255,0.2)' : COLORS.primary + '20',
-                  color: activeTab === 'selection' ? '#FFFFFF' : COLORS.primary,
+                  backgroundColor: activeTab === 'selection' ? COLORS.primary + '15' : COLORS.surfaceSubtle,
+                  color: activeTab === 'selection' ? COLORS.primary : COLORS.textMuted,
                 }}
               >
                 {appointmentsList.length}
@@ -274,11 +286,12 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
           </button>
           <button
             onClick={() => setActiveTab('days')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 cursor-pointer"
+            className="relative flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-200"
             style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              backgroundColor: activeTab === 'days' ? COLORS.primary : COLORS.surfaceSubtle,
-              color: activeTab === 'days' ? '#FFFFFF' : COLORS.textSecondary,
+              fontFamily: 'Plus Jakarta Sans, sans-serif',
+              color: activeTab === 'days' ? COLORS.primary : COLORS.textMuted,
+              borderBottom: activeTab === 'days' ? `2px solid ${COLORS.primary}` : '2px solid transparent',
+              marginBottom: '-1px',
             }}
           >
             <Calendar className="w-4 h-4" />
@@ -286,289 +299,327 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
           </button>
         </div>
 
-        {/* Tab Content */}
-        <div className="p-6 max-h-96 overflow-y-auto">
-          {activeTab === 'selection' ? (
-            <div className="space-y-4">
-              {/* Search */}
-              <div className="relative">
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5"
-                  style={{ color: COLORS.textMuted }}
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar por nombre de cliente o empleado..."
-                  className="w-full pl-10 pr-10 py-3 rounded-xl border bg-white dark:bg-slate-900 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
-                  style={{
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    borderColor: COLORS.border,
-                    color: COLORS.textPrimary,
-                  }}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
-                    aria-label="Limpiar búsqueda"
-                  >
-                    <X className="w-4 h-4" style={{ color: COLORS.textMuted }} />
-                  </button>
-                )}
-              </div>
-
-              {/* Status Filters */}
-              <div className="flex gap-2 flex-wrap">
-                {[
-                  { value: 'all', label: 'Todos' },
-                  { value: 'completed', label: 'Completadas' },
-                  { value: 'cancelled', label: 'Canceladas' },
-                  { value: 'no_show', label: 'No asistió' },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleStatusFilterChange(option.value as typeof statusFilter)}
-                    className="px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer"
-                    style={{
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      backgroundColor: statusFilter === option.value ? COLORS.primary : 'transparent',
-                      color: statusFilter === option.value ? '#FFFFFF' : COLORS.textSecondary,
-                      border: `1px solid ${statusFilter === option.value ? COLORS.primary : COLORS.border}`,
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* List */}
-              {listLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.primary }} />
-                </div>
-              ) : appointmentsList.length === 0 ? (
-                <div
-                  className="text-center py-8 rounded-xl"
-                  style={{ backgroundColor: COLORS.surfaceSubtle }}
-                >
-                  <p style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                    No hay citas para limpiar
-                  </p>
-                </div>
-              ) : (
-                <div
-                  className="rounded-xl border overflow-hidden"
-                  style={{ borderColor: COLORS.border }}
-                >
-                  {appointmentsList.map((apt, idx) => {
-                    const isSelected = selectedIds.has(apt.id)
-                    const statusColors = getStatusColor(apt.status)
-                    return (
-                      <div
-                        key={apt.id}
-                        onClick={() => toggleAppointment(apt.id)}
-                        className={`flex items-center gap-3 p-3 cursor-pointer transition-colors duration-200 ${
-                          idx !== appointmentsList.length - 1 ? 'border-b' : ''
-                        }`}
-                        style={{
-                          borderColor: COLORS.border,
-                          backgroundColor: isSelected ? COLORS.primary + '10' : 'transparent',
-                        }}
-                      >
-                        <div
-                          className="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200"
-                          style={{
-                            borderColor: isSelected ? COLORS.primary : COLORS.border,
-                            backgroundColor: isSelected ? COLORS.primary : 'transparent',
-                          }}
-                        >
-                          {isSelected && <Check className="w-3 h-3 text-white" />}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm truncate" style={{ color: COLORS.textPrimary }}>
-                            {apt.client_name || 'Cliente'}
-                          </p>
-                          <p className="text-xs" style={{ color: COLORS.textMuted }}>
-                            {apt.employee_name && `${apt.employee_name} · `}
-                            {formatDate(apt.end_time)}
-                          </p>
-                        </div>
-                        <span
-                          className="px-2 py-0.5 rounded text-xs font-medium flex-shrink-0"
-                          style={{
-                            backgroundColor: statusColors.bg,
-                            color: statusColors.text,
-                          }}
-                        >
-                          {getStatusLabel(apt.status)}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <label
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                >
-                  Eliminar citas anteriores a (días):
-                </label>
-                <div className="flex gap-3">
+        {/* ── Tab Content ── */}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          <div className="p-5 sm:p-6 space-y-4">
+            {activeTab === 'selection' ? (
+              <>
+                {/* Search */}
+                <div className="relative">
+                  <Search
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                    style={{ color: COLORS.textMuted }}
+                  />
                   <input
-                    type="number"
-                    min="1"
-                    max="365"
-                    value={purgePreviewDays}
-                    onChange={(e) => {
-                      setPurgePreviewDays(e.target.value)
-                      setPurgePreview(null)
-                    }}
-                    placeholder="Ej: 90"
-                    className="flex-1 px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar por nombre de cliente o empleado..."
+                    className="w-full pl-10 pr-10 py-3 rounded-xl border-2 text-sm transition-all duration-200 focus:outline-none"
                     style={{
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      fontFamily: 'Plus Jakarta Sans, sans-serif',
                       borderColor: COLORS.border,
+                      backgroundColor: COLORS.surface,
                       color: COLORS.textPrimary,
                     }}
                   />
-                  <button
-                    onClick={handlePreviewPurge}
-                    disabled={!purgePreviewDays || previewLoading}
-                    className="px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 disabled:opacity-50 cursor-pointer"
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-black/5 transition-colors"
+                      aria-label="Limpiar búsqueda"
+                    >
+                      <X className="w-4 h-4" style={{ color: COLORS.textMuted }} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Status Filters */}
+                <div className="flex gap-2 flex-wrap">
+                  {[
+                    { value: 'all', label: 'Todos' },
+                    { value: 'completed', label: 'Completadas' },
+                    { value: 'cancelled', label: 'Canceladas' },
+                    { value: 'no_show', label: 'No asistió' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => handleStatusFilterChange(option.value as typeof statusFilter)}
+                      className="px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer"
+                      style={{
+                        fontFamily: 'Plus Jakarta Sans, sans-serif',
+                        backgroundColor: statusFilter === option.value ? COLORS.primary : COLORS.surfaceSubtle,
+                        color: statusFilter === option.value ? '#FFF' : COLORS.textSecondary,
+                        border: `1px solid ${statusFilter === option.value ? COLORS.primary : 'transparent'}`,
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Appointment List */}
+                {listLoading ? (
+                  <div className="flex items-center justify-center py-10">
+                    <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.primary }} />
+                  </div>
+                ) : appointmentsList.length === 0 ? (
+                  <div className="text-center py-10">
+                    <div
+                      className="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: COLORS.surfaceSubtle }}
+                    >
+                      <Trash2 className="w-6 h-6" style={{ color: COLORS.textMuted }} />
+                    </div>
+                    <p className="text-sm font-medium" style={{ color: COLORS.textMuted }}>
+                      No hay citas para limpiar
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
+                      Las citas completadas, canceladas o no asistidas aparecerán aquí
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {appointmentsList.map((apt, idx) => {
+                      const isSelected = selectedIds.has(apt.id)
+                      const statusColors = getStatusColor(apt.status)
+                      const initial = (apt.client_name || 'C').charAt(0).toUpperCase()
+                      return (
+                        <div
+                          key={apt.id}
+                          onClick={() => toggleAppointment(apt.id)}
+                          className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200"
+                          style={{
+                            backgroundColor: isSelected ? COLORS.primary + '08' : 'transparent',
+                            border: `1px solid ${isSelected ? COLORS.primary + '20' : 'transparent'}`,
+                          }}
+                        >
+                          {/* Custom Checkbox */}
+                          <div
+                            className="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                            style={{
+                              borderColor: isSelected ? COLORS.primary : COLORS.border,
+                              backgroundColor: isSelected ? COLORS.primary : 'transparent',
+                            }}
+                          >
+                            {isSelected && <Check className="w-3 h-3 text-white" />}
+                          </div>
+
+                          {/* Avatar */}
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0"
+                            style={{
+                              backgroundColor: statusColors.bg,
+                              color: statusColors.text,
+                            }}
+                          >
+                            {initial}
+                          </div>
+
+                          {/* Info */}
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm truncate" style={{ color: COLORS.textPrimary }}>
+                              {apt.client_name || 'Cliente'}
+                            </p>
+                            <p className="text-xs flex items-center gap-1" style={{ color: COLORS.textMuted }}>
+                              {apt.employee_name && <>{apt.employee_name} · </>}
+                              {formatDate(apt.end_time)}
+                            </p>
+                          </div>
+
+                          {/* Status badge */}
+                          <span
+                            className="px-2.5 py-1 rounded-full text-[11px] font-medium flex-shrink-0"
+                            style={{
+                              backgroundColor: statusColors.bg,
+                              color: statusColors.text,
+                            }}
+                          >
+                            {getStatusLabel(apt.status)}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </>
+            ) : (
+              /* ── By Days Tab ── */
+              <div className="space-y-4">
+                <div>
+                  <label
+                    className="block text-sm font-medium mb-2"
+                    style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                  >
+                    Eliminar citas anteriores a (días):
+                  </label>
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <Calendar
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                        style={{ color: COLORS.textMuted }}
+                      />
+                      <input
+                        type="number"
+                        min="1"
+                        max="365"
+                        value={purgePreviewDays}
+                        onChange={(e) => {
+                          setPurgePreviewDays(e.target.value)
+                          setPurgePreview(null)
+                        }}
+                        placeholder="Ej: 90"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border-2 text-sm transition-all duration-200 focus:outline-none"
+                        style={{
+                          fontFamily: 'Plus Jakarta Sans, sans-serif',
+                          borderColor: COLORS.border,
+                          backgroundColor: COLORS.surface,
+                          color: COLORS.textPrimary,
+                        }}
+                      />
+                    </div>
+                    <button
+                      onClick={handlePreviewPurge}
+                      disabled={!purgePreviewDays || previewLoading}
+                      className="px-5 py-3 rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-50 cursor-pointer flex items-center gap-2"
+                      style={{
+                        fontFamily: 'Plus Jakarta Sans, sans-serif',
+                        backgroundColor: COLORS.primary,
+                        color: '#FFF',
+                        boxShadow: `0 4px 12px ${COLORS.primary}30`,
+                      }}
+                    >
+                      {previewLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Search className="w-4 h-4" />
+                      )}
+                      {previewLoading ? 'Buscando...' : 'Previsualizar'}
+                    </button>
+                  </div>
+                </div>
+
+                {purgePreview && (
+                  <div
+                    className="rounded-xl border-2 p-4 space-y-3 animate-in fade-in duration-200"
                     style={{
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      backgroundColor: COLORS.surfaceSubtle,
-                      border: `1px solid ${COLORS.border}`,
-                      color: COLORS.textPrimary,
+                      borderColor: COLORS.warning + '30',
+                      backgroundColor: COLORS.warningLight,
                     }}
                   >
-                    {previewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Previsualizar'}
-                  </button>
-                </div>
-              </div>
-
-              {purgePreview && (
-                <div
-                  className="space-y-4 p-4 rounded-xl"
-                  style={{ backgroundColor: COLORS.surfaceSubtle }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span
-                      className="text-sm font-medium"
-                      style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                    >
-                      Citas a eliminar:
-                    </span>
-                    <span
-                      className="text-lg font-bold"
-                      style={{ color: COLORS.warning, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                    >
-                      {purgePreview.count}
-                    </span>
-                  </div>
-                  {purgePreview.oldestDate && (
-                    <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.textMuted }}>
-                      <Calendar className="w-4 h-4" />
-                      <span>Más antigua: {formatDate(purgePreview.oldestDate)}</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
+                        Citas a eliminar
+                      </span>
+                      <span
+                        className="text-xl font-bold"
+                        style={{ color: COLORS.warning }}
+                      >
+                        {purgePreview.count}
+                      </span>
                     </div>
-                  )}
 
-                  {purgePreview.candidates.length > 0 && (
-                    <div className="max-h-48 overflow-y-auto space-y-2">
-                      {purgePreview.candidates.map((apt) => {
-                        const statusColors = getStatusColor(apt.status)
-                        return (
-                          <div
-                            key={apt.id}
-                            className="flex items-center justify-between p-2 rounded-lg text-sm"
-                            style={{ backgroundColor: COLORS.surface }}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium truncate" style={{ color: COLORS.textPrimary }}>
-                                {apt.client_name || 'Cliente'}
-                              </p>
-                              <p className="text-xs" style={{ color: COLORS.textMuted }}>
-                                {formatDate(apt.end_time)}
-                              </p>
-                            </div>
-                            <span
-                              className="px-2 py-0.5 rounded text-xs"
-                              style={{
-                                backgroundColor: statusColors.bg,
-                                color: statusColors.text,
-                              }}
+                    {purgePreview.oldestDate && (
+                      <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.textSecondary }}>
+                        <Calendar className="w-4 h-4" />
+                        <span>Más antigua: {formatDate(purgePreview.oldestDate)}</span>
+                      </div>
+                    )}
+
+                    {purgePreview.candidates.length > 0 && (
+                      <div className="max-h-48 overflow-y-auto space-y-1.5 mt-2">
+                        {purgePreview.candidates.map((apt) => {
+                          const statusColors = getStatusColor(apt.status)
+                          return (
+                            <div
+                              key={apt.id}
+                              className="flex items-center justify-between p-2.5 rounded-lg text-sm"
+                              style={{ backgroundColor: COLORS.surface }}
                             >
-                              {getStatusLabel(apt.status)}
-                            </span>
-                          </div>
-                        )
-                      })}
-                      {purgePreview.count > purgePreview.candidates.length && (
-                        <p className="text-xs text-center" style={{ color: COLORS.textMuted }}>
-                          y {purgePreview.count - purgePreview.candidates.length} más...
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+                              <div className="min-w-0 flex-1 flex items-center gap-2">
+                                <div
+                                  className="w-2 h-2 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: statusColors.text }}
+                                />
+                                <div>
+                                  <p className="font-medium truncate text-sm" style={{ color: COLORS.textPrimary }}>
+                                    {apt.client_name || 'Cliente'}
+                                  </p>
+                                  <p className="text-xs" style={{ color: COLORS.textMuted }}>
+                                    {formatDate(apt.end_time)}
+                                  </p>
+                                </div>
+                              </div>
+                              <span
+                                className="px-2 py-0.5 rounded text-[11px] font-medium flex-shrink-0 ml-2"
+                                style={{
+                                  backgroundColor: statusColors.bg,
+                                  color: statusColors.text,
+                                }}
+                              >
+                                {getStatusLabel(apt.status)}
+                              </span>
+                            </div>
+                          )
+                        })}
+                        {purgePreview.count > purgePreview.candidates.length && (
+                          <p className="text-xs text-center pt-1" style={{ color: COLORS.textMuted }}>
+                            y {purgePreview.count - purgePreview.candidates.length} más...
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Selection Actions (only for selection tab) */}
+        {/* ── Selection Actions (selection tab only) ── */}
         {activeTab === 'selection' && (
           <div
-            className="flex items-center justify-between px-6 py-3 border-t"
-            style={{ borderColor: COLORS.border, backgroundColor: COLORS.surfaceSubtle }}
+            className="flex items-center justify-between px-5 sm:px-6 py-3 border-t flex-shrink-0"
+            style={{
+              borderColor: COLORS.border,
+              backgroundColor: COLORS.surfaceSubtle,
+            }}
           >
             <div className="flex items-center gap-3">
               <button
                 onClick={handleSelectAll}
-                className="text-sm font-medium transition-colors duration-200 cursor-pointer"
-                style={{ color: COLORS.primary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                className="text-sm font-medium transition-colors duration-200 cursor-pointer hover:opacity-70"
+                style={{ color: COLORS.primary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
               >
                 {selectedIds.size === appointmentsList.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
               </button>
               {selectedIds.size > 0 && (
                 <button
                   onClick={handleClearSelection}
-                  className="text-sm font-medium transition-colors duration-200 cursor-pointer"
-                  style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  className="text-sm transition-colors duration-200 cursor-pointer hover:opacity-70"
+                  style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
                 >
-                  Limpiar
+                  Limpiar selección
                 </button>
               )}
             </div>
-            <span
-              className="text-sm font-medium"
-              style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
+            <span className="text-sm font-medium" style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
               {selectedIds.size} seleccionada{selectedIds.size !== 1 ? 's' : ''}
             </span>
           </div>
         )}
 
-        {/* Confirmation Input */}
+        {/* ── Confirmation Input ── */}
         {((selectedIds.size > 0 && activeTab === 'selection') || (purgePreview && activeTab === 'days')) && confirmText !== 'ELIMINAR' && (
           <div
-            className="px-6 py-4 border-t space-y-3"
+            className="px-5 sm:px-6 py-4 border-t space-y-3 flex-shrink-0"
             style={{ borderColor: COLORS.border }}
           >
-            <p
-              className="text-sm"
-              style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
+            <p className="text-sm" style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
               {activeTab === 'selection' ? (
-                <>Escribe <strong>ELIMINAR</strong> para confirmar la eliminación de {selectedIds.size} cita{selectedIds.size !== 1 ? 's' : ''}:</>
+                <>Escribe <strong className="font-bold" style={{ color: COLORS.error }}>ELIMINAR</strong> para confirmar la eliminación de {selectedIds.size} cita{selectedIds.size !== 1 ? 's' : ''}:</>
               ) : (
-                <>Escribe <strong>ELIMINAR</strong> para confirmar:</>
+                <>Escribe <strong className="font-bold" style={{ color: COLORS.error }}>ELIMINAR</strong> para confirmar:</>
               )}
             </p>
             <input
@@ -576,29 +627,31 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
               placeholder="ELIMINAR"
-              className="w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
+              className="w-full px-4 py-2.5 rounded-xl border-2 text-sm font-medium tracking-widest text-center transition-all duration-200 focus:outline-none"
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderColor: COLORS.border,
-                color: COLORS.textPrimary,
+                fontFamily: 'Plus Jakarta Sans, sans-serif',
+                borderColor: confirmText === 'ELIMINAR' ? COLORS.success : COLORS.border,
+                backgroundColor: COLORS.surface,
+                color: confirmText === 'ELIMINAR' ? COLORS.success : COLORS.textPrimary,
+                boxShadow: confirmText === 'ELIMINAR' ? `0 0 0 3px ${COLORS.success}20` : 'none',
               }}
             />
           </div>
         )}
 
-        {/* Footer */}
+        {/* ── Footer Actions ── */}
         <div
-          className="flex gap-3 px-6 py-4 border-t"
-          style={{ borderColor: COLORS.border }}
+          className="flex gap-3 px-5 sm:px-6 py-4 border-t flex-shrink-0"
+          style={{ borderColor: COLORS.border, backgroundColor: COLORS.surfaceSubtle }}
         >
           <button
             onClick={onClose}
-            className="flex-1 py-3 px-4 font-medium rounded-xl transition-all duration-200 cursor-pointer"
+            className="flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
             style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              backgroundColor: COLORS.surfaceSubtle,
+              fontFamily: 'Plus Jakarta Sans, sans-serif',
+              backgroundColor: COLORS.surface,
               border: `1px solid ${COLORS.border}`,
-              color: COLORS.textPrimary,
+              color: COLORS.textSecondary,
             }}
           >
             Cancelar
@@ -607,29 +660,41 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
             <button
               onClick={handleDeleteSelected}
               disabled={selectedIds.size === 0 || confirmText !== 'ELIMINAR' || purging}
-              className="flex-1 py-3 px-4 font-medium rounded-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                backgroundColor: confirmText === 'ELIMINAR' && selectedIds.size > 0 ? COLORS.error : COLORS.surfaceSubtle,
-                color: confirmText === 'ELIMINAR' && selectedIds.size > 0 ? '#FFFFFF' : COLORS.textMuted,
+                fontFamily: 'Plus Jakarta Sans, sans-serif',
+                backgroundColor: confirmText === 'ELIMINAR' && selectedIds.size > 0 ? COLORS.error : COLORS.surface,
+                color: confirmText === 'ELIMINAR' && selectedIds.size > 0 ? '#FFF' : COLORS.textMuted,
+                border: confirmText !== 'ELIMINAR' || selectedIds.size === 0 ? `1px solid ${COLORS.border}` : 'none',
+                boxShadow: confirmText === 'ELIMINAR' && selectedIds.size > 0 ? `0 4px 12px ${COLORS.error}40` : 'none',
               }}
             >
-              {purging ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-              {selectedIds.size > 0 ? `Eliminar ${selectedIds.size}` : 'Eliminar'}
+              {purging ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+              {purging ? 'Eliminando...' : selectedIds.size > 0 ? `Eliminar ${selectedIds.size}` : 'Eliminar'}
             </button>
           ) : (
             <button
               onClick={handleExecutePurge}
               disabled={confirmText !== 'ELIMINAR' || purging || !purgePreview}
-              className="flex-1 py-3 px-4 font-medium rounded-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                backgroundColor: confirmText === 'ELIMINAR' ? COLORS.error : COLORS.surfaceSubtle,
-                color: confirmText === 'ELIMINAR' ? '#FFFFFF' : COLORS.textMuted,
+                fontFamily: 'Plus Jakarta Sans, sans-serif',
+                backgroundColor: confirmText === 'ELIMINAR' ? COLORS.error : COLORS.surface,
+                color: confirmText === 'ELIMINAR' ? '#FFF' : COLORS.textMuted,
+                border: confirmText !== 'ELIMINAR' ? `1px solid ${COLORS.border}` : 'none',
+                boxShadow: confirmText === 'ELIMINAR' ? `0 4px 12px ${COLORS.error}40` : 'none',
               }}
             >
-              {purging ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-              Eliminar
+              {purging ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+              {purging ? 'Eliminando...' : 'Eliminar'}
             </button>
           )}
         </div>
