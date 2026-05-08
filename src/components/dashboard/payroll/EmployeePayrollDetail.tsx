@@ -194,7 +194,7 @@ export function EmployeePayrollDetail({
               {employee.name}
             </h1>
             <p className="text-white/80">
-              {employee.default_commission_rate}% comisión • {employee.payment_type === 'commission' ? 'Solo comisión' : employee.payment_type === 'salary' ? 'Sueldo fijo' : 'Mixto'}
+              {employee.default_commission_rate}% comisión • {employee.payment_type === 'porcentaje' || employee.payment_type === 'commission' ? 'Solo comisión' : employee.payment_type === 'fijo' || employee.payment_type === 'salary' ? 'Sueldo fijo' : 'Mixto'}
               {employee.fixed_salary && ` • ${formatCurrencyCOP(employee.fixed_salary)}/semana`}
             </p>
           </div>
