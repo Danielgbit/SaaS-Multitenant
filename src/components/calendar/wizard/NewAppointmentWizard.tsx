@@ -619,7 +619,7 @@ export function NewAppointmentWizard({
                           </div>
                           <div className="flex items-center gap-3 flex-shrink-0">
                             <span className="text-sm font-semibold" style={{ color: COLORS.primary }}>
-                              ${s.price.toFixed(2)}
+                              ${new Intl.NumberFormat('es-CO').format(s.price)}
                             </span>
                             <span
                               className="text-xs px-2 py-1 rounded-lg whitespace-nowrap"
@@ -652,7 +652,7 @@ export function NewAppointmentWizard({
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate" style={{ color: COLORS.textPrimary }}>{selectedService.name}</p>
                       <p className="text-xs" style={{ color: COLORS.textMuted }}>
-                        {formatDuration(selectedService.duration)} &middot; ${selectedService.price.toFixed(2)}
+                        {formatDuration(selectedService.duration)} &middot; ${new Intl.NumberFormat('es-CO').format(selectedService.price)}
                       </p>
                     </div>
                     <button
@@ -914,20 +914,62 @@ export function NewAppointmentWizard({
                                   <button
                                     key={s.start_time}
                                     onClick={() => onSetNewAppointmentData({ time: formatTime(s.start_time) })}
-                                    className={`relative px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                                      isSelected ? 'ring-2 ring-offset-2' : 'hover:scale-[1.02]'
+                                    className={`relative overflow-hidden rounded-xl text-left transition-all duration-200 ${
+                                      isSelected ? 'shadow-md' : 'hover:scale-[1.02] hover:shadow-sm'
                                     }`}
                                     style={{
                                       backgroundColor: isSelected ? COLORS.primary : COLORS.surfaceSubtle,
                                       color: isSelected ? '#FFF' : COLORS.textPrimary,
                                       border: `1px solid ${isSelected ? COLORS.primary : COLORS.border}`,
-                                      boxShadow: isSelected ? `0 4px 12px ${COLORS.primary}30` : 'none',
+                                      boxShadow: isSelected ? `0 4px 16px ${COLORS.primary}35` : 'none',
                                       animationDelay: `${idx * 50}ms`,
+                                      padding: '12px 14px',
                                     }}
                                   >
-                                    <span className="font-semibold">{formatTime(s.start_time)}</span>
+                                    {/* Left accent bar */}
                                     {isSelected && (
-                                      <CheckCircle2 className="w-3.5 h-3.5 absolute -top-1 -right-1 text-white" />
+                                      <div
+                                        className="absolute left-1 top-2 bottom-2 w-1 rounded-full"
+                                        style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}
+                                      />
+                                    )}
+
+                                    {/* Time range */}
+                                    <div className="flex items-baseline gap-1.5">
+                                      <span className="text-base font-bold leading-none" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                                        {formatTime(s.start_time)}
+                                      </span>
+                                      <span className="text-sm" style={{ color: isSelected ? 'rgba(255,255,255,0.7)' : COLORS.textMuted }}>
+                                        →
+                                      </span>
+                                      <span className="text-sm font-medium leading-none" style={{ color: isSelected ? 'rgba(255,255,255,0.85)' : COLORS.textSecondary }}>
+                                        {formatTime(s.end_time)}
+                                      </span>
+                                    </div>
+
+                                    {/* Status + duration */}
+                                    <div className="flex items-center gap-2 mt-1.5">
+                                      <span className="text-[11px] flex items-center gap-1 font-medium" style={{ color: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }}>
+                                        <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }} />
+                                        Disponible
+                                      </span>
+                                      {selectedService && (
+                                        <span
+                                          className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                                          style={{
+                                            backgroundColor: isSelected ? 'rgba(255,255,255,0.15)' : COLORS.primary + '12',
+                                            color: isSelected ? 'rgba(255,255,255,0.9)' : COLORS.primary,
+                                          }}
+                                        >
+                                          {formatDuration(selectedService.duration)}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {isSelected && (
+                                      <div className="absolute top-1.5 right-1.5">
+                                        <CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'rgba(255,255,255,0.7)' }} />
+                                      </div>
                                     )}
                                   </button>
                                 )
@@ -954,20 +996,62 @@ export function NewAppointmentWizard({
                                   <button
                                     key={s.start_time}
                                     onClick={() => onSetNewAppointmentData({ time: formatTime(s.start_time) })}
-                                    className={`relative px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                                      isSelected ? 'ring-2 ring-offset-2' : 'hover:scale-[1.02]'
+                                    className={`relative overflow-hidden rounded-xl text-left transition-all duration-200 ${
+                                      isSelected ? 'shadow-md' : 'hover:scale-[1.02] hover:shadow-sm'
                                     }`}
                                     style={{
                                       backgroundColor: isSelected ? COLORS.primary : COLORS.surfaceSubtle,
                                       color: isSelected ? '#FFF' : COLORS.textPrimary,
                                       border: `1px solid ${isSelected ? COLORS.primary : COLORS.border}`,
-                                      boxShadow: isSelected ? `0 4px 12px ${COLORS.primary}30` : 'none',
+                                      boxShadow: isSelected ? `0 4px 16px ${COLORS.primary}35` : 'none',
                                       animationDelay: `${idx * 50}ms`,
+                                      padding: '12px 14px',
                                     }}
                                   >
-                                    <span className="font-semibold">{formatTime(s.start_time)}</span>
+                                    {/* Left accent bar */}
                                     {isSelected && (
-                                      <CheckCircle2 className="w-3.5 h-3.5 absolute -top-1 -right-1 text-white" />
+                                      <div
+                                        className="absolute left-1 top-2 bottom-2 w-1 rounded-full"
+                                        style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}
+                                      />
+                                    )}
+
+                                    {/* Time range */}
+                                    <div className="flex items-baseline gap-1.5">
+                                      <span className="text-base font-bold leading-none" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                                        {formatTime(s.start_time)}
+                                      </span>
+                                      <span className="text-sm" style={{ color: isSelected ? 'rgba(255,255,255,0.7)' : COLORS.textMuted }}>
+                                        →
+                                      </span>
+                                      <span className="text-sm font-medium leading-none" style={{ color: isSelected ? 'rgba(255,255,255,0.85)' : COLORS.textSecondary }}>
+                                        {formatTime(s.end_time)}
+                                      </span>
+                                    </div>
+
+                                    {/* Status + duration */}
+                                    <div className="flex items-center gap-2 mt-1.5">
+                                      <span className="text-[11px] flex items-center gap-1 font-medium" style={{ color: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }}>
+                                        <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }} />
+                                        Disponible
+                                      </span>
+                                      {selectedService && (
+                                        <span
+                                          className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                                          style={{
+                                            backgroundColor: isSelected ? 'rgba(255,255,255,0.15)' : COLORS.primary + '12',
+                                            color: isSelected ? 'rgba(255,255,255,0.9)' : COLORS.primary,
+                                          }}
+                                        >
+                                          {formatDuration(selectedService.duration)}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {isSelected && (
+                                      <div className="absolute top-1.5 right-1.5">
+                                        <CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'rgba(255,255,255,0.7)' }} />
+                                      </div>
                                     )}
                                   </button>
                                 )
@@ -1048,7 +1132,7 @@ export function NewAppointmentWizard({
                             {selectedService.name}
                           </p>
                           <p className="text-xs" style={{ color: COLORS.textMuted }}>
-                            {formatDuration(selectedService.duration)} &middot; ${selectedService.price.toFixed(2)}
+                            {formatDuration(selectedService.duration)} &middot; ${new Intl.NumberFormat('es-CO').format(selectedService.price)}
                           </p>
                         </div>
                       </div>
