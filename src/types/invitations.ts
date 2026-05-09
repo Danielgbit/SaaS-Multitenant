@@ -54,3 +54,26 @@ export type InvitationWithDetails = Invitation & {
   employee_name?: string
   organization_name?: string
 }
+
+export type LinkUserToEmployeeInput = {
+  userId: string
+  employeeId: string
+  organizationId?: string
+}
+
+export type LinkUserToEmployeeErrorType =
+  | 'invalid_input'
+  | 'employee_not_found'
+  | 'user_not_found'
+  | 'already_linked'
+  | 'different_organization'
+  | 'link_failed'
+  | 'member_creation_failed'
+  | 'employee_belongs_to_different_org'
+
+export interface LinkedEmployee {
+  id: string
+  name: string
+  user_id: string | null
+  organization_id: string
+}

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { linkUserToEmployee } from './linkUserToEmployee'
 
 export async function acceptInvitation(token: string): Promise<{ success?: boolean; error?: string }> {
   if (!token || typeof token !== 'string') {
@@ -47,14 +48,14 @@ export async function acceptInvitation(token: string): Promise<{ success?: boole
     return { error: 'Ya eres miembro de esta organización.' }
   }
 
-  const { error: updateEmployeeError } = await supabase
-    .from('employees')
-    .update({ user_id: user.id })
-    .eq('id', invitation.employee_id)
+  const linkResult = await linkUserToEmployee({
+    userId: user.id,
+    employeeId: invitation.employee_id,
+    organizationId: invitation.organization_id,
+  })
 
-  if (updateEmployeeError) {
-    console.error('Error updating employee:', updateEmployeeError.message)
-    return { error: 'No se pudo vincular tu cuenta.' }
+  if (!linkResult.success) {
+    return { error: linkResult.error || 'No se pudo vincular tu cuenta.' }
   }
 
   const { error: insertMemberError } = await supabase

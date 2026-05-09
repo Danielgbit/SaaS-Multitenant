@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { linkUserToEmployee, unlinkUserFromEmployee } from './linkUserToEmployee'
 
 const SetupSchema = z.object({
   token: z.string().min(1, 'Token requerido'),
@@ -79,19 +80,20 @@ export async function setupPasswordAndAccept(
     return { error: 'No se pudo crear o encontrar la cuenta. Intenta de nuevo.' }
   }
 
-  const { error: updateEmployeeError } = await supabase
-    .from('employees')
-    .update({ user_id: user.id })
-    .eq('id', invitation.employee_id)
+  const linkResult = await linkUserToEmployee({
+    userId: user.id,
+    employeeId: invitation.employee_id,
+    organizationId: invitation.organization_id,
+  })
 
-  if (updateEmployeeError) {
-    console.error('Error linking employee:', updateEmployeeError.message)
+  if (!linkResult.success) {
+    console.error('Error linking employee:', linkResult.error)
     try {
       await supabaseAdmin.auth.admin.deleteUser(user.id)
     } catch (e) {
       console.error('Rollback failed:', e)
     }
-    return { error: 'No se pudo vincular tu cuenta. Intenta de nuevo.' }
+    return { error: linkResult.error || 'No se pudo vincular tu cuenta. Intenta de nuevo.' }
   }
 
   const { error: insertMemberError } = await supabaseAdmin
@@ -105,7 +107,7 @@ export async function setupPasswordAndAccept(
   if (insertMemberError) {
     console.error('Error creating member:', insertMemberError.message)
     try {
-      await supabaseAdmin.from('employees').update({ user_id: null }).eq('id', invitation.employee_id)
+      await unlinkUserFromEmployee(invitation.employee_id)
       await supabaseAdmin.auth.admin.deleteUser(user.id)
     } catch (e) {
       console.error('Rollback failed:', e)
