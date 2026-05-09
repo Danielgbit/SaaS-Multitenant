@@ -1,6 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import {
+  Loader2,
+  Wallet,
+  DollarSign,
+  AlertTriangle,
+  TrendingUp,
+  Search,
+  CreditCard,
+  ChevronRight,
+} from 'lucide-react'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
 function useColors() {

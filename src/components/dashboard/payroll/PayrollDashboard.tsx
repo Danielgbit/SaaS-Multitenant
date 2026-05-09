@@ -30,8 +30,7 @@ const MONTHS_ES = [
 function parsePeriod(period: string) {
   const [year, month] = period.split('-').map(Number)
   return {
-    month,
-    year,
+    month, year,
     label: `${MONTHS_ES[month - 1]} ${year}`,
   }
 }
@@ -40,34 +39,17 @@ function StatusBadge({ status }: { status: string }) {
   const COLORS = useColors()
   const config = {
     draft: {
-      bg: COLORS.warning + '20',
-      color: COLORS.warning,
-      icon: Clock,
-      label: 'Borrador',
-      pulse: false,
+      bg: COLORS.warning + '20', color: COLORS.warning, icon: Clock, label: 'Borrador',
     },
     approved: {
-      bg: COLORS.primary + '20',
-      color: COLORS.primary,
-      icon: CheckCircle,
-      label: 'Aprobado',
-      pulse: false,
+      bg: COLORS.primary + '20', color: COLORS.primary, icon: CheckCircle, label: 'Aprobado',
     },
     paid: {
-      bg: COLORS.success + '20',
-      color: COLORS.success,
-      icon: CheckCircle,
-      label: 'Pagado',
-      pulse: false,
+      bg: COLORS.success + '20', color: COLORS.success, icon: CheckCircle, label: 'Pagado',
     },
   }[status] || {
-    bg: COLORS.textMuted + '20',
-    color: COLORS.textMuted,
-    icon: Clock,
-    label: status,
-    pulse: false,
+    bg: COLORS.textMuted + '20', color: COLORS.textMuted, icon: Clock, label: status,
   }
-
   const Icon = config.icon
 
   return (
@@ -82,16 +64,13 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function EmployeeRow({
-  employee,
-  colors,
-  compact,
+  employee, colors, compact,
 }: {
   employee: PeriodEmployeeSummary
   colors: ReturnType<typeof useColors>
   compact: boolean
 }) {
   const initial = employee.name.charAt(0).toUpperCase()
-
   const contractLabel = employee.contract_type === 'laboral' ? 'Laboral' : 'Prestación'
   const contractColor = employee.contract_type === 'laboral' ? colors.primary : colors.success
 
@@ -111,14 +90,14 @@ function EmployeeRow({
   return (
     <Link
       href={`/payroll/${employee.id}`}
-      className="flex items-center justify-between p-2.5 rounded-xl transition-all duration-200 cursor-pointer"
+      className="flex items-center justify-between p-2.5 rounded-xl transition-all duration-200 cursor-pointer group"
       style={{ backgroundColor: colors.surfaceSubtle }}
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.border)}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colors.surfaceSubtle)}
     >
       <div className="flex items-center gap-2.5 min-w-0 min-h-[44px]">
         <div
-          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
+          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0 transition-transform duration-200 group-hover:scale-105"
           style={{ backgroundColor: colors.primary }}
         >
           {initial}
@@ -159,96 +138,113 @@ function EmployeeRow({
   )
 }
 
-interface PeriodCardProps {
+function CurrentPeriodCard({
+  period, colors, expanded, onExpand, totalEmployeeDebt,
+}: {
   period: PayrollPeriodWithEmployees
   colors: ReturnType<typeof useColors>
+  expanded: boolean
   onExpand?: () => void
-  expanded?: boolean
-  variant?: 'current' | 'pending' | 'previous'
-}
-
-function PeriodCard({ period, colors, onExpand, expanded, variant = 'pending' }: PeriodCardProps) {
+  totalEmployeeDebt: number
+}) {
   const { label } = parsePeriod(period.period)
-  const isPaid = period.status === 'paid'
   const hasEmployees = period.employees && period.employees.length > 0
 
   return (
     <div
-      className="rounded-2xl border overflow-hidden transition-all duration-200 hover:shadow-lg"
-      style={{
-        backgroundColor: colors.surfaceGlass,
-        borderColor: variant === 'current' ? colors.primary : colors.border,
-        borderWidth: variant === 'current' ? 2 : 1,
-        opacity: isPaid ? 0.75 : 1,
-      }}
+      className="rounded-2xl border-2 overflow-hidden transition-all duration-300 hover:shadow-lg"
+      style={{ borderColor: colors.primary, backgroundColor: colors.surface }}
     >
-      <div className="p-5">
+      <div className="p-6">
         {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
+        <div className="flex items-start justify-between mb-5">
+          <div className="flex items-center gap-4">
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center"
+              className="w-14 h-14 rounded-xl flex items-center justify-center"
               style={{ backgroundColor: colors.primary + '15' }}
             >
-              <Calendar className="w-6 h-6" style={{ color: colors.primary }} />
+              <Calendar className="w-7 h-7" style={{ color: colors.primary }} />
             </div>
             <div>
-              <h3
-                className="text-lg font-semibold"
-                style={{ color: colors.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
-              >
-                {label}
-              </h3>
+              <div className="flex items-center gap-2 mb-0.5">
+                <h2
+                  className="text-xl font-bold"
+                  style={{ color: colors.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
+                >
+                  {label}
+                </h2>
+                <span
+                  className="relative flex h-2 w-2"
+                >
+                  <span
+                    className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                    style={{ backgroundColor: colors.success }}
+                  />
+                  <span
+                    className="relative inline-flex rounded-full h-2 w-2"
+                    style={{ backgroundColor: colors.success }}
+                  />
+                </span>
+              </div>
               <p className="text-sm" style={{ color: colors.textMuted }}>
                 {period.total_employees || 0} empleados
               </p>
             </div>
           </div>
-          <StatusBadge status={period.status} />
+          <div className="flex items-center gap-3">
+            {totalEmployeeDebt > 0 && (
+              <span className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full"
+                style={{ backgroundColor: colors.warning + '15', color: colors.warning }}>
+                <DollarSign className="w-3 h-3" />
+                Deuda: {formatCurrencyCOP(totalEmployeeDebt)}
+              </span>
+            )}
+            <StatusBadge status={period.status} />
+          </div>
         </div>
 
         {/* Metrics */}
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="text-center p-3 rounded-xl" style={{ backgroundColor: colors.surfaceSubtle }}>
-            <p className="text-xs mb-1" style={{ color: colors.textMuted }}>
+        <div className="grid grid-cols-3 gap-4 mb-5">
+          <div className="text-center p-3.5 rounded-xl" style={{ backgroundColor: colors.surfaceSubtle }}>
+            <p className="text-xs mb-1 font-medium" style={{ color: colors.textMuted }}>
               Total Bruto
             </p>
-            <p className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
+            <p className="text-base font-semibold" style={{ color: colors.textPrimary }}>
               {formatCurrencyCOP(period.total_gross_pay || 0)}
             </p>
           </div>
-          <div className="text-center p-3 rounded-xl" style={{ backgroundColor: colors.surfaceSubtle }}>
-            <p className="text-xs mb-1" style={{ color: colors.textMuted }}>
+          <div className="text-center p-3.5 rounded-xl" style={{ backgroundColor: colors.surfaceSubtle }}>
+            <p className="text-xs mb-1 font-medium" style={{ color: colors.textMuted }}>
               Deducciones
             </p>
-            <p className="text-sm font-semibold" style={{ color: colors.warning }}>
+            <p className="text-base font-semibold" style={{ color: colors.warning }}>
               -{formatCurrencyCOP(period.total_deductions || 0)}
             </p>
           </div>
-          <div className="text-center p-3 rounded-xl" style={{ backgroundColor: colors.surfaceSubtle }}>
-            <p className="text-xs mb-1" style={{ color: colors.textMuted }}>
+          <div className="text-center p-3.5 rounded-xl" style={{ backgroundColor: colors.surfaceSubtle }}>
+            <p className="text-xs mb-1 font-medium" style={{ color: colors.textMuted }}>
               Neto a Pagar
             </p>
-            <p className="text-sm font-bold" style={{ color: colors.success }}>
+            <p className="text-lg font-bold" style={{ color: colors.success }}>
               {formatCurrencyCOP(period.total_net_pay || 0)}
             </p>
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Actions + Employees toggle */}
         <div className="flex items-center justify-between">
           <Link
             href={`/payroll/period/${period.id}`}
-            className="flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80"
-            style={{ color: colors.primary }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90"
+            style={{ backgroundColor: colors.primary }}
           >
-            Ver detalle
+            Revisar y aprobar
             <ChevronRight className="w-4 h-4" />
           </Link>
-          {onExpand && !isPaid && hasEmployees && (
+          {onExpand && hasEmployees && (
             <button
               onClick={onExpand}
-              className="flex items-center gap-1 text-sm transition-colors hover:opacity-80 cursor-pointer"
+              className="flex items-center gap-1.5 text-sm transition-all duration-200 hover:opacity-80 cursor-pointer"
               style={{ color: colors.textMuted }}
             >
               {expanded ? 'Ocultar' : 'Ver'} empleados
@@ -259,15 +255,10 @@ function PeriodCard({ period, colors, onExpand, expanded, variant = 'pending' }:
 
         {/* Expanded employee list */}
         {expanded && hasEmployees && (
-          <div className="mt-4 pt-4 border-t" style={{ borderColor: colors.border }}>
+          <div className="mt-5 pt-5 border-t" style={{ borderColor: colors.border }}>
             <div className="space-y-2">
               {period.employees.map((emp) => (
-                <EmployeeRow
-                  key={emp.id}
-                  employee={emp}
-                  colors={colors}
-                  compact={variant === 'previous'}
-                />
+                <EmployeeRow key={emp.id} employee={emp} colors={colors} compact={false} />
               ))}
             </div>
             <Link
@@ -275,13 +266,74 @@ function PeriodCard({ period, colors, onExpand, expanded, variant = 'pending' }:
               className="flex items-center justify-center gap-1.5 mt-3 text-sm font-medium transition-colors hover:opacity-80"
               style={{ color: colors.primary }}
             >
-              Ver detalle completo
+              Ver detalle completo del período
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         )}
       </div>
     </div>
+  )
+}
+
+function CompactPeriodCard({ period, colors, isPending }: {
+  period: PayrollPeriodWithEmployees
+  colors: ReturnType<typeof useColors>
+  isPending: boolean
+}) {
+  const { label } = parsePeriod(period.period)
+
+  return (
+    <Link
+      href={`/payroll/period/${period.id}`}
+      className="block rounded-2xl border p-5 transition-all duration-200 hover:shadow-md group"
+      style={{
+        backgroundColor: colors.surfaceGlass,
+        borderColor: colors.border,
+      }}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center"
+            style={{ backgroundColor: colors.primary + '15' }}
+          >
+            <Calendar className="w-4.5 h-4.5" style={{ color: colors.primary }} />
+          </div>
+          <div>
+            <h3
+              className="text-sm font-semibold"
+              style={{ color: colors.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
+            >
+              {label}
+            </h3>
+            <p className="text-xs" style={{ color: colors.textMuted }}>
+              {period.total_employees || 0} empleados
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className="text-xs font-semibold"
+            style={{ color: colors.success }}
+          >
+            {formatCurrencyCOP(period.total_net_pay || 0)}
+          </span>
+          <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+            style={{ color: colors.textMuted }} />
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <StatusBadge status={period.status} />
+          {isPending && period.total_deductions > 0 && (
+            <span className="text-xs" style={{ color: colors.textMuted }}>
+              -{formatCurrencyCOP(period.total_deductions)}
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
   )
 }
 
@@ -293,9 +345,9 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
   const COLORS = useColors()
   const [expandedPeriod, setExpandedPeriod] = useState<string | null>(null)
 
-  const toggleExpand = (id: string) => {
-    setExpandedPeriod(expandedPeriod === id ? null : id)
-  }
+  const hasPending = dashboardData.pending_periods && dashboardData.pending_periods.length > 0
+  const hasPrevious = dashboardData.previous_periods && dashboardData.previous_periods.length > 0
+  const hasAnyPeriod = !!dashboardData.current_period || hasPending || hasPrevious
 
   return (
     <div className="space-y-8">
@@ -325,7 +377,7 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
           </div>
           <Link
             href="/payroll/new"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold backdrop-blur-sm transition-all duration-200 hover:bg-white/10 text-white"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold backdrop-blur-sm transition-all duration-200 hover:bg-white/20 text-white"
             style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
           >
             <Plus className="w-4 h-4" />
@@ -334,15 +386,17 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Stats Overview — 4 cards responsive */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard
           label="Pendiente por pagar"
           value={formatCurrencyCOP(dashboardData.total_pending_net)}
-          icon={DollarSign}
+          icon={Wallet}
           color={COLORS.warning}
           bgColor={COLORS.warning + '15'}
           colors={COLORS}
+          href={hasPending ? `/payroll/period/${dashboardData.pending_periods![0].id}` : undefined}
+          cta="Revisar"
         />
         <StatCard
           label="Listos para pagar"
@@ -351,6 +405,10 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
           color={COLORS.success}
           bgColor={COLORS.success + '15'}
           colors={COLORS}
+          href={dashboardData.employees_ready_to_pay > 0 && dashboardData.current_period
+            ? `/payroll/period/${dashboardData.current_period.id}`
+            : undefined}
+          cta="Pagar"
         />
         <StatCard
           label="Empleados en nómina"
@@ -367,95 +425,35 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
           color={COLORS.success}
           bgColor={COLORS.success + '15'}
           colors={COLORS}
-        />
-        <StatCard
-          label="Deuda activa empleados"
-          value={formatCurrencyCOP(dashboardData.total_employee_debt || 0)}
-          icon={DollarSign}
-          color={COLORS.warning}
-          bgColor={COLORS.warning + '15'}
-          colors={COLORS}
+          href="/payroll/new"
+          cta="Crear"
         />
       </div>
 
-      {/* Current Period */}
-      {dashboardData.current_period && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2
-              className="text-xl font-semibold"
-              style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
-            >
-              Período Actual
-            </h2>
-            <span
-              className="text-xs px-2.5 py-1 rounded-full font-medium"
-              style={{ backgroundColor: COLORS.primary + '15', color: COLORS.primary }}
-            >
-              Activo
-            </span>
-          </div>
-          <PeriodCard
-            period={dashboardData.current_period}
-            colors={COLORS}
-            variant="current"
-            expanded={expandedPeriod === dashboardData.current_period.id}
-            onExpand={() => toggleExpand(dashboardData.current_period!.id)}
-          />
-        </div>
-      )}
-
-      {/* Pending Periods */}
-      {dashboardData.pending_periods && dashboardData.pending_periods.length > 0 && (
-        <div>
-          <h2
-            className="text-xl font-semibold mb-4"
-            style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
-          >
-            Períodos Pendientes
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {dashboardData.pending_periods.map((period) => (
-              <PeriodCard
-                key={period.id}
-                period={period}
-                colors={COLORS}
-                variant="pending"
-                expanded={expandedPeriod === period.id}
-                onExpand={() => toggleExpand(period.id)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* No Periods State */}
-      {!dashboardData.current_period && dashboardData.pending_periods?.length === 0 && (
+      {/* No periods empty state */}
+      {!hasAnyPeriod && (
         <div
-          className="text-center py-16 px-6 rounded-2xl border border-dashed"
-          style={{
-            backgroundColor: COLORS.surfaceGlass,
-            borderColor: COLORS.border,
-          }}
+          className="text-center py-20 px-6 rounded-2xl border-2 border-dashed transition-all duration-200 hover:shadow-md"
+          style={{ backgroundColor: COLORS.surfaceGlass, borderColor: COLORS.border }}
         >
           <div
-            className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+            className="w-20 h-20 rounded-2xl mx-auto mb-5 flex items-center justify-center"
             style={{ backgroundColor: COLORS.primary + '10' }}
           >
-            <Calendar className="w-8 h-8" style={{ color: COLORS.primary }} />
+            <Calendar className="w-10 h-10" style={{ color: COLORS.primary }} />
           </div>
-          <h3
-            className="text-xl font-semibold mb-2"
+          <h2
+            className="text-2xl font-bold mb-3"
             style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
           >
             Sin períodos de nómina
-          </h3>
-          <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>
+          </h2>
+          <p className="text-sm mb-8 max-w-sm mx-auto" style={{ color: COLORS.textMuted }}>
             Crea tu primer período de nómina para comenzar a gestionar los pagos de tus empleados.
           </p>
           <Link
             href="/payroll/new"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90"
             style={{ backgroundColor: COLORS.primary }}
           >
             <Plus className="w-4 h-4" />
@@ -464,52 +462,97 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
         </div>
       )}
 
-      {/* Previous Periods */}
-      {dashboardData.previous_periods && dashboardData.previous_periods.length > 0 && (
-        <div>
+      {/* Current Period — full width hero card */}
+      {dashboardData.current_period && (
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <h2
+              className="text-lg font-semibold"
+              style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
+            >
+              Período Actual
+            </h2>
+            {dashboardData.total_employee_debt > 0 && (
+              <span
+                className="sm:hidden inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: COLORS.warning + '15', color: COLORS.warning }}
+              >
+                <DollarSign className="w-3 h-3" />
+                Deuda: {formatCurrencyCOP(dashboardData.total_employee_debt)}
+              </span>
+            )}
+          </div>
+          <CurrentPeriodCard
+            period={dashboardData.current_period}
+            colors={COLORS}
+            expanded={expandedPeriod === dashboardData.current_period.id}
+            onExpand={() => setExpandedPeriod(
+              expandedPeriod === dashboardData.current_period!.id ? null : dashboardData.current_period!.id
+            )}
+            totalEmployeeDebt={dashboardData.total_employee_debt || 0}
+          />
+        </section>
+      )}
+
+      {/* Pending Periods */}
+      {hasPending && (
+        <section>
           <h2
-            className="text-xl font-semibold mb-4"
+            className="text-lg font-semibold mb-4"
             style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
           >
-            Períodos Anteriores
+            Períodos Pendientes
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {dashboardData.previous_periods.map((period) => (
-              <PeriodCard
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {dashboardData.pending_periods.map((period) => (
+              <CompactPeriodCard
                 key={period.id}
                 period={period}
                 colors={COLORS}
-                variant="previous"
+                isPending={true}
               />
             ))}
           </div>
-          <div className="flex justify-center mt-4">
+        </section>
+      )}
+
+      {/* Previous Periods */}
+      {hasPrevious && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2
+              className="text-lg font-semibold"
+              style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
+            >
+              Períodos Anteriores
+            </h2>
             <Link
               href="/payroll/history"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:opacity-80"
-              style={{
-                backgroundColor: COLORS.surfaceSubtle,
-                color: COLORS.primary,
-                border: `1px solid ${COLORS.border}`,
-              }}
+              className="text-sm font-medium transition-colors hover:opacity-80"
+              style={{ color: COLORS.primary }}
             >
-              Ver todos los períodos anteriores
-              <ChevronRight className="w-4 h-4" />
+              Ver todos
+              <ChevronRight className="w-3.5 h-3.5 inline ml-0.5" />
             </Link>
           </div>
-        </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {dashboardData.previous_periods.map((period) => (
+              <CompactPeriodCard
+                key={period.id}
+                period={period}
+                colors={COLORS}
+                isPending={false}
+              />
+            ))}
+          </div>
+        </section>
       )}
     </div>
   )
 }
 
 function StatCard({
-  label,
-  value,
-  icon: Icon,
-  color,
-  bgColor,
-  colors,
+  label, value, icon: Icon, color, bgColor, colors, href, cta,
 }: {
   label: string
   value: string
@@ -517,23 +560,38 @@ function StatCard({
   color: string
   bgColor: string
   colors: ReturnType<typeof useColors>
+  href?: string
+  cta?: string
 }) {
+  const Tag = href ? Link : 'div'
+  const props = href ? { href } : {}
+
   return (
-    <div
-      className="p-5 rounded-2xl border"
-      style={{ backgroundColor: colors.surfaceGlass, borderColor: colors.border }}
+    <Tag
+      {...props}
+      className="p-4 md:p-5 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+      style={{
+        backgroundColor: colors.surfaceGlass,
+        borderColor: colors.border,
+        cursor: href ? 'pointer' : 'default',
+      }}
     >
       <div className="flex items-center gap-3 mb-2">
-        <div className="p-2 rounded-lg" style={{ backgroundColor: bgColor }}>
+        <div className="p-2 rounded-lg shrink-0" style={{ backgroundColor: bgColor }}>
           <Icon className="w-4 h-4" style={{ color }} />
         </div>
-        <span className="text-xs font-medium" style={{ color: colors.textMuted }}>
+        <span className="text-xs font-medium truncate" style={{ color: colors.textMuted }}>
           {label}
         </span>
       </div>
-      <p className="text-lg font-bold" style={{ color }}>
+      <p className="text-lg md:text-xl font-bold leading-tight" style={{ color }}>
         {value}
       </p>
-    </div>
+      {href && cta && (
+        <p className="text-xs mt-1.5 group-hover:underline" style={{ color: colors.textMuted }}>
+          {cta} →
+        </p>
+      )}
+    </Tag>
   )
 }
