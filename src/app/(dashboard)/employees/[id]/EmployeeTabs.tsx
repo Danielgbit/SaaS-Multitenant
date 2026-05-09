@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { User, Scissors, KeyRound, Wallet } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { User, Scissors, KeyRound, Wallet, CalendarClock } from 'lucide-react'
 import type { Employee, PaymentType, SalaryFrequency } from '@/types/employees'
 import type { Service } from '@/types/services'
 import { EmployeeService } from '@/services/employees/getEmployeeServices'
@@ -9,7 +9,20 @@ import { EmployeeInfoTab } from './EmployeeInfoTab'
 import { EmployeeServicesTab } from './EmployeeServicesTab'
 import { EmployeeAccessTab } from './EmployeeAccessTab'
 import { EmployeePayrollTab } from './EmployeePayrollTab'
+import { EmployeeAvailabilityTab } from './availability/EmployeeAvailabilityTab'
 import type { Invitation } from '@/types/invitations'
+import type { EmployeeAvailability } from '@/types/availability'
+
+interface Override {
+  id: string
+  employee_id: string
+  date: string
+  start_time: string | null
+  end_time: string | null
+  is_day_off: boolean
+  reason: string | null
+  created_at: string
+}
 
 interface EmployeeTabsProps {
   employee: Employee & {
@@ -25,17 +38,20 @@ interface EmployeeTabsProps {
   }
   allServices: Service[]
   employeeServices: EmployeeService[]
+  availability: EmployeeAvailability[]
+  overrides: Override[]
   pendingInvitation: Invitation | null | undefined
   organizationId: string
   currentUserRole: string
 }
 
-type TabId = 'info' | 'services' | 'payroll' | 'access'
+type TabId = 'info' | 'services' | 'payroll' | 'availability' | 'access'
 
 const tabs = [
   { id: 'info' as const, label: 'Información', icon: User },
   { id: 'services' as const, label: 'Servicios disponibles', icon: Scissors },
   { id: 'payroll' as const, label: 'Nómina', icon: Wallet },
+  { id: 'availability' as const, label: 'Disponibilidad', icon: CalendarClock },
   { id: 'access' as const, label: 'Acceso', icon: KeyRound },
 ]
 
@@ -43,11 +59,21 @@ export function EmployeeTabs({
   employee,
   allServices,
   employeeServices,
+  availability,
+  overrides,
   pendingInvitation,
   organizationId,
   currentUserRole,
 }: EmployeeTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>('info')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const tabParam = params.get('tab') as TabId | null
+    if (tabParam && tabs.some((t) => t.id === tabParam)) {
+      setActiveTab(tabParam)
+    }
+  }, [])
 
   return (
     <div className="
@@ -58,13 +84,12 @@ export function EmployeeTabs({
       shadow-xl shadow-slate-200/40 dark:shadow-none
       overflow-hidden
     ">
-      {/* Tab Navigation - Enhanced */}
+      {/* Tab Navigation */}
       <nav className="
         flex border-b border-slate-100/60 dark:border-slate-700/40 
         bg-slate-50/50 dark:bg-slate-800/30
         relative
       " aria-label="Secciones">
-        {/* Active tab indicator */}
         <div 
           className="absolute bottom-0 h-0.5 bg-gradient-to-r from-[#0F4C5C] to-[#38BDF8] transition-all duration-300 ease-out"
           style={{
@@ -121,6 +146,15 @@ export function EmployeeTabs({
             <EmployeePayrollTab
               employee={employee}
               organizationId={organizationId}
+            />
+          )}
+
+          {activeTab === 'availability' && (
+            <EmployeeAvailabilityTab
+              employeeId={employee.id}
+              employeeName={employee.name}
+              availability={availability}
+              overrides={overrides}
             />
           )}
 

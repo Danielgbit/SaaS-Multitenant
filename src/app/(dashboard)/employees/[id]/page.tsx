@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getEmployeeWithDetails } from '@/services/employees/getEmployeeWithDetails'
 import { getServices } from '@/services/services/getServices'
 import { getEmployeeServices } from '@/services/employees/getEmployeeServices'
+import { getAvailability } from '@/services/availability/getAvailability'
+import { getOverridesForEmployee } from '@/services/availability/getOverrides'
 import { EmployeeTabs } from './EmployeeTabs'
 import { getPendingInvitations } from '@/actions/invitations/getInvitations'
 
@@ -65,6 +67,11 @@ export default async function EmployeeDetailPage({ params }: Props) {
 
   const services = await getServices(orgMember.organization_id)
   const employeeServices = await getEmployeeServices(employeeId)
+
+  const [availability, overrides] = await Promise.all([
+    getAvailability(employeeId),
+    getOverridesForEmployee(employeeId),
+  ])
   
   const { invitations } = await getPendingInvitations(orgMember.organization_id)
   const pendingInvitation = invitations?.find((inv: any) => inv.employee_id === employeeId)
@@ -122,6 +129,8 @@ export default async function EmployeeDetailPage({ params }: Props) {
           employee={employee}
           allServices={services}
           employeeServices={employeeServices}
+          availability={availability}
+          overrides={overrides}
           pendingInvitation={pendingInvitation}
           organizationId={orgMember.organization_id}
           currentUserRole={orgMember.role}
