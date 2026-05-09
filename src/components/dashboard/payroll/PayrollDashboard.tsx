@@ -368,6 +368,14 @@ export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
           bgColor={COLORS.success + '15'}
           colors={COLORS}
         />
+        <StatCard
+          label="Deuda activa empleados"
+          value={formatCurrencyCOP(dashboardData.total_employee_debt || 0)}
+          icon={DollarSign}
+          color={COLORS.warning}
+          bgColor={COLORS.warning + '15'}
+          colors={COLORS}
+        />
       </div>
 
       {/* Current Period */}

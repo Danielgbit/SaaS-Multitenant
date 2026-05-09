@@ -78,6 +78,17 @@ export async function getPayrollDashboard(organizationId: string): Promise<{
   const enrichedPending = await Promise.all(pendingPeriods.map((p: any) => enrichPeriodEmployees(supabase, p)))
   const enrichedPrevious = await Promise.all(previousPeriods.map((p: any) => enrichPeriodEmployees(supabase, p)))
 
+  // Get total employee debt
+  const { data: loanData } = await (supabase as any)
+    .from('employee_loans')
+    .select('remaining_amount')
+    .eq('organization_id', organizationId)
+    .in('status', ['pending', 'partial'])
+
+  const totalEmployeeDebt = (loanData || []).reduce(
+    (sum: number, l: any) => sum + (l.remaining_amount || 0), 0
+  )
+
   return {
     success: true,
     data: {
@@ -87,6 +98,7 @@ export async function getPayrollDashboard(organizationId: string): Promise<{
       total_pending_net: totalPendingNet,
       total_pending_employees: totalPendingEmployees,
       employees_ready_to_pay: employeesReadyToPay,
+      total_employee_debt: totalEmployeeDebt,
     },
   }
 }

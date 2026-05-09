@@ -26,6 +26,8 @@ import { PeriodSelector } from './PeriodSelector'
 import type { CommissionWithDayGroups, EmployeeDebtInfo, PayrollReceipt, PeriodType } from '@/types/payroll'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { toast } from 'sonner'
+import { LoanModal } from './LoanModal'
 
 function useColors() {
   return useThemeColors()
@@ -75,6 +77,7 @@ export function EmployeePayrollDetail({
   const [deductLoans, setDeductLoans] = useState(true)
   const [deductAmount, setDeductAmount] = useState<number | null>(null)
   const [isSalarySeparate, setIsSalarySeparate] = useState(false)
+  const [showLoanModal, setShowLoanModal] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set())
@@ -465,26 +468,35 @@ export function EmployeePayrollDetail({
                 borderColor: debt.is_over_limit ? COLORS.error : debt.is_at_warning_threshold ? COLORS.warning : COLORS.border,
               }}
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle
-                    className="w-5 h-5"
-                    style={{ color: debt.is_over_limit ? COLORS.error : COLORS.warning }}
-                  />
-                  <h2
-                    className="text-lg font-semibold"
-                    style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
-                  >
-                    Préstamos Pendientes
-                  </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle
+                      className="w-5 h-5"
+                      style={{ color: debt.is_over_limit ? COLORS.error : COLORS.warning }}
+                    />
+                    <h2
+                      className="text-lg font-semibold"
+                      style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+                    >
+                      Préstamos Pendientes
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowLoanModal(true)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 hover:opacity-80 cursor-pointer"
+                      style={{ backgroundColor: COLORS.primary + '15', color: COLORS.primary }}
+                    >
+                      + Registrar
+                    </button>
+                    <span
+                      className="text-xl font-bold"
+                      style={{ color: debt.is_over_limit ? COLORS.error : COLORS.warning }}
+                    >
+                      {formatCurrencyCOP(debt.total_pending)}
+                    </span>
+                  </div>
                 </div>
-                <span
-                  className="text-xl font-bold"
-                  style={{ color: debt.is_over_limit ? COLORS.error : COLORS.warning }}
-                >
-                  {formatCurrencyCOP(debt.total_pending)}
-                </span>
-              </div>
 
               {/* Debt Limit Progress */}
               {debt.limit && (
@@ -732,6 +744,31 @@ export function EmployeePayrollDetail({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Loan Modal */}
+      {showLoanModal && (
+        <LoanModal
+          employees={[{
+            id: employee.id,
+            name: employee.name,
+            max_debt_limit: employee.max_debt_limit,
+            debt_warning_threshold: employee.debt_warning_threshold,
+            total_pending_debt: debt?.total_pending || 0,
+          }]}
+          selectedEmployee={{
+            id: employee.id,
+            name: employee.name,
+            max_debt_limit: employee.max_debt_limit,
+            debt_warning_threshold: employee.debt_warning_threshold,
+            total_pending_debt: debt?.total_pending || 0,
+          }}
+          organizationId={organizationId}
+          onClose={() => {
+            setShowLoanModal(false)
+            window.location.reload()
+          }}
+        />
       )}
     </div>
   )

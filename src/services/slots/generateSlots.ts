@@ -484,7 +484,23 @@ export async function generateSlots({
     return []
   }
 
-  // 8. Apply spa global override if exists (further restricts the range)
+  // 8. Determinar break period (descanso)
+  // Priority: override break > availability break
+  let breakStartMinutes: number | null = null
+  let breakEndMinutes: number | null = null
+  let breakReason: string | undefined
+
+  if (override?.break_start && override?.break_end) {
+    breakStartMinutes = timeToMinutesUTC(override.break_start, timezone)
+    breakEndMinutes = timeToMinutesUTC(override.break_end, timezone)
+    breakReason = override.reason || 'Hora de descanso'
+  } else if (availability?.break_start && availability?.break_end) {
+    breakStartMinutes = timeToMinutesUTC(availability.break_start, timezone)
+    breakEndMinutes = timeToMinutesUTC(availability.break_end, timezone)
+    breakReason = availability.break_reason || 'Hora de almuerzo'
+  }
+
+  // 9. Apply spa global override if exists (further restricts the range)
   if (spaOverride?.start_time && spaOverride?.end_time) {
     const spaOverrideStart = timeToMinutesUTC(spaOverride.start_time, timezone)
     const spaOverrideEnd = timeToMinutesUTC(spaOverride.end_time, timezone)
@@ -492,13 +508,13 @@ export async function generateSlots({
     effectiveEndMinutes = Math.min(effectiveEndMinutes, spaOverrideEnd)
   }
 
-  // 9. Si bypassAvailability, usar spa hours como límites
+  // 10. Si bypassAvailability, usar spa hours como límites
   if (bypassAvailability) {
     effectiveStartMinutes = spaStartMinutes
     effectiveEndMinutes = spaEndMinutes
   }
 
-  // 10. Intersectar con horario del spa
+  // 11. Intersectar con horario del spa
   // NOTA: Si el horario del empleado cruza medianoche (ej: 20:00-02:00),
   // actualStartMinutes < actualEndMinutes en UTC normalizado
   // Y la comparación es al revés: el empleado trabaja desde actualStartMinutes
@@ -518,13 +534,13 @@ export async function generateSlots({
     return []
   }
 
-  // 11. Obtener duración del servicio
+  // 12. Obtener duración del servicio
   const serviceDuration = await getServiceDuration(serviceId)
 
-  // 12. Obtener citas existentes para ese día
+  // 13. Obtener citas existentes para ese día
   const bookedSlots = await getAppointmentsForDate(employeeId, date, timezone)
 
-  // 13. Generar slots
+  // 14. Generar slots
   const slots: TimeSlot[] = []
   const slotInterval = settings.slot_interval
   const buffer = settings.buffer_minutes
@@ -549,9 +565,15 @@ export async function generateSlots({
         rangesOverlap(slotStart, slotEnd - buffer, booked.start, booked.end)
       )
 
+      // Verificar si el slot cae dentro del período de descanso
+      const isBreak = breakStartMinutes !== null && breakEndMinutes !== null &&
+        rangesOverlap(slotStart, slotEnd, breakStartMinutes, breakEndMinutes)
+
       // Determinar razón de bloqueo
       let blockedReason: string | undefined
-      if (isBooked) {
+      if (isBreak) {
+        blockedReason = breakReason || 'Hora de descanso'
+      } else if (isBooked) {
         blockedReason = 'Ya reservado'
       } else if (isPast) {
         blockedReason = 'Ya pasó'
@@ -562,7 +584,7 @@ export async function generateSlots({
       slots.push({
         start_time: `${date}T${minutesToTimeLocal(time, timezone)}:00.000`,
         end_time: `${date}T${minutesToTimeLocal(slotEnd - buffer, timezone)}:00.000`,
-        available: !isBooked && !isPast,
+        available: !isBooked && !isPast && !isBreak,
         blockedReason,
       })
     }

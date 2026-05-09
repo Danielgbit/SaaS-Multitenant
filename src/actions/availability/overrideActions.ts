@@ -10,6 +10,8 @@ export interface CreateOverrideInput {
   end_time?: string // HH:MM
   is_day_off?: boolean
   reason?: string
+  break_start?: string // HH:MM
+  break_end?: string // HH:MM
 }
 
 export interface UpdateOverrideInput {
@@ -68,7 +70,7 @@ export async function createOverride(
   }
 
   // 5. Validaciones
-  const { date, start_time, end_time, is_day_off, reason } = input
+  const { date, start_time, end_time, is_day_off, reason, break_start, break_end } = input
 
   // Validar fecha
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/
@@ -93,6 +95,20 @@ export async function createOverride(
     }
   }
 
+  // Validar break times
+  if (break_start || break_end) {
+    if (!break_start || !break_end) {
+      return { error: 'Debes proporcionar hora de inicio y fin del descanso.' }
+    }
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
+    if (!timeRegex.test(break_start) || !timeRegex.test(break_end)) {
+      return { error: 'El formato de hora del descanso debe ser HH:MM (ejemplo: 13:00).' }
+    }
+    if (break_start >= break_end) {
+      return { error: 'La hora de inicio del descanso debe ser menor que la hora de fin.' }
+    }
+  }
+
   // 6. Insertar o actualizar (UPSERT)
   const { data, error: upsertError } = await supabase
     .from('employee_availability_overrides')
@@ -104,6 +120,8 @@ export async function createOverride(
         end_time: input.end_time || null,
         is_day_off: input.is_day_off || false,
         reason: input.reason || null,
+        break_start: input.break_start || null,
+        break_end: input.break_end || null,
         created_by: user.id,
       },
       {

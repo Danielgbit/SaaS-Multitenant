@@ -7,6 +7,9 @@ export type CreateAvailabilityInput = {
   day_of_week: number // 0-6, donde 0 = domingo
   start_time: string // HH:MM formato 24 horas
   end_time: string // HH:MM formato 24 horas
+  break_start?: string | null // HH:MM
+  break_end?: string | null // HH:MM
+  break_reason?: string | null
 }
 
 export type UpdateAvailabilityInput = {

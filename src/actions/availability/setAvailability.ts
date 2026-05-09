@@ -47,7 +47,7 @@ export async function setAvailability(
   }
 
   // 3. Validar datos
-  const { day_of_week, start_time, end_time } = input
+  const { day_of_week, start_time, end_time, break_start, break_end, break_reason } = input
 
   if (day_of_week < 0 || day_of_week > 6) {
     return { error: 'El día de la semana debe estar entre 0 (domingo) y 6 (sábado).' }
@@ -68,6 +68,19 @@ export async function setAvailability(
     return { error: 'La hora de inicio debe ser menor que la hora de fin.' }
   }
 
+  // Validar break times
+  if (break_start || break_end) {
+    if (!break_start || !break_end) {
+      return { error: 'Debes proporcionar hora de inicio y fin del descanso.' }
+    }
+    if (!timeRegex.test(break_start) || !timeRegex.test(break_end)) {
+      return { error: 'El formato de hora del descanso debe ser HH:MM (ejemplo: 13:00).' }
+    }
+    if (break_start >= break_end) {
+      return { error: 'La hora de inicio del descanso debe ser menor que la hora de fin.' }
+    }
+  }
+
   // 4. Insertar o actualizar (UPSERT)
   const { error: upsertError } = await supabase
     .from('employee_availability')
@@ -77,6 +90,9 @@ export async function setAvailability(
         day_of_week,
         start_time,
         end_time,
+        break_start: break_start || null,
+        break_end: break_end || null,
+        break_reason: break_reason || null,
       },
       {
         onConflict: 'employee_id,day_of_week',

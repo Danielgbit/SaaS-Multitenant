@@ -908,8 +908,38 @@ export function NewAppointmentWizard({
                               </span>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                              {mornSlots.filter(s => s.available).map((s, idx) => {
+                              {mornSlots.map((s, idx) => {
+                                const isAvailable = s.available
                                 const isSelected = newAppointmentData.time === formatTime(s.start_time)
+                                const blockedReason = (s as any).blockedReason
+                                if (!isAvailable) {
+                                  return (
+                                    <div
+                                      key={s.start_time}
+                                      className="relative rounded-xl text-left px-3 py-2.5 opacity-60 cursor-not-allowed select-none"
+                                      style={{
+                                        backgroundColor: COLORS.surfaceHover,
+                                        border: `1px solid ${COLORS.border}`,
+                                      }}
+                                      title={blockedReason}
+                                    >
+                                      <div className="flex items-baseline gap-1">
+                                        <span className="text-sm font-bold leading-none" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: COLORS.textMuted }}>
+                                          {formatTime(s.start_time)}
+                                        </span>
+                                        <span className="text-xs" style={{ color: COLORS.textMuted }}>→</span>
+                                        <span className="text-xs font-medium leading-none" style={{ color: COLORS.textMuted }}>
+                                          {formatTime(s.end_time)}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-1 mt-1">
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded font-medium inline-block" style={{ backgroundColor: COLORS.warning + '20', color: COLORS.warning }}>
+                                          {blockedReason || 'No disponible'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )
+                                }
                                 return (
                                   <button
                                     key={s.start_time}
@@ -926,15 +956,12 @@ export function NewAppointmentWizard({
                                       padding: '12px 14px',
                                     }}
                                   >
-                                    {/* Left accent bar */}
                                     {isSelected && (
                                       <div
                                         className="absolute left-1 top-2 bottom-2 w-1 rounded-full"
                                         style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}
                                       />
                                     )}
-
-                                    {/* Time range */}
                                     <div className="flex items-baseline gap-1.5">
                                       <span className="text-base font-bold leading-none" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
                                         {formatTime(s.start_time)}
@@ -946,8 +973,6 @@ export function NewAppointmentWizard({
                                         {formatTime(s.end_time)}
                                       </span>
                                     </div>
-
-                                    {/* Status + duration */}
                                     <div className="flex items-center gap-2 mt-1.5">
                                       <span className="text-[11px] flex items-center gap-1 font-medium" style={{ color: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }}>
                                         <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }} />
@@ -965,7 +990,6 @@ export function NewAppointmentWizard({
                                         </span>
                                       )}
                                     </div>
-
                                     {isSelected && (
                                       <div className="absolute top-1.5 right-1.5">
                                         <CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'rgba(255,255,255,0.7)' }} />
@@ -990,8 +1014,38 @@ export function NewAppointmentWizard({
                               </span>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                              {aftSlots.filter(s => s.available).map((s, idx) => {
+                              {aftSlots.map((s, idx) => {
+                                const isAvailable = s.available
                                 const isSelected = newAppointmentData.time === formatTime(s.start_time)
+                                const blockedReason = (s as any).blockedReason
+                                if (!isAvailable) {
+                                  return (
+                                    <div
+                                      key={s.start_time}
+                                      className="relative rounded-xl text-left px-3 py-2.5 opacity-60 cursor-not-allowed select-none"
+                                      style={{
+                                        backgroundColor: COLORS.surfaceHover,
+                                        border: `1px solid ${COLORS.border}`,
+                                      }}
+                                      title={blockedReason}
+                                    >
+                                      <div className="flex items-baseline gap-1">
+                                        <span className="text-sm font-bold leading-none" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: COLORS.textMuted }}>
+                                          {formatTime(s.start_time)}
+                                        </span>
+                                        <span className="text-xs" style={{ color: COLORS.textMuted }}>→</span>
+                                        <span className="text-xs font-medium leading-none" style={{ color: COLORS.textMuted }}>
+                                          {formatTime(s.end_time)}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-1 mt-1">
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded font-medium inline-block" style={{ backgroundColor: COLORS.warning + '20', color: COLORS.warning }}>
+                                          {blockedReason || 'No disponible'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )
+                                }
                                 return (
                                   <button
                                     key={s.start_time}
@@ -1008,15 +1062,12 @@ export function NewAppointmentWizard({
                                       padding: '12px 14px',
                                     }}
                                   >
-                                    {/* Left accent bar */}
                                     {isSelected && (
                                       <div
                                         className="absolute left-1 top-2 bottom-2 w-1 rounded-full"
                                         style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}
                                       />
                                     )}
-
-                                    {/* Time range */}
                                     <div className="flex items-baseline gap-1.5">
                                       <span className="text-base font-bold leading-none" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
                                         {formatTime(s.start_time)}
@@ -1028,8 +1079,6 @@ export function NewAppointmentWizard({
                                         {formatTime(s.end_time)}
                                       </span>
                                     </div>
-
-                                    {/* Status + duration */}
                                     <div className="flex items-center gap-2 mt-1.5">
                                       <span className="text-[11px] flex items-center gap-1 font-medium" style={{ color: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }}>
                                         <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }} />
@@ -1047,7 +1096,6 @@ export function NewAppointmentWizard({
                                         </span>
                                       )}
                                     </div>
-
                                     {isSelected && (
                                       <div className="absolute top-1.5 right-1.5">
                                         <CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'rgba(255,255,255,0.7)' }} />

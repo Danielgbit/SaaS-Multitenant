@@ -15,8 +15,8 @@ export async function getEmployeesWithOverrides(
       name,
       phone,
       active,
-      employee_availability(id, day_of_week, start_time, end_time),
-      employee_availability_overrides(id, date, start_time, end_time, is_day_off, reason, created_at)
+      employee_availability(id, day_of_week, start_time, end_time, break_start, break_end, break_reason),
+      employee_availability_overrides(id, date, start_time, end_time, is_day_off, reason, created_at, break_start, break_end)
     `)
     .eq('organization_id', organizationId)
     .eq('active', true)

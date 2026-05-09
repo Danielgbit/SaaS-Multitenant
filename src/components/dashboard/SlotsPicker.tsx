@@ -13,6 +13,7 @@ interface TimeSlot {
   start_time: string
   end_time: string
   available: boolean
+  blockedReason?: string
 }
 
 interface SlotsPickerProps {
@@ -385,6 +386,35 @@ export function SlotsPicker({
 
               const isSelected = selectedSlot === slot.start_time
               const isAvailable = slot.available
+              const blockedReason = slot.blockedReason
+
+              if (!isAvailable) {
+                return (
+                  <div
+                    key={slot.start_time}
+                    style={{
+                      fontFamily: 'Plus Jakarta Sans, sans-serif',
+                      borderRadius: DS.radius.md,
+                      padding: '10px 8px',
+                      backgroundColor: '#F1F5F9',
+                      color: '#94A3B8',
+                      cursor: 'not-allowed',
+                      textDecoration: 'line-through',
+                      textAlign: 'center',
+                    }}
+                    className="text-sm"
+                    title={blockedReason}
+                  >
+                    <Clock className="w-4 h-4 inline-block mr-1.5" />
+                    {time}
+                    {blockedReason && (
+                      <div className="text-[10px] mt-0.5 opacity-80 not-italic" style={{ textDecoration: 'none' }}>
+                        {blockedReason}
+                      </div>
+                    )}
+                  </div>
+                )
+              }
 
               return (
                 <button

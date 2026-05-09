@@ -169,6 +169,7 @@ export type PayrollDashboardSummary = {
   total_pending_net: number
   total_pending_employees: number
   employees_ready_to_pay: number
+  total_employee_debt: number
 }
 
 // =====================================================

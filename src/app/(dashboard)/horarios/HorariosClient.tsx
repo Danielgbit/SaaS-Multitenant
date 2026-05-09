@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Clock, Check } from 'lucide-react'
 import { SpaHoursSection } from './components/SpaHoursSection'
 import { GlobalOverridesSection } from './components/GlobalOverridesSection'
+import { BreaksSection } from './components/BreaksSection'
 import { EmployeeSchedulesSection } from './components/EmployeeSchedulesSection'
 import { updateBookingSettings } from '@/actions/settings/updateBookingSettings'
 import type { SpaHours, SpaOverride, EmployeeWithSchedules } from '@/types/availability'
@@ -65,6 +66,11 @@ export function HorariosClient({
       <GlobalOverridesSection
         organizationId={organizationId}
         overrides={spaOverrides}
+      />
+
+      <BreaksSection
+        organizationId={organizationId}
+        employees={employees}
       />
 
       <EmployeeSchedulesSection
