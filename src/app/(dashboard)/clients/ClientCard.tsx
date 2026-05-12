@@ -23,12 +23,8 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase()
 }
 
-function useColors() {
-  return useThemeColors()
-}
-
 export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const initials = getInitials(client.name)
 
   return (
@@ -211,7 +207,7 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
 }
 
 export function ClientCardSkeleton() {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   return (
     <div

@@ -8,10 +8,6 @@ import type { BulkEditField } from './BulkEditModal'
 import PeriodStepSelect from './steps/PeriodStepSelect'
 import EmployeeSelectionStep from './steps/EmployeeSelectionStep'
 
-function useColors() {
-  return useThemeColors()
-}
-
 const MONTHS = [
   { value: '01', label: 'Enero' }, { value: '02', label: 'Febrero' },
   { value: '03', label: 'Marzo' }, { value: '04', label: 'Abril' },
@@ -31,7 +27,7 @@ interface CreatePeriodPageProps {
 export function CreatePeriodPage({
   organizationId, employees, existingPeriods, previousPeriod,
 }: CreatePeriodPageProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const router = useRouter()
   const now = new Date()
 

@@ -3,11 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface LogEntry {
   id: string
   to_email: string
@@ -33,7 +28,7 @@ const emailTypeLabels: Record<string, string> = {
 }
 
 export function EmailLogs({ organizationId }: EmailLogsProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<'all' | 'sent' | 'failed' | 'pending'>('all')

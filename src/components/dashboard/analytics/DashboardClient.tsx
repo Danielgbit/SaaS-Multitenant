@@ -5,10 +5,6 @@ import Link from 'next/link'
 import { Calendar, DollarSign, Users, TrendingUp, XCircle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 type Period = 'today' | 'week' | 'month' | 'year' | 'last7days' | 'last30days'
 
 interface DashboardClientProps {
@@ -19,7 +15,7 @@ interface DashboardClientProps {
 }
 
 export function DashboardClient({ organizationId, role, employeeName, organizationName }: DashboardClientProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<Period>('month')
   const [data, setData] = useState<{
@@ -102,7 +98,7 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
       prefix: 'COP ',
       change: data?.overview.appointmentsChange,
       icon: <TrendingUp className="w-4 h-4" />,
-      iconColor: '#F59E0B'
+      iconColor: COLORS.warning
     },
     {
       title: 'Finalizadas',

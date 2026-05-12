@@ -3,11 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface UpcomingAppointment {
   id: string
   start_time: string
@@ -23,7 +18,7 @@ interface UpcomingAppointmentsProps {
 }
 
 export function UpcomingAppointments({ organizationId }: UpcomingAppointmentsProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [appointments, setAppointments] = useState<UpcomingAppointment[]>([])
   const [loading, setLoading] = useState(true)
 

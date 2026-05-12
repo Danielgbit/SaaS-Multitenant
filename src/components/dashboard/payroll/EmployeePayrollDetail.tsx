@@ -29,10 +29,6 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import { toast } from 'sonner'
 import { LoanModal } from './LoanModal'
 
-function useColors() {
-  return useThemeColors()
-}
-
 type Employee = {
   id: string
   name: string
@@ -64,7 +60,7 @@ export function EmployeePayrollDetail({
   organizationId,
   userRole,
 }: EmployeePayrollDetailProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [mounted, setMounted] = useState(false)
   const [periodStart, setPeriodStart] = useState(defaultPeriod.start)
   const [periodEnd, setPeriodEnd] = useState(defaultPeriod.end)

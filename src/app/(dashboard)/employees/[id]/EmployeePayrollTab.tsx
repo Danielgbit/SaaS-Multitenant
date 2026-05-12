@@ -4,10 +4,6 @@ import { useState } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Briefcase, Percent, DollarSign, AlertTriangle, CheckCircle2, Clock } from 'lucide-react'
 
-function useColors() {
-  return useThemeColors()
-}
-
 type EmployeeWithPayroll = {
   id: string
   name: string
@@ -47,7 +43,7 @@ const salaryFrequencyOptions: { value: SalaryFrequency; label: string }[] = [
 ]
 
 export function EmployeePayrollTab({ employee, organizationId }: EmployeePayrollTabProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)

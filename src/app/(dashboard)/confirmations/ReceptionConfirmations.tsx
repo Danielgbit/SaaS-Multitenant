@@ -12,10 +12,6 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import { confirmByReception } from '@/actions/confirmations/confirmByReception'
 import { PaymentModal } from '@/components/dashboard/PaymentModal'
 
-function useColors() {
-  return useThemeColors()
-}
-
 type FilterStatus = 'pending' | 'completed' | 'all'
 
 function formatCurrencyCOP(amount: number): string {
@@ -72,7 +68,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
   const [mounted, setMounted] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [payingConf, setPayingConf] = useState<any | null>(null)
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   useEffect(() => { setMounted(true) }, [])
 

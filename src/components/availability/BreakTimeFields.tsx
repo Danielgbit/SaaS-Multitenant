@@ -8,9 +8,26 @@ interface BreakTimeFieldsProps {
   breakReason: string
   onChange: (field: 'break_start' | 'break_end' | 'break_reason', value: string) => void
   disabled?: boolean
+  variant?: 'light' | 'dark'
+  placeholder?: string
 }
 
-export function BreakTimeFields({ breakStart, breakEnd, breakReason, onChange, disabled }: BreakTimeFieldsProps) {
+export function BreakTimeFields({
+  breakStart,
+  breakEnd,
+  breakReason,
+  onChange,
+  disabled,
+  variant = 'light',
+  placeholder = 'Ej: Almuerzo',
+}: BreakTimeFieldsProps) {
+  const isDark = variant === 'dark'
+  const inputClass = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 transition-all duration-200 disabled:opacity-50 ${
+    isDark
+      ? 'border-slate-600/50 bg-slate-700/50 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-[#38BDF8]/40 focus:border-[#38BDF8]'
+      : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8]'
+  }`
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -28,7 +45,7 @@ export function BreakTimeFields({ breakStart, breakEnd, breakReason, onChange, d
             value={breakStart}
             onChange={(e) => onChange('break_start', e.target.value)}
             disabled={disabled}
-            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] transition-all duration-200 disabled:opacity-50"
+            className={inputClass}
           />
         </div>
         <div className="space-y-1.5">
@@ -41,7 +58,7 @@ export function BreakTimeFields({ breakStart, breakEnd, breakReason, onChange, d
             value={breakEnd}
             onChange={(e) => onChange('break_end', e.target.value)}
             disabled={disabled}
-            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] transition-all duration-200 disabled:opacity-50"
+            className={inputClass}
           />
         </div>
         <div className="space-y-1.5">
@@ -53,9 +70,9 @@ export function BreakTimeFields({ breakStart, breakEnd, breakReason, onChange, d
             id="break_reason"
             value={breakReason}
             onChange={(e) => onChange('break_reason', e.target.value)}
-            placeholder="Ej: Almuerzo"
+            placeholder={placeholder}
             disabled={disabled}
-            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] transition-all duration-200 disabled:opacity-50 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className={inputClass}
             maxLength={100}
           />
         </div>

@@ -4,11 +4,6 @@ import { useState } from 'react'
 import { AlertTriangle, X, Loader2, Package, CheckCircle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface DeleteInventoryModalProps {
   item: InventoryItem
   organizationId: string
@@ -27,7 +22,7 @@ export function DeleteInventoryModal({
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDeleted, setIsDeleted] = useState(false)
   const [error, setError] = useState('')
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   if (!isOpen) return null
 

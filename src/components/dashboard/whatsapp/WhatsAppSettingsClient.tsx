@@ -3,10 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 interface WhatsAppSettings {
   id: string
   organization_id: string
@@ -37,7 +33,7 @@ const tooltipContent = {
 
 function Tooltip({ content }: { content: string }) {
   const [show, setShow] = useState(false)
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   
   return (
     <div className="relative inline-flex">
@@ -82,7 +78,7 @@ function AccordionSection({
   title: string
   icon: React.ReactNode
   defaultOpen?: boolean
-  COLORS: ReturnType<typeof useColors>
+  COLORS: ReturnType<typeof useThemeColors>
   children: React.ReactNode
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
@@ -139,7 +135,7 @@ function AccordionSection({
 }
 
 export function WhatsAppSettingsClient({ organizationId }: WhatsAppSettingsClientProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [settings, setSettings] = useState<WhatsAppSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

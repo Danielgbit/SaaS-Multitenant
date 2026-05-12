@@ -4,10 +4,6 @@ import { useState, useEffect } from 'react'
 import { Plus, Search, Scissors, X, ChevronDown, Layers, Zap, Clock, DollarSign } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 interface ServicesClientProps {
   services: Service[]
 }
@@ -24,7 +20,7 @@ export function ServicesClient({ services }: ServicesClientProps) {
   const [filter, setFilter] = useState<FilterState>('all')
   const [sortBy, setSortBy] = useState<SortOption>('name')
   const [sortOpen, setSortOpen] = useState(false)
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   const activeCount = services.filter((s) => s.active).length
   const inactiveCount = services.length - activeCount

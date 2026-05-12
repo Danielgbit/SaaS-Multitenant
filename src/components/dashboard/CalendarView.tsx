@@ -54,15 +54,8 @@ import { formatTime, convertTo24Hour, formatDuration } from '@/lib/utils/formatT
 import React from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors(): CalendarColors & { isDark: boolean } {
-  const colors = useThemeColors()
-  return {
-    ...colors,
-  }
-}
-
 export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [showScheduleWarning, setShowScheduleWarning] = useState(true)

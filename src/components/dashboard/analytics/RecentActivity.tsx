@@ -3,11 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface Activity {
   id: string
   type: 'appointment_created' | 'appointment_completed' | 'appointment_cancelled' | 'client_registered'
@@ -21,7 +16,7 @@ interface RecentActivityProps {
 }
 
 export function RecentActivity({ organizationId }: RecentActivityProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
 

@@ -3,10 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 type Employee = {
   id: string
   name: string
@@ -36,7 +32,7 @@ export function LoanModal({
   organizationId,
   onClose,
 }: LoanModalProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)

@@ -6,6 +6,8 @@ import { setAvailability } from '@/actions/availability/setAvailability'
 import { createOverride, deleteOverride } from '@/actions/availability/overrideActions'
 import { WEEKDAYS } from '@/types/availability'
 import type { EmployeeWithSchedules } from '@/types/availability'
+import { BreakTimeFields } from '@/components/availability/BreakTimeFields'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 interface BreaksSectionProps {
   organizationId: string
@@ -33,15 +35,17 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
   const [overrideForms, setOverrideForms] = useState<Record<string, { date: string; start_time: string; end_time: string; reason: string }>>({})
   const [expandedEmployees, setExpandedEmployees] = useState<Record<string, boolean>>({})
 
-  // ── Edición masiva (reusa el panel de creación) ──
+  // Bulk edit state
   const [editEmployeeId, setEditEmployeeId] = useState<string | null>(null)
 
-  // ── Override rápido desde tarjeta colapsada ──
-  const [quickOverrideEmpId, setQuickOverrideEmpId] = useState<string | null>(null)
-  const [quickOverrideForm, setQuickOverrideForm] = useState({ date: '', start_time: '', end_time: '', reason: '' })
+  // Quick override state (uses overrideForms with 'quick:' prefix key)
   const [isSavingQuickOverride, setIsSavingQuickOverride] = useState(false)
   const [quickOverrideError, setQuickOverrideError] = useState<string | null>(null)
   const [showDatePicker, setShowDatePicker] = useState(false)
+
+  // Confirm modal state
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [confirmTarget, setConfirmTarget] = useState<string | null>(null)
 
   // ── Creación / Edición masiva ──
 
@@ -181,8 +185,8 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
     }
   }
 
-  async function handleCreateOverride(employeeId: string, e: React.FormEvent) {
-    e.preventDefault()
+  async function handleCreateOverride(employeeId: string, e?: React.FormEvent) {
+    e?.preventDefault()
     setIsCreatingOverride(employeeId)
 
     const form = overrideForms[employeeId] || { date: '', start_time: '', end_time: '', reason: '' }
@@ -190,24 +194,41 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
     const result = await createOverride({
       employee_id: employeeId,
       date: form.date,
-      start_time: null,
-      end_time: null,
+      start_time: form.start_time || undefined,
+      end_time: form.end_time || undefined,
       is_day_off: false,
       reason: form.reason || 'Descanso',
-      break_start: form.start_time || undefined,
-      break_end: form.end_time || undefined,
+      break_start: undefined,
+      break_end: undefined,
     })
 
     setIsCreatingOverride(null)
     if (result.success) {
-      setOverrideForms((prev) => ({ ...prev, [employeeId]: { date: '', start_time: '', end_time: '', reason: '' } }))
+      setOverrideForms((prev) => {
+        const copy = { ...prev }
+        delete copy[employeeId]
+        return copy
+      })
     }
   }
 
   async function handleDeleteOverride(overrideId: string) {
-    setIsDeletingOverride(overrideId)
-    await deleteOverride(overrideId)
+    setConfirmTarget(overrideId)
+    setConfirmOpen(true)
+  }
+
+  async function handleConfirmDelete() {
+    if (!confirmTarget) return
+    setIsDeletingOverride(confirmTarget)
+    await deleteOverride(confirmTarget)
     setIsDeletingOverride(null)
+    setConfirmOpen(false)
+    setConfirmTarget(null)
+  }
+
+  function handleCancelDelete() {
+    setConfirmOpen(false)
+    setConfirmTarget(null)
   }
 
   function getBreaksOverrides(employee: EmployeeWithSchedules) {
@@ -217,6 +238,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
   const inputClass = "w-full px-3 py-2 rounded-lg border border-slate-600/50 bg-slate-700/50 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/40 focus:border-[#38BDF8] placeholder:text-slate-500 transition-all duration-200"
 
   return (
+    <>
     <section className="mb-8 p-5 sm:p-6 bg-slate-800/80 rounded-2xl border border-slate-700/50 shadow-xl backdrop-blur-sm">
       {/* Header */}
       <div className="flex items-start sm:items-center justify-between gap-4 mb-5">
@@ -479,19 +501,25 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                         +{breakOverridesCount}
                       </span>
                     )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setQuickOverrideEmpId(quickOverrideEmpId === employee.id ? null : employee.id)
-                        setQuickOverrideForm({ date: '', start_time: '', end_time: '', reason: '' })
-                        setQuickOverrideError(null)
-                        setShowDatePicker(false)
-                      }}
-                      className="w-7 h-7 rounded-full flex items-center justify-center bg-slate-600/50 hover:bg-[#38BDF8]/20 transition-all duration-200 cursor-pointer"
-                      aria-label="Agregar excepción de descanso"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-slate-400" />
-                    </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const empId = quickOverrideEmpId === employee.id ? null : employee.id
+                          setQuickOverrideEmpId(empId)
+                          if (empId) {
+                            setOverrideForms((prev) => ({
+                              ...prev,
+                              [`quick:${employee.id}`]: { date: '', start_time: '', end_time: '', reason: '' },
+                            }))
+                          }
+                          setQuickOverrideError(null)
+                          setShowDatePicker(false)
+                        }}
+                        className="w-7 h-7 rounded-full flex items-center justify-center bg-slate-600/50 hover:bg-[#38BDF8]/20 transition-all duration-200 cursor-pointer"
+                        aria-label="Agregar excepción de descanso"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-slate-400" />
+                      </button>
                     <div
                       className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
                         isExpanded
@@ -549,11 +577,12 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                       <form
                         onSubmit={(e) => {
                           e.preventDefault()
-                          if (!quickOverrideForm.date || !quickOverrideForm.start_time || !quickOverrideForm.end_time) {
+                          const form = overrideForms[`quick:${employee.id}`]
+                          if (!form?.date || !form.start_time || !form.end_time) {
                             setQuickOverrideError('Completa todos los campos.')
                             return
                           }
-                          if (quickOverrideForm.start_time >= quickOverrideForm.end_time) {
+                          if (form.start_time >= form.end_time) {
                             setQuickOverrideError('El inicio debe ser antes del fin.')
                             return
                           }
@@ -561,17 +590,22 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                           setQuickOverrideError(null)
                           createOverride({
                             employee_id: employee.id,
-                            date: quickOverrideForm.date,
-                            start_time: null,
-                            end_time: null,
+                            date: form.date,
+                            start_time: form.start_time,
+                            end_time: form.end_time,
                             is_day_off: false,
-                            reason: quickOverrideForm.reason || 'Cambio de horario',
-                            break_start: quickOverrideForm.start_time,
-                            break_end: quickOverrideForm.end_time,
+                            reason: form.reason || 'Cambio de horario',
+                            break_start: undefined,
+                            break_end: undefined,
                           }).then((result) => {
                             setIsSavingQuickOverride(false)
                             if (result.success) {
                               setQuickOverrideEmpId(null)
+                              setOverrideForms((prev) => {
+                                const copy = { ...prev }
+                                delete copy[`quick:${employee.id}`]
+                                return copy
+                              })
                             } else {
                               setQuickOverrideError(result.error || 'Error al guardar')
                             }
@@ -591,7 +625,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                             ¿Qué día?
                           </label>
                           <div className="flex flex-wrap gap-1.5">
-                            {(quickOverrideEmpId ? WEEKDAYS : []).map((wd) => {
+                            {WEEKDAYS.map((wd) => {
                               const nextDate = (() => {
                                 const today = new Date()
                                 const currentDay = today.getDay()
@@ -601,13 +635,17 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                 next.setDate(today.getDate() + diff)
                                 return next.toISOString().split('T')[0]
                               })()
-                              const isSelected = quickOverrideForm.date === nextDate
+                              const form = overrideForms[`quick:${employee.id}`]
+                              const isSelected = form?.date === nextDate
                               return (
                                 <button
                                   key={wd.value}
                                   type="button"
                                   onClick={() => {
-                                    setQuickOverrideForm((p) => ({ ...p, date: nextDate }))
+                                    setOverrideForms((prev) => ({
+                                      ...prev,
+                                      [`quick:${employee.id}`]: { ...(prev[`quick:${employee.id}`] || { start_time: '', end_time: '', reason: '' }), date: nextDate },
+                                    }))
                                     setShowDatePicker(false)
                                     setQuickOverrideError(null)
                                   }}
@@ -623,10 +661,10 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                             })}
                           </div>
 
-                          {quickOverrideForm.date && !showDatePicker && (
+                          {overrideForms[`quick:${employee.id}`]?.date && !showDatePicker && (
                             <div className="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-amber-500/10">
                               <span className="text-[11px] text-slate-400">
-                                → {new Date(quickOverrideForm.date + 'T00:00:00').toLocaleDateString('es-ES', {
+                                → {new Date(overrideForms[`quick:${employee.id}`]!.date + 'T00:00:00').toLocaleDateString('es-ES', {
                                   day: 'numeric',
                                   month: 'long',
                                   year: 'numeric',
@@ -648,8 +686,13 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                 type="date"
                                 required
                                 min={new Date().toISOString().split('T')[0]}
-                                value={quickOverrideForm.date}
-                                onChange={(e) => setQuickOverrideForm((p) => ({ ...p, date: e.target.value }))}
+                                value={overrideForms[`quick:${employee.id}`]?.date || ''}
+                                onChange={(e) =>
+                                  setOverrideForms((prev) => ({
+                                    ...prev,
+                                    [`quick:${employee.id}`]: { ...(prev[`quick:${employee.id}`] || { start_time: '', end_time: '', reason: '' }), date: e.target.value },
+                                  }))
+                                }
                                 className="w-full px-3 py-2 rounded-xl border text-sm text-white focus:outline-none focus:ring-2 transition-all duration-200"
                                 style={{
                                   backgroundColor: 'rgba(15, 23, 42, 0.5)',
@@ -676,8 +719,13 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                 <input
                                   type="time"
                                   required
-                                  value={quickOverrideForm.start_time}
-                                  onChange={(e) => setQuickOverrideForm((p) => ({ ...p, start_time: e.target.value }))}
+                                  value={overrideForms[`quick:${employee.id}`]?.start_time || ''}
+                                  onChange={(e) =>
+                                    setOverrideForms((prev) => ({
+                                      ...prev,
+                                      [`quick:${employee.id}`]: { ...(prev[`quick:${employee.id}`] || { date: '', end_time: '', reason: '' }), start_time: e.target.value },
+                                    }))
+                                  }
                                   className="w-full px-3 py-2 rounded-xl border text-xs text-white focus:outline-none focus:ring-2 transition-all duration-200"
                                   style={{
                                     backgroundColor: 'rgba(15, 23, 42, 0.5)',
@@ -697,8 +745,13 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                 <input
                                   type="time"
                                   required
-                                  value={quickOverrideForm.end_time}
-                                  onChange={(e) => setQuickOverrideForm((p) => ({ ...p, end_time: e.target.value }))}
+                                  value={overrideForms[`quick:${employee.id}`]?.end_time || ''}
+                                  onChange={(e) =>
+                                    setOverrideForms((prev) => ({
+                                      ...prev,
+                                      [`quick:${employee.id}`]: { ...(prev[`quick:${employee.id}`] || { date: '', start_time: '', reason: '' }), end_time: e.target.value },
+                                    }))
+                                  }
                                   className="w-full px-3 py-2 rounded-xl border text-xs text-white focus:outline-none focus:ring-2 transition-all duration-200"
                                   style={{
                                     backgroundColor: 'rgba(15, 23, 42, 0.5)',
@@ -715,8 +768,13 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                 <input
                                   type="text"
                                   placeholder="Cambio horario"
-                                  value={quickOverrideForm.reason}
-                                  onChange={(e) => setQuickOverrideForm((p) => ({ ...p, reason: e.target.value }))}
+                                  value={overrideForms[`quick:${employee.id}`]?.reason || ''}
+                                  onChange={(e) =>
+                                    setOverrideForms((prev) => ({
+                                      ...prev,
+                                      [`quick:${employee.id}`]: { ...(prev[`quick:${employee.id}`] || { date: '', start_time: '', end_time: '' }), reason: e.target.value },
+                                    }))
+                                  }
                                   className="w-full px-3 py-2 rounded-xl border text-xs text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 transition-all duration-200"
                                   style={{
                                     backgroundColor: 'rgba(15, 23, 42, 0.5)',
@@ -908,10 +966,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                         </div>
 
                         {overrideForms[employee.id] && (
-                          <form
-                            onSubmit={(e) => handleCreateOverride(employee.id, e)}
-                            className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-slate-700/30 border border-slate-600/20 mb-2"
-                          >
+                          <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-slate-700/30 border border-slate-600/20 mb-2">
                             <input
                               type="date"
                               required
@@ -925,47 +980,26 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                               }
                               className={`${inputClass} w-36`}
                             />
-                            <input
-                              type="time"
-                              required
-                              value={overrideForms[employee.id]?.start_time || ''}
-                              onChange={(e) =>
-                                setOverrideForms((prev) => ({
-                                  ...prev,
-                                  [employee.id]: { ...prev[employee.id], start_time: e.target.value },
-                                }))
-                              }
-                              className={`${inputClass} w-24`}
-                            />
-                            <span className="text-slate-500 text-xs">→</span>
-                            <input
-                              type="time"
-                              required
-                              value={overrideForms[employee.id]?.end_time || ''}
-                              onChange={(e) =>
-                                setOverrideForms((prev) => ({
-                                  ...prev,
-                                  [employee.id]: { ...prev[employee.id], end_time: e.target.value },
-                                }))
-                              }
-                              className={`${inputClass} w-24`}
-                            />
-                            <input
-                              type="text"
-                              placeholder="Motivo"
-                              value={overrideForms[employee.id]?.reason || ''}
-                              onChange={(e) =>
-                                setOverrideForms((prev) => ({
-                                  ...prev,
-                                  [employee.id]: { ...prev[employee.id], reason: e.target.value },
-                                }))
-                              }
-                              className={`${inputClass} w-28`}
-                            />
+                            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                              <BreakTimeFields
+                                breakStart={overrideForms[employee.id]?.start_time || ''}
+                                breakEnd={overrideForms[employee.id]?.end_time || ''}
+                                breakReason={overrideForms[employee.id]?.reason || ''}
+                                onChange={(field, value) =>
+                                  setOverrideForms((prev) => ({
+                                    ...prev,
+                                    [employee.id]: { ...prev[employee.id], [field]: value },
+                                  }))
+                                }
+                                variant="dark"
+                                placeholder="Motivo"
+                              />
+                            </div>
                             <button
-                              type="submit"
+                              type="button"
+                              onClick={() => handleCreateOverride(employee.id, { preventDefault: () => {} } as React.FormEvent)}
                               disabled={isCreatingOverride === employee.id}
-                              className="px-3 py-2 rounded-lg bg-[#38BDF8] text-white text-xs font-medium hover:bg-[#38BDF8]/90 transition-all duration-200 disabled:opacity-60 cursor-pointer"
+                              className="px-3 py-2 rounded-lg bg-[#38BDF8] text-white text-xs font-medium hover:bg-[#38BDF8]/90 transition-all duration-200 disabled:opacity-60 cursor-pointer whitespace-nowrap"
                             >
                               {isCreatingOverride === employee.id ? '...' : 'Crear'}
                             </button>
@@ -982,7 +1016,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
-                          </form>
+                          </div>
                         )}
 
                         {breakOverridesCount > 0 && (
@@ -1027,6 +1061,18 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
         </div>
       )}
     </section>
+
+    <ConfirmModal
+      isOpen={confirmOpen}
+      onClose={handleCancelDelete}
+      onConfirm={handleConfirmDelete}
+      title="Eliminar excepción"
+      description="¿Eliminar esta excepción de descanso?"
+      confirmText="Eliminar"
+      cancelText="Cancelar"
+      variant="warning"
+    />
+    </>
   )
 }
 

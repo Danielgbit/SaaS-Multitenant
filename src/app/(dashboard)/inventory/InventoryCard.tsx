@@ -4,11 +4,6 @@ import { useState } from 'react'
 import { Pencil, Trash2, AlertTriangle, Package, TrendingUp, TrendingDown } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface InventoryCardProps {
   item: InventoryItem
   onEdit: (item: InventoryItem) => void
@@ -18,7 +13,7 @@ interface InventoryCardProps {
 export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   const isCriticalStock = item.quantity === 0
   const isLowStock = item.quantity > 0 && item.quantity <= item.min_quantity

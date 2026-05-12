@@ -4,10 +4,6 @@ import { useState } from 'react'
 import { Settings, Building2, Clock, Bell, Loader2, Check, AlertCircle, Database } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 const TIMEZONES = [
   { value: 'UTC', label: 'UTC' },
   { value: 'Europe/Madrid', label: 'España (Madrid)' },
@@ -72,7 +68,7 @@ export default function SettingsClient({
   const [loading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   
   const [bookingSettings, setBookingSettings] = useState<Required<BookingSettings>>(
     {

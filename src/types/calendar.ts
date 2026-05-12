@@ -80,25 +80,49 @@ export interface EditAppointmentData {
   notes: string
 }
 
+// NOTE: CalendarColors extends ThemeColors with calendar-specific tokens (surfaceHover, glass)
+// This interface should stay in sync with ThemeColors from @/hooks/useThemeColors
 export interface CalendarColors {
   primary: string
   primaryLight: string
+  primaryGradient: string
+  primarySubtle: string
   surface: string
   surfaceSubtle: string
+  surfaceGlass: string
+  surfaceGlassStrong?: string
   surfaceHover: string
   border: string
-  borderLight: string
+  borderLight?: string
+  borderFocus: string
   textPrimary: string
   textSecondary: string
   textMuted: string
   success: string
-  successLight: string
+  successLight?: string
   warning: string
-  warningLight: string
+  warningLight?: string
   error: string
-  errorLight: string
-  overlay: string
+  errorLight?: string
+  danger: string
+  dangerLight: string
+  amber: string
+  amberLight: string
+  gold: string
+  goldLight: string
+  info: string
+  infoLight?: string
+  overlay?: string
   glass: string
+  radius: { sm: string; md: string; lg: string; xl: string }
+  shadow: { sm: string; md: string; lg: string; xl: string }
+  shadowInput: string
+  transition: string
+  headerBg: string
+  headerText: string
+  headerTextMuted: string
+  whatsapp: string
+  whatsappLight: string
   isDark: boolean
 }
 

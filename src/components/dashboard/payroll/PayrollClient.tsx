@@ -24,10 +24,6 @@ import { PeriodSelector } from './PeriodSelector'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 type Employee = {
   id: string
   name: string
@@ -71,7 +67,7 @@ export function PayrollClient({
   settings,
   userRole,
 }: PayrollClientProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [showLoanModal, setShowLoanModal] = useState(false)
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [mounted, setMounted] = useState(false)

@@ -60,10 +60,6 @@ function getConfirmationMethodLabel(method: string | null): string {
 
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 type TabId = 'info' | 'appointments' | 'notes'
 
 const tabs = [
@@ -73,7 +69,7 @@ const tabs = [
 ]
 
 function InfoTab({ client }: { client: Client }) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -351,7 +347,7 @@ function InfoTab({ client }: { client: Client }) {
 }
 
 function AppointmentsTab({ appointments }: { appointments: AppointmentRow[] }) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -470,7 +466,7 @@ function AppointmentsTab({ appointments }: { appointments: AppointmentRow[] }) {
 }
 
 function NotesTab({ client }: { client: Client }) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   return (
     <div 
@@ -516,7 +512,7 @@ function NotesTab({ client }: { client: Client }) {
 }
 
 export function ClientTabs({ client, appointments, organizationId }: ClientTabsProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabId>('info')
   const [editing, setEditing] = useState(false)

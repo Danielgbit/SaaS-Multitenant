@@ -2,12 +2,8 @@
 
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 export function StatsCard({ title, value, change, prefix = '', suffix = '', icon, iconColor = '#0F4C5C', loading, delay = 0 }: StatsCardProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   const isPositive = change !== undefined && change >= 0
   

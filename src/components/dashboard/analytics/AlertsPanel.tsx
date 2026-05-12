@@ -3,11 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface Alert {
   id: string
   type: 'whatsapp_failed' | 'unconfirmed_appointment' | 'info'
@@ -24,7 +19,7 @@ interface AlertsPanelProps {
 }
 
 export function AlertsPanel({ organizationId }: AlertsPanelProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
 

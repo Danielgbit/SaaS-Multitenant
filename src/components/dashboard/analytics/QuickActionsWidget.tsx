@@ -2,11 +2,6 @@
 
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 const quickActions = [
   {
     label: 'Nueva Cita',
@@ -33,13 +28,13 @@ const quickActions = [
     label: 'Nómina',
     href: '/payroll',
     icon: Receipt,
-    color: '#F59E0B',
-    bgColor: 'rgba(245, 158, 11, 0.1)',
+    color: COLORS.warning,
+    bgColor: COLORS.warningLight || 'rgba(245, 158, 11, 0.1)',
   },
 ]
 
 export function QuickActionsWidget() {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   return (
     <div

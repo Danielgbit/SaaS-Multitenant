@@ -18,10 +18,6 @@ import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { PayrollPeriodWithEmployees, PeriodEmployeeSummary } from '@/types/payroll'
 
-function useColors() {
-  return useThemeColors()
-}
-
 const MONTHS_ES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
@@ -36,7 +32,7 @@ function parsePeriod(period: string) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const config = {
     draft: {
       bg: COLORS.warning + '20', color: COLORS.warning, icon: Clock, label: 'Borrador',
@@ -67,7 +63,7 @@ function EmployeeRow({
   employee, colors, compact,
 }: {
   employee: PeriodEmployeeSummary
-  colors: ReturnType<typeof useColors>
+  colors: ReturnType<typeof useThemeColors>
   compact: boolean
 }) {
   const initial = employee.name.charAt(0).toUpperCase()
@@ -142,7 +138,7 @@ function CurrentPeriodCard({
   period, colors, expanded, onExpand, totalEmployeeDebt,
 }: {
   period: PayrollPeriodWithEmployees
-  colors: ReturnType<typeof useColors>
+  colors: ReturnType<typeof useThemeColors>
   expanded: boolean
   onExpand?: () => void
   totalEmployeeDebt: number
@@ -278,7 +274,7 @@ function CurrentPeriodCard({
 
 function CompactPeriodCard({ period, colors, isPending }: {
   period: PayrollPeriodWithEmployees
-  colors: ReturnType<typeof useColors>
+  colors: ReturnType<typeof useThemeColors>
   isPending: boolean
 }) {
   const { label } = parsePeriod(period.period)
@@ -342,7 +338,7 @@ interface PayrollDashboardProps {
 }
 
 export function PayrollDashboard({ dashboardData }: PayrollDashboardProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [expandedPeriod, setExpandedPeriod] = useState<string | null>(null)
 
   const hasPending = dashboardData.pending_periods && dashboardData.pending_periods.length > 0
@@ -559,7 +555,7 @@ function StatCard({
   icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
   color: string
   bgColor: string
-  colors: ReturnType<typeof useColors>
+  colors: ReturnType<typeof useThemeColors>
   href?: string
   cta?: string
 }) {

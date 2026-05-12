@@ -3,10 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 interface RetentionSettings {
   auto_retention_days: number
   auto_purge_enabled: boolean
@@ -21,7 +17,7 @@ export function DataRetentionClient({
   organizationId,
   initialSettings
 }: DataRetentionClientProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [mounted, setMounted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)

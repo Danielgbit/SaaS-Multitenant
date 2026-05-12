@@ -5,10 +5,6 @@ import Link from 'next/link'
 import { ArrowLeft, DollarSign, AlertTriangle, ChevronRight } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
@@ -51,7 +47,7 @@ interface DebtsOverviewProps {
 }
 
 export function DebtsOverview({ clientAccounts, employeeLoans }: DebtsOverviewProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [tab, setTab] = useState<'all' | 'clients' | 'employees'>('all')
 
   const totalClientDebt = clientAccounts.reduce((s, a) => s + a.balance, 0)

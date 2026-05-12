@@ -10,10 +10,6 @@ import {
 } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 interface Service {
   id: string
   name: string
@@ -46,7 +42,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [mounted, setMounted] = useState(false)
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   useEffect(() => {
     setMounted(true)

@@ -3,10 +3,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 function FloatingInput({
   label,
   name,
@@ -37,7 +33,7 @@ function FloatingInput({
   icon?: React.ElementType
   hint?: string
   isDark: boolean
-  COLORS: ReturnType<typeof useColors>
+  COLORS: ReturnType<typeof useThemeColors>
   inputRef?: React.RefObject<HTMLInputElement | null>
 }) {
   const [isFocused, setIsFocused] = useState(false)
@@ -169,7 +165,7 @@ function FloatingTextarea({
   maxLength?: number
   rows?: number
   isDark: boolean
-  COLORS: ReturnType<typeof useColors>
+  COLORS: ReturnType<typeof useThemeColors>
 }) {
   const [isFocused, setIsFocused] = useState(false)
   const hasValue = value.length > 0
@@ -256,7 +252,7 @@ function FloatingTextarea({
   )
 }
 
-function ConfirmationTooltip({ COLORS }: { COLORS: ReturnType<typeof useColors> }) {
+function ConfirmationTooltip({ COLORS }: {   COLORS: ReturnType<typeof useThemeColors> }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -337,7 +333,7 @@ function ConfirmationToggle({
 }: { 
   enabled: boolean
   onChange: (enabled: boolean) => void
-  COLORS: ReturnType<typeof useColors>
+  COLORS: ReturnType<typeof useThemeColors>
 }) {
   return (
     <div 
@@ -405,7 +401,7 @@ function MethodSelector({
   method: ConfirmationMethod
   onChange: (method: ConfirmationMethod) => void
   disabled?: boolean
-  COLORS: ReturnType<typeof useColors>
+  COLORS: ReturnType<typeof useThemeColors>
 }) {
   const methods: { value: ConfirmationMethod; label: string; icon: React.ElementType; description: string }[] = [
     { 
@@ -509,7 +505,7 @@ export function EditClientModal({
   onClose,
   onSuccess,
 }: EditClientModalProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const isNewClient = !client
 
   const [name, setName] = useState('')

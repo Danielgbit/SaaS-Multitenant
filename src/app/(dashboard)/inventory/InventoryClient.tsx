@@ -5,10 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Plus, Package, Search, AlertTriangle, FolderOpen, ChevronDown, X, Loader2 } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 interface InventoryClientProps {
   items: InventoryItem[]
   categories: string[]
@@ -24,7 +20,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
   const [selectedCategory, setSelectedCategory] = useState('')
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
   const [deletingItem, setDeletingItem] = useState<InventoryItem | null>(null)

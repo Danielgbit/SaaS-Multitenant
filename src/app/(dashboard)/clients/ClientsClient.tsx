@@ -5,13 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Users, Plus, Search, X, UserCircle } from 'lucide-react'
 
-function useColors() {
-  return useThemeColors()
-}
-
 export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
   const router = useRouter()
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'recent'>('all')

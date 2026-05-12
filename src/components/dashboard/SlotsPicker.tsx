@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { Loader2, Clock, CheckCircle2, XCircle, Calendar } from 'lucide-react'
 import { createAppointment } from '@/actions/appointments/createAppointment'
 import { ClientSelector } from './ClientSelector'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 // =============================================================================
 // TIPOS
@@ -37,7 +38,7 @@ export function SlotsPicker({
   serviceDuration,
   onSuccess,
 }: SlotsPickerProps) {
-  const [selectedDate, setSelectedDate] = useState<string>('')
+const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [selectedClientId, setSelectedClientId] = useState<string>('')
   const [selectedClientName, setSelectedClientName] = useState<string>('')
@@ -47,22 +48,21 @@ export function SlotsPicker({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  // Fecha mínima (hoy)
+  const COLORS = useThemeColors()
   const today = new Date().toISOString().split('T')[0]
 
-  // Design system tokens
   const DS = {
-    primary: '#0F4C5C',
-    primaryHover: '#0C3E4A',
-    primaryLight: '#E6F1F4',
-    bg: '#FAFAF9',
-    surface: '#FFFFFF',
-    textPrimary: '#0F172A',
-    textSecondary: '#475569',
-    border: '#E2E8F0',
-    success: '#16A34A',
-    warning: '#F59E0B',
-    error: '#DC2626',
+    primary: COLORS.primary,
+    primaryHover: COLORS.primary,
+    primaryLight: COLORS.primaryLight,
+    bg: COLORS.surfaceSubtle,
+    surface: COLORS.surface,
+    textPrimary: COLORS.textPrimary,
+    textSecondary: COLORS.textSecondary,
+    border: COLORS.border,
+    success: COLORS.success,
+    warning: COLORS.warning,
+    error: COLORS.error,
     radius: {
       sm: '6px',
       md: '10px',

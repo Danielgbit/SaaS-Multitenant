@@ -8,10 +8,6 @@ import type { PurgeCandidate } from '@/lib/cleanup-helpers'
 import { getAppointmentsByFilters } from '@/lib/cleanup-helpers'
 import { purgeAppointments, deleteAppointmentsByIds } from '@/actions/appointments/purgeAppointments'
 
-function useColors() {
-  return useThemeColors()
-}
-
 interface PurgeModalProps {
   organizationId: string
   initialTab?: 'selection' | 'days'
@@ -20,7 +16,7 @@ interface PurgeModalProps {
 }
 
 export function PurgeModal({ organizationId, initialTab = 'selection', onClose, onSuccess }: PurgeModalProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState<'selection' | 'days'>(initialTab)
 

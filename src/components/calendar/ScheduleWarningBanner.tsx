@@ -21,9 +21,9 @@ export function ScheduleWarningBanner({
     <div
       className="relative rounded-xl overflow-hidden animate-in fade-in duration-200"
       style={{
-        backgroundColor: COLORS.isDark ? '#451A0320' : '#FEF3C7',
-        border: `1px solid ${COLORS.isDark ? '#F59E0B40' : '#FDE68A'}`,
-        borderLeft: `4px solid #F59E0B`,
+        backgroundColor: COLORS.isDark ? '#451A0320' : COLORS.warningLight,
+        border: `1px solid ${COLORS.isDark ? COLORS.warning + '40' : COLORS.warningLight}`,
+        borderLeft: `4px solid ${COLORS.warning}`,
       }}
       role="alert"
       aria-live="polite"
@@ -32,16 +32,16 @@ export function ScheduleWarningBanner({
         <div className="flex items-start gap-3">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: '#F59E0B20' }}
+            style={{ backgroundColor: COLORS.warning + '20' }}
           >
-            <AlertTriangle className="w-5 h-5" style={{ color: '#F59E0B' }} />
+            <AlertTriangle className="w-5 h-5" style={{ color: COLORS.warning }} />
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <h4
                 className="font-semibold text-sm"
-                style={{ color: COLORS.isDark ? '#FBBF24' : '#92400E', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                style={{ color: COLORS.isDark ? '#FBBF24' : COLORS.warning, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
               >
                 Sin horarios configurados
               </h4>
@@ -68,7 +68,7 @@ export function ScheduleWarningBanner({
               onClick={onConfigure}
               className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:brightness-110 cursor-pointer"
               style={{
-                backgroundColor: '#F59E0B',
+                backgroundColor: COLORS.warning,
                 color: '#FFFFFF',
                 fontFamily: 'Plus Jakarta Sans, sans-serif'
               }}

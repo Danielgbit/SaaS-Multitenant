@@ -2,12 +2,8 @@
 
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 export function TrendChart({ data, loading }: TrendChartProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   function CustomTooltip({ active, payload, label }: any) {
     if (!active || !payload?.length) return null

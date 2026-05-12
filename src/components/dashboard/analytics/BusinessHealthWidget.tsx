@@ -3,17 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface BusinessHealthWidgetProps {
   organizationId: string
 }
 
 export function BusinessHealthWidget({ organizationId }: BusinessHealthWidgetProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<{
     todayAppointments: number

@@ -10,10 +10,6 @@ import {
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 interface ChangesPreviewModalProps {
   changes: PendingChange[]
   onCancel: () => void
@@ -46,7 +42,7 @@ export function ChangesPreviewModal({
   onConfirm,
   loading,
 }: ChangesPreviewModalProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   const hasSalaryImpact = changes.some(c =>
     c.field === 'base_salary' ||

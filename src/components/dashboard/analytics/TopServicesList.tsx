@@ -2,12 +2,8 @@
 
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 export function TopServicesList({ services, loading }: TopServicesListProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   if (loading) {
     return (

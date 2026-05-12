@@ -4,11 +4,6 @@ import { useState, useEffect } from 'react'
 import { X, Package, Tag, DollarSign, Boxes, AlertCircle, CheckCircle, Loader2, HelpCircle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface InventoryFormModalProps {
   item: InventoryItem | null
   categories: string[]
@@ -42,7 +37,7 @@ export function InventoryFormModal({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [showTooltip, setShowTooltip] = useState<string | null>(null)
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   const [formData, setFormData] = useState({
     name: '',

@@ -3,10 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 interface ClientAccountDetailClientProps {
   client: {
     id: string
@@ -36,7 +32,7 @@ export function ClientAccountDetailClient({
   products,
   organizationId,
 }: ClientAccountDetailClientProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [mounted, setMounted] = useState(false)
   const [showSaleModal, setShowSaleModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)

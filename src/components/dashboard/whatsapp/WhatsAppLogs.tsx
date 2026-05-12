@@ -3,11 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface LogEntry {
   id: string
   phone_number: string
@@ -33,7 +28,7 @@ const messageTypeLabels: Record<string, string> = {
 }
 
 export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<'all' | 'sent' | 'failed' | 'pending'>('all')

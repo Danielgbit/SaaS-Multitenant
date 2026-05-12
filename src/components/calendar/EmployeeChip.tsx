@@ -116,7 +116,7 @@ export function EmployeeChip({
       {!employee.hasConfiguredSchedule && (
         <div
           className="absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: '#F59E0B' }}
+          style={{ backgroundColor: COLORS.warning }}
           title="Sin horarios configurados"
         >
           <AlertTriangle className="w-3 h-3 text-white" />

@@ -32,10 +32,6 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import { toast } from 'sonner'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 
-function useColors() {
-  return useThemeColors()
-}
-
 const MONTHS_ES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
@@ -51,7 +47,7 @@ function parsePeriod(period: string): { month: number; year: number; label: stri
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const config = {
     draft: { bg: COLORS.warning + '20', color: COLORS.warning, icon: Clock, label: 'Borrador' },
     approved: { bg: COLORS.primary + '20', color: COLORS.primary, icon: CheckCircle, label: 'Aprobado' },
@@ -72,7 +68,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function ContractTypeBadge({ type }: { type: string }) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const config = type === 'laboral'
     ? { bg: COLORS.primary + '15', color: COLORS.primary, label: 'Laboral' }
     : { bg: COLORS.success + '15', color: COLORS.success, label: 'Prestación' }
@@ -88,7 +84,7 @@ function ContractTypeBadge({ type }: { type: string }) {
 }
 
 function PaymentTypeBadge({ type }: { type: string }) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const config = {
     fijo: { bg: COLORS.primary + '15', color: COLORS.primary, label: 'Fijo' },
     porcentaje: { bg: COLORS.warning + '15', color: COLORS.warning, label: 'Comisión' },
@@ -134,7 +130,7 @@ export function PeriodDetailView({
   organizationId,
   userRole,
 }: PeriodDetailViewProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -924,7 +920,7 @@ function PaymentModalWrapper({
   loading: boolean
   totalNetPay: string
 }) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('efectivo')
   const [paymentReference, setPaymentReference] = useState('')
 

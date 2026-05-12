@@ -3,11 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface EmployeeData {
   employee_id: string
   employee_name: string
@@ -24,7 +19,7 @@ interface EmployeePerformanceProps {
 }
 
 export function EmployeePerformance({ organizationId, period = 'month' }: EmployeePerformanceProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [employees, setEmployees] = useState<EmployeeData[]>([])
   const [loading, setLoading] = useState(true)
 

@@ -5,11 +5,6 @@ import { createPortal } from 'react-dom'
 import { X, Scissors, Clock, DollarSign, Loader2, Check } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface CreateServiceModalProps {
   isOpen: boolean
   onClose: () => void
@@ -22,7 +17,7 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
   const [durationValue, setDurationValue] = useState('')
   const [priceValue, setPriceValue] = useState('')
   const [priceDisplay, setPriceDisplay] = useState<string | null>(null)
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   if (!isOpen) return null
 

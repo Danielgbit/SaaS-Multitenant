@@ -3,10 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 interface EmailSettings {
   id: string
   organization_id: string
@@ -37,7 +33,7 @@ const tooltipContent = {
 
 function Tooltip({ content }: { content: string }) {
   const [show, setShow] = useState(false)
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   
   return (
     <div className="relative inline-flex">
@@ -73,7 +69,7 @@ function Tooltip({ content }: { content: string }) {
 }
 
 export function EmailSettingsClient({ organizationId }: EmailSettingsClientProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [settings, setSettings] = useState<EmailSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -542,7 +538,7 @@ function OptionToggle({
   onChange,
   tooltip 
 }: { 
-  COLORS: ReturnType<typeof useColors>
+  COLORS: ReturnType<typeof useThemeColors>
   icon: React.ReactNode
   iconBg: string
   iconColor: string

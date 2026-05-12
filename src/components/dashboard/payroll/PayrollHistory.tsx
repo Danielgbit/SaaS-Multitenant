@@ -6,10 +6,6 @@ import { ArrowLeft, Calendar, Search } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { PayrollPeriodWithEmployees } from '@/types/payroll'
 
-function useColors() {
-  return useThemeColors()
-}
-
 const MONTHS_ES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
@@ -21,7 +17,7 @@ function parsePeriod(period: string) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const config = {
     paid: {
       bg: COLORS.success + '20',
@@ -45,7 +41,7 @@ interface PayrollHistoryProps {
 }
 
 export function PayrollHistory({ periods }: PayrollHistoryProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   const years = [...new Set(periods.map((p) => p.period.split('-')[0]))].sort(
     (a, b) => Number(b) - Number(a)

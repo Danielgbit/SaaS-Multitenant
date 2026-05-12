@@ -5,11 +5,6 @@ import { createPortal } from 'react-dom'
 import { X, PencilLine, Scissors, Clock, DollarSign, Loader2, Check } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-}
-
 interface EditServiceModalProps {
   service: Service | null
   onClose: () => void
@@ -17,7 +12,7 @@ interface EditServiceModalProps {
 
 export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
   const [isPending, startTransition] = useTransition()
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
 
   const [name, setName] = useState(service?.name ?? '')
   const [durationValue, setDurationValue] = useState(service?.duration?.toString() ?? '')

@@ -3,10 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 type PayrollSettings = {
   payroll_type: PayrollType
   week_starts_on: number
@@ -40,7 +36,7 @@ export function PayrollSettingsClient({
   organizationId,
   settings,
 }: PayrollSettingsClientProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const [mounted, setMounted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)

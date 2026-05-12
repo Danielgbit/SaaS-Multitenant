@@ -27,10 +27,6 @@ import { createClient } from '@/lib/supabase/client'
 import { getRoleLabel, isEmpleado } from '@/lib/rbac'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-function useColors() {
-  return useThemeColors()
-}
-
 interface MobileNavProps {
   isOpen: boolean
   onClose: () => void
@@ -38,7 +34,7 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
-  const COLORS = useColors()
+  const COLORS = useThemeColors()
   const pathname = usePathname()
   const drawerRef = useRef<HTMLDivElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
