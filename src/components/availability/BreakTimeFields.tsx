@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { Coffee } from 'lucide-react'
 
 interface BreakTimeFieldsProps {
@@ -10,6 +11,8 @@ interface BreakTimeFieldsProps {
   disabled?: boolean
   variant?: 'light' | 'dark'
   placeholder?: string
+  label?: string
+  icon?: ReactNode
 }
 
 export function BreakTimeFields({
@@ -20,6 +23,8 @@ export function BreakTimeFields({
   disabled,
   variant = 'light',
   placeholder = 'Ej: Almuerzo',
+  label = 'Descanso',
+  icon = <Coffee className="w-4 h-4" />,
 }: BreakTimeFieldsProps) {
   const isDark = variant === 'dark'
   const inputClass = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 transition-all duration-200 disabled:opacity-50 ${
@@ -31,8 +36,8 @@ export function BreakTimeFields({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-        <Coffee className="w-4 h-4" />
-        <span>Descanso</span>
+        {icon}
+        <span>{label}</span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1.5">

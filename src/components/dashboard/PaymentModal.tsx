@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useCallback, useEffect } from 'react'
-import { X, Loader2, AlertCircle, CheckCircle2, Banknote, Smartphone, CreditCard, QrCode, Clock, ChevronDown, ChevronUp, Plus, Minus, Sparkles } from 'lucide-react'
+import { X, Loader2, AlertCircle, CheckCircle2, Banknote, Smartphone, CreditCard, QrCode, Clock, ChevronDown, ChevronUp, Plus, Minus, Sparkles, DollarSign } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 

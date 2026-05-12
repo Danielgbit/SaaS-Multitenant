@@ -5,7 +5,7 @@ import { Clock, Check } from 'lucide-react'
 import { SpaHoursSection } from './components/SpaHoursSection'
 import { GlobalOverridesSection } from './components/GlobalOverridesSection'
 import { BreaksSection } from './components/BreaksSection'
-import { EmployeeSchedulesSection } from './components/EmployeeSchedulesSection'
+import { ScheduleExceptionsSection } from './components/ScheduleExceptionsSection'
 import { updateBookingSettings } from '@/actions/settings/updateBookingSettings'
 import type { SpaHours, SpaOverride, EmployeeWithSchedules } from '@/types/availability'
 
@@ -73,7 +73,7 @@ export function HorariosClient({
         employees={employees}
       />
 
-      <EmployeeSchedulesSection
+      <ScheduleExceptionsSection
         organizationId={organizationId}
         employees={employees}
       />
