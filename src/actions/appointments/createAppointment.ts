@@ -4,8 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { generateSlots } from '@/services/slots/generateSlots'
-import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
-import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
+import { generateConfirmationToken } from '@/actions/notifications/confirmations/tokens'
 
 // =============================================================================
 // SCHEMA DE VALIDACIÓN
@@ -183,100 +182,100 @@ export async function createAppointment(
 
   if (relationError) {
     console.error('Error creating appointment_service relation:', relationError)
-    // No fallamos por esto, la cita ya fue creada
   }
 
-  // 11. Encolar mensaje de WhatsApp si está configurado
-  try {
-    const { data: clientData } = await supabase
-      .from('clients')
-      .select('name, phone, email')
-      .eq('id', client_id)
-      .single()
+  // 11. Generar confirmation token para link de confirmar/cancelar
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const tokenResult = await generateConfirmationToken(
+    appointment.id,
+    organization_id,
+    'confirm'
+  )
 
-    const { data: serviceData } = await supabase
-      .from('services')
-      .select('name, duration, price')
-      .eq('id', service_id)
-      .single()
+  const confirmationLink = tokenResult.success && tokenResult.token
+    ? `${appUrl}/confirmar/${tokenResult.token}`
+    : undefined
 
-    const { data: employeeData } = await supabase
-      .from('employees')
-      .select('name')
-      .eq('id', employee_id)
-      .single()
+  // 12. Encolar notificación via NotificationOrchestrator (V2)
+  if (process.env.NOTIFICATION_SYSTEM_V2_ENABLED === 'true') {
+    try {
+      const { NotificationOrchestrator } = await import('@/lib/notifications/orchestrator')
 
-    const { data: orgData } = await supabase
-      .from('organizations')
-      .select('name')
-      .eq('id', organization_id)
-      .single()
-
-    const { data: whatsappSettings } = await (supabase as any)
-      .from('whatsapp_settings')
-      .select('enabled')
-      .eq('organization_id', organization_id)
-      .single()
-
-    if (whatsappSettings?.enabled && clientData?.phone) {
-      await queueWhatsAppMessage({
-        organizationId: organization_id,
-        appointmentId: appointment.id,
-        phone: clientData.phone,
-        template: 'appointment_confirmation',
-        variables: {
-          name: clientData.name,
-          date: startDate.toLocaleDateString('es-ES', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-          }),
-          time: startDate.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-        },
-      })
+      await NotificationOrchestrator('appointment_created', appointment.id, {
+        id: appointment.id,
+        organization_id,
+        start_time: appointment.start_time,
+        end_time: appointment.end_time,
+        client_id,
+        employee_id,
+        status: appointment.status,
+        confirmation_status: 'pending_confirmation',
+        clients: clientData || null,
+        employees: employeeData ? { name: employeeData.name, user_id: '' } : null,
+        services: serviceData || null,
+        organizations: orgData || null,
+        booking_settings: bookingSettingsData || undefined,
+      } as any)
+    } catch (orchestratorError) {
+      console.error('[createAppointment] Orchestrator error:', orchestratorError)
     }
+  } else {
+    // Fallback: usar sistema legacy (queueWhatsAppMessage + queueEmailMessage)
+    try {
+      if (whatsappSettings?.enabled && clientData?.phone) {
+        await queueWhatsAppMessage({
+          organizationId: organization_id,
+          appointmentId: appointment.id,
+          phone: clientData.phone,
+          template: 'appointment_confirmation',
+          variables: {
+            name: clientData.name,
+            date: startDate.toLocaleDateString('es-ES', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            }),
+            time: startDate.toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+          },
+        })
+      }
 
-    const { data: emailSettings } = await (supabase as any)
-      .from('email_settings')
-      .select('enabled, send_confirmation')
-      .eq('organization_id', organization_id)
-      .single()
-
-    if (emailSettings?.enabled && emailSettings?.send_confirmation && clientData?.email) {
-      const duration = serviceData?.duration || 30
-      await queueEmailMessage({
-        organizationId: organization_id,
-        appointmentId: appointment.id,
-        clientId: client_id,
-        emailType: 'appointment_confirmation',
-        to: clientData.email,
-        variables: {
-          businessName: orgData?.name || 'Negocio',
-          clientName: clientData.name,
-          serviceName: serviceData?.name || 'Servicio',
-          employeeName: employeeData?.name || 'Profesional',
-          date: startDate.toLocaleDateString('es-ES', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-          }),
-          time: startDate.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-          duration: `${duration} min`,
-          price: serviceData?.price ? `${serviceData.price}€` : undefined,
-        },
-      })
+      if (emailSettings?.enabled && emailSettings?.send_confirmation && clientData?.email) {
+        const duration = serviceData?.duration || 30
+        await queueEmailMessage({
+          organizationId: organization_id,
+          appointmentId: appointment.id,
+          clientId: client_id,
+          emailType: 'appointment_confirmation',
+          to: clientData.email,
+          variables: {
+            businessName: orgData?.name || 'Negocio',
+            clientName: clientData.name,
+            serviceName: serviceData?.name || 'Servicio',
+            employeeName: employeeData?.name || 'Profesional',
+            date: startDate.toLocaleDateString('es-ES', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            }),
+            time: startDate.toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            duration: `${duration} min`,
+            price: serviceData?.price ? `${serviceData.price}€` : undefined,
+          },
+        })
+      }
+    } catch (notificationError) {
+      console.error('Error sending notifications:', notificationError)
     }
-  } catch (notificationError) {
-    console.error('Error sending notifications:', notificationError)
   }
 
-  // 12. Revalidar paths relevantes
+  // 13. Revalidar paths relevantes
   revalidatePath('/calendar')
   revalidatePath('/employees')
 

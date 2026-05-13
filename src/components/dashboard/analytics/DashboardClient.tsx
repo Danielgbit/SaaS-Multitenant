@@ -2,8 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Calendar, DollarSign, Users, TrendingUp, XCircle } from 'lucide-react'
+import { Calendar, CheckCircle2, DollarSign, Users, TrendingUp, XCircle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { PeriodSelector } from './PeriodSelector'
+import { BusinessHealthWidget } from './BusinessHealthWidget'
+import { StatsCard } from './StatsCard'
+import { TrendChart } from './TrendChart'
+import { RecentActivity } from './RecentActivity'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'last7days' | 'last30days'
 

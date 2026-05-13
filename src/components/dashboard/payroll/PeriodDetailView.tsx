@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { PAYROLL_STATUS_CONFIG } from '@/lib/payroll/constants'
 import { toast } from 'sonner'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 
@@ -49,9 +50,9 @@ function parsePeriod(period: string): { month: number; year: number; label: stri
 function StatusBadge({ status }: { status: string }) {
   const COLORS = useThemeColors()
   const config = {
-    draft: { bg: COLORS.warning + '20', color: COLORS.warning, icon: Clock, label: 'Borrador' },
-    approved: { bg: COLORS.primary + '20', color: COLORS.primary, icon: CheckCircle, label: 'Aprobado' },
-    paid: { bg: COLORS.success + '20', color: COLORS.success, icon: CheckCircle, label: 'Pagado' },
+    draft: { bg: COLORS.warning + '20', color: COLORS.warning, icon: Clock, label: PAYROLL_STATUS_CONFIG.draft.label },
+    approved: { bg: COLORS.primary + '20', color: COLORS.primary, icon: CheckCircle, label: PAYROLL_STATUS_CONFIG.approved.label },
+    paid: { bg: COLORS.success + '20', color: COLORS.success, icon: CheckCircle, label: PAYROLL_STATUS_CONFIG.paid.label },
   }[status] || { bg: COLORS.textMuted + '20', color: COLORS.textMuted, icon: Clock, label: status }
 
   const Icon = config.icon

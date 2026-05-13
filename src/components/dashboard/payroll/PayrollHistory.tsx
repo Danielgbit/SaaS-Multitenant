@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, Search } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { PAYROLL_STATUS_CONFIG } from '@/lib/payroll/constants'
 import type { PayrollPeriodWithEmployees } from '@/types/payroll'
 
 const MONTHS_ES = [
@@ -22,7 +23,7 @@ function StatusBadge({ status }: { status: string }) {
     paid: {
       bg: COLORS.success + '20',
       color: COLORS.success,
-      label: 'Pagado',
+      label: PAYROLL_STATUS_CONFIG.paid.label,
     },
   }[status] || { bg: COLORS.textMuted + '20', color: COLORS.textMuted, label: status }
 
