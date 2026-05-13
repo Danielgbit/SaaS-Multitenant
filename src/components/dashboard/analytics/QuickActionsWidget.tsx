@@ -1,40 +1,42 @@
 'use client'
 
+import { Plus, Calendar, Wallet, Receipt } from 'lucide-react'
+import Link from 'next/link'
 import { useThemeColors } from '@/hooks/useThemeColors'
-
-const quickActions = [
-  {
-    label: 'Nueva Cita',
-    href: '/calendar',
-    icon: Plus,
-    color: '#0F4C5C',
-    bgColor: 'rgba(15, 76, 92, 0.1)',
-  },
-  {
-    label: 'Confirmaciones',
-    href: '/confirmations',
-    icon: Calendar,
-    color: '#8B5CF6',
-    bgColor: 'rgba(139, 92, 246, 0.1)',
-  },
-  {
-    label: 'Cobrar',
-    href: '/clients/accounts',
-    icon: Wallet,
-    color: '#10B981',
-    bgColor: 'rgba(16, 185, 129, 0.1)',
-  },
-  {
-    label: 'Nómina',
-    href: '/payroll',
-    icon: Receipt,
-    color: COLORS.warning,
-    bgColor: COLORS.warningLight || 'rgba(245, 158, 11, 0.1)',
-  },
-]
 
 export function QuickActionsWidget() {
   const COLORS = useThemeColors()
+
+  const quickActions = [
+    {
+      label: 'Nueva Cita',
+      href: '/calendar',
+      icon: Plus,
+      color: '#0F4C5C',
+      bgColor: 'rgba(15, 76, 92, 0.1)',
+    },
+    {
+      label: 'Confirmaciones',
+      href: '/confirmations',
+      icon: Calendar,
+      color: '#8B5CF6',
+      bgColor: 'rgba(139, 92, 246, 0.1)',
+    },
+    {
+      label: 'Cobrar',
+      href: '/clients/accounts',
+      icon: Wallet,
+      color: '#10B981',
+      bgColor: 'rgba(16, 185, 129, 0.1)',
+    },
+    {
+      label: 'Nómina',
+      href: '/payroll',
+      icon: Receipt,
+      color: COLORS.warning,
+      bgColor: COLORS.warningLight || 'rgba(245, 158, 11, 0.1)',
+    },
+  ]
 
   return (
     <div

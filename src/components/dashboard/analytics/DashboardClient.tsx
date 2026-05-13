@@ -9,6 +9,12 @@ import { BusinessHealthWidget } from './BusinessHealthWidget'
 import { StatsCard } from './StatsCard'
 import { TrendChart } from './TrendChart'
 import { RecentActivity } from './RecentActivity'
+import { QuickActionsWidget } from './QuickActionsWidget'
+import { UpcomingAppointments } from './UpcomingAppointments'
+import { EmployeePerformance } from './EmployeePerformance'
+import { PayrollSummaryWidget } from './PayrollSummaryWidget'
+import { AlertsPanel } from './AlertsPanel'
+import { TopServicesList } from './TopServicesList'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'last7days' | 'last30days'
 

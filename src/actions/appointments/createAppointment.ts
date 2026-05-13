@@ -114,6 +114,43 @@ export async function createAppointment(
     return { error: 'El servicio no está activo.' }
   }
 
+  // 6.5 Obtener datos relacionados para notificaciones (antes de crear la cita)
+  const { data: clientData } = await supabase
+    .from('clients')
+    .select('name, phone, email')
+    .eq('id', client_id)
+    .single()
+
+  const { data: employeeData } = await supabase
+    .from('employees')
+    .select('name')
+    .eq('id', employee_id)
+    .single()
+
+  const { data: orgData } = await supabase
+    .from('organizations')
+    .select('name, phone, address')
+    .eq('id', organization_id)
+    .single()
+
+  const { data: whatsappSettings } = await (supabase as any)
+    .from('whatsapp_settings')
+    .select('enabled')
+    .eq('organization_id', organization_id)
+    .single()
+
+  const { data: emailSettings } = await (supabase as any)
+    .from('email_settings')
+    .select('enabled, send_confirmation')
+    .eq('organization_id', organization_id)
+    .single()
+
+  const { data: bookingSettingsData } = await supabase
+    .from('booking_settings')
+    .select('timezone, reminder_hours_before')
+    .eq('organization_id', organization_id)
+    .single()
+
   // 7. Calcular hora de fin
   // Normalizar timestamp: si tiene Z, quitarlo para que coincida con formato de slots (sin Z)
   const normalizedStartTime = start_time.endsWith('Z')
