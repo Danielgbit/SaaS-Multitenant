@@ -32,6 +32,20 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import { PAYROLL_STATUS_CONFIG } from '@/lib/payroll/constants'
 import { toast } from 'sonner'
 import ConfirmModal from '@/components/ui/ConfirmModal'
+import { ChangesPreviewModal } from './ChangesPreviewModal'
+import type { PayrollPeriod, PayrollItemWithEmployee, PayrollReceipt } from '@/types/payroll'
+
+type PaymentMethod = keyof typeof PAYMENT_METHODS
+const PAYMENT_METHODS = {
+  efectivo: { label: 'Efectivo' },
+  nequi: { label: 'Nequi' },
+  daviplata: { label: 'DaviPlata' },
+  pse: { label: 'PSE' },
+  qr_nequi: { label: 'QR Nequi' },
+  qr_bancolombia: { label: 'QR Bancolombia' },
+  tarjeta_debito: { label: 'Tarjeta Débito' },
+  tarjeta_credito: { label: 'Tarjeta Crédito' },
+} as const
 
 const MONTHS_ES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',

@@ -1,6 +1,5 @@
 'use client'
 
-import { useTheme } from 'next-themes'
 import {
   X,
   AlertTriangle,
@@ -9,6 +8,18 @@ import {
 } from 'lucide-react'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
+
+interface PendingChange {
+  itemId: string
+  employeeName: string
+  field: string
+  oldValue: any
+  newValue: any
+  impact?: {
+    oldValue: number
+    newValue: number
+  }
+}
 
 interface ChangesPreviewModalProps {
   changes: PendingChange[]

@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { DollarSign, X, CheckCircle2, AlertTriangle, HelpCircle, Loader2 } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { createEmployeeLoan } from '@/actions/payroll/createEmployeeLoan'
+import type { LoanConcept } from '@/types/payroll'
 
 type Employee = {
   id: string

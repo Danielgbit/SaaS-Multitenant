@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Trophy, User } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { getEmployeePerformance } from '@/actions/analytics/getEmployeePerformance'
 
 interface EmployeeData {
   employee_id: string

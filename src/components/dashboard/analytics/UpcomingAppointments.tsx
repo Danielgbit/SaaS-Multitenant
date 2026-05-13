@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Calendar, Scissors, User, ChevronRight } from 'lucide-react'
+import { getUpcomingAppointments } from '@/actions/analytics/getUpcomingAppointments'
 
 interface UpcomingAppointment {
   id: string

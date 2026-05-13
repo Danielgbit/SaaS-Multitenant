@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { HelpCircle, Loader2, Mail, Send, XCircle, Clock, Zap, History, CheckCircle2, AlertCircle, Bell, CheckSquare, TrendingUp, Save } from 'lucide-react'
+import { getEmailSettings } from '@/actions/email/getEmailSettings'
+import { getEmailLogs } from '@/actions/email/getEmailLogs'
+import { updateEmailSettings } from '@/actions/email/updateEmailSettings'
+import { EmailLogs } from './EmailLogs'
 
 interface EmailSettings {
   id: string

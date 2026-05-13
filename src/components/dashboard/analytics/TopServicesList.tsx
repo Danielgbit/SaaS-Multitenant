@@ -1,9 +1,12 @@
 'use client'
 
+import { Scissors, Sparkles } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { TopServicesListProps } from './types'
 
 export function TopServicesList({ services, loading }: TopServicesListProps) {
   const COLORS = useThemeColors()
+  const isDark = COLORS.isDark
 
   if (loading) {
     return (

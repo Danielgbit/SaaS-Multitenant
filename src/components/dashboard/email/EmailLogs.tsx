@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Mail, Send, XCircle, Clock, Loader2, AlertCircle, CheckCircle2, MailOpen, ChevronLeft, ChevronRight } from 'lucide-react'
+import { getEmailLogs } from '@/actions/email/getEmailLogs'
 
 interface LogEntry {
   id: string

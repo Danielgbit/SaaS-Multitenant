@@ -15,6 +15,7 @@ import { EmployeePerformance } from './EmployeePerformance'
 import { PayrollSummaryWidget } from './PayrollSummaryWidget'
 import { AlertsPanel } from './AlertsPanel'
 import { TopServicesList } from './TopServicesList'
+import { getDashboardData } from '@/actions/analytics/getDashboardData'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'last7days' | 'last30days'
 
@@ -217,41 +218,6 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
 
   return (
     <div className="space-y-6">
-      {/* Welcome Header for Employee - Org Context */}
-      {role === 'empleado' && organizationName && (
-        <div className="relative overflow-hidden rounded-2xl p-6 md:p-8 animate-in fade-in duration-500"
-          style={{
-            background: 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 50%, #062C38 100%)',
-          }}
-        >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-
-          <div className="relative flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Bienvenido</p>
-                <h1
-                  className="text-2xl md:text-3xl font-bold text-white"
-                  style={{ fontFamily: 'Cormorant Garamond, serif' }}
-                >
-                  {organizationName}
-                </h1>
-                <p className="text-sm mt-1 text-white/90">
-                  Hola {employeeName || 'empleado'}, estas son tus citas de hoy
-                </p>
-              </div>
-            </div>
-            <PeriodSelector value={period} onChange={setPeriod} isDark />
-          </div>
-        </div>
-      )}
-
       {/* Header with gradient - Admin/Owner/Staff */}
       {role !== 'empleado' && (
         <div

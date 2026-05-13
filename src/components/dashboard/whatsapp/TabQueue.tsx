@@ -276,7 +276,7 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                               disabled={actionLoading === item.id}
                               className="p-1.5 rounded-lg transition-colors"
                               style={{ color: COLORS.error }}
-                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.errorLight }}
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.errorLight ?? '#FEE2E2' }}
                               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                               title="Cancelar"
                             >

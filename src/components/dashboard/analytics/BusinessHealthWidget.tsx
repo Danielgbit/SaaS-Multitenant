@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Clock, Calendar, DollarSign, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
 
 interface BusinessHealthWidgetProps {
   organizationId: string

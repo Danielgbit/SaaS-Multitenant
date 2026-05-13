@@ -1,5 +1,3 @@
-'use server'
-
 export type NotificationChannel = 'whatsapp' | 'email' | 'sms' | 'in_app'
 
 export type NotificationProviderType = 'n8n' | 'evolution' | 'meta' | 'twilio' | 'resend' | 'internal'

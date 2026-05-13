@@ -4,7 +4,7 @@ import { AlertTriangle, Info, CheckCircle, X } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface AlertBannerProps {
-  type: 'warning' | 'error' | 'info'
+  type: 'warning' | 'error' | 'info' | 'success'
   message: string
   dismissible?: boolean
   onDismiss?: () => void
@@ -31,6 +31,12 @@ export function AlertBanner({ type, message, dismissible, onDismiss }: AlertBann
       bg: COLORS.infoLight,
       border: COLORS.info,
       iconColor: COLORS.info,
+    },
+    success: {
+      icon: CheckCircle,
+      bg: COLORS.successLight,
+      border: COLORS.success,
+      iconColor: COLORS.success,
     },
   }[type]
 

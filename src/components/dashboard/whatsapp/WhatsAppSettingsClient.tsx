@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { HelpCircle, ChevronDown, Loader2, MessageCircle, Send, XCircle, Clock, TrendingUp, Zap, History, CheckCircle2, AlertCircle, Webhook, TestTube, Bell, Save } from 'lucide-react'
+import { getWhatsAppSettings } from '@/actions/whatsapp/getWhatsAppSettings'
+import { getWhatsAppLogs } from '@/actions/whatsapp/getWhatsAppLogs'
+import { updateWhatsAppSettings } from '@/actions/whatsapp/updateWhatsAppSettings'
+import { testWhatsAppWebhook } from '@/actions/whatsapp/testWhatsAppWebhook'
+import { WhatsAppLogs } from './WhatsAppLogs'
 
 interface WhatsAppSettings {
   id: string

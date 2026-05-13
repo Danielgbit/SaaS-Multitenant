@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Loader2, Database, Info, CheckCircle2, Trash2, ChevronRight, AlertCircle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { updateRetentionSettings } from '@/actions/appointments/purgeAppointments'
+import { PurgeModal } from '@/components/calendar/PurgeModal'
 
 interface RetentionSettings {
   auto_retention_days: number

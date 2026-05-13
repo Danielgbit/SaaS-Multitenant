@@ -1,7 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { Loader2, ArrowLeft, DollarSign, TrendingUp, CheckCircle2, CreditCard, AlertTriangle, ShoppingCart, Clock, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
+import type { ClientAccountTransactionWithDetails, InventoryItemWithStock } from '@/types/clientAccounts'
 
 interface ClientAccountDetailClientProps {
   client: {

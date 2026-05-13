@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { MessageCircle, Calendar, CheckCircle2, Bell, ChevronRight } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { getSystemAlerts } from '@/actions/analytics/getSystemAlerts'
 
 interface Alert {
   id: string

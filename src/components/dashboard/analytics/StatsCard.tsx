@@ -1,6 +1,8 @@
 'use client'
 
+import { TrendingUp, TrendingDown } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { StatsCardProps } from './types'
 
 export function StatsCard({ title, value, change, prefix = '', suffix = '', icon, iconColor = '#0F4C5C', loading, delay = 0 }: StatsCardProps) {
   const COLORS = useThemeColors()
@@ -57,7 +59,7 @@ export function StatsCard({ title, value, change, prefix = '', suffix = '', icon
           <div 
             className="p-2.5 rounded-xl transition-transform duration-200 group-hover:scale-110"
             style={{ 
-              backgroundColor: isDark ? `${iconColor}20` : `${iconColor}15`,
+              backgroundColor: COLORS.isDark ? `${iconColor}20` : `${iconColor}15`,
             }}
           >
             <span style={{ color: iconColor }}>

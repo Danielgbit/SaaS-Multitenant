@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Activity, CheckCircle2, XCircle, UserPlus, Clock } from 'lucide-react'
+import { getRecentActivity } from '@/actions/analytics/getRecentActivity'
 
 interface Activity {
   id: string

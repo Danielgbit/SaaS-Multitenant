@@ -1,9 +1,13 @@
 'use client'
 
+import { Calendar, TrendingUp } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area } from 'recharts'
+import type { TrendChartProps } from './types'
 
 export function TrendChart({ data, loading }: TrendChartProps) {
   const COLORS = useThemeColors()
+  const isDark = COLORS.isDark
 
   function CustomTooltip({ active, payload, label }: any) {
     if (!active || !payload?.length) return null

@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { MessageCircle, Send, XCircle, Clock, Loader2, CheckCircle2, AlertCircle, Phone, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
+import { getWhatsAppLogs } from '@/actions/whatsapp/getWhatsAppLogs'
+import { resendWhatsAppReminder } from '@/actions/whatsapp/resendWhatsAppReminder'
 
 interface LogEntry {
   id: string
