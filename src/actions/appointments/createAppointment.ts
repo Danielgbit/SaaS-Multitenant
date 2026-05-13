@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { generateSlots } from '@/services/slots/generateSlots'
 import { generateConfirmationToken } from '@/actions/notifications/confirmations/tokens'
+import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
+import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 
 // =============================================================================
 // SCHEMA DE VALIDACIÓN
