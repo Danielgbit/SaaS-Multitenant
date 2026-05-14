@@ -34,7 +34,7 @@ export async function getAutomationRules(
   const supabase = await createClient()
 
   try {
-    let query = supabase
+    let query = (supabase as any)
       .from('automation_rules')
       .select('*')
       .eq('organization_id', organizationId)
@@ -50,7 +50,7 @@ export async function getAutomationRules(
       return { success: false, error: 'Error al cargar reglas de automatización' }
     }
 
-    const rules: AutomationRule[] = (data || []).map((row) => ({
+    const rules: AutomationRule[] = (data || []).map((row: any) => ({
       id: row.id,
       organizationId: row.organization_id,
       triggerEvent: row.trigger_event as AutomationTrigger,
@@ -81,7 +81,7 @@ export async function createAutomationRule(
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('automation_rules')
       .insert({
         organization_id: validation.data.organizationId,
@@ -139,7 +139,7 @@ export async function updateAutomationRule(
     if (validation.data.isEnabled !== undefined) updateData.is_enabled = validation.data.isEnabled
     if (validation.data.conditions !== undefined) updateData.conditions = validation.data.conditions
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('automation_rules')
       .update(updateData)
       .eq('id', ruleId)
@@ -163,7 +163,7 @@ export async function toggleAutomationRule(
   const supabase = await createClient()
 
   try {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('automation_rules')
       .update({ is_enabled: isEnabled })
       .eq('id', ruleId)
@@ -186,7 +186,7 @@ export async function deleteAutomationRule(
   const supabase = await createClient()
 
   try {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('automation_rules')
       .delete()
       .eq('id', ruleId)

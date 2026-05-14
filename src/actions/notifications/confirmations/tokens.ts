@@ -18,7 +18,7 @@ export async function generateConfirmationToken(
     const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000).toISOString()
     const token = randomUUID()
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('confirmation_tokens')
       .insert({
         appointment_id: appointmentId,
@@ -51,7 +51,7 @@ export async function validateConfirmationToken(
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('confirmation_tokens')
       .select('*')
       .eq('token', token)
@@ -105,7 +105,7 @@ export async function useConfirmationToken(
   const supabase = await createServiceRoleClient()
 
   try {
-    const { data: tokenData, error: fetchError } = await supabase
+    const { data: tokenData, error: fetchError } = await (supabase as any)
       .from('confirmation_tokens')
       .select('*')
       .eq('token', token)
@@ -119,7 +119,7 @@ export async function useConfirmationToken(
       return { success: false, error: `Esta acción no es válida para este token. Se esperaba: ${tokenData.action}` }
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await (supabase as any)
       .from('confirmation_tokens')
       .update({ used_at: new Date().toISOString() })
       .eq('id', tokenData.id)
@@ -143,7 +143,7 @@ export async function invalidateConfirmationTokens(
   const supabase = await createServiceRoleClient()
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('confirmation_tokens')
       .update({
         invalidated_at: new Date().toISOString(),
@@ -171,7 +171,7 @@ export async function getConfirmationTokensByAppointment(
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('confirmation_tokens')
       .select('*')
       .eq('appointment_id', appointmentId)
@@ -181,7 +181,7 @@ export async function getConfirmationTokensByAppointment(
       return { success: false, error: 'Error al cargar tokens' }
     }
 
-    const tokens: ConfirmationToken[] = (data || []).map(t => ({
+    const tokens: ConfirmationToken[] = (data || []).map((t: any) => ({
       id: t.id,
       appointmentId: t.appointment_id,
       organizationId: t.organization_id,

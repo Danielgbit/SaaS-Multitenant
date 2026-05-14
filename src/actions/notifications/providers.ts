@@ -8,7 +8,7 @@ const ProviderUpsertSchema = z.object({
   organizationId: z.string().uuid(),
   channel: z.enum(['whatsapp', 'email', 'sms', 'in_app']),
   provider: z.enum(['n8n', 'evolution', 'meta', 'twilio', 'resend', 'internal']),
-  config: z.record(z.unknown()).optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
   rateLimitPerMin: z.number().min(1).max(1000).optional().default(30),
   rateLimitPerDay: z.number().min(1).max(100000).optional(),
   isEnabled: z.boolean().optional().default(false),
