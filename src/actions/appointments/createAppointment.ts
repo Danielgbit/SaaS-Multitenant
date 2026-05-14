@@ -101,7 +101,7 @@ export async function createAppointment(
   // 6. Obtener duración del servicio
   const { data: service, error: serviceError } = await supabase
     .from('services')
-    .select('duration, active')
+    .select('id, name, duration, active, price')
     .eq('id', service_id)
     .eq('organization_id', organization_id)
     .single()
@@ -203,7 +203,7 @@ export async function createAppointment(
       status: 'pending',
       notes: notes || null,
     })
-    .select('id')
+    .select('id, start_time, end_time, status')
     .single()
 
   if (insertError) {
@@ -251,7 +251,7 @@ export async function createAppointment(
         confirmation_status: 'pending_confirmation',
         clients: clientData || null,
         employees: employeeData ? { name: employeeData.name, user_id: '' } : null,
-        services: serviceData || null,
+        services: null,
         organizations: orgData || null,
         booking_settings: bookingSettingsData || undefined,
       } as any)
@@ -283,7 +283,7 @@ export async function createAppointment(
       }
 
       if (emailSettings?.enabled && emailSettings?.send_confirmation && clientData?.email) {
-        const duration = serviceData?.duration || 30
+        const duration = service?.duration || 30
         await queueEmailMessage({
           organizationId: organization_id,
           appointmentId: appointment.id,
@@ -291,9 +291,9 @@ export async function createAppointment(
           emailType: 'appointment_confirmation',
           to: clientData.email,
           variables: {
-            businessName: orgData?.name || 'Negocio',
+            businessName: (orgData as any)?.name || 'Negocio',
             clientName: clientData.name,
-            serviceName: serviceData?.name || 'Servicio',
+            serviceName: service?.name || 'Servicio',
             employeeName: employeeData?.name || 'Profesional',
             date: startDate.toLocaleDateString('es-ES', {
               weekday: 'long',
@@ -305,7 +305,7 @@ export async function createAppointment(
               minute: '2-digit',
             }),
             duration: `${duration} min`,
-            price: serviceData?.price ? `${serviceData.price}€` : undefined,
+            price: service?.price ? `${service.price}€` : undefined,
           },
         })
       }

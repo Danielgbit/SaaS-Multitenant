@@ -1,44 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
-  Receipt, 
-  Users, 
+import {
+  Receipt,
+  Users,
   TrendingUp,
   AlertCircle,
   Loader2,
   ArrowRight
 } from 'lucide-react'
-import { getPayrollSummary } from '@/actions/payroll/getPayrollSummary'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 
-export function PayrollSummaryWidget({ organizationId }: { organizationId: string }) {
-  const [loading, setLoading] = useState(true)
-  const [summary, setSummary] = useState<{
-    employeeCount: number
-    employeesWithCommission: number
-    pendingCommissionsTotal: number
-    pendingLoansTotal: number
-  } | null>(null)
+interface PayrollSummary {
+  employeeCount: number
+  employeesWithCommission: number
+  pendingCommissionsTotal: number
+  pendingLoansTotal: number
+}
 
-  useEffect(() => {
-    loadData()
-  }, [organizationId])
+interface PayrollSummaryWidgetProps {
+  summary: PayrollSummary | undefined
+  loading: boolean
+}
 
-  const loadData = async () => {
-    setLoading(true)
-    const result = await getPayrollSummary(organizationId)
-    if (result.success && result.data) {
-      setSummary({
-        employeeCount: result.data.employeeCount,
-        employeesWithCommission: result.data.employeesWithCommission,
-        pendingCommissionsTotal: result.data.pendingCommissionsTotal,
-        pendingLoansTotal: result.data.pendingLoansTotal,
-      })
-    }
-    setLoading(false)
-  }
+export function PayrollSummaryWidget({ summary, loading }: PayrollSummaryWidgetProps) {
 
   if (loading) {
     return (

@@ -17,14 +17,14 @@ const AutomationRuleCreateSchema = z.object({
   channel: z.enum(['whatsapp', 'email', 'sms', 'in_app']),
   templateId: z.string().uuid().optional().nullable(),
   delayMinutes: z.number().min(0).max(10080).optional().default(0),
-  conditions: z.record(z.unknown()).optional().default({}),
+  conditions: z.record(z.string(), z.unknown()).optional().default({}),
 })
 
 const AutomationRuleUpdateSchema = z.object({
   templateId: z.string().uuid().optional().nullable(),
   delayMinutes: z.number().min(0).max(10080).optional(),
   isEnabled: z.boolean().optional(),
-  conditions: z.record(z.unknown()).optional(),
+  conditions: z.record(z.string(), z.unknown()).optional(),
 })
 
 export async function getAutomationRules(

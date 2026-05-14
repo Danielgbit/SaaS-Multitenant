@@ -1,10 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useThemeColors } from '@/hooks/useThemeColors'
 import { Calendar, Scissors, User, ChevronRight } from 'lucide-react'
-import { getUpcomingAppointments } from '@/actions/analytics/getUpcomingAppointments'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface UpcomingAppointment {
   id: string
@@ -17,26 +15,12 @@ interface UpcomingAppointment {
 }
 
 interface UpcomingAppointmentsProps {
-  organizationId: string
+  appointments: UpcomingAppointment[]
+  loading: boolean
 }
 
-export function UpcomingAppointments({ organizationId }: UpcomingAppointmentsProps) {
+export function UpcomingAppointments({ appointments, loading }: UpcomingAppointmentsProps) {
   const COLORS = useThemeColors()
-  const [appointments, setAppointments] = useState<UpcomingAppointment[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadAppointments()
-  }, [organizationId])
-
-  const loadAppointments = async () => {
-    setLoading(true)
-    const result = await getUpcomingAppointments(organizationId, 5)
-    if (result.success && result.data) {
-      setAppointments(result.data)
-    }
-    setLoading(false)
-  }
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr)

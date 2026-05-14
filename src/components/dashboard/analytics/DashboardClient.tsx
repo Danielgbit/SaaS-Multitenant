@@ -1,21 +1,19 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Calendar, CheckCircle2, DollarSign, Users, TrendingUp, XCircle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { useAnalytics } from '@/hooks/useAnalytics'
 import { PeriodSelector } from './PeriodSelector'
-import { BusinessHealthWidget } from './BusinessHealthWidget'
 import { StatsCard } from './StatsCard'
 import { TrendChart } from './TrendChart'
 import { RecentActivity } from './RecentActivity'
-import { QuickActionsWidget } from './QuickActionsWidget'
 import { UpcomingAppointments } from './UpcomingAppointments'
 import { EmployeePerformance } from './EmployeePerformance'
 import { PayrollSummaryWidget } from './PayrollSummaryWidget'
 import { AlertsPanel } from './AlertsPanel'
 import { TopServicesList } from './TopServicesList'
-import { getDashboardData } from '@/actions/analytics/getDashboardData'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'last7days' | 'last30days'
 
@@ -28,57 +26,15 @@ interface DashboardClientProps {
 
 export function DashboardClient({ organizationId, role, employeeName, organizationName }: DashboardClientProps) {
   const COLORS = useThemeColors()
-  const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<Period>('month')
-  const [data, setData] = useState<{
-    overview: {
-      appointments: number
-      appointmentsChange: number
-      revenue: number
-      revenueChange: number
-      clients: number
-      clientsChange: number
-      completionRate: number
-      completionRateChange: number
-      avgTicket: number
-    }
-    trend: Array<{
-      date: string
-      label: string
-      appointments: number
-      completed: number
-      revenue: number
-    }>
-    topServices: Array<{
-      serviceId: string
-      serviceName: string
-      count: number
-      percentage: number
-      revenue: number
-    }>
-  } | null>(null)
-
-  const loadDashboard = useCallback(async () => {
-    setLoading(true)
-    const result = await getDashboardData(organizationId, period)
-    if (result.success && result.data) {
-      setData(result.data)
-    }
-    setLoading(false)
-  }, [organizationId, period])
-
-  useEffect(() => {
-    if (role !== 'empleado') {
-      loadDashboard()
-    }
-  }, [role, loadDashboard])
+  const { loading, data } = useAnalytics({ organizationId, period })
 
   const totalAppointments = data?.overview.appointments || 0
-  const completedAppointments = data?.overview.completionRate && totalAppointments 
-    ? Math.round((data.overview.completionRate / 100) * totalAppointments) 
+  const completedAppointments = data?.overview.completionRate && totalAppointments
+    ? Math.round((data.overview.completionRate / 100) * totalAppointments)
     : 0
-  const cancellationRate = totalAppointments > 0 
-    ? Math.round(((totalAppointments - completedAppointments) / totalAppointments) * 100) 
+  const cancellationRate = totalAppointments > 0
+    ? Math.round(((totalAppointments - completedAppointments) / totalAppointments) * 100)
     : 0
 
   const statsCards = [
@@ -252,9 +208,6 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
         </div>
       )}
 
-      {/* Quick View Widget - Today's Summary */}
-      <BusinessHealthWidget organizationId={organizationId} />
-
       {/* KPI Cards Grid - 6 cards in 3x2 on tablet, 6x1 on desktop */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         {statsCards.map((stat, index) => (
@@ -279,16 +232,15 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
         {/* Left Column - Chart + Activity */}
         <div className="space-y-6">
           <TrendChart data={data?.trend || []} loading={loading} />
-          <RecentActivity organizationId={organizationId} />
+          <RecentActivity activities={data?.recentActivity || []} loading={loading} />
         </div>
 
         {/* Right Column - Widgets */}
         <div className="space-y-6">
-          <QuickActionsWidget />
-          <UpcomingAppointments organizationId={organizationId} />
-          <EmployeePerformance organizationId={organizationId} period={period} />
-          <PayrollSummaryWidget organizationId={organizationId} />
-          <AlertsPanel organizationId={organizationId} />
+          <UpcomingAppointments appointments={data?.upcomingAppointments || []} loading={loading} />
+          <EmployeePerformance employees={data?.employeePerformance || []} loading={loading} />
+          <PayrollSummaryWidget summary={data?.payrollSummary} loading={loading} />
+          <AlertsPanel alerts={data?.alerts || []} loading={loading} />
         </div>
       </div>
 

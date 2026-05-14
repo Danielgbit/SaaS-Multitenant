@@ -1,9 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { MessageCircle, Calendar, CheckCircle2, Bell, ChevronRight } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { getSystemAlerts } from '@/actions/analytics/getSystemAlerts'
 
 interface Alert {
   id: string
@@ -17,26 +15,12 @@ interface Alert {
 }
 
 interface AlertsPanelProps {
-  organizationId: string
+  alerts: Alert[]
+  loading: boolean
 }
 
-export function AlertsPanel({ organizationId }: AlertsPanelProps) {
+export function AlertsPanel({ alerts, loading }: AlertsPanelProps) {
   const COLORS = useThemeColors()
-  const [alerts, setAlerts] = useState<Alert[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadAlerts()
-  }, [organizationId])
-
-  const loadAlerts = async () => {
-    setLoading(true)
-    const result = await getSystemAlerts(organizationId)
-    if (result.success && result.data) {
-      setAlerts(result.data)
-    }
-    setLoading(false)
-  }
 
   const getAlertIcon = (alert: Alert) => {
     switch (alert.type) {

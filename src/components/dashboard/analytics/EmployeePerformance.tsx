@@ -1,9 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { Trophy, User } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { getEmployeePerformance } from '@/actions/analytics/getEmployeePerformance'
 
 interface EmployeeData {
   employee_id: string
@@ -13,30 +11,13 @@ interface EmployeeData {
   completed: number
 }
 
-type Period = 'today' | 'week' | 'month' | 'year' | 'last7days' | 'last30days'
-
 interface EmployeePerformanceProps {
-  organizationId: string
-  period?: Period
+  employees: EmployeeData[]
+  loading: boolean
 }
 
-export function EmployeePerformance({ organizationId, period = 'month' }: EmployeePerformanceProps) {
+export function EmployeePerformance({ employees, loading }: EmployeePerformanceProps) {
   const COLORS = useThemeColors()
-  const [employees, setEmployees] = useState<EmployeeData[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadData()
-  }, [organizationId, period])
-
-  const loadData = async () => {
-    setLoading(true)
-    const result = await getEmployeePerformance(organizationId, period)
-    if (result.success && result.data) {
-      setEmployees(result.data)
-    }
-    setLoading(false)
-  }
 
   const maxRevenue = Math.max(...employees.map(e => e.revenue), 1)
 

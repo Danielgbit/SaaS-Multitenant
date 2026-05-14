@@ -1,11 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useThemeColors } from '@/hooks/useThemeColors'
 import { Activity, CheckCircle2, XCircle, UserPlus, Clock } from 'lucide-react'
-import { getRecentActivity } from '@/actions/analytics/getRecentActivity'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
-interface Activity {
+interface ActivityItem {
   id: string
   type: 'appointment_created' | 'appointment_completed' | 'appointment_cancelled' | 'client_registered'
   title: string
@@ -14,28 +12,14 @@ interface Activity {
 }
 
 interface RecentActivityProps {
-  organizationId: string
+  activities: ActivityItem[]
+  loading: boolean
 }
 
-export function RecentActivity({ organizationId }: RecentActivityProps) {
+export function RecentActivity({ activities, loading }: RecentActivityProps) {
   const COLORS = useThemeColors()
-  const [activities, setActivities] = useState<Activity[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadActivities()
-  }, [organizationId])
-
-  const loadActivities = async () => {
-    setLoading(true)
-    const result = await getRecentActivity(organizationId, 8)
-    if (result.success && result.data) {
-      setActivities(result.data)
-    }
-    setLoading(false)
-  }
-
-  const getActivityIcon = (type: Activity['type']) => {
+  const getActivityIcon = (type: ActivityItem['type']) => {
     switch (type) {
       case 'appointment_completed':
         return { icon: <CheckCircle2 className="w-4 h-4" />, color: COLORS.success, bg: COLORS.successLight }
