@@ -30,34 +30,34 @@ export async function getQueueStats(organizationId: string): Promise<{ success: 
     const todayIso = today.toISOString()
 
     const [sentResult, deliveredResult, failedResult, pendingResult, stuckResult] = await Promise.all([
-      supabase
+      (supabase as any)
         .from('notification_queue')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
         .eq('status', 'sent')
         .gte('created_at', todayIso),
 
-      supabase
+      (supabase as any)
         .from('notification_queue')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
         .eq('status', 'delivered')
         .gte('created_at', todayIso),
 
-      supabase
+      (supabase as any)
         .from('notification_queue')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
         .in('status', ['failed', 'failed_permanently'])
         .gte('created_at', todayIso),
 
-      supabase
+      (supabase as any)
         .from('notification_queue')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
         .eq('status', 'pending'),
 
-      supabase
+      (supabase as any)
         .from('notification_queue')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
@@ -100,7 +100,7 @@ export async function getQueueItems(
   const supabase = await createClient()
 
   try {
-    let query = supabase
+    let query = (supabase as any)
       .from('notification_queue')
       .select('*', { count: 'exact' })
       .eq('organization_id', organizationId)
@@ -129,7 +129,7 @@ export async function getQueueItems(
     const total = count || 0
     const totalPages = Math.ceil(total / limit)
 
-    const items: NotificationQueueItem[] = (data || []).map((row) => ({
+    const items: NotificationQueueItem[] = (data || []).map((row: any) => ({
       id: row.id,
       organizationId: row.organization_id,
       appointmentId: row.appointment_id,
@@ -173,7 +173,7 @@ export async function getRecentItems(
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('notification_queue')
       .select('*')
       .eq('organization_id', organizationId)
@@ -185,7 +185,7 @@ export async function getRecentItems(
       return { success: false, error: 'Error al cargar mensajes recientes' }
     }
 
-    const items: NotificationQueueItem[] = (data || []).map((row) => ({
+    const items: NotificationQueueItem[] = (data || []).map((row: any) => ({
       id: row.id,
       organizationId: row.organization_id,
       appointmentId: row.appointment_id,
@@ -225,7 +225,7 @@ export async function retryQueueItem(
   const supabase = await createClient()
 
   try {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('notification_queue')
       .update({
         status: 'pending',
@@ -257,7 +257,7 @@ export async function cancelQueueItem(
   const supabase = await createClient()
 
   try {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('notification_queue')
       .update({
         status: 'cancelled',

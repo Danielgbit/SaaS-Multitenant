@@ -2,6 +2,19 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Check, AlertCircle, HelpCircle, UserCircle, Loader2, PhoneCall, MessageCircle, Users, User, BellOff } from 'lucide-react'
+import type { ConfirmationMethod } from '@/types/clients'
+import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
+import { createClient as createClientAction } from '@/actions/clients/createClient'
+import { updateClient } from '@/actions/clients/updateClient'
+
+interface EditClientModalProps {
+  client?: any
+  organizationId: string
+  isOpen: boolean
+  onClose: () => void
+  onSuccess?: () => void
+}
 
 function FloatingInput({
   label,
@@ -627,12 +640,12 @@ export function EditClientModal({
       formData.append('id', client.id)
     }
 
-    const action = isNewClient ? createClient : updateClient
+    const action = isNewClient ? createClientAction : updateClient
     const state = await action({ success: false, error: undefined, fieldErrors: undefined }, formData)
 
     if (state.success) {
       setTimeout(() => {
-        onSuccess()
+        onSuccess?.()
         onClose()
       }, 400)
     } else {

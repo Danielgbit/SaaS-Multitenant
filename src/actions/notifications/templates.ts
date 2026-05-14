@@ -45,7 +45,7 @@ export async function getTemplates(
   const supabase = await createClient()
 
   try {
-    let query = supabase
+    let query = (supabase as any)
       .from('message_templates')
       .select('*')
       .or(`organization_id.eq.${organizationId},organization_id.is.null`)
@@ -71,7 +71,7 @@ export async function getTemplateById(templateId: string) {
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('message_templates')
       .select('*')
       .eq('id', templateId)
@@ -100,7 +100,7 @@ export async function createTemplate(
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('message_templates')
       .insert({
         organization_id: validation.data.organizationId || null,
@@ -151,7 +151,7 @@ export async function updateTemplate(
     if (validation.data.variables !== undefined) updateData.variables = validation.data.variables
     if (validation.data.isActive !== undefined) updateData.is_active = validation.data.isActive
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('message_templates')
       .update(updateData)
       .eq('id', templateId)
@@ -174,7 +174,7 @@ export async function deleteTemplate(templateId: string) {
   const supabase = await createClient()
 
   try {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('message_templates')
       .update({ is_active: false, updated_at: new Date().toISOString() })
       .eq('id', templateId)
@@ -196,7 +196,7 @@ export async function resetTemplateToDefault(templateId: string) {
   const supabase = await createClient()
 
   try {
-    const { data: template, error: fetchError } = await supabase
+    const { data: template, error: fetchError } = await (supabase as any)
       .from('message_templates')
       .select('organization_id, channel, type')
       .eq('id', templateId)
@@ -206,7 +206,7 @@ export async function resetTemplateToDefault(templateId: string) {
       return { success: false, error: 'Template no encontrado' }
     }
 
-    const { data: defaultTemplate, error: defaultError } = await supabase
+    const { data: defaultTemplate, error: defaultError } = await (supabase as any)
       .from('message_templates')
       .select('*')
       .is('organization_id', null)
@@ -219,7 +219,7 @@ export async function resetTemplateToDefault(templateId: string) {
       return { success: false, error: 'No existe template por defecto para este tipo' }
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await (supabase as any)
       .from('message_templates')
       .update({
         body: defaultTemplate.body,

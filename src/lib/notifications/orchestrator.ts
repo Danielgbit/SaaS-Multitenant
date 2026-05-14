@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createChannel } from '@/lib/notifications/channels'
-import { getTemplateWithRender, replacePlaceholders } from '@/lib/notifications/template-engine'
+import { getTemplateWithRender } from '@/lib/notifications/template-engine'
 import {
   type AutomationTrigger,
   type NotificationChannel,
@@ -9,6 +9,8 @@ import {
   generateIdempotencyKey,
 } from '@/types/notifications'
 import { randomUUID } from 'crypto'
+import { getOrCreateConversation } from './conversations'
+import { logNotificationEvent } from './event-timeline'
 
 interface AppointmentData {
   id: string
@@ -237,6 +239,25 @@ export async function NotificationOrchestrator(
 
         queued++
 
+        if (rule.channel === 'whatsapp' && toAddress) {
+          try {
+            const conversation = await getOrCreateConversation(
+              appointment.organization_id,
+              toAddress.replace(/\D/g, '')
+            )
+            await logNotificationEvent({
+              organizationId: appointment.organization_id,
+              conversationId: conversation.id,
+              queueItemId: undefined,
+              eventType: 'QUEUED',
+              metadata: { trigger, channel: rule.channel, appointmentId },
+              traceId,
+            })
+          } catch (convErr) {
+            console.error('[orchestrator] conversation tracking error:', convErr)
+          }
+        }
+
         if (delayMinutes === 0 && rule.channel !== 'in_app') {
           const channelAdapter = createChannel(rule.channel, provider.config as Record<string, unknown>)
           if (channelAdapter) {
@@ -262,6 +283,21 @@ export async function NotificationOrchestrator(
                 })
                 .eq('idempotency_key', idempotencyKey)
               sent++
+              try {
+                await logNotificationEvent({
+                  organizationId: appointment.organization_id,
+                  eventType: 'SENT',
+                  metadata: {
+                    trigger,
+                    channel: rule.channel,
+                    appointmentId,
+                    providerMessageId: result.providerMessageId,
+                  },
+                  traceId,
+                })
+              } catch (logErr) {
+                console.error('[orchestrator] event log error:', logErr)
+              }
             } else {
               errors.push(`Send failed for ${rule.channel}: ${result.error}`)
             }

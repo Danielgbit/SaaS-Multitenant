@@ -5,6 +5,10 @@ import type {
 } from './types'
 import type { NotificationChannel, NotificationProviderType } from '@/types/notifications'
 
+/**
+ * @deprecated Use WhatsAppChannel with N8NProvider instead.
+ * @see src/lib/notifications/channels/whatsapp/whatsapp-channel.ts
+ */
 export class N8NWhatsAppChannel implements NotificationChannelAdapter {
   private webhookUrl: string
   private apiKey?: string

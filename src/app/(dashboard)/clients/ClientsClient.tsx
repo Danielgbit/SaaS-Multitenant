@@ -4,6 +4,14 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Users, Plus, Search, X, UserCircle } from 'lucide-react'
+import { ClientCard } from './ClientCard'
+import { EditClientModal } from './EditClientModal'
+import { DeleteClientModal } from './DeleteClientModal'
+
+interface ClientsClientProps {
+  clients: any[]
+  organizationId: string
+}
 
 export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
   const router = useRouter()
@@ -12,8 +20,8 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'recent'>('all')
   
-  const [editingClient, setEditingClient] = useState<Client | null>(null)
-  const [deletingClient, setDeletingClient] = useState<Client | null>(null)
+  const [editingClient, setEditingClient] = useState<any | null>(null)
+  const [deletingClient, setDeletingClient] = useState<any | null>(null)
   const [isCreating, setIsCreating] = useState(false)
 
   const isModalOpen = isCreating || editingClient !== null

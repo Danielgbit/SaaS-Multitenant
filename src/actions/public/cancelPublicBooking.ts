@@ -293,7 +293,7 @@ export async function cancelPublicBooking(
         organizationId: organization.id,
         appointmentId: appointment.id,
         phone: clientData.phone,
-        template: 'cancellation_confirmation',
+        template: 'appointment_cancelled' as any,
         variables: {
           date: startTime.toLocaleDateString('es-ES', {
             weekday: 'long',
@@ -321,10 +321,13 @@ export async function cancelPublicBooking(
         await queueEmailMessage({
           organizationId: organization.id,
           appointmentId: appointment.id,
-          emailType: 'cancellation_confirmation',
+          emailType: 'appointment_cancelled' as any,
           to: clientData.email,
           variables: {
             businessName: organization.name,
+            clientName: clientData.name,
+            serviceName: 'Servicio',
+            employeeName: 'Profesional',
             date: startTime.toLocaleDateString('es-ES', {
               weekday: 'long',
               day: 'numeric',
@@ -334,7 +337,8 @@ export async function cancelPublicBooking(
               hour: '2-digit',
               minute: '2-digit',
             }),
-          },
+            duration: '60',
+          } as any,
         })
       }
     }

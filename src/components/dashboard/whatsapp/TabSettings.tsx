@@ -25,6 +25,10 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
   const [enabled, setEnabled] = useState(false)
   const [rateLimitPerMin, setRateLimitPerMin] = useState(30)
   const [rateLimitPerDay, setRateLimitPerDay] = useState(500)
+  const [providerType, setProviderType] = useState<'n8n' | 'wasender'>('n8n')
+  const [instanceId, setInstanceId] = useState('')
+  const [webhookToken, setWebhookToken] = useState('')
+  const [showToken, setShowToken] = useState(false)
 
   useEffect(() => {
     loadProvider()
@@ -40,6 +44,10 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
       setEnabled(result.data.isEnabled)
       setRateLimitPerMin(result.data.rateLimitPerMin)
       setRateLimitPerDay(result.data.rateLimitPerDay || 500)
+      const pType = (result.data.config?.provider as string) as 'n8n' | 'wasender' || 'n8n'
+      setProviderType(pType)
+      setInstanceId((result.data.config?.instance_id as string) || '')
+      setWebhookToken((result.data.config?.webhook_token as string) || '')
     }
     setLoading(false)
   }
@@ -49,10 +57,13 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
     const result = await upsertProvider({
       organizationId,
       channel: 'whatsapp',
-      provider: 'n8n',
+      provider: providerType,
       config: {
+        provider: providerType,
         webhook_url: webhookUrl || undefined,
         api_key: apiKey || undefined,
+        instance_id: providerType === 'wasender' ? instanceId || undefined : undefined,
+        webhook_token: providerType === 'wasender' ? webhookToken || undefined : undefined,
       },
       rateLimitPerMin,
       rateLimitPerDay,
@@ -116,22 +127,38 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
           className="text-lg font-semibold"
           style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
         >
-          Configuración del proveedor
+          Proveedor de WhatsApp
         </h3>
 
-        <div className="space-y-4">
+        <div className="flex gap-2 p-1 rounded-xl" style={{ backgroundColor: COLORS.surface }}>
+          {(['n8n', 'wasender'] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => { setProviderType(type); setWebhookUrl(''); setApiKey(''); setInstanceId(''); }}
+              className="flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all"
+              style={{
+                backgroundColor: providerType === type ? COLORS.primary : 'transparent',
+                color: providerType === type ? '#FFFFFF' : COLORS.textSecondary,
+              }}
+            >
+              {type === 'n8n' ? 'N8N' : 'Wasender'}
+            </button>
+          ))}
+        </div>
+
+        {providerType === 'wasender' && (
           <div>
             <label
               className="block text-sm font-medium mb-2"
               style={{ color: COLORS.textSecondary }}
             >
-              Webhook URL de N8N
+              Instance ID
             </label>
             <input
-              type="url"
-              value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
-              placeholder="https://tu-n8n.com/webhook/..."
+              type="text"
+              value={instanceId}
+              onChange={(e) => setInstanceId(e.target.value)}
+              placeholder="Ej: ins_xxxxxx"
               className="w-full px-4 py-3 rounded-xl border transition-colors outline-none"
               style={{
                 backgroundColor: COLORS.surface,
@@ -143,20 +170,82 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
               onBlur={(e) => { e.currentTarget.style.borderColor = COLORS.border }}
             />
           </div>
+        )}
 
+        <div>
+          <label
+            className="block text-sm font-medium mb-2"
+            style={{ color: COLORS.textSecondary }}
+          >
+            {providerType === 'wasender' ? 'Base URL de Wasender' : 'Webhook URL de N8N'}
+          </label>
+          <input
+            type="url"
+            value={webhookUrl}
+            onChange={(e) => setWebhookUrl(e.target.value)}
+            placeholder={providerType === 'wasender' ? 'https://wasender.io' : 'https://tu-n8n.com/webhook/...'}
+            className="w-full px-4 py-3 rounded-xl border transition-colors outline-none"
+            style={{
+              backgroundColor: COLORS.surface,
+              borderColor: COLORS.border,
+              color: COLORS.textPrimary,
+              fontFamily: 'Plus Jakarta Sans, sans-serif',
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = COLORS.borderFocus }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = COLORS.border }}
+          />
+        </div>
+
+        <div>
+          <label
+            className="block text-sm font-medium mb-2"
+            style={{ color: COLORS.textSecondary }}
+          >
+            API Key
+          </label>
+          <div className="relative">
+            <input
+              type={showApiKey ? 'text' : 'password'}
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder={providerType === 'wasender' ? 'Token de API Wasender' : 'API key de WhatsApp Business'}
+              className="w-full px-4 py-3 pr-12 rounded-xl border transition-colors outline-none"
+              style={{
+                backgroundColor: COLORS.surface,
+                borderColor: COLORS.border,
+                color: COLORS.textPrimary,
+                fontFamily: 'Plus Jakarta Sans, sans-serif',
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = COLORS.borderFocus }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = COLORS.border }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowApiKey(!showApiKey)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors"
+              style={{ color: COLORS.textMuted }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+            >
+              {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        {providerType === 'wasender' && (
           <div>
             <label
               className="block text-sm font-medium mb-2"
               style={{ color: COLORS.textSecondary }}
             >
-              API Key (opcional)
+              Webhook Token
             </label>
             <div className="relative">
               <input
-                type={showApiKey ? 'text' : 'password'}
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="API key de WhatsApp Business"
+                type={showToken ? 'text' : 'password'}
+                value={webhookToken}
+                onChange={(e) => setWebhookToken(e.target.value)}
+                placeholder="Token para validar webhooks entrantes"
                 className="w-full px-4 py-3 pr-12 rounded-xl border transition-colors outline-none"
                 style={{
                   backgroundColor: COLORS.surface,
@@ -169,40 +258,40 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
               />
               <button
                 type="button"
-                onClick={() => setShowApiKey(!showApiKey)}
+                onClick={() => setShowToken(!showToken)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors"
                 style={{ color: COLORS.textMuted }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
               >
-                {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
+        )}
 
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
-                WhatsApp habilitado
-              </span>
-            </div>
-            <button
-              onClick={() => setEnabled(!enabled)}
-              className="relative w-12 h-7 rounded-full transition-colors"
-              style={{ backgroundColor: enabled ? COLORS.success : COLORS.border }}
-              role="switch"
-              aria-checked={enabled}
-            >
-              <span
-                className="absolute top-1 w-5 h-5 rounded-full transition-transform"
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  left: enabled ? '20px' : '2px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                }}
-              />
-            </button>
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
+              WhatsApp habilitado
+            </span>
           </div>
+          <button
+            onClick={() => setEnabled(!enabled)}
+            className="relative w-12 h-7 rounded-full transition-colors"
+            style={{ backgroundColor: enabled ? COLORS.success : COLORS.border }}
+            role="switch"
+            aria-checked={enabled}
+          >
+            <span
+              className="absolute top-1 w-5 h-5 rounded-full transition-transform"
+              style={{
+                backgroundColor: '#FFFFFF',
+                left: enabled ? '20px' : '2px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              }}
+            />
+          </button>
         </div>
       </div>
 
@@ -340,30 +429,54 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
             className="text-lg font-semibold"
             style={{ color: COLORS.primary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
           >
-            Cómo configurar N8N
+            Cómo configurar {providerType === 'wasender' ? 'Wasender' : 'N8N'}
           </h3>
         </div>
-        <ol className="space-y-3">
-          {[
-            'Crea un nuevo workflow en N8N',
-            'Añade un nodo "Webhook" que reciba HTTP POST',
-            'Copia la URL del webhook y pégala arriba',
-            'Configura el envío de mensaje de WhatsApp en tu workflow',
-            'Activa el webhook y guarda la configuración'
-          ].map((step, index) => (
-            <li key={index} className="flex items-start gap-3">
-              <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
-                style={{ backgroundColor: COLORS.primary, color: '#FFFFFF' }}
-              >
-                {index + 1}
-              </div>
-              <span className="text-sm" style={{ color: COLORS.textPrimary }}>
-                {step}
-              </span>
-            </li>
-          ))}
-        </ol>
+        {providerType === 'n8n' ? (
+          <ol className="space-y-3">
+            {[
+              'Crea un nuevo workflow en N8N',
+              'Añade un nodo "Webhook" que reciba HTTP POST',
+              'Copia la URL del webhook y pégala arriba',
+              'Configura el envío de mensaje de WhatsApp en tu workflow',
+              'Activa el webhook y guarda la configuración'
+            ].map((step, index) => (
+              <li key={index} className="flex items-start gap-3">
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
+                  style={{ backgroundColor: COLORS.primary, color: '#FFFFFF' }}
+                >
+                  {index + 1}
+                </div>
+                <span className="text-sm" style={{ color: COLORS.textPrimary }}>
+                  {step}
+                </span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <ol className="space-y-3">
+            {[
+              'Inicia sesión en tu cuenta de Wasender',
+              'Copia el Instance ID y la Base URL de tu instancia',
+              'Pega la Base URL y el Instance ID arriba',
+              'Introduce tu API Key de Wasender',
+              'Guarda y prueba la conexión'
+            ].map((step, index) => (
+              <li key={index} className="flex items-start gap-3">
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
+                  style={{ backgroundColor: COLORS.primary, color: '#FFFFFF' }}
+                >
+                  {index + 1}
+                </div>
+                <span className="text-sm" style={{ color: COLORS.textPrimary }}>
+                  {step}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
         <div
           className="p-4 rounded-xl"
           style={{ backgroundColor: COLORS.surface }}

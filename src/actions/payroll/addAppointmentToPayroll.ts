@@ -153,13 +153,13 @@ export async function addAppointmentToPayroll(
   }
 
   // ── Datos del empleado ──────────────────────────────
-  const { data: employee } = await supabase
+  const { data: employee } = await (supabase as any)
     .from('employees')
     .select('default_commission_rate, contract_type, payment_type')
     .eq('id', employeeId)
     .single()
 
-  const defaultRate = employee?.default_commission_rate ?? 60
+  const defaultRate = (employee as any)?.default_commission_rate ?? 60
 
   // ── UPSERT payroll_item ─────────────────────────────
   let { data: item } = await serviceSupabase

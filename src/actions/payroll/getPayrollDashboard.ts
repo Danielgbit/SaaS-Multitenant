@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { PayrollDashboardSummary, PeriodEmployeeSummary } from '@/types/payroll'
+import type { PayrollDashboardSummary, PeriodEmployeeSummary, PayrollPeriod } from '@/types/payroll'
 
 async function enrichPeriodEmployees(supabase: any, period: any) {
   if (!period) return period

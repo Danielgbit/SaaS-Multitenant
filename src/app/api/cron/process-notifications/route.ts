@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createChannel } from '@/lib/notifications/channels'
 import type { ProcessQueueResult, NotificationChannel } from '@/types/notifications'
+import { logNotificationEvent } from '@/lib/notifications/event-timeline'
+import { moveToDeadLetter } from '@/lib/notifications/dead-letter'
 
 export const runtime = 'edge'
 
@@ -12,7 +14,7 @@ const RATE_LIMIT_WINDOW_MS = 60 * 1000
 async function recoverStuckJobs(supabase: Awaited<ReturnType<typeof createServiceRoleClient>>): Promise<number> {
   const tenMinutesAgo = new Date(Date.now() - PROCESSING_TIMEOUT_MINUTES * 60 * 1000).toISOString()
 
-  const { data: stuckJobs, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('notification_queue')
     .update({
       status: 'pending',
@@ -39,7 +41,7 @@ async function checkRateLimit(
 ): Promise<boolean> {
   const oneMinuteAgo = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString()
 
-  const { count } = await supabase
+  const { count } = await (supabase as any)
     .from('notification_queue')
     .select('*', { count: 'exact', head: true })
     .eq('organization_id', organizationId)
@@ -66,7 +68,7 @@ async function processNotificationBatch(
     console.log(`[processNotifications] Recovered ${recoveredCount} stuck jobs`)
   }
 
-  const { data: batch, error: claimError } = await supabase
+  const { data: batch, error: claimError } = await (supabase as any)
     .from('notification_queue')
     .select(`
       *,
@@ -81,9 +83,9 @@ async function processNotificationBatch(
     return result
   }
 
-  const batchIds = batch.map(item => item.id)
+  const batchIds = batch.map((item: { id: string }) => item.id)
 
-  await supabase
+  await (supabase as any)
     .from('notification_queue')
     .update({
       status: 'processing',
@@ -93,14 +95,14 @@ async function processNotificationBatch(
     })
     .in('id', batchIds)
 
-  for (const item of batch) {
+  for (const item of batch as (Record<string, unknown>)[]) {
     try {
-      const providerConfig = item.notification_providers?.config || {}
-      const rateLimit = item.notification_providers?.rate_limit_per_min || 30
+      const providerConfig = (item.notification_providers as Record<string, unknown>)?.config as Record<string, unknown> || {}
+      const rateLimit = (item.notification_providers as Record<string, unknown>)?.rate_limit_per_min as number || 30
 
-      const withinLimit = await checkRateLimit(supabase, item.organization_id, item.channel, rateLimit)
+      const withinLimit = await checkRateLimit(supabase, item.organization_id as string, item.channel as NotificationChannel, rateLimit)
       if (!withinLimit) {
-        await supabase
+        await (supabase as any)
           .from('notification_queue')
           .update({ status: 'pending', claimed_at: null })
           .eq('id', item.id)
@@ -111,7 +113,7 @@ async function processNotificationBatch(
       const channelAdapter = createChannel(item.channel as NotificationChannel, providerConfig)
 
       if (!channelAdapter) {
-        await supabase
+        await (supabase as any)
           .from('notification_queue')
           .update({
             status: 'failed_permanently',
@@ -125,21 +127,31 @@ async function processNotificationBatch(
 
       const sendResult = await channelAdapter.send({
         channel: item.channel as NotificationChannel,
-        toAddress: item.to_address,
-        subject: item.subject || undefined,
-        body: item.rendered_body || '',
-        appointmentId: item.appointment_id || undefined,
-        organizationId: item.organization_id,
-        idempotencyKey: item.idempotency_key,
-        scheduledAt: item.scheduled_at,
-        variables: item.variables || {},
+        toAddress: item.to_address as string,
+        subject: item.subject as string | undefined,
+        body: (item.rendered_body as string) || '',
+        appointmentId: item.appointment_id as string | undefined,
+        organizationId: item.organization_id as string,
+        idempotencyKey: item.idempotency_key as string,
+        scheduledAt: item.scheduled_at as string,
+        variables: (item.variables as Record<string, string>) || {},
         metadata: { traceId: item.trace_id },
       })
+
+      try {
+        await logNotificationEvent({
+          organizationId: item.organization_id as string,
+          queueItemId: item.id as string,
+          eventType: 'PROCESSING',
+          metadata: { attempt: item.attempts || 0 },
+          traceId: item.trace_id as string || null,
+        })
+      } catch {}
 
       const now = new Date().toISOString()
 
       if (sendResult.success) {
-        await supabase
+        await (supabase as any)
           .from('notification_queue')
           .update({
             status: 'sent',
@@ -151,12 +163,21 @@ async function processNotificationBatch(
           })
           .eq('id', item.id)
         result.sent++
+        try {
+          await logNotificationEvent({
+            organizationId: item.organization_id as string,
+            queueItemId: item.id as string,
+            eventType: 'SENT',
+            metadata: { providerMessageId: sendResult.providerMessageId },
+            traceId: item.trace_id as string || null,
+          })
+        } catch {}
       } else {
-        const newAttempts = (item.attempts || 0) + 1
-        const maxAttempts = item.max_attempts || 3
+        const newAttempts = ((item.attempts as number) || 0) + 1
+        const maxAttempts = (item.max_attempts as number) || 3
 
         if (newAttempts >= maxAttempts) {
-          await supabase
+          await (supabase as any)
             .from('notification_queue')
             .update({
               status: sendResult.retryable ? 'failed' : 'failed_permanently',
@@ -169,9 +190,35 @@ async function processNotificationBatch(
                 : null,
             })
             .eq('id', item.id)
+
+          if (!sendResult.retryable) {
+            try {
+              await moveToDeadLetter({
+                queueItem: {
+                  id: item.id as string,
+                  organization_id: item.organization_id as string,
+                  channel: item.channel as NotificationChannel,
+                  to_address: item.to_address as string | undefined,
+                  rendered_body: item.rendered_body as string | undefined,
+                  subject: item.subject as string | undefined,
+                  variables: (item.variables as Record<string, string>) || {},
+                  last_error: sendResult.error,
+                  attempts: newAttempts,
+                  trace_id: item.trace_id as string | undefined,
+                },
+              })
+              await logNotificationEvent({
+                organizationId: item.organization_id as string,
+                queueItemId: item.id as string,
+                eventType: 'DEAD_LETTERED',
+                metadata: { error: sendResult.error, errorCode: 'MAX_ATTEMPTS' },
+                traceId: item.trace_id as string | null,
+              })
+            } catch {}
+          }
           result.failed++
         } else {
-          await supabase
+          await (supabase as any)
             .from('notification_queue')
             .update({
               status: 'pending',
@@ -190,7 +237,7 @@ async function processNotificationBatch(
       const errMsg = error instanceof Error ? error.message : String(error)
       console.error(`[processNotifications] Error processing ${item.id}:`, errMsg)
 
-      await supabase
+      await (supabase as any)
         .from('notification_queue')
         .update({
           status: 'failed',

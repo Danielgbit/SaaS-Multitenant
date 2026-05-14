@@ -1,6 +1,13 @@
 export type NotificationChannel = 'whatsapp' | 'email' | 'sms' | 'in_app'
 
-export type NotificationProviderType = 'n8n' | 'evolution' | 'meta' | 'twilio' | 'resend' | 'internal'
+export type NotificationProviderType =
+  | 'wasender'
+  | 'n8n'
+  | 'evolution'
+  | 'meta'
+  | 'twilio'
+  | 'resend'
+  | 'internal'
 
 export type QueueItemStatus =
   | 'pending'
@@ -206,11 +213,110 @@ export function generateIdempotencyKey(
   return `${organizationId}_${apptPart}_${channel}_${type}_${dateStr}`
 }
 
+export type NotificationEventType =
+  | 'QUEUED'
+  | 'PROCESSING'
+  | 'SENT'
+  | 'DELIVERED'
+  | 'READ'
+  | 'REPLIED'
+  | 'CONFIRMED'
+  | 'FAILED'
+  | 'CANCELLED'
+  | 'DEAD_LETTERED'
+  | 'REPLAYED'
+
+export interface NotificationConversation {
+  id: string
+  organizationId: string
+  channel: NotificationChannel
+  clientPhone: string
+  appointmentId?: string
+  lastMessageId?: string
+  status: 'active' | 'archived' | 'blocked'
+  metadata: Record<string, unknown>
+  createdAt: string
+  updatedAt: string
+}
+
+export interface NotificationMessageRecord {
+  id: string
+  conversationId?: string
+  organizationId: string
+  queueItemId?: string
+  providerMessageId?: string
+  direction: 'outbound' | 'inbound'
+  channel: NotificationChannel
+  payload: Record<string, unknown>
+  status: string
+  processingTimeMs?: number
+  errorCode?: string
+  errorMessage?: string
+  traceId?: string
+  createdAt: string
+}
+
+export interface NotificationInboundEvent {
+  id: string
+  organizationId?: string
+  providerMessageId: string
+  channel: NotificationChannel
+  provider: NotificationProviderType
+  fromPhone?: string
+  rawPayload: Record<string, unknown>
+  parsedAction?: string
+  processed: boolean
+  processedAt?: string
+  processingTimeMs?: number
+  errorMessage?: string
+  traceId?: string
+  createdAt: string
+}
+
+export interface DeadLetterNotification {
+  id: string
+  originalQueueId: string
+  organizationId: string
+  channel: NotificationChannel
+  toAddress?: string
+  renderedBody?: string
+  subject?: string
+  variables: Record<string, string>
+  lastError?: string
+  errorCode?: string
+  attempts: number
+  movedAt: string
+  replayStatus: 'pending' | 'replayed' | 'discarded'
+  replayedAt?: string
+  traceId?: string
+  metadata: Record<string, unknown>
+}
+
+export interface NotificationEvent {
+  id: string
+  organizationId: string
+  queueItemId?: string
+  messageId?: string
+  conversationId?: string
+  eventType: NotificationEventType
+  metadata: Record<string, unknown>
+  traceId?: string
+  createdAt: string
+}
+
 export function mapProviderStatusToInternal(
   provider: NotificationProviderType,
   providerStatus: string
 ): { status: QueueItemStatus; retryable: boolean } {
   const statusMap: Record<string, { status: QueueItemStatus; retryable: boolean }> = {
+    wasender: {
+      sent: { status: 'sent', retryable: false },
+      delivered: { status: 'delivered', retryable: false },
+      read: { status: 'read', retryable: false },
+      failed: { status: 'failed', retryable: true },
+      invalid_number: { status: 'failed_permanently', retryable: false },
+      blocked: { status: 'failed_permanently', retryable: false },
+    },
     n8n: {
       sent: { status: 'sent', retryable: false },
       delivered: { status: 'delivered', retryable: false },

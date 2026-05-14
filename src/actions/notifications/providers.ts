@@ -7,7 +7,7 @@ import type { NotificationProvider, NotificationChannel } from '@/types/notifica
 const ProviderUpsertSchema = z.object({
   organizationId: z.string().uuid(),
   channel: z.enum(['whatsapp', 'email', 'sms', 'in_app']),
-  provider: z.enum(['n8n', 'evolution', 'meta', 'twilio', 'resend', 'internal']),
+  provider: z.enum(['wasender', 'n8n', 'evolution', 'meta', 'twilio', 'resend', 'internal']),
   config: z.record(z.string(), z.unknown()).optional(),
   rateLimitPerMin: z.number().min(1).max(1000).optional().default(30),
   rateLimitPerDay: z.number().min(1).max(100000).optional(),
@@ -21,7 +21,7 @@ export async function getProvider(
   const supabase = await createClient()
 
   try {
-    let query = supabase
+    let query = (supabase as any)
       .from('notification_providers')
       .select('*')
       .eq('organization_id', organizationId)
@@ -73,7 +73,7 @@ export async function upsertProvider(
   const supabase = await createClient()
 
   try {
-    const existingResult = await supabase
+    const existingResult = await (supabase as any)
       .from('notification_providers')
       .select('id')
       .eq('organization_id', validation.data.organizationId)
@@ -93,7 +93,7 @@ export async function upsertProvider(
     }
 
     if (existingResult.data) {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('notification_providers')
         .update(providerData)
         .eq('id', existingResult.data.id)
@@ -107,7 +107,7 @@ export async function upsertProvider(
 
       return { success: true, data: mapRowToProvider(data) }
     } else {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('notification_providers')
         .insert({ ...providerData, id: undefined })
         .select()
@@ -133,7 +133,7 @@ export async function toggleProvider(
   const supabase = await createClient()
 
   try {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('notification_providers')
       .update({
         is_enabled: isEnabled,
@@ -159,7 +159,7 @@ export async function testProviderConnection(
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('notification_providers')
       .select('config')
       .eq('id', id)
@@ -208,7 +208,7 @@ function mapRowToProvider(row: Record<string, unknown>): NotificationProvider {
     id: row.id as string,
     organizationId: row.organization_id as string,
     channel: row.channel as NotificationChannel,
-    provider: row.provider,
+    provider: row.provider as NotificationProvider['provider'],
     isEnabled: row.is_enabled as boolean,
     config: row.config as Record<string, unknown> || {},
     rateLimitPerMin: row.rate_limit_per_min as number,

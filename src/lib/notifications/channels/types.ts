@@ -5,6 +5,13 @@ import type {
   NotificationProviderType,
 } from '@/types/notifications'
 
+export type {
+  NotificationChannel,
+  NotificationMessage,
+  SendResult,
+  NotificationProviderType,
+}
+
 export interface NotificationChannelAdapter {
   send(message: NotificationMessage): Promise<SendResult>
   getProviderName(): NotificationProviderType
