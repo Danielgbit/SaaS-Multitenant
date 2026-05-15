@@ -63,7 +63,7 @@ export const ConfirmServiceSchema = z.object({
 export type ConfirmServiceInput = z.infer<typeof ConfirmServiceSchema>
 
 export type ConfirmServiceState = {
-  success?: boolean
+  success: boolean
   error?: string
   appointmentId?: string
 }

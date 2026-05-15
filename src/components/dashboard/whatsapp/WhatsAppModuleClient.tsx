@@ -47,7 +47,7 @@ export function WhatsAppModuleClient({ organizationId }: WhatsAppModuleClientPro
   return (
     <div className="space-y-6">
       <div
-        className="flex items-center gap-3 px-4 py-3 rounded-2xl border"
+        className="flex items-center gap-3 px-5 py-4 rounded-2xl border"
         style={{
           backgroundColor: COLORS.surfaceGlass,
           borderColor: COLORS.border,
@@ -55,42 +55,62 @@ export function WhatsAppModuleClient({ organizationId }: WhatsAppModuleClientPro
         }}
       >
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+          className="relative w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
           style={{ backgroundColor: COLORS.whatsappLight }}
         >
           <MessageCircle className="w-5 h-5" style={{ color: COLORS.whatsapp }} />
+          <span
+            className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full border-2"
+            style={{
+              backgroundColor: COLORS.success,
+              borderColor: COLORS.surface,
+            }}
+          />
         </div>
-        <div>
-          <h1
-            className="text-xl font-bold"
-            style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-          >
-            WhatsApp
-          </h1>
-          <p className="text-sm" style={{ color: COLORS.textMuted }}>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h1
+              className="text-xl font-bold"
+              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            >
+              WhatsApp
+            </h1>
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: COLORS.success + '20', color: COLORS.success }}>
+              Operativo
+            </span>
+          </div>
+          <p className="text-sm mt-0.5" style={{ color: COLORS.textMuted }}>
             Mensajería y automatizaciones
           </p>
         </div>
       </div>
 
       <div
-        className="flex items-center gap-2 p-1.5 rounded-xl overflow-x-auto"
-        style={{ backgroundColor: COLORS.surfaceSubtle }}
+        className="flex items-center gap-1 p-1.5 rounded-xl overflow-x-auto"
+        style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
       >
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
-            style={{
-              backgroundColor: activeTab === tab.id ? COLORS.primaryGradient : 'transparent',
-              color: activeTab === tab.id ? '#FFFFFF' : COLORS.textSecondary,
-            }}
-          >
-            {tab.icon}
-            <span>{tab.label}</span>
-          </button>
-        ))}
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
+              style={{
+                backgroundColor: isActive ? COLORS.primaryGradient : 'transparent',
+                color: isActive ? '#FFFFFF' : COLORS.textSecondary,
+                boxShadow: isActive ? '0 2px 8px rgba(56, 189, 248, 0.3)' : 'none',
+              }}
+              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
+              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent' }}
+            >
+              <span style={{ color: isActive ? '#FFFFFF' : (tab.id === 'overview' ? COLORS.textSecondary : COLORS.textMuted) }}>
+                {tab.icon}
+              </span>
+              <span>{tab.label}</span>
+            </button>
+          )
+        })}
       </div>
 
       <div>{renderTab()}</div>

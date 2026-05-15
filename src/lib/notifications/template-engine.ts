@@ -24,7 +24,7 @@ export async function renderTemplate(
 ): Promise<{ subject?: string; body: string } | null> {
   const supabase = await createClient()
 
-  const { data: template, error } = await supabase
+  const { data: template, error } = await (supabase as any)
     .from('message_templates')
     .select('*')
     .eq('id', templateId)
@@ -55,7 +55,7 @@ export async function getDefaultTemplate(
 
   const supabase = await createClient()
 
-  const { data: customTemplate, error: customError } = await supabase
+  const { data: customTemplate, error: customError } = await (supabase as any)
     .from('message_templates')
     .select('*')
     .eq('organization_id', organizationId)
@@ -69,7 +69,7 @@ export async function getDefaultTemplate(
     return customTemplate as MessageTemplate
   }
 
-  const { data: defaultTemplate, error: defaultError } = await supabase
+  const { data: defaultTemplate, error: defaultError } = await (supabase as any)
     .from('message_templates')
     .select('*')
     .is('organization_id', null)
@@ -125,7 +125,7 @@ export async function previewTemplate(
 ): Promise<{ subject?: string; body: string } | null> {
   const supabase = await createClient()
 
-  const { data: template, error } = await supabase
+  const { data: template, error } = await (supabase as any)
     .from('message_templates')
     .select('*')
     .eq('id', templateId)

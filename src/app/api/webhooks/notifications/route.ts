@@ -9,7 +9,6 @@ import { WasenderProvider } from '@/lib/notifications/channels/whatsapp/provider
 import { N8NProvider } from '@/lib/notifications/channels/whatsapp/providers/n8n'
 import type { WhatsAppProvider } from '@/lib/notifications/channels/whatsapp/providers/types'
 import type { NotificationProviderType } from '@/types/notifications'
-import { randomUUID } from 'crypto'
 
 export const runtime = 'edge'
 
@@ -146,7 +145,7 @@ export async function POST(request: Request) {
         .limit(1)
 
       const recordResult = await recordInboundEvent({
-        providerMessageId: `no_msg_id_${randomUUID()}`,
+        providerMessageId: `no_msg_id_${crypto.randomUUID()}`,
         channel: 'whatsapp',
         provider: providerType,
         fromPhone: parsed.fromPhone,

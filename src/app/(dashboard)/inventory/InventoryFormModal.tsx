@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { X, Package, Tag, DollarSign, Boxes, AlertCircle, CheckCircle, Loader2, HelpCircle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
+import { createInventoryItem } from '@/actions/inventory/createInventoryItem'
+import { updateInventoryItem } from '@/actions/inventory/updateInventoryItem'
 
 interface InventoryFormModalProps {
   item: InventoryItem | null

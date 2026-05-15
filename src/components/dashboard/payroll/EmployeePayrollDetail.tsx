@@ -28,13 +28,14 @@ import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { toast } from 'sonner'
 import { LoanModal } from './LoanModal'
+import type { EmployeeWithPayrollConfig } from '@/types/employees'
 
 type Employee = {
   id: string
   name: string
   phone: string | null
   default_commission_rate: number
-  payment_type: 'commission' | 'salary' | 'mixed'
+  payment_type: 'fijo' | 'porcentaje' | 'mixed'
   fixed_salary: number | null
   salary_frequency: string | null
   max_debt_limit: number | null
@@ -42,7 +43,7 @@ type Employee = {
 }
 
 interface EmployeePayrollDetailProps {
-  employee: Employee
+  employee: EmployeeWithPayrollConfig
   defaultPeriod: { start: string; end: string }
   initialCommission?: CommissionWithDayGroups
   debtInfo?: EmployeeDebtInfo
@@ -156,7 +157,7 @@ export function EmployeePayrollDetail({
   const netPayable =
     (commission?.total_commission || 0) +
     (employee.payment_type === 'mixed' && !isSalarySeparate
-      ? employee.fixed_salary || 0
+      ? employee.base_salary || 0
       : 0) -
     (deductLoans ? deductAmount || debt?.total_pending || 0 : 0)
 
@@ -193,8 +194,8 @@ export function EmployeePayrollDetail({
               {employee.name}
             </h1>
             <p className="text-white/80">
-              {employee.default_commission_rate}% comisión • {employee.payment_type === 'porcentaje' || employee.payment_type === 'commission' ? 'Solo comisión' : employee.payment_type === 'fijo' || employee.payment_type === 'salary' ? 'Sueldo fijo' : 'Mixto'}
-              {employee.fixed_salary && ` • ${formatCurrencyCOP(employee.fixed_salary)}/semana`}
+              {employee.default_commission_rate}% comisión • {employee.payment_type === 'porcentaje' ? 'Solo comisión' : employee.payment_type === 'fijo' ? 'Sueldo fijo' : 'Mixto'}
+              {employee.base_salary && ` • ${formatCurrencyCOP(employee.base_salary)}/semana`}
             </p>
           </div>
         </div>
@@ -616,7 +617,7 @@ export function EmployeePayrollDetail({
                   <div className="flex justify-between">
                     <span style={{ color: COLORS.textSecondary }}>Sueldo fijo</span>
                     <span className="font-medium" style={{ color: COLORS.textPrimary }}>
-                      {formatCurrencyCOP(employee.fixed_salary || 0)}
+                      {formatCurrencyCOP(employee.base_salary || 0)}
                     </span>
                   </div>
                 )}

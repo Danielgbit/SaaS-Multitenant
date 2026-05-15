@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { Check, AlertCircle, HelpCircle, UserCircle, Loader2, PhoneCall, MessageCircle, Users, User, BellOff } from 'lucide-react'
+import { Check, AlertCircle, HelpCircle, UserCircle, Loader2, PhoneCall, MessageCircle, Users, User, BellOff, X, Phone, Mail } from 'lucide-react'
 import type { ConfirmationMethod } from '@/types/clients'
 import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
 import { createClient as createClientAction } from '@/actions/clients/createClient'
@@ -685,7 +685,7 @@ export function EditClientModal({
         style={{
           backgroundColor: COLORS.surfaceGlass,
           borderRadius: COLORS.radius.lg,
-          boxShadow: COLORS.shadow,
+          boxShadow: COLORS.shadow.lg,
           border: `1px solid ${COLORS.border}`,
           backdropFilter: 'blur(20px)',
           opacity: isClosing ? 0 : 1,

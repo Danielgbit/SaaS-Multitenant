@@ -184,5 +184,5 @@ async function notifyOrganization(
     },
   }))
 
-  await supabase.from('notifications').insert(notifications)
+  await supabase.from('notifications').insert(notifications as any)
 }

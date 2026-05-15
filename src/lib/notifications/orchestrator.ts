@@ -95,7 +95,7 @@ async function getAutomationRules(
   organizationId: string,
   trigger: AutomationTrigger
 ) {
-  const { data } = await supabase
+  const { data } = await (supabase as any)
     .from('automation_rules')
     .select('*')
     .eq('organization_id', organizationId)
@@ -110,7 +110,7 @@ async function getNotificationProvider(
   organizationId: string,
   channel: NotificationChannel
 ) {
-  const { data } = await supabase
+  const { data } = await (supabase as any)
     .from('notification_providers')
     .select('*')
     .eq('organization_id', organizationId)
@@ -125,7 +125,7 @@ async function getBookingSettings(
   supabase: Awaited<ReturnType<typeof createClient>>,
   organizationId: string
 ) {
-  const { data } = await supabase
+  const { data } = await (supabase as any)
     .from('booking_settings')
     .select('timezone, reminder_hours_before')
     .eq('organization_id', organizationId)
@@ -225,7 +225,7 @@ export async function NotificationOrchestrator(
           created_at: new Date().toISOString(),
         }
 
-        const { error: insertError } = await supabase
+        const { error: insertError } = await (supabase as any)
           .from('notification_queue')
           .insert(queueItem)
 
@@ -274,7 +274,7 @@ export async function NotificationOrchestrator(
             })
 
             if (result.success) {
-              await supabase
+              await (supabase as any)
                 .from('notification_queue')
                 .update({
                   status: 'sent',

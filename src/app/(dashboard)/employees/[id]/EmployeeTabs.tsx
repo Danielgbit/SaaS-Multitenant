@@ -35,6 +35,8 @@ interface EmployeeTabsProps {
     salary_frequency: SalaryFrequency | null
     max_debt_limit: number
     debt_warning_threshold: number
+    employment_type?: string | null
+    part_time_percentage?: number | null
   }
   allServices: Service[]
   employeeServices: EmployeeService[]

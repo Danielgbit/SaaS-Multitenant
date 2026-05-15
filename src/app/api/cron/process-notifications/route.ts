@@ -144,7 +144,7 @@ async function processNotificationBatch(
           queueItemId: item.id as string,
           eventType: 'PROCESSING',
           metadata: { attempt: item.attempts || 0 },
-          traceId: item.trace_id as string || null,
+          traceId: item.trace_id ? String(item.trace_id) : undefined,
         })
       } catch {}
 
@@ -169,7 +169,7 @@ async function processNotificationBatch(
             queueItemId: item.id as string,
             eventType: 'SENT',
             metadata: { providerMessageId: sendResult.providerMessageId },
-            traceId: item.trace_id as string || null,
+traceId: item.trace_id as string || undefined,
           })
         } catch {}
       } else {
@@ -212,7 +212,7 @@ async function processNotificationBatch(
                 queueItemId: item.id as string,
                 eventType: 'DEAD_LETTERED',
                 metadata: { error: sendResult.error, errorCode: 'MAX_ATTEMPTS' },
-                traceId: item.trace_id as string | null,
+                traceId: item.trace_id ? String(item.trace_id) : undefined,
               })
             } catch {}
           }

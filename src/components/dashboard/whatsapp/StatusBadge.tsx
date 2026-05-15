@@ -3,15 +3,10 @@
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { QueueItemStatus } from '@/types/notifications'
 
-const STATUS_CONFIG: Record<QueueItemStatus, { label: string; bgColor: string; textColor: string }> = {
-  pending: { label: 'Pendiente', bgColor: '#64748B20', textColor: '#64748B' },
-  processing: { label: 'Procesando', bgColor: '#0EA5E920', textColor: '#0EA5E9' },
-  sent: { label: 'Enviado', bgColor: '#6366F120', textColor: '#6366F1' },
-  delivered: { label: 'Entregado', bgColor: '#16A34A20', textColor: '#16A34A' },
-  read: { label: 'Leído', bgColor: '#05966920', textColor: '#059669' },
-  failed: { label: 'Fallido', bgColor: '#DC262620', textColor: '#DC2626' },
-  failed_permanently: { label: 'Fallido permanente', bgColor: '#7F1D1D20', textColor: '#991B1B' },
-  cancelled: { label: 'Cancelado', bgColor: '#47556920', textColor: '#475569' },
+interface StatusConfig {
+  label: string
+  bgColor: string
+  textColor: string
 }
 
 interface StatusBadgeProps {
@@ -19,11 +14,59 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending
+  const COLORS = useThemeColors()
+
+  const getStatusConfig = (): StatusConfig => {
+    const config: Record<QueueItemStatus, StatusConfig> = {
+      pending: {
+        label: 'Pendiente',
+        bgColor: COLORS.textMuted + '20',
+        textColor: COLORS.textMuted,
+      },
+      processing: {
+        label: 'Procesando',
+        bgColor: COLORS.info + '20',
+        textColor: COLORS.info,
+      },
+      sent: {
+        label: 'Enviado',
+        bgColor: COLORS.primary + '20',
+        textColor: COLORS.primary,
+      },
+      delivered: {
+        label: 'Entregado',
+        bgColor: COLORS.success + '20',
+        textColor: COLORS.success,
+      },
+      read: {
+        label: 'Leído',
+        bgColor: COLORS.success + '15',
+        textColor: COLORS.success,
+      },
+      failed: {
+        label: 'Fallido',
+        bgColor: COLORS.error + '20',
+        textColor: COLORS.error,
+      },
+      failed_permanently: {
+        label: 'Fallido permanente',
+        bgColor: COLORS.error + '15',
+        textColor: COLORS.error,
+      },
+      cancelled: {
+        label: 'Cancelado',
+        bgColor: COLORS.textMuted + '15',
+        textColor: COLORS.textMuted,
+      },
+    }
+    return config[status] || config.pending
+  }
+
+  const config = getStatusConfig()
 
   return (
     <span
-      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
       style={{
         backgroundColor: config.bgColor,
         color: config.textColor,
@@ -31,6 +74,10 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       role="status"
       aria-label={`Estado: ${config.label}`}
     >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${status === 'processing' ? 'animate-pulse' : ''}`}
+        style={{ backgroundColor: config.textColor }}
+      />
       {config.label}
     </span>
   )

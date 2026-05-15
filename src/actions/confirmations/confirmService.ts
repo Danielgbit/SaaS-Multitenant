@@ -18,7 +18,7 @@ export async function confirmService(
   const parsed = ConfirmServiceSchema.safeParse(rawData)
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message || 'Datos inválidos' }
+    return { success: false, error: parsed.error.issues[0]?.message || 'Datos inválidos' }
   }
 
   const { appointmentId, logId, paymentMethod, notes } = parsed.data
@@ -27,7 +27,7 @@ export async function confirmService(
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    return { error: 'No autorizado.' }
+    return { success: false, error: 'No autorizado.' }
   }
 
   const { data: appointment, error: apptError } = await (supabase as any)
@@ -45,15 +45,15 @@ export async function confirmService(
     .single()
 
   if (apptError || !appointment) {
-    return { error: 'Cita no encontrada.' }
+    return { success: false, error: 'Cita no encontrada.' }
   }
 
   if (appointment.confirmation_status === 'confirmed') {
-    return { error: 'Esta cita ya fue confirmada.' }
+    return { success: false, error: 'Esta cita ya fue confirmada.' }
   }
 
   if (appointment.confirmation_status === 'scheduled') {
-    return { error: 'Esta cita aún no fue marcada por el empleado.' }
+    return { success: false, error: 'Esta cita aún no fue marcada por el empleado.' }
   }
 
   const { data: orgMember, error: orgError } = await (supabase as any)
@@ -64,11 +64,11 @@ export async function confirmService(
     .single()
 
   if (orgError || !orgMember) {
-    return { error: 'No perteneces a esta organización.' }
+    return { success: false, error: 'No perteneces a esta organización.' }
   }
 
   if (!['owner', 'admin', 'staff'].includes(orgMember.role)) {
-    return { error: 'No tienes permiso para confirmar cobros.' }
+    return { success: false, error: 'No tienes permiso para confirmar cobros.' }
   }
 
   const now = new Date().toISOString()
@@ -112,7 +112,7 @@ export async function confirmService(
 
   if (logError) {
     console.error('[confirmService] Log error:', logError)
-    return { error: 'Error al registrar la confirmación. Intenta de nuevo.' }
+    return { success: false, error: 'Error al registrar la confirmación. Intenta de nuevo.' }
   }
 
   const { error: updateError } = await (supabase as any)
@@ -128,7 +128,7 @@ export async function confirmService(
 
   if (updateError) {
     console.error('[confirmService] Update error:', updateError)
-    return { error: 'Error al confirmar la cita. Intenta de nuevo.' }
+    return { success: false, error: 'Error al confirmar la cita. Intenta de nuevo.' }
   }
 
   if (appointment.completed_by) {

@@ -277,3 +277,64 @@ export async function cancelQueueItem(
     return { success: false, error: 'Error inesperado' }
   }
 }
+
+export async function retryMultipleQueueItems(
+  itemIds: string[]
+): Promise<{ success: boolean; error?: string }> {
+  if (itemIds.length === 0) return { success: true }
+  const supabase = await createClient()
+
+  try {
+    const { error } = await (supabase as any)
+      .from('notification_queue')
+      .update({
+        status: 'pending',
+        last_error: null,
+        attempts: 0,
+        next_retry_at: null,
+        claimed_at: null,
+        processing_timeout_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .in('id', itemIds)
+      .in('status', ['failed', 'failed_permanently'])
+
+    if (error) {
+      console.error('Error retrying multiple queue items:', error)
+      return { success: false, error: 'Error al reintentar mensajes' }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error in retryMultipleQueueItems:', error)
+    return { success: false, error: 'Error inesperado' }
+  }
+}
+
+export async function cancelMultipleQueueItems(
+  itemIds: string[]
+): Promise<{ success: boolean; error?: string }> {
+  if (itemIds.length === 0) return { success: true }
+  const supabase = await createClient()
+
+  try {
+    const { error } = await (supabase as any)
+      .from('notification_queue')
+      .update({
+        status: 'cancelled',
+        updated_at: new Date().toISOString(),
+      })
+      .in('id', itemIds)
+      .eq('status', 'pending')
+
+    if (error) {
+      console.error('Error cancelling multiple queue items:', error)
+      return { success: false, error: 'Error al cancelar mensajes' }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error in cancelMultipleQueueItems:', error)
+    return { success: false, error: 'Error inesperado' }
+  }
+}

@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import type { DeadLetterNotification, NotificationChannel } from '@/types/notifications'
-import { randomUUID } from 'crypto'
 
 interface MoveToDLQParams {
   queueItem: {
@@ -21,7 +20,7 @@ interface MoveToDLQParams {
 export async function moveToDeadLetter(params: MoveToDLQParams): Promise<DeadLetterNotification> {
   const supabase = await createClient()
   const item = params.queueItem
-  const traceId = item.trace_id || randomUUID()
+  const traceId = item.trace_id || crypto.randomUUID()
 
   const { data, error } = await (supabase as any)
     .from('dead_letter_notifications')

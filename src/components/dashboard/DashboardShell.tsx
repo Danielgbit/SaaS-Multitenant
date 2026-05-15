@@ -150,6 +150,8 @@ function DashboardShellContent({
           }}
           queueNotificationId={currentNotification.id}
           onQueuePaymentSuccess={markAsPaid}
+          services={[]}
+          onConfirm={async () => ({ success: true })}
         />
       )}
     </>

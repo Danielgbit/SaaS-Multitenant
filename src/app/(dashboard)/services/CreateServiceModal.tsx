@@ -4,6 +4,9 @@ import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Scissors, Clock, DollarSign, Loader2, Check } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { needsParsing, parseDuration, formatDurationDisplay, formatDurationInput } from '@/lib/utils/parseDuration'
+import { formatPriceInput, parsePriceToNumber } from '@/lib/utils/parsePrice'
+import { createService } from '@/actions/services/createService'
 
 interface CreateServiceModalProps {
   isOpen: boolean

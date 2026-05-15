@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import type { NotificationInboundEvent, NotificationProviderType } from '@/types/notifications'
-import { randomUUID } from 'crypto'
 
 interface RecordInboundParams {
   organizationId?: string
@@ -31,7 +30,7 @@ export async function recordInboundEvent(params: RecordInboundParams): Promise<R
     return { event: existing as unknown as NotificationInboundEvent, created: false }
   }
 
-  const traceId = params.traceId || randomUUID()
+  const traceId = params.traceId || crypto.randomUUID()
 
   const { data, error } = await (supabase as any)
     .from('notification_inbound_events')

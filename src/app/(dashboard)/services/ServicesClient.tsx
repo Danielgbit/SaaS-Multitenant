@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { Plus, Search, Scissors, X, ChevronDown, Layers, Zap, Clock, DollarSign } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { Service } from '@/types/services'
+import { ServiceList } from './ServiceList'
+import { CreateServiceModal } from './CreateServiceModal'
 
 interface ServicesClientProps {
   services: Service[]
@@ -13,6 +16,9 @@ const STAT_ICONS = {
   active: Zap,
   inactive: Clock,
 } as const
+
+type FilterState = 'all' | 'active' | 'inactive'
+type SortOption = 'name' | 'price' | 'duration'
 
 export function ServicesClient({ services }: ServicesClientProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false)

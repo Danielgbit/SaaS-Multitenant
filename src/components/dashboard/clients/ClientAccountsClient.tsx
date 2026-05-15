@@ -109,7 +109,7 @@ export function ClientAccountsClient({
   const [sortBy, setSortBy] = useState<SortOption>('balance_desc')
   const [filterBy, setFilterBy] = useState<FilterOption>('all')
   const [showSortMenu, setShowSortMenu] = useState(false)
-  const debounceRef = useRef<NodeJS.Timeout>()
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const sortMenuRef = useRef<HTMLDivElement>(null)
   const sortBtnRef = useRef<HTMLButtonElement>(null)
 

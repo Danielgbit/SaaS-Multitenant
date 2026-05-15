@@ -47,7 +47,7 @@ export default function ConfirmarPage() {
     try {
       const supabase = createClient()
 
-      const { data: tokenData, error: tokenError } = await supabase
+      const { data: tokenData, error: tokenError } = await (supabase as any)
         .from('confirmation_tokens')
         .select('*')
         .eq('token', token)

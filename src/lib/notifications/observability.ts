@@ -1,5 +1,3 @@
-import { randomUUID } from 'crypto'
-
 export interface Span {
   traceId: string
   label: string
@@ -14,7 +12,7 @@ export interface TimedResult<T> {
 
 export function startSpan(label: string): Span {
   return {
-    traceId: randomUUID(),
+    traceId: crypto.randomUUID(),
     label,
     start: Date.now(),
   }

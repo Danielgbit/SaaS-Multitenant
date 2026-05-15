@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Pencil, Trash2, AlertTriangle, Package, TrendingUp, TrendingDown } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
 
 interface InventoryCardProps {
   item: InventoryItem

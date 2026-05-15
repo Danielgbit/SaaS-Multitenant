@@ -117,12 +117,10 @@ export default function ConfirmModal({
             className="flex h-14 w-14 items-center justify-center rounded-full"
             style={{ backgroundColor: COLORS[cfg.iconBg as keyof typeof COLORS] as string }}
           >
-            {icon ?? (
-              <IconComponent
-                className="h-6 w-6"
-                style={{ color: COLORS[cfg.iconColor as keyof typeof COLORS] as string }}
-              />
-            )}
+            {icon ?? (() => {
+              const Icon = IconComponent as unknown as React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+              return <Icon className="h-6 w-6" style={{ color: COLORS[cfg.iconColor as keyof typeof COLORS] as string }} />
+            })()}
           </div>
         </div>
 

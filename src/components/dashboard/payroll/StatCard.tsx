@@ -15,22 +15,9 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon: Icon, color, bgColor, href, cta }: StatCardProps) {
   const colors = useThemeColors()
-  const Tag = href ? Link : 'div'
-  const props = href ? { href } : {}
 
-  return (
-    <Tag
-      {...props}
-      className="group p-4 md:p-5 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-      style={{
-        backgroundColor: colors.surfaceGlass,
-        borderColor: colors.border,
-        cursor: href ? 'pointer' : 'default',
-      }}
-      role={href ? undefined : 'region'}
-      aria-label={href ? undefined : label}
-      tabIndex={href ? 0 : undefined}
-    >
+  const cardContent = (
+    <>
       <div className="flex items-center gap-3 mb-2">
         <div className="p-2 rounded-lg shrink-0" style={{ backgroundColor: bgColor }}>
           <Icon className="w-4 h-4" style={{ color }} />
@@ -47,6 +34,37 @@ export function StatCard({ label, value, icon: Icon, color, bgColor, href, cta }
           {cta} →
         </p>
       )}
-    </Tag>
+    </>
+  )
+
+  return (
+    <>
+      {href ? (
+        <Link
+          href={href}
+          className="group p-4 md:p-5 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          style={{
+            backgroundColor: colors.surfaceGlass,
+            borderColor: colors.border,
+            cursor: 'pointer',
+          }}
+        >
+          {cardContent}
+        </Link>
+      ) : (
+        <div
+          className="group p-4 md:p-5 rounded-2xl border transition-all duration-200"
+          style={{
+            backgroundColor: colors.surfaceGlass,
+            borderColor: colors.border,
+            cursor: 'default',
+          }}
+          role="region"
+          aria-label={label}
+        >
+          {cardContent}
+        </div>
+      )}
+    </>
   )
 }

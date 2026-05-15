@@ -65,10 +65,10 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
 }, [])
 
   const STATUS_CONFIG = useMemo(() => ({
-    confirmed: { color: COLORS.success, bg: COLORS.successLight, label: 'Confirmada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
-    pending: { color: COLORS.warning, bg: COLORS.warningLight, label: 'Pendiente', icon: <AlertCircle className="w-3.5 h-3.5" /> },
-    cancelled: { color: COLORS.error, bg: COLORS.errorLight, label: 'Cancelada', icon: <XCircle className="w-3.5 h-3.5" /> },
-    completed: { color: COLORS.textSecondary, bg: COLORS.borderLight, label: 'Completada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+    confirmed: { color: COLORS.success, bg: COLORS.successLight || '', label: 'Confirmada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+    pending: { color: COLORS.warning, bg: COLORS.warningLight || '', label: 'Pendiente', icon: <AlertCircle className="w-3.5 h-3.5" /> },
+    cancelled: { color: COLORS.error, bg: COLORS.errorLight || '', label: 'Cancelada', icon: <XCircle className="w-3.5 h-3.5" /> },
+    completed: { color: COLORS.textSecondary, bg: COLORS.borderLight || '', label: 'Completada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
   }), [COLORS])
 
   const EMPLOYEE_COLORS = [

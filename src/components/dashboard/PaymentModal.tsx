@@ -21,6 +21,10 @@ interface PaymentModalProps {
   completedAt?: string | null
   onConfirm: (paymentMethod: string, notes?: string) => Promise<{ success: boolean; error?: string }>
   appointmentId?: string
+  logId?: string
+  serviceName?: string
+  queueNotificationId?: string
+  onQueuePaymentSuccess?: (id: string) => void
 }
 
 const PAYMENT_METHODS = [
@@ -152,7 +156,7 @@ export function PaymentModal({
             </h2>
           </div>
           <button type="button" onClick={handleClose} disabled={isPending} aria-label="Cerrar modal"
-            className="p-2 rounded-xl transition-colors disabled:opacity-50" style={{ color: COLORS.textMuted, hover: { backgroundColor: COLORS.surfaceHover } }}>
+            className="p-2 rounded-xl transition-colors disabled:opacity-50 hover:bg-[--btn-hover-bg]" style={{ color: COLORS.textMuted, '--btn-hover-bg': COLORS.surfaceHover } as any}>
             <X className="w-5 h-5" />
           </button>
         </div>

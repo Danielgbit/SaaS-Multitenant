@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { randomUUID } from 'crypto'
 import type { ConfirmationTokenAction, ConfirmationToken } from '@/types/notifications'
 
 const TOKEN_EXPIRY_HOURS = 72
@@ -16,7 +15,7 @@ export async function generateConfirmationToken(
 
   try {
     const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000).toISOString()
-    const token = randomUUID()
+    const token = crypto.randomUUID()
 
     const { error } = await (supabase as any)
       .from('confirmation_tokens')

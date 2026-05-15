@@ -20,9 +20,9 @@ interface Colors {
   textSecondary: string
   textMuted: string
   success: string
-  successLight: string
+  successLight?: string
   error: string
-  errorLight: string
+  errorLight?: string
   isDark: boolean
 }
 

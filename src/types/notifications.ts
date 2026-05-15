@@ -201,6 +201,25 @@ export const STANDARD_VARIABLES: TemplateVariable[] = [
 
 export const IDEMPOTENCY_KEY_FORMAT = '${organizationId}_${appointmentId}_${channel}_${type}_${date}'
 
+export const WHATSAPP_TEMPLATE_TYPE_LABELS: Record<TemplateType, string> = {
+  appointment_confirmation: 'Confirmación de cita',
+  appointment_reminder: 'Recordatorio',
+  appointment_cancelled: 'Cancelación',
+  appointment_completed: 'Completado',
+  confirmation_request: 'Solicitud de confirmación',
+  employee_invitation: '',
+  payroll_receipt: '',
+}
+
+export const WHATSAPP_TEMPLATE_TYPES = (
+  Object.keys(WHATSAPP_TEMPLATE_TYPE_LABELS) as TemplateType[]
+)
+  .filter((t) => WHATSAPP_TEMPLATE_TYPE_LABELS[t] !== '')
+  .map((t) => ({
+    value: t,
+    label: WHATSAPP_TEMPLATE_TYPE_LABELS[t],
+  }))
+
 export function generateIdempotencyKey(
   organizationId: string,
   appointmentId: string | undefined,

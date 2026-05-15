@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { Briefcase, Percent, DollarSign, AlertTriangle, CheckCircle2, Clock } from 'lucide-react'
+import { Briefcase, Percent, DollarSign, AlertTriangle, CheckCircle2, Clock, Loader2, Save } from 'lucide-react'
+import type { PaymentType, ContractType, SalaryFrequency, EmploymentType } from '@/types/employees'
+import { updateEmployeePayroll } from '@/actions/employees/updateEmployeePayroll'
 
 type EmployeeWithPayroll = {
   id: string
@@ -16,8 +18,8 @@ type EmployeeWithPayroll = {
   salary_frequency: SalaryFrequency | null
   max_debt_limit: number
   debt_warning_threshold: number
-  employment_type?: EmploymentType
-  part_time_percentage?: number
+  employment_type?: string | null
+  part_time_percentage?: number | null
 }
 
 interface EmployeePayrollTabProps {

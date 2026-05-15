@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Package, Search, AlertTriangle, FolderOpen, ChevronDown, X, Loader2 } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
+import { InventoryCard } from './InventoryCard'
+import { InventoryFormModal } from './InventoryFormModal'
+import { DeleteInventoryModal } from './DeleteInventoryModal'
 
 interface InventoryClientProps {
   items: InventoryItem[]

@@ -6,12 +6,11 @@ interface StatCardProps {
   icon: React.ReactNode
   label: string
   value: number | string
-  subtext?: string
   color?: string
   loading?: boolean
 }
 
-export function StatCard({ icon, label, value, subtext, color, loading }: StatCardProps) {
+export function StatCard({ icon, label, value, color, loading }: StatCardProps) {
   const COLORS = useThemeColors()
   const iconColor = color || COLORS.primary
   const formattedValue = typeof value === 'number' ? value.toLocaleString('es-ES') : value
@@ -42,12 +41,10 @@ export function StatCard({ icon, label, value, subtext, color, loading }: StatCa
         backdropFilter: 'blur(12px)',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)'
-        e.currentTarget.style.boxShadow = '0 6px 24px rgba(15, 76, 92, 0.12)'
+        e.currentTarget.style.borderColor = COLORS.borderFocus
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)'
-        e.currentTarget.style.boxShadow = '0 2px 16px rgba(15, 76, 92, 0.06)'
+        e.currentTarget.style.borderColor = COLORS.border
       }}
     >
       <div className="flex items-center justify-between mb-3">
@@ -65,7 +62,7 @@ export function StatCard({ icon, label, value, subtext, color, loading }: StatCa
         </div>
       </div>
 
-      <div className="flex items-end gap-1.5 mb-1">
+      <div className="flex items-end gap-1">
         <span
           className="text-3xl font-bold"
           style={{
@@ -75,14 +72,6 @@ export function StatCard({ icon, label, value, subtext, color, loading }: StatCa
         >
           {formattedValue}
         </span>
-        {subtext && (
-          <span
-            className="text-sm font-medium mb-1"
-            style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-          >
-            {subtext}
-          </span>
-        )}
       </div>
     </div>
   )

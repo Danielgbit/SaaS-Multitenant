@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { X, Save, RotateCcw, Loader2, Plus, Trash2 } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { updateTemplate, resetTemplateToDefault, createTemplate, deleteTemplate } from '@/actions/notifications/templates'
-import { STANDARD_VARIABLES, type MessageTemplate, type TemplateType } from '@/types/notifications'
+import { STANDARD_VARIABLES, WHATSAPP_TEMPLATE_TYPES, WHATSAPP_TEMPLATE_TYPE_LABELS, type MessageTemplate, type TemplateType } from '@/types/notifications'
 
 interface TemplateEditorModalProps {
   mode: 'create' | 'edit'
@@ -25,22 +25,6 @@ const SAMPLE_VARIABLES: Record<string, string> = {
   cancellationLink: 'https://app.prugressy.com/cancelar/abc123',
   businessPhone: '+57 300 123 4567',
   businessAddress: 'Calle 123 #45-67, Bogotá',
-}
-
-const WHATSAPP_TEMPLATE_TYPES: { value: TemplateType; label: string }[] = [
-  { value: 'appointment_confirmation', label: 'Confirmación de cita' },
-  { value: 'appointment_reminder', label: 'Recordatorio' },
-  { value: 'appointment_cancelled', label: 'Cancelación' },
-  { value: 'appointment_completed', label: 'Completado' },
-  { value: 'confirmation_requested', label: 'Solicitud de confirmación' },
-]
-
-const TYPE_LABELS: Record<string, string> = {
-  appointment_confirmation: 'Confirmación de cita',
-  appointment_reminder: 'Recordatorio',
-  appointment_cancelled: 'Cancelación',
-  appointment_completed: 'Completado',
-  confirmation_requested: 'Solicitud de confirmación',
 }
 
 export function TemplateEditorModal({ mode, template, organizationId, onSave, onClose }: TemplateEditorModalProps) {
@@ -195,7 +179,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
               {isCreate ? 'Nueva template' : 'Editar template'}
             </h2>
             <p className="text-sm" style={{ color: COLORS.textMuted }}>
-              {isCreate ? 'WhatsApp' : (TYPE_LABELS[template!.type] || template!.type)}
+              {isCreate ? 'WhatsApp' : (WHATSAPP_TEMPLATE_TYPE_LABELS[template!.type] || template!.type)}
             </p>
           </div>
           <button
@@ -378,7 +362,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
                     borderColor: COLORS.error,
                     color: COLORS.error,
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.errorLight }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.errorLight ?? '#FEE2E2' }}
                   onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                 >
                   <Trash2 className="w-4 h-4" />

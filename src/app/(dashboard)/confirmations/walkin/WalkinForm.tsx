@@ -9,6 +9,9 @@ import {
   CheckCircle, AlertCircle
 } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { ConfirmationService } from '@/types/confirmations'
+import { createConfirmation } from '@/actions/confirmations/createConfirmation'
+import { formatDuration } from '@/lib/utils/formatTime'
 
 interface Service {
   id: string

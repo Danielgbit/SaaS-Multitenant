@@ -40,7 +40,7 @@ export class ResendEmailChannel implements NotificationChannelAdapter {
 
     return {
       success: true,
-      providerMessageId: result.data?.id as string | undefined,
+      providerMessageId: (result.data as any)?.id as string | undefined,
       rawResponse: result.data,
     }
   }

@@ -4,6 +4,10 @@ import { useState, useTransition, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, PencilLine, Scissors, Clock, DollarSign, Loader2, Check } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { Service } from '@/types/services'
+import { needsParsing, parseDuration, formatDurationDisplay, formatDurationInput } from '@/lib/utils/parseDuration'
+import { formatPriceInput, parsePriceToNumber, dbPriceToInputFormat } from '@/lib/utils/parsePrice'
+import { updateService } from '@/actions/services/updateService'
 
 interface EditServiceModalProps {
   service: Service | null

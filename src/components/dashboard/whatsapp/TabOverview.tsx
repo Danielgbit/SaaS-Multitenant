@@ -1,30 +1,55 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { MessageCircle, CheckCircle, XCircle, Clock, TrendingUp, AlertTriangle } from 'lucide-react'
+import { useState, useEffect, useCallback, startTransition } from 'react'
+import { MessageCircle, CheckCircle, XCircle, Clock, TrendingUp, AlertTriangle, Wifi, Webhook, Activity, RefreshCw, Inbox } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { StatCard } from './StatCard'
 import { AlertBanner } from './AlertBanner'
 import { StatusBadge } from './StatusBadge'
 import { getQueueStats, getRecentItems, type QueueStats } from '@/actions/notifications/queue'
-import type { NotificationQueueItem } from '@/types/notifications'
+import { getProvider } from '@/actions/notifications/providers'
+import type { NotificationQueueItem, NotificationProvider } from '@/types/notifications'
 
 interface TabOverviewProps {
   organizationId: string
+}
+
+interface SystemStatus {
+  provider: 'connected' | 'disconnected' | 'unknown'
+  webhook: 'active' | 'inactive' | 'unknown'
+  queue: 'processing' | 'idle' | 'unknown'
+  lastActivity: string | null
+  lastActivityRaw: string | null
+}
+
+function formatRelativeTime(isoString: string): string {
+  const now = Date.now()
+  const date = new Date(isoString).getTime()
+  const diffMs = now - date
+  const diffSec = Math.floor(diffMs / 1000)
+  const diffMin = Math.floor(diffSec / 60)
+  const diffHour = Math.floor(diffMin / 60)
+
+  if (diffSec < 60) return 'Hace un momento'
+  if (diffMin < 60) return `Hace ${diffMin}m`
+  if (diffHour < 24) return `Hace ${diffHour}h`
+  return new Date(isoString).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })
 }
 
 export function TabOverview({ organizationId }: TabOverviewProps) {
   const COLORS = useThemeColors()
   const [stats, setStats] = useState<QueueStats | null>(null)
   const [recentItems, setRecentItems] = useState<NotificationQueueItem[]>([])
+  const [provider, setProvider] = useState<NotificationProvider | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
 
   const loadData = useCallback(async () => {
-    const [statsResult, recentResult] = await Promise.all([
+    const [statsResult, recentResult, providerResult] = await Promise.all([
       getQueueStats(organizationId),
       getRecentItems(organizationId, 10),
+      getProvider(organizationId, 'whatsapp'),
     ])
 
     if (statsResult.success && statsResult.data) {
@@ -36,22 +61,50 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
     if (recentResult.success && recentResult.data) {
       setRecentItems(recentResult.data)
     }
+
+    if (providerResult.success && providerResult.data) {
+      setProvider(providerResult.data)
+    }
+
     setLoading(false)
   }, [organizationId])
 
   useEffect(() => {
-    loadData()
-    const interval = setInterval(loadData, 30000)
+    startTransition(() => {
+      loadData()
+    })
+    const interval = setInterval(() => startTransition(() => loadData()), 30000)
     return () => clearInterval(interval)
   }, [loadData])
 
   const showStuckAlert = stats && stats.stuckCount > 0 && !dismissedAlerts.has('stuck')
   const showFailureAlert = stats && stats.sentToday > 0 && (stats.failedToday / (stats.sentToday + stats.failedToday)) > 0.3 && !dismissedAlerts.has('failure')
 
-  const formatTime = (isoString: string) => {
-    const date = new Date(isoString)
-    return date.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
+  const getSystemStatus = (): SystemStatus => {
+    let providerStatus: 'connected' | 'disconnected' | 'unknown' = 'unknown'
+    let webhookStatus: 'active' | 'inactive' | 'unknown' = 'unknown'
+    let queueStatus: 'processing' | 'idle' | 'unknown' = 'unknown'
+
+    if (provider) {
+      providerStatus = provider.isEnabled ? 'connected' : 'disconnected'
+      const webhookUrl = provider.config?.webhook_url as string | undefined
+      webhookStatus = webhookUrl ? 'active' : 'inactive'
+    }
+
+    if (stats) {
+      queueStatus = stats.pending > 0 || stats.stuckCount > 0 ? 'processing' : 'idle'
+    }
+
+    return {
+      provider: providerStatus,
+      webhook: webhookStatus,
+      queue: queueStatus,
+      lastActivity: recentItems[0]?.createdAt ? formatRelativeTime(recentItems[0].createdAt) : null,
+      lastActivityRaw: recentItems[0]?.createdAt || null,
+    }
   }
+
+  const systemStatus = getSystemStatus()
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString)
@@ -67,6 +120,37 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
     return `+${phone.slice(0, 3)} ${phone.slice(3, 6)} *** ${phone.slice(-4)}`
   }
 
+  const statusItems = [
+    {
+      icon: <Wifi className="w-3.5 h-3.5" />,
+      label: 'Proveedor',
+      value: systemStatus.provider === 'connected' ? 'Conectado' : systemStatus.provider === 'disconnected' ? 'Desconectado' : 'Sin configurar',
+      color: systemStatus.provider === 'connected' ? COLORS.success : systemStatus.provider === 'disconnected' ? COLORS.error : COLORS.textMuted,
+      dotColor: systemStatus.provider === 'connected' ? COLORS.success : systemStatus.provider === 'disconnected' ? COLORS.error : COLORS.textMuted,
+    },
+    {
+      icon: <Webhook className="w-3.5 h-3.5" />,
+      label: 'Webhook',
+      value: systemStatus.webhook === 'active' ? 'Activo' : systemStatus.webhook === 'inactive' ? 'Inactivo' : 'Sin configurar',
+      color: systemStatus.webhook === 'active' ? COLORS.success : systemStatus.webhook === 'inactive' ? COLORS.warning : COLORS.textMuted,
+      dotColor: systemStatus.webhook === 'active' ? COLORS.success : systemStatus.webhook === 'inactive' ? COLORS.warning : COLORS.textMuted,
+    },
+    {
+      icon: <Activity className="w-3.5 h-3.5" />,
+      label: 'Cola',
+      value: systemStatus.queue === 'processing' ? 'Procesando' : systemStatus.queue === 'idle' ? 'Activa' : '—',
+      color: systemStatus.queue === 'processing' ? COLORS.primary : systemStatus.queue === 'idle' ? COLORS.success : COLORS.textMuted,
+      dotColor: systemStatus.queue === 'processing' ? COLORS.primary : systemStatus.queue === 'idle' ? COLORS.success : COLORS.textMuted,
+    },
+    {
+      icon: <Clock className="w-3.5 h-3.5" />,
+      label: 'Última actividad',
+      value: systemStatus.lastActivity ?? 'Sin actividad',
+      color: systemStatus.lastActivity ? COLORS.textSecondary : COLORS.textMuted,
+      dotColor: COLORS.textMuted,
+    },
+  ]
+
   if (error) {
     return (
       <div className="p-6">
@@ -76,7 +160,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {(showStuckAlert || showFailureAlert) && (
         <div className="space-y-3">
           {showStuckAlert && (
@@ -98,30 +182,92 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div
+        className="rounded-2xl border overflow-hidden"
+        style={{
+          backgroundColor: COLORS.surfaceGlass,
+          borderColor: COLORS.border,
+          backdropFilter: 'blur(12px)',
+        }}
+      >
+        <div
+          className="flex items-center justify-between px-4 py-3 border-b"
+          style={{ borderColor: COLORS.border, backgroundColor: COLORS.surfaceSubtle }}
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className="text-sm font-semibold"
+              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            >
+              Estado del sistema
+            </span>
+            <span className="flex h-2 w-2">
+              <span
+                className="animate-ping absolute inline-flex h-2 w-2 rounded-full opacity-75"
+                style={{ backgroundColor: COLORS.success }}
+              />
+              <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: COLORS.success }} />
+            </span>
+          </div>
+          <button
+            onClick={loadData}
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: COLORS.textMuted }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+            aria-label="Actualizar estado"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0" style={{ borderColor: COLORS.border }}>
+          {statusItems.map((item) => (
+            <div key={item.label} className="px-4 py-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span style={{ color: item.color }}>{item.icon}</span>
+                <span className="text-xs" style={{ color: COLORS.textMuted }}>{item.label}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: item.dotColor }}
+                />
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: item.color, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                >
+                  {item.value}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
-          icon={<MessageCircle className="w-5 h-5" />}
+          icon={<MessageCircle className="w-4 h-4" />}
           label="Enviados hoy"
           value={stats?.sentToday ?? 0}
           color={COLORS.primary}
           loading={loading}
         />
         <StatCard
-          icon={<CheckCircle className="w-5 h-5" />}
-          label="Entregados hoy"
+          icon={<CheckCircle className="w-4 h-4" />}
+          label="Entregados"
           value={stats?.deliveredToday ?? 0}
           color={COLORS.success}
           loading={loading}
         />
         <StatCard
-          icon={<XCircle className="w-5 h-5" />}
-          label="Fallidos hoy"
+          icon={<XCircle className="w-4 h-4" />}
+          label="Fallidos"
           value={stats?.failedToday ?? 0}
           color={COLORS.error}
           loading={loading}
         />
         <StatCard
-          icon={<Clock className="w-5 h-5" />}
+          icon={<Clock className="w-4 h-4" />}
           label="Pendientes"
           value={stats?.pending ?? 0}
           color={COLORS.warning}
@@ -147,12 +293,17 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
               Tasa de entrega
             </span>
           </div>
-          <span
-            className="text-2xl font-bold"
-            style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-          >
-            {stats?.deliveryRate ?? 0}%
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className="text-2xl font-bold"
+              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            >
+              {stats?.deliveryRate ?? 0}%
+            </span>
+            <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: COLORS.success + '20', color: COLORS.success }}>
+              {(stats?.sentToday ?? 0) + (stats?.failedToday ?? 0)} envios
+            </span>
+          </div>
         </div>
         <div
           className="h-2 rounded-full overflow-hidden"
@@ -175,7 +326,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
         }}
       >
         <div
-          className="px-4 py-3 border-b"
+          className="px-4 py-3 border-b flex items-center justify-between"
           style={{ borderColor: COLORS.border, backgroundColor: COLORS.surfaceSubtle }}
         >
           <span
@@ -184,19 +335,24 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
           >
             Mensajes recientes
           </span>
+          {systemStatus.lastActivityRaw && (
+            <span className="text-xs" style={{ color: COLORS.textMuted }}>
+              {systemStatus.lastActivity}
+            </span>
+          )}
         </div>
 
         {loading ? (
           <div className="p-4 space-y-3">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3, 4].map((i) => (
               <div key={i} className="flex items-center gap-3 animate-pulse">
                 <div
-                  className="w-10 h-10 rounded-xl"
+                  className="w-9 h-9 rounded-xl"
                   style={{ backgroundColor: COLORS.textMuted + '20' }}
                 />
                 <div className="flex-1">
                   <div
-                    className="h-4 w-32 rounded mb-1"
+                    className="h-4 w-36 rounded mb-1.5"
                     style={{ backgroundColor: COLORS.textMuted + '20' }}
                   />
                   <div
@@ -204,14 +360,26 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
                     style={{ backgroundColor: COLORS.textMuted + '20' }}
                   />
                 </div>
+                <div className="w-16 h-5 rounded-full" style={{ backgroundColor: COLORS.textMuted + '20' }} />
               </div>
             ))}
           </div>
         ) : recentItems.length === 0 ? (
-          <div className="p-8 text-center">
-            <MessageCircle className="w-10 h-10 mx-auto mb-3" style={{ color: COLORS.textMuted }} />
-            <p className="text-sm" style={{ color: COLORS.textMuted }}>
-              No hay mensajes recientes
+          <div className="py-12 px-4 text-center">
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: COLORS.surfaceSubtle }}
+            >
+              <Inbox className="w-7 h-7" style={{ color: COLORS.textMuted }} />
+            </div>
+            <p
+              className="text-sm font-medium mb-1"
+              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            >
+              Sin mensajes recientes
+            </p>
+            <p className="text-xs" style={{ color: COLORS.textMuted }}>
+              Los mensajes enviados aparecerán aquí
             </p>
           </div>
         ) : (
@@ -225,10 +393,10 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = COLORS.surface }}
               >
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                   style={{ backgroundColor: COLORS.whatsappLight }}
                 >
-                  <MessageCircle className="w-5 h-5" style={{ color: COLORS.whatsapp }} />
+                  <MessageCircle className="w-4 h-4" style={{ color: COLORS.whatsapp }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p
@@ -237,10 +405,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
                   >
                     {maskAddress(item.toAddress)}
                   </p>
-                  <p
-                    className="text-xs"
-                    style={{ color: COLORS.textMuted }}
-                  >
+                  <p className="text-xs" style={{ color: COLORS.textMuted }}>
                     {formatDate(item.createdAt)}
                   </p>
                 </div>

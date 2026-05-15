@@ -1,6 +1,10 @@
 import type { Database } from '@/../types/supabase'
 
-export type EmployeeAvailability = Database['public']['Tables']['employee_availability']['Row']
+export type EmployeeAvailability = Database['public']['Tables']['employee_availability']['Row'] & {
+  break_start?: string | null
+  break_end?: string | null
+  break_reason?: string | null
+}
 
 export type CreateAvailabilityInput = {
   employee_id: string
@@ -31,7 +35,11 @@ export const WEEKDAYS: { value: number; label: string; short: string }[] = [
 
 export const WORKING_WEEKDAYS = WEEKDAYS.filter((d) => d.value >= 1 && d.value <= 5)
 
-export type EmployeeAvailabilityOverride = Database['public']['Tables']['employee_availability_overrides']['Row']
+export type EmployeeAvailabilityOverride = Database['public']['Tables']['employee_availability_overrides']['Row'] & {
+  break_start?: string | null
+  break_end?: string | null
+  break_reason?: string | null
+}
 
 export type SpaOverride = {
   id: string

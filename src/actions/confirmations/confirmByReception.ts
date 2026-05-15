@@ -14,7 +14,7 @@ const ConfirmReceptionSchema = z.object({
 
 export async function confirmByReception(
   input: z.infer<typeof ConfirmReceptionSchema>
-): Promise<{ error?: string; success?: boolean }> {
+): Promise<{ success: boolean; error?: string }> {
   console.log('[confirmByReception] Input:', input)
 
   const parsed = ConfirmReceptionSchema.safeParse(input)
@@ -22,7 +22,7 @@ export async function confirmByReception(
   if (!parsed.success) {
     console.log('[confirmByReception] Validation failed:', parsed.error.issues)
     const firstError = parsed.error.issues[0]?.message
-    return { error: firstError || 'Datos inválidos' }
+    return { success: false, error: firstError || 'Datos inválidos' }
   }
 
   const { confirmation_id, organization_id, action, payment_method, notes } = parsed.data
@@ -36,7 +36,7 @@ export async function confirmByReception(
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    return { error: 'No autorizado.' }
+    return { success: false, error: 'No autorizado.' }
   }
 
   // Verificar que el usuario pertenece a la organización
@@ -48,12 +48,12 @@ export async function confirmByReception(
     .single()
 
   if (orgError || !orgMember) {
-    return { error: 'No perteneces a esta organización.' }
+    return { success: false, error: 'No perteneces a esta organización.' }
   }
 
   // Verificar que tiene permisos (owner, admin, staff)
   if (!['owner', 'admin', 'staff'].includes(orgMember.role)) {
-    return { error: 'No tienes permiso para confirmar pagos.' }
+    return { success: false, error: 'No tienes permiso para confirmar pagos.' }
   }
 
   // Determinar status final
@@ -69,7 +69,7 @@ export async function confirmByReception(
       newStatus = 'not_performed'
       break
     default:
-      return { error: 'Acción inválida.' }
+      return { success: false, error: 'Acción inválida.' }
   }
 
   // Obtener la confirmación actual
@@ -80,7 +80,7 @@ export async function confirmByReception(
     .single()
 
   if (confError || !confirmation) {
-    return { error: 'Confirmación no encontrada.' }
+    return { success: false, error: 'Confirmación no encontrada.' }
   }
 
   // Actualizar confirmación
@@ -96,7 +96,7 @@ export async function confirmByReception(
 
   if (updateError) {
     console.error('[confirmByReception] Update error:', updateError)
-    return { error: 'Error al actualizar. Intenta de nuevo.' }
+    return { success: false, error: 'Error al actualizar. Intenta de nuevo.' }
   }
 
   // Si hay appointment_id, actualizar el status de la cita según la acción

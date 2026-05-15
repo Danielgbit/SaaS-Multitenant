@@ -22,7 +22,7 @@ export class InAppChannel implements NotificationChannelAdapter {
 
     const supabase = await createClient()
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('notifications')
       .insert({
         organization_id: this.organizationId,

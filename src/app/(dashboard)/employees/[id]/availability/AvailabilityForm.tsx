@@ -13,7 +13,11 @@ interface Props {
   employeeId: string
   existingAvailability: EmployeeAvailability[]
   preselectedDay?: number | null
-  editItem?: EmployeeAvailability | null
+  editItem?: (EmployeeAvailability & {
+    break_start?: string | null
+    break_end?: string | null
+    break_reason?: string | null
+  }) | null
   onCancel?: () => void
   onSuccess?: () => void
 }

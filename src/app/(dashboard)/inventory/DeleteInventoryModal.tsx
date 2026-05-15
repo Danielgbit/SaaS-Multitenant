@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { AlertTriangle, X, Loader2, Package, CheckCircle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
+import { deleteInventoryItem } from '@/actions/inventory/deleteInventoryItem'
 
 interface DeleteInventoryModalProps {
   item: InventoryItem

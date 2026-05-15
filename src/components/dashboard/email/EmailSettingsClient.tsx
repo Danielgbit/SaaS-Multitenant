@@ -222,9 +222,9 @@ export function EmailSettingsClient({ organizationId }: EmailSettingsClientProps
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
           { icon: Mail, label: 'Total', value: stats.total, iconBg: COLORS.primarySubtle, iconColor: COLORS.primary },
-          { icon: Send, label: 'Enviados', value: stats.sent, iconBg: COLORS.successLight, iconColor: COLORS.success },
-          { icon: XCircle, label: 'Fallidos', value: stats.failed, iconBg: COLORS.errorLight, iconColor: COLORS.error },
-          { icon: Clock, label: 'Pendientes', value: stats.pending, iconBg: COLORS.warningLight, iconColor: COLORS.warning },
+          { icon: Send, label: 'Enviados', value: stats.sent, iconBg: COLORS.successLight || '', iconColor: COLORS.success },
+          { icon: XCircle, label: 'Fallidos', value: stats.failed, iconBg: COLORS.errorLight || '', iconColor: COLORS.error },
+          { icon: Clock, label: 'Pendientes', value: stats.pending, iconBg: COLORS.warningLight || '', iconColor: COLORS.warning },
         ].map((stat, index) => (
           <div 
             key={stat.label}
@@ -294,7 +294,7 @@ export function EmailSettingsClient({ organizationId }: EmailSettingsClientProps
         <div 
           className="mb-6 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300"
           style={{ 
-            backgroundColor: message.type === 'success' ? COLORS.successLight : COLORS.errorLight 
+            backgroundColor: message.type === 'success' ? (COLORS.successLight || '') : (COLORS.errorLight || '') 
           }}
         >
           {message.type === 'success' ? (
@@ -433,7 +433,7 @@ export function EmailSettingsClient({ organizationId }: EmailSettingsClientProps
                 <OptionToggle
                   COLORS={COLORS}
                   icon={<CheckSquare className="w-5 h-5" />}
-                  iconBg={COLORS.successLight}
+                  iconBg={COLORS.successLight || ''}
                   iconColor={COLORS.success}
                   label="Confirmación de cita"
                   description="Email automático al crear una nueva cita"
@@ -445,7 +445,7 @@ export function EmailSettingsClient({ organizationId }: EmailSettingsClientProps
                 <OptionToggle
                   COLORS={COLORS}
                   icon={<Bell className="w-5 h-5" />}
-                  iconBg={COLORS.warningLight}
+                  iconBg={COLORS.warningLight || ''}
                   iconColor={COLORS.warning}
                   label="Recordatorio antes de cita"
                   description={`${reminderHours} horas antes de la cita programada`}

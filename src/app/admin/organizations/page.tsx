@@ -100,7 +100,7 @@ export default async function OrganizationsPage() {
               </thead>
               <tbody className="divide-y divide-[#E2E8F0] dark:divide-slate-700">
                 {organizations.map((org) => {
-                  const subscription = org.subscriptions?.[0]
+                  const subscription = (org.subscriptions as any)?.[0]
                   const status = subscription?.status ?? null
                   const trialEndsAt = subscription?.trial_ends_at
 

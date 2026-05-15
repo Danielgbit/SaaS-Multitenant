@@ -226,6 +226,7 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
               style={{ color: COLORS.textMuted }}
               onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+              aria-label={showApiKey ? 'Ocultar clave API' : 'Mostrar clave API'}
             >
               {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -263,6 +264,7 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
                 style={{ color: COLORS.textMuted }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+                aria-label={showToken ? 'Ocultar token' : 'Mostrar token'}
               >
                 {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
