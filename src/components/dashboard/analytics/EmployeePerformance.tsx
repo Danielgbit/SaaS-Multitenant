@@ -2,6 +2,10 @@
 
 import { Trophy, User } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Card } from '@/components/ui/Card'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Badge } from '@/components/ui/Badge'
 
 interface EmployeeData {
   employee_id: string
@@ -18,16 +22,11 @@ interface EmployeePerformanceProps {
 
 export function EmployeePerformance({ employees, loading }: EmployeePerformanceProps) {
   const COLORS = useThemeColors()
-
   const maxRevenue = Math.max(...employees.map(e => e.revenue), 1)
 
   if (loading) {
     return (
-      <div className="p-6 rounded-2xl border" style={{ 
-        backgroundColor: COLORS.surfaceGlass,
-        backdropFilter: 'blur(12px)',
-        borderColor: COLORS.border,
-      }}>
+      <Card variant="glass" className="p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
             <Trophy className="w-5 h-5" style={{ color: COLORS.primary }} />
@@ -36,29 +35,21 @@ export function EmployeePerformance({ employees, loading }: EmployeePerformanceP
         </div>
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="animate-pulse">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-full" style={{ backgroundColor: COLORS.surfaceSubtle }} />
-                <div className="h-4 w-24 rounded" style={{ backgroundColor: COLORS.surfaceSubtle }} />
+            <div key={i} className="space-y-2">
+              <div className="flex items-center gap-3">
+                <Skeleton variant="circular" width="w-8" height="h-8" />
+                <Skeleton variant="text" width="w-24" />
               </div>
-              <div className="h-2 rounded-full" style={{ backgroundColor: COLORS.surfaceSubtle }} />
+              <Skeleton variant="rectangular" height="h-2" />
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div 
-      className="p-6 rounded-2xl border transition-all duration-300"
-      style={{ 
-        backgroundColor: COLORS.surfaceGlass,
-        backdropFilter: 'blur(12px)',
-        borderColor: COLORS.border,
-        boxShadow: '0 4px 24px rgba(15, 76, 92, 0.08)',
-      }}
-    >
+    <Card variant="glass" className="p-6">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
           <Trophy className="w-5 h-5" style={{ color: COLORS.primary }} />
@@ -70,12 +61,10 @@ export function EmployeePerformance({ employees, loading }: EmployeePerformanceP
       </div>
 
       {employees.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ backgroundColor: COLORS.surfaceSubtle }}>
-            <User className="w-6 h-6" style={{ color: COLORS.textMuted }} />
-          </div>
-          <p className="text-sm" style={{ color: COLORS.textMuted }}>Sin datos de empleados</p>
-        </div>
+        <EmptyState
+          icon={<User className="w-6 h-6" style={{ color: COLORS.textMuted }} />}
+          title="Sin datos de empleados"
+        />
       ) : (
         <div className="space-y-4">
           {employees.map((emp, index) => {
@@ -86,11 +75,7 @@ export function EmployeePerformance({ employees, loading }: EmployeePerformanceP
               <div key={emp.employee_id} className="relative">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    {isTop && (
-                      <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: COLORS.warningLight, color: COLORS.warning }}>
-                        Top
-                      </span>
-                    )}
+                    {isTop && <Badge variant="gold" size="sm">Top</Badge>}
                     <span className="font-medium text-sm" style={{ color: COLORS.textPrimary }}>
                       {emp.employee_name}
                     </span>
@@ -120,6 +105,6 @@ export function EmployeePerformance({ employees, loading }: EmployeePerformanceP
           })}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

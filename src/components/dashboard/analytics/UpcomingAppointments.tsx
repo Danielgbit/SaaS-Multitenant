@@ -3,6 +3,10 @@
 import Link from 'next/link'
 import { Calendar, Scissors, User, ChevronRight } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Card } from '@/components/ui/Card'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Badge } from '@/components/ui/Badge'
 
 interface UpcomingAppointment {
   id: string
@@ -27,24 +31,25 @@ export function UpcomingAppointments({ appointments, loading }: UpcomingAppointm
     return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeVariant = (status: string): 'success' | 'warning' | 'neutral' => {
     switch (status) {
-      case 'confirmed':
-        return { bg: COLORS.successLight, color: COLORS.success }
-      case 'pending':
-        return { bg: COLORS.warningLight, color: COLORS.warning }
-      default:
-        return { bg: COLORS.surfaceSubtle, color: COLORS.textMuted }
+      case 'confirmed': return 'success'
+      case 'pending': return 'warning'
+      default: return 'neutral'
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'Confirmada'
+      case 'pending': return 'Pendiente'
+      default: return status
     }
   }
 
   if (loading) {
     return (
-      <div className="p-6 rounded-2xl border" style={{ 
-        backgroundColor: COLORS.surfaceGlass,
-        backdropFilter: 'blur(12px)',
-        borderColor: COLORS.border,
-      }}>
+      <Card variant="glass" className="p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
             <Calendar className="w-5 h-5" style={{ color: COLORS.primary }} />
@@ -53,29 +58,21 @@ export function UpcomingAppointments({ appointments, loading }: UpcomingAppointm
         </div>
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="animate-pulse flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg" style={{ backgroundColor: COLORS.surfaceSubtle }} />
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton variant="rectangular" width="w-12" height="h-12" />
               <div className="flex-1">
-                <div className="h-4 w-24 rounded mb-2" style={{ backgroundColor: COLORS.surfaceSubtle }} />
-                <div className="h-3 w-16 rounded" style={{ backgroundColor: COLORS.surfaceSubtle }} />
+                <Skeleton variant="text" width="w-24" className="mb-2" />
+                <Skeleton variant="text" width="w-16" />
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div 
-      className="p-6 rounded-2xl border transition-all duration-300"
-      style={{ 
-        backgroundColor: COLORS.surfaceGlass,
-        backdropFilter: 'blur(12px)',
-        borderColor: COLORS.border,
-        boxShadow: '0 4px 24px rgba(15, 76, 92, 0.08)',
-      }}
-    >
+    <Card variant="glass" className="p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
@@ -85,7 +82,7 @@ export function UpcomingAppointments({ appointments, loading }: UpcomingAppointm
         </div>
         <Link 
           href="/calendar"
-          className="flex items-center gap-1 text-sm transition-colors"
+          className="flex items-center gap-1 text-sm font-medium transition-colors hover:opacity-80"
           style={{ color: COLORS.primary }}
         >
           Ver todas
@@ -94,59 +91,50 @@ export function UpcomingAppointments({ appointments, loading }: UpcomingAppointm
       </div>
 
       {appointments.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ backgroundColor: COLORS.surfaceSubtle }}>
-            <Calendar className="w-6 h-6" style={{ color: COLORS.textMuted }} />
-          </div>
-          <p className="text-sm" style={{ color: COLORS.textMuted }}>No hay citas programadas</p>
-        </div>
+        <EmptyState
+          icon={<Calendar className="w-6 h-6" style={{ color: COLORS.textMuted }} />}
+          title="No hay citas programadas"
+        />
       ) : (
         <div className="space-y-2">
-          {appointments.map((apt) => {
-            const statusStyle = getStatusColor(apt.status)
-            return (
-              <div 
-                key={apt.id}
-                className="flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer"
-                style={{ backgroundColor: COLORS.surfaceSubtle }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.border}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle}
-              >
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
-                  <span className="text-sm font-bold" style={{ color: COLORS.primary }}>
-                    {formatTime(apt.start_time)}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate" style={{ color: COLORS.textPrimary }}>
-                    {apt.client_name}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    {apt.service_name && (
-                      <span className="text-xs flex items-center gap-1" style={{ color: COLORS.textSecondary }}>
-                        <Scissors className="w-3 h-3" />
-                        {apt.service_name}
-                      </span>
-                    )}
-                    {apt.employee_name && (
-                      <span className="text-xs flex items-center gap-1" style={{ color: COLORS.textMuted }}>
-                        <User className="w-3 h-3" />
-                        {apt.employee_name}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <span 
-                  className="px-2 py-1 rounded-full text-xs font-medium capitalize"
-                  style={{ backgroundColor: statusStyle.bg, color: statusStyle.color }}
-                >
-                  {apt.status === 'confirmed' ? 'Confirmada' : 'Pendiente'}
+          {appointments.map((apt) => (
+            <Link
+              key={apt.id}
+              href={`/calendar`}
+              className="flex items-center gap-3 p-3 rounded-xl transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
+              style={{ backgroundColor: COLORS.surfaceSubtle }}
+            >
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
+                <span className="text-sm font-bold" style={{ color: COLORS.primary }}>
+                  {formatTime(apt.start_time)}
                 </span>
               </div>
-            )
-          })}
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate" style={{ color: COLORS.textPrimary }}>
+                  {apt.client_name}
+                </p>
+                <div className="flex items-center gap-2">
+                  {apt.service_name && (
+                    <span className="text-xs flex items-center gap-1" style={{ color: COLORS.textSecondary }}>
+                      <Scissors className="w-3 h-3" />
+                      {apt.service_name}
+                    </span>
+                  )}
+                  {apt.employee_name && (
+                    <span className="text-xs flex items-center gap-1" style={{ color: COLORS.textMuted }}>
+                      <User className="w-3 h-3" />
+                      {apt.employee_name}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Badge variant={getStatusBadgeVariant(apt.status)} size="sm">
+                {getStatusLabel(apt.status)}
+              </Badge>
+            </Link>
+          ))}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

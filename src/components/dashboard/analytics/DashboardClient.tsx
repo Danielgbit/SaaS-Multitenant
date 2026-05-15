@@ -14,8 +14,7 @@ import { EmployeePerformance } from './EmployeePerformance'
 import { PayrollSummaryWidget } from './PayrollSummaryWidget'
 import { AlertsPanel } from './AlertsPanel'
 import { TopServicesList } from './TopServicesList'
-
-type Period = 'today' | 'week' | 'month' | 'year' | 'last7days' | 'last30days'
+import type { Period } from './types'
 
 interface DashboardClientProps {
   organizationId: string
@@ -24,7 +23,7 @@ interface DashboardClientProps {
   organizationName?: string | null
 }
 
-export function DashboardClient({ organizationId, role, employeeName, organizationName }: DashboardClientProps) {
+export function DashboardClient({ organizationId, role, employeeName }: DashboardClientProps) {
   const COLORS = useThemeColors()
   const [period, setPeriod] = useState<Period>('month')
   const { loading, data } = useAnalytics({ organizationId, period })
@@ -51,14 +50,14 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
       prefix: 'COP ',
       change: data?.overview.revenueChange,
       icon: <DollarSign className="w-4 h-4" />,
-      iconColor: '#10B981'
+      iconColor: COLORS.success
     },
     {
       title: 'Nuevos Clientes',
       value: data?.overview.clients || 0,
       change: data?.overview.clientsChange,
       icon: <Users className="w-4 h-4" />,
-      iconColor: '#8B5CF6'
+      iconColor: COLORS.info
     },
     {
       title: 'Ticket Promedio',
@@ -74,7 +73,7 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
       suffix: '%',
       change: data?.overview.completionRateChange,
       icon: <CheckCircle2 className="w-4 h-4" />,
-      iconColor: '#10B981'
+      iconColor: COLORS.success
     },
     {
       title: 'Canceladas',
@@ -82,7 +81,7 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
       suffix: '%',
       change: undefined,
       icon: <XCircle className="w-4 h-4" />,
-      iconColor: '#EF4444'
+      iconColor: COLORS.error
     }
   ]
 
@@ -105,10 +104,7 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Bienvenido</p>
-                <h1 
-                  className="text-3xl font-bold text-white"
-                  style={{ fontFamily: 'Cormorant Garamond, serif' }}
-                >
+                <h1 className="text-3xl font-bold text-white font-serif">
                   Hola, {employeeName || 'Empleado'}
                 </h1>
                 <p className="text-sm mt-1 text-white/80">
@@ -122,48 +118,48 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link href="/calendar" className="group block p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#0F4C5C] dark:hover:border-[#38BDF8] transition-all duration-200 hover:shadow-lg">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-[#0F4C5C] dark:text-[#38BDF8]" />
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
+                <Calendar className="w-6 h-6" style={{ color: COLORS.primary }} />
               </div>
               <div>
                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">Mi Agenda</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Ver mis citas</p>
               </div>
             </div>
-            <div className="flex items-center text-[#0F4C5C] dark:text-[#38BDF8] text-sm font-medium group-hover:gap-2 transition-all">
-              Ir a Agenda
+            <div className="flex items-center text-sm font-medium transition-all" style={{ color: COLORS.primary }}>
+              <span className="group-hover:gap-2 transition-all">Ir a Agenda</span>
               <TrendingUp className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
           <Link href="/confirmations" className="group block p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#0F4C5C] dark:hover:border-[#38BDF8] transition-all duration-200 hover:shadow-lg">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6 text-amber-500" />
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.warningLight }}>
+                <CheckCircle2 className="w-6 h-6" style={{ color: COLORS.warning }} />
               </div>
               <div>
                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">Confirmaciones</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Pendientes de confirmar</p>
               </div>
             </div>
-            <div className="flex items-center text-[#0F4C5C] dark:text-[#38BDF8] text-sm font-medium group-hover:gap-2 transition-all">
-              Ver confirmaciones
+            <div className="flex items-center text-sm font-medium transition-all" style={{ color: COLORS.primary }}>
+              <span className="group-hover:gap-2 transition-all">Ver confirmaciones</span>
               <TrendingUp className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
           <Link href="/payroll/mi" className="group block p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#0F4C5C] dark:hover:border-[#38BDF8] transition-all duration-200 hover:shadow-lg">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-emerald-500" />
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.successLight }}>
+                <DollarSign className="w-6 h-6" style={{ color: COLORS.success }} />
               </div>
               <div>
                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">Mi Nómina</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Ver mis ingresos</p>
               </div>
             </div>
-            <div className="flex items-center text-[#0F4C5C] dark:text-[#38BDF8] text-sm font-medium group-hover:gap-2 transition-all">
-              Ver nómina
+            <div className="flex items-center text-sm font-medium transition-all" style={{ color: COLORS.primary }}>
+              <span className="group-hover:gap-2 transition-all">Ver nómina</span>
               <TrendingUp className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
@@ -192,10 +188,7 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Panel de Control</p>
-                <h1
-                  className="text-3xl font-bold text-white"
-                  style={{ fontFamily: 'Cormorant Garamond, serif' }}
-                >
+                <h1 className="text-3xl font-bold text-white font-serif">
                   Bienvenido de nuevo
                 </h1>
                 <p className="text-sm mt-1 text-white/80">
@@ -203,14 +196,14 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
                 </p>
               </div>
             </div>
-            <PeriodSelector value={period} onChange={setPeriod} isDark />
+            <PeriodSelector value={period} onChange={setPeriod} />
           </div>
         </div>
       )}
 
       {/* KPI Cards Grid - 6 cards in 3x2 on tablet, 6x1 on desktop */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-        {statsCards.map((stat, index) => (
+        {statsCards.map((stat) => (
           <StatsCard
             key={stat.title}
             title={stat.title}
@@ -221,7 +214,6 @@ export function DashboardClient({ organizationId, role, employeeName, organizati
             icon={stat.icon}
             iconColor={stat.iconColor}
             loading={loading}
-            delay={index * 50}
           />
         ))}
       </div>

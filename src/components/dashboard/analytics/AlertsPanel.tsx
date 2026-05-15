@@ -1,7 +1,11 @@
 'use client'
 
+import Link from 'next/link'
 import { MessageCircle, Calendar, CheckCircle2, Bell, ChevronRight } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Card } from '@/components/ui/Card'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { Badge } from '@/components/ui/Badge'
 
 interface Alert {
   id: string
@@ -35,13 +39,18 @@ export function AlertsPanel({ alerts, loading }: AlertsPanelProps) {
     }
   }
 
+  const getBadgeVariant = (severity: string): 'success' | 'warning' | 'info' | 'neutral' => {
+    switch (severity) {
+      case 'success': return 'success'
+      case 'warning': return 'warning'
+      case 'info': return 'info'
+      default: return 'neutral'
+    }
+  }
+
   if (loading) {
     return (
-      <div className="p-6 rounded-2xl border" style={{ 
-        backgroundColor: COLORS.surfaceGlass,
-        backdropFilter: 'blur(12px)',
-        borderColor: COLORS.border,
-      }}>
+      <Card variant="glass" className="p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
             <Bell className="w-5 h-5" style={{ color: COLORS.primary }} />
@@ -50,29 +59,21 @@ export function AlertsPanel({ alerts, loading }: AlertsPanelProps) {
         </div>
         <div className="space-y-3">
           {[1, 2].map(i => (
-            <div key={i} className="animate-pulse flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full" style={{ backgroundColor: COLORS.surfaceSubtle }} />
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton variant="circular" width="w-8" height="h-8" />
               <div className="flex-1">
-                <div className="h-4 w-32 rounded mb-1" style={{ backgroundColor: COLORS.surfaceSubtle }} />
-                <div className="h-3 w-24 rounded" style={{ backgroundColor: COLORS.surfaceSubtle }} />
+                <Skeleton variant="text" width="w-32" className="mb-1" />
+                <Skeleton variant="text" width="w-24" />
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div 
-      className="p-6 rounded-2xl border transition-all duration-300"
-      style={{ 
-        backgroundColor: COLORS.surfaceGlass,
-        backdropFilter: 'blur(12px)',
-        borderColor: COLORS.border,
-        boxShadow: '0 4px 24px rgba(15, 76, 92, 0.08)',
-      }}
-    >
+    <Card variant="glass" className="p-6">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
           <Bell className="w-5 h-5" style={{ color: COLORS.primary }} />
@@ -83,27 +84,19 @@ export function AlertsPanel({ alerts, loading }: AlertsPanelProps) {
       <div className="space-y-2">
         {alerts.map((alert) => {
           const style = getAlertIcon(alert)
-          const isSuccess = alert.severity === 'success'
           
           return (
-            <div 
+            <Link
               key={alert.id}
+              href={alert.link || '#'}
               className={`
-                flex items-start gap-3 p-3 rounded-xl transition-all duration-200
-                ${alert.link ? 'cursor-pointer' : ''}
+                flex items-start gap-3 p-3 rounded-xl transition-colors
+                ${alert.link ? 'hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer' : ''}
               `}
               style={{ backgroundColor: COLORS.surfaceSubtle }}
-              onMouseEnter={(e) => {
-                if (alert.link) {
-                  e.currentTarget.style.backgroundColor = COLORS.border
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle
-              }}
-              onClick={() => {
-                if (alert.link) {
-                  window.location.href = alert.link
+              onClick={(e) => {
+                if (!alert.link) {
+                  e.preventDefault()
                 }
               }}
             >
@@ -117,9 +110,9 @@ export function AlertsPanel({ alerts, loading }: AlertsPanelProps) {
                 <p className="font-medium text-sm" style={{ color: COLORS.textPrimary }}>
                   {alert.title}
                   {alert.count > 0 && (
-                    <span className="ml-2 px-1.5 py-0.5 rounded text-xs font-bold" style={{ backgroundColor: style.bg, color: style.color }}>
+                    <Badge variant={getBadgeVariant(alert.severity)} size="sm" className="ml-2">
                       {alert.count}
-                    </span>
+                    </Badge>
                   )}
                 </p>
                 <p className="text-xs" style={{ color: COLORS.textSecondary }}>
@@ -129,10 +122,10 @@ export function AlertsPanel({ alerts, loading }: AlertsPanelProps) {
               {alert.link && (
                 <ChevronRight className="w-4 h-4 shrink-0" style={{ color: COLORS.textMuted }} />
               )}
-            </div>
+            </Link>
           )
         })}
       </div>
-    </div>
+    </Card>
   )
 }

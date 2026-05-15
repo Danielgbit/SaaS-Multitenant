@@ -3,9 +3,12 @@
 import { useState, useEffect, useCallback, startTransition } from 'react'
 import { MessageCircle, CheckCircle, XCircle, Clock, TrendingUp, AlertTriangle, Wifi, Webhook, Activity, RefreshCw, Inbox } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { StatCard } from './StatCard'
+import { MetricCard } from '@/components/ui/MetricCard'
+import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { AlertBanner } from './AlertBanner'
 import { StatusBadge } from './StatusBadge'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { getQueueStats, getRecentItems, type QueueStats } from '@/actions/notifications/queue'
 import { getProvider } from '@/actions/notifications/providers'
 import type { NotificationQueueItem, NotificationProvider } from '@/types/notifications'
@@ -211,10 +214,8 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
           </div>
           <button
             onClick={loadData}
-            className="p-1.5 rounded-lg transition-colors"
+            className="p-1.5 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
             style={{ color: COLORS.textMuted }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
             aria-label="Actualizar estado"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -245,34 +246,41 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard
-          icon={<MessageCircle className="w-4 h-4" />}
-          label="Enviados hoy"
-          value={stats?.sentToday ?? 0}
-          color={COLORS.primary}
-          loading={loading}
-        />
-        <StatCard
-          icon={<CheckCircle className="w-4 h-4" />}
-          label="Entregados"
-          value={stats?.deliveredToday ?? 0}
-          color={COLORS.success}
-          loading={loading}
-        />
-        <StatCard
-          icon={<XCircle className="w-4 h-4" />}
-          label="Fallidos"
-          value={stats?.failedToday ?? 0}
-          color={COLORS.error}
-          loading={loading}
-        />
-        <StatCard
-          icon={<Clock className="w-4 h-4" />}
-          label="Pendientes"
-          value={stats?.pending ?? 0}
-          color={COLORS.warning}
-          loading={loading}
-        />
+        {loading ? (
+          <>
+            <Card variant="glass" className="p-5"><Skeleton variant="metric" /></Card>
+            <Card variant="glass" className="p-5"><Skeleton variant="metric" /></Card>
+            <Card variant="glass" className="p-5"><Skeleton variant="metric" /></Card>
+            <Card variant="glass" className="p-5"><Skeleton variant="metric" /></Card>
+          </>
+        ) : (
+          <>
+            <MetricCard
+              title="Enviados hoy"
+              value={stats?.sentToday ?? 0}
+              icon={<MessageCircle className="w-4 h-4" />}
+              iconColor={COLORS.primary}
+            />
+            <MetricCard
+              title="Entregados"
+              value={stats?.deliveredToday ?? 0}
+              icon={<CheckCircle className="w-4 h-4" />}
+              iconColor={COLORS.success}
+            />
+            <MetricCard
+              title="Fallidos"
+              value={stats?.failedToday ?? 0}
+              icon={<XCircle className="w-4 h-4" />}
+              iconColor={COLORS.error}
+            />
+            <MetricCard
+              title="Pendientes"
+              value={stats?.pending ?? 0}
+              icon={<Clock className="w-4 h-4" />}
+              iconColor={COLORS.warning}
+            />
+          </>
+        )}
       </div>
 
       <div
@@ -365,32 +373,20 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
             ))}
           </div>
         ) : recentItems.length === 0 ? (
-          <div className="py-12 px-4 text-center">
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ backgroundColor: COLORS.surfaceSubtle }}
-            >
-              <Inbox className="w-7 h-7" style={{ color: COLORS.textMuted }} />
-            </div>
-            <p
-              className="text-sm font-medium mb-1"
-              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-            >
-              Sin mensajes recientes
-            </p>
-            <p className="text-xs" style={{ color: COLORS.textMuted }}>
-              Los mensajes enviados aparecerán aquí
-            </p>
-          </div>
+          <Card variant="bordered" className="py-12">
+            <EmptyState
+              icon={<Inbox className="w-7 h-7" style={{ color: COLORS.textMuted }} />}
+              title="Sin mensajes recientes"
+              description="Los mensajes enviados aparecerán aquí"
+            />
+          </Card>
         ) : (
           <div className="divide-y" style={{ borderColor: COLORS.border }}>
             {recentItems.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-3 px-4 py-3 transition-colors"
+                className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                 style={{ backgroundColor: COLORS.surface }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = COLORS.surface }}
               >
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -401,7 +397,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
                 <div className="flex-1 min-w-0">
                   <p
                     className="text-sm font-medium truncate"
-                    style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     {maskAddress(item.toAddress)}
                   </p>

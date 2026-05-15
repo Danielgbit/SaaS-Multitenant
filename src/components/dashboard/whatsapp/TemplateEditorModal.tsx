@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import { X, Save, RotateCcw, Loader2, Plus, Trash2 } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { AlertBanner } from './AlertBanner'
 import { updateTemplate, resetTemplateToDefault, createTemplate, deleteTemplate } from '@/actions/notifications/templates'
 import { STANDARD_VARIABLES, WHATSAPP_TEMPLATE_TYPES, WHATSAPP_TEMPLATE_TYPE_LABELS, type MessageTemplate, type TemplateType } from '@/types/notifications'
+import { SAMPLE_VARIABLES, renderPreview } from '@/lib/whatsapp/template-utils'
 
 interface TemplateEditorModalProps {
   mode: 'create' | 'edit'
@@ -12,19 +14,6 @@ interface TemplateEditorModalProps {
   organizationId?: string
   onSave: () => void
   onClose: () => void
-}
-
-const SAMPLE_VARIABLES: Record<string, string> = {
-  clientName: 'María García',
-  appointmentDate: '15 de mayo de 2026',
-  appointmentTime: '2:00 PM',
-  businessName: 'Spa Relax',
-  serviceName: 'Masaje Relajante',
-  employeeName: 'Carlos López',
-  confirmationLink: 'https://app.prugressy.com/confirmar/abc123',
-  cancellationLink: 'https://app.prugressy.com/cancelar/abc123',
-  businessPhone: '+57 300 123 4567',
-  businessAddress: 'Calle 123 #45-67, Bogotá',
 }
 
 export function TemplateEditorModal({ mode, template, organizationId, onSave, onClose }: TemplateEditorModalProps) {
@@ -68,6 +57,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
         isActive: true,
       })
     } else {
+      if (!template) return
       result = await updateTemplate(template!.id, { body: body.trim() })
     }
 
@@ -86,6 +76,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
   }
 
   const handleReset = async () => {
+    if (!template) return
     setResetting(true)
     const result = await resetTemplateToDefault(template!.id)
     setResetting(false)
@@ -103,6 +94,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
   }
 
   const handleDelete = async () => {
+    if (!template) return
     if (!confirmDelete) {
       setConfirmDelete(true)
       return
@@ -121,18 +113,6 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
       setToast({ type: 'error', message: result.error || 'Error al eliminar' })
     }
     setTimeout(() => setToast(null), 3000)
-  }
-
-  const cancelDelete = () => {
-    setConfirmDelete(false)
-  }
-
-  const renderPreview = (text: string) => {
-    let result = text
-    Object.entries(SAMPLE_VARIABLES).forEach(([key, value]) => {
-      result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value)
-    })
-    return result
   }
 
   const insertVariable = (varName: string) => {
@@ -195,15 +175,12 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
 
         <div className="p-5 space-y-5">
           {toast && (
-            <div
-              className="p-3 rounded-xl text-sm"
-              style={{
-                backgroundColor: toast.type === 'success' ? COLORS.successLight : COLORS.errorLight,
-                color: toast.type === 'success' ? COLORS.success : COLORS.error,
-              }}
-            >
-              {toast.message}
-            </div>
+            <AlertBanner
+              type={toast.type === 'success' ? 'success' : 'error'}
+              message={toast.message}
+              dismissible
+              onDismiss={() => setToast(null)}
+            />
           )}
 
           {isCreate && (
@@ -347,7 +324,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
                     {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sí'}
                   </button>
                   <button
-                    onClick={cancelDelete}
+                    onClick={() => setConfirmDelete(false)}
                     className="px-3 py-1.5 rounded-xl text-sm font-medium border"
                     style={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
                   >

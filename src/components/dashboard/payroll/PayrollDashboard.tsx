@@ -2,12 +2,15 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   Plus, Wallet, Users, TrendingUp, CheckCircle, Calendar, DollarSign, ChevronRight,
 } from 'lucide-react'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { StatCard } from './StatCard'
+import { MetricCard } from '@/components/ui/MetricCard'
+import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { CurrentPeriodCard } from './CurrentPeriodCard'
 import { CompactPeriodCard } from './CompactPeriodCard'
 import type { PayrollDashboardSummary } from '@/types/payroll'
@@ -19,6 +22,7 @@ interface PayrollDashboardProps {
 
 export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps) {
   const colors = useThemeColors()
+  const router = useRouter()
   const [expandedPeriod, setExpandedPeriod] = useState<string | null>(null)
 
   const hasPending = dashboardData.pending_periods && dashboardData.pending_periods.length > 0
@@ -77,75 +81,60 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <StatCard
-          label="Pendiente por pagar"
+        <MetricCard
+          title="Pendiente por pagar"
           value={formatCurrencyCOP(dashboardData.total_pending_net)}
-          icon={Wallet}
-          color={colors.warning}
-          bgColor={colors.warning + '15'}
-          href={hasPending ? `/payroll/period/${dashboardData.pending_periods![0].id}` : undefined}
-          cta="Revisar"
+          icon={<Wallet className="w-4 h-4" />}
+          iconColor={colors.warning}
+          onClick={hasPending ? () => router.push(`/payroll/period/${dashboardData.pending_periods![0].id}`) : undefined}
+          footer={hasPending && <span className="text-xs" style={{ color: colors.textMuted }}>Revisar →</span>}
         />
-        <StatCard
-          label="Listos para pagar"
-          value={`${dashboardData.employees_ready_to_pay} empleados`}
-          icon={CheckCircle}
-          color={colors.success}
-          bgColor={colors.success + '15'}
-          href={dashboardData.employees_ready_to_pay > 0 && dashboardData.current_period
-            ? `/payroll/period/${dashboardData.current_period.id}`
-            : undefined}
-          cta="Pagar"
+        <MetricCard
+          title="Listos para pagar"
+          value={dashboardData.employees_ready_to_pay}
+          suffix="empleados"
+          icon={<CheckCircle className="w-4 h-4" />}
+          iconColor={colors.success}
+          onClick={dashboardData.employees_ready_to_pay > 0 && dashboardData.current_period ? () => router.push(`/payroll/period/${dashboardData.current_period.id}`) : undefined}
+          footer={dashboardData.employees_ready_to_pay > 0 && dashboardData.current_period && <span className="text-xs" style={{ color: colors.textMuted }}>Pagar →</span>}
         />
-        <StatCard
-          label="Empleados en nómina"
-          value={`${dashboardData.total_pending_employees} pendientes`}
-          icon={Users}
-          color={colors.primary}
-          bgColor={colors.primary + '15'}
+        <MetricCard
+          title="Empleados en nómina"
+          value={dashboardData.total_pending_employees}
+          suffix="pendientes"
+          icon={<Users className="w-4 h-4" />}
+          iconColor={colors.primary}
         />
-        <StatCard
-          label="Períodos activos"
-          value={`${dashboardData.pending_periods?.length || 0} abiertos`}
-          icon={TrendingUp}
-          color={colors.success}
-          bgColor={colors.success + '15'}
-          href="/payroll/new"
-          cta="Crear"
+        <MetricCard
+          title="Períodos activos"
+          value={dashboardData.pending_periods?.length || 0}
+          suffix="abiertos"
+          icon={<TrendingUp className="w-4 h-4" />}
+          iconColor={colors.success}
+          onClick={() => router.push('/payroll/new')}
+          footer={<span className="text-xs" style={{ color: colors.textMuted }}>Crear →</span>}
         />
       </div>
 
       {/* No periods empty state */}
       {!hasAnyPeriod && !error && (
-        <div
-          className="text-center py-20 px-6 rounded-2xl border-2 border-dashed transition-all duration-200 hover:shadow-md"
-          style={{ backgroundColor: colors.surfaceGlass, borderColor: colors.border }}
-        >
-          <div
-            className="w-20 h-20 rounded-2xl mx-auto mb-5 flex items-center justify-center"
-            style={{ backgroundColor: colors.primary + '10' }}
-            aria-hidden="true"
-          >
-            <Calendar className="w-10 h-10" style={{ color: colors.primary }} />
-          </div>
-          <h2
-            className="text-2xl font-bold mb-3"
-            style={{ color: colors.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
-          >
-            Sin períodos de nómina
-          </h2>
-          <p className="text-sm mb-8 max-w-sm mx-auto" style={{ color: colors.textMuted }}>
-            Crea tu primer período de nómina para comenzar a gestionar los pagos de tus empleados.
-          </p>
-          <Link
-            href="/payroll/new"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-            style={{ backgroundColor: colors.primary }}
-          >
-            <Plus className="w-4 h-4" aria-hidden="true" />
-            Crear Primer Período
-          </Link>
-        </div>
+        <Card variant="bordered" className="p-8">
+          <EmptyState
+            icon={<Calendar className="w-10 h-10" style={{ color: colors.primary }} />}
+            title="Sin períodos de nómina"
+            description="Crea tu primer período de nómina para comenzar a gestionar los pagos de tus empleados."
+            action={
+              <Link
+                href="/payroll/new"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                style={{ backgroundColor: colors.primary }}
+              >
+                <Plus className="w-4 h-4" aria-hidden="true" />
+                Crear Primer Período
+              </Link>
+            }
+          />
+        </Card>
       )}
 
       {/* Current Period */}

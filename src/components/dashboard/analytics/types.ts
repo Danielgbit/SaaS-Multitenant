@@ -11,7 +11,6 @@ export interface StatsCardProps {
   icon?: ReactNode
   iconColor?: string
   loading: boolean
-  delay?: number
 }
 
 export interface TrendChartProps {

@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, startTransition } from 'react'
-import { FileText, Edit2, RotateCcw, Loader2, Plus, Trash2, Sparkles, Inbox } from 'lucide-react'
+import { FileText, Edit2, RotateCcw, Loader2, Plus, Sparkles, Inbox } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { useTemplates } from '@/hooks/useTemplates'
 import { TemplateEditorModal } from './TemplateEditorModal'
+import { DeleteButton } from './ConfirmDeleteButton'
 import { WHATSAPP_TEMPLATE_TYPE_LABELS } from '@/types/notifications'
+import { highlightVariables, countVariables } from '@/lib/whatsapp/template-utils'
 import type { MessageTemplate } from '@/types/notifications'
 
 interface TabTemplatesProps {
@@ -60,33 +62,6 @@ export function TabTemplates({ organizationId }: TabTemplatesProps) {
     setConfirmDeleteId(null)
   }
 
-  const cancelDelete = () => {
-    setConfirmDeleteId(null)
-  }
-
-  const highlightVariables = (body: string) => {
-    const parts = body.split(/(\{\{[^}]+\}\})/g)
-    return parts.map((part, i) => {
-      if (part.match(/^\{\{[^}]+\}\}$/)) {
-        return (
-          <span
-            key={i}
-            className="px-1 py-0.5 rounded text-xs font-medium"
-            style={{ backgroundColor: COLORS.primarySubtle, color: COLORS.primary }}
-          >
-            {part}
-          </span>
-        )
-      }
-      return part
-    })
-  }
-
-  const countVariables = (body: string) => {
-    const matches = body.match(/\{\{[^}]+\}\}/g)
-    return matches ? matches.length : 0
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -95,16 +70,6 @@ export function TabTemplates({ organizationId }: TabTemplatesProps) {
             ? `${templates.length} template${templates.length !== 1 ? 's' : ''} configurada${templates.length !== 1 ? 's' : ''}`
             : 'Sin templates configuradas'}
         </p>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all"
-          style={{ backgroundColor: COLORS.primary }}
-          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(56, 189, 248, 0.3)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none' }}
-        >
-          <Plus className="w-4 h-4" />
-          <span>Nueva template</span>
-        </button>
       </div>
 
       <div
@@ -207,7 +172,7 @@ export function TabTemplates({ organizationId }: TabTemplatesProps) {
                       >
                         {highlightVariables(template.body.length > 120
                           ? template.body.slice(0, 120) + '...'
-                          : template.body)}
+                          : template.body, COLORS.primary, COLORS.primarySubtle)}
                       </p>
                     </div>
                   </div>
@@ -239,35 +204,13 @@ export function TabTemplates({ organizationId }: TabTemplatesProps) {
                           <RotateCcw className="w-4 h-4" />
                         )}
                       </button>
-                    ) : confirmDeleteId === template.id ? (
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleDelete(template.id)}
-                          disabled={deletingId === template.id}
-                          className="px-2.5 py-1 rounded-lg text-xs font-semibold text-white"
-                          style={{ backgroundColor: COLORS.error, opacity: deletingId === template.id ? 0.7 : 1 }}
-                        >
-                          {deletingId === template.id ? <Loader2 className="w-3 h-3 animate-spin" /> : '¿Eliminar?'}
-                        </button>
-                        <button
-                          onClick={cancelDelete}
-                          className="px-2.5 py-1 rounded-lg text-xs font-medium border"
-                          style={{ borderColor: COLORS.border, color: COLORS.textSecondary }}
-                        >
-                          No
-                        </button>
-                      </div>
                     ) : (
-                      <button
-                        onClick={() => handleDelete(template.id)}
-                        className="p-2 rounded-xl transition-colors"
-                        style={{ color: COLORS.error }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.errorLight ?? '#FEE2E2' }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
-                        aria-label="Eliminar template"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <DeleteButton
+                        onDelete={() => handleDelete(template.id)}
+                        deleting={deletingId === template.id}
+                        confirmDelete={confirmDeleteId === template.id}
+                        onSetConfirmDelete={(v) => { if (!v) setConfirmDeleteId(null) }}
+                      />
                     )}
                   </div>
                 </div>

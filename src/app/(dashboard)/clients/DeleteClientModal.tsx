@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { X, Loader2, AlertTriangle } from 'lucide-react'
 import { useActionState } from 'react'
 import { deleteClient } from '@/actions/clients/deleteClient'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import type { Database } from '@/../types/supabase'
 
 type Client = Database['public']['Tables']['clients']['Row']
@@ -14,20 +15,6 @@ interface DeleteClientModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
-}
-
-// Design system tokens (light mode only)
-const DS = {
-  primary: '#0F4C5C',
-  surface: '#FFFFFF',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  border: '#E2E8F0',
-  error: '#DC2626',
-  radius: {
-    lg: '16px',
-    md: '10px',
-  },
 }
 
 const initialState = {
@@ -42,6 +29,7 @@ export function DeleteClientModal({
   onClose,
   onSuccess,
 }: DeleteClientModalProps) {
+  const COLORS = useThemeColors()
   const [state, formAction] = useActionState(deleteClient, initialState)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
@@ -69,8 +57,8 @@ export function DeleteClientModal({
       {/* Modal */}
       <div
         style={{
-          backgroundColor: DS.surface,
-          borderRadius: DS.radius.lg,
+          backgroundColor: COLORS.surface,
+          borderRadius: COLORS.radius.lg,
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         }}
         className="relative w-full max-w-sm mx-4"
@@ -81,13 +69,13 @@ export function DeleteClientModal({
             className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
             style={{ backgroundColor: '#FEF2F2' }}
           >
-            <AlertTriangle className="w-7 h-7" style={{ color: DS.error }} />
+            <AlertTriangle className="w-7 h-7" style={{ color: COLORS.error }} />
           </div>
           
           <h2 
             style={{ 
               fontFamily: "'Cormorant Garamond', serif",
-              color: DS.textPrimary,
+              color: COLORS.textPrimary,
             }}
             className="text-xl font-semibold mb-2"
           >
@@ -97,7 +85,7 @@ export function DeleteClientModal({
           <p 
             style={{ 
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: DS.textSecondary,
+              color: COLORS.textSecondary,
             }}
             className="text-sm"
           >
@@ -120,7 +108,7 @@ export function DeleteClientModal({
                 backgroundColor: '#FEF2F2',
                 border: `1px solid #FECACA`,
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: DS.error,
+                color: COLORS.error,
               }}
             >
               {state.error}
@@ -134,7 +122,7 @@ export function DeleteClientModal({
               onClick={onClose}
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: DS.radius.md,
+                borderRadius: COLORS.radius.md,
                 padding: '12px 20px',
               }}
               className="flex-1 border font-medium transition-colors hover:bg-slate-50"
@@ -146,9 +134,9 @@ export function DeleteClientModal({
               disabled={isSubmitting}
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                borderRadius: DS.radius.md,
+                borderRadius: COLORS.radius.md,
                 padding: '12px 20px',
-                backgroundColor: DS.error,
+                backgroundColor: COLORS.error,
                 color: '#FFFFFF',
               }}
               className="flex-1 font-medium transition-colors hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"

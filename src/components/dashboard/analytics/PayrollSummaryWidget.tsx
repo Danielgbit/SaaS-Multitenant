@@ -1,14 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import {
-  Receipt,
-  Users,
-  TrendingUp,
-  AlertCircle,
-  Loader2,
-  ArrowRight
-} from 'lucide-react'
+import { Receipt, Users, TrendingUp, AlertCircle, Loader2, ArrowRight } from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
+import { Card } from '@/components/ui/Card'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 
 interface PayrollSummary {
@@ -24,67 +19,75 @@ interface PayrollSummaryWidgetProps {
 }
 
 export function PayrollSummaryWidget({ summary, loading }: PayrollSummaryWidgetProps) {
+  const COLORS = useThemeColors()
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+      <Card variant="solid" className="p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Receipt className="w-5 h-5 text-slate-500" />
-          <h3 className="font-semibold text-slate-700 dark:text-slate-200">Nómina</h3>
+          <Receipt className="w-5 h-5" style={{ color: COLORS.textMuted }} />
+          <h3 className="font-semibold" style={{ color: COLORS.textPrimary }}>Nómina</h3>
         </div>
         <div className="flex justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+          <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.textMuted }} />
         </div>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-      <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+    <Card variant="solid" className="p-0 overflow-hidden">
+      <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: COLORS.border }}>
         <div className="flex items-center gap-2">
-          <Receipt className="w-5 h-5 text-emerald-600" />
-          <h3 className="font-semibold text-slate-700 dark:text-slate-200">Nómina</h3>
+          <Receipt className="w-5 h-5" style={{ color: COLORS.success }} />
+          <h3 className="font-semibold" style={{ color: COLORS.textPrimary }}>Nómina</h3>
         </div>
-        <Link 
+        <Link
           href="/payroll"
-          className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition-colors"
+          className="text-xs font-medium flex items-center gap-1 transition-colors hover:opacity-80"
+          style={{ color: COLORS.primary }}
         >
           Ver todo
           <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
-      
+
       <div className="p-4 space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
+          <div className="rounded-lg p-3" style={{ backgroundColor: COLORS.surfaceSubtle }}>
             <div className="flex items-center gap-2 mb-1">
-              <Users className="w-4 h-4 text-slate-500" />
-              <span className="text-xs text-slate-500 dark:text-slate-400">Empleados</span>
+              <Users className="w-4 h-4" style={{ color: COLORS.textMuted }} />
+              <span className="text-xs" style={{ color: COLORS.textMuted }}>Empleados</span>
             </div>
-            <p className="text-xl font-bold text-slate-700 dark:text-slate-100">
+            <p className="text-xl font-bold" style={{ color: COLORS.textPrimary }}>
               {summary?.employeeCount || 0}
             </p>
           </div>
-          
-          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
+
+          <div className="rounded-lg p-3" style={{ backgroundColor: COLORS.surfaceSubtle }}>
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-emerald-500" />
-              <span className="text-xs text-slate-500 dark:text-slate-400">Comisiones</span>
+              <TrendingUp className="w-4 h-4" style={{ color: COLORS.success }} />
+              <span className="text-xs" style={{ color: COLORS.textMuted }}>Comisiones</span>
             </div>
-            <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+            <p className="text-xl font-bold" style={{ color: COLORS.success }}>
               {formatCurrencyCOP(summary?.pendingCommissionsTotal || 0)}
             </p>
           </div>
         </div>
 
         {(summary?.pendingLoansTotal || 0) > 0 && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+          <div
+            className="rounded-lg p-3 border"
+            style={{
+              backgroundColor: COLORS.warningLight,
+              borderColor: COLORS.warning,
+            }}
+          >
             <div className="flex items-center gap-2 mb-1">
-              <AlertCircle className="w-4 h-4 text-amber-600" />
-              <span className="text-xs text-amber-700 dark:text-amber-400">Préstamos Pendientes</span>
+              <AlertCircle className="w-4 h-4" style={{ color: COLORS.warning }} />
+              <span className="text-xs" style={{ color: COLORS.warning }}>Préstamos Pendientes</span>
             </div>
-            <p className="text-lg font-bold text-amber-700 dark:text-amber-300">
+            <p className="text-lg font-bold" style={{ color: COLORS.warning }}>
               {formatCurrencyCOP(summary?.pendingLoansTotal || 0)}
             </p>
           </div>
@@ -92,11 +95,15 @@ export function PayrollSummaryWidget({ summary, loading }: PayrollSummaryWidgetP
 
         <Link
           href="/payroll"
-          className="block w-full py-2 px-3 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-sm font-medium rounded-lg text-center transition-colors"
+          className="block w-full py-2 px-3 rounded-lg text-sm font-medium text-center transition-colors hover:opacity-90"
+          style={{
+            backgroundColor: COLORS.successLight,
+            color: COLORS.success,
+          }}
         >
           Gestionar Nómina
         </Link>
       </div>
-    </div>
+    </Card>
   )
 }

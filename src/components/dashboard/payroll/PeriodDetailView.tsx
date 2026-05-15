@@ -29,6 +29,8 @@ import {
 } from 'lucide-react'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Badge } from '@/components/ui/Badge'
+import { Card } from '@/components/ui/Card'
 import { PAYROLL_STATUS_CONFIG } from '@/lib/payroll/constants'
 import { toast } from 'sonner'
 import ConfirmModal from '@/components/ui/ConfirmModal'
@@ -62,57 +64,42 @@ function parsePeriod(period: string): { month: number; year: number; label: stri
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const COLORS = useThemeColors()
   const config = {
-    draft: { bg: COLORS.warning + '20', color: COLORS.warning, icon: Clock, label: PAYROLL_STATUS_CONFIG.draft.label },
-    approved: { bg: COLORS.primary + '20', color: COLORS.primary, icon: CheckCircle, label: PAYROLL_STATUS_CONFIG.approved.label },
-    paid: { bg: COLORS.success + '20', color: COLORS.success, icon: CheckCircle, label: PAYROLL_STATUS_CONFIG.paid.label },
-  }[status] || { bg: COLORS.textMuted + '20', color: COLORS.textMuted, icon: Clock, label: status }
+    draft: { variant: 'warning' as const, icon: Clock, label: PAYROLL_STATUS_CONFIG.draft.label },
+    approved: { variant: 'primary' as const, icon: CheckCircle, label: PAYROLL_STATUS_CONFIG.approved.label },
+    paid: { variant: 'success' as const, icon: CheckCircle, label: PAYROLL_STATUS_CONFIG.paid.label },
+  }[status] || { variant: 'neutral' as const, icon: Clock, label: status }
 
   const Icon = config.icon
 
   return (
-    <span
-      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-      style={{ backgroundColor: config.bg, color: config.color }}
-    >
+    <Badge variant={config.variant} size="md" className="gap-1.5">
       <Icon className="w-3 h-3" />
       {config.label}
-    </span>
+    </Badge>
   )
 }
 
 function ContractTypeBadge({ type }: { type: string }) {
-  const COLORS = useThemeColors()
-  const config = type === 'laboral'
-    ? { bg: COLORS.primary + '15', color: COLORS.primary, label: 'Laboral' }
-    : { bg: COLORS.success + '15', color: COLORS.success, label: 'Prestación' }
-
+  const variant = type === 'laboral' ? 'primary' : 'success'
   return (
-    <span
-      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-      style={{ backgroundColor: config.bg, color: config.color }}
-    >
-      {config.label}
-    </span>
+    <Badge variant={variant} size="sm">
+      {type === 'laboral' ? 'Laboral' : 'Prestación'}
+    </Badge>
   )
 }
 
 function PaymentTypeBadge({ type }: { type: string }) {
-  const COLORS = useThemeColors()
   const config = {
-    fijo: { bg: COLORS.primary + '15', color: COLORS.primary, label: 'Fijo' },
-    porcentaje: { bg: COLORS.warning + '15', color: COLORS.warning, label: 'Comisión' },
-    mixed: { bg: '#8B5CF615', color: '#8B5CF6', label: 'Mixto' },
-  }[type] || { bg: COLORS.textMuted + '15', color: COLORS.textMuted, label: type }
+    fijo: { variant: 'primary' as const, label: 'Fijo' },
+    porcentaje: { variant: 'warning' as const, label: 'Comisión' },
+    mixed: { variant: 'info' as const, label: 'Mixto' },
+  }[type] || { variant: 'neutral' as const, label: type }
 
   return (
-    <span
-      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-      style={{ backgroundColor: config.bg, color: config.color }}
-    >
+    <Badge variant={config.variant} size="sm">
       {config.label}
-    </span>
+    </Badge>
   )
 }
 
@@ -495,10 +482,7 @@ export function PeriodDetailView({
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div
-          className="p-5 rounded-2xl border"
-          style={{ backgroundColor: COLORS.surfaceGlass, borderColor: COLORS.border }}
-        >
+        <Card variant="glass" className="p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.primary + '15' }}>
               <Users className="w-4 h-4" style={{ color: COLORS.primary }} />
@@ -510,12 +494,9 @@ export function PeriodDetailView({
           <p className="text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
             {items.length}
           </p>
-        </div>
+        </Card>
 
-        <div
-          className="p-5 rounded-2xl border"
-          style={{ backgroundColor: COLORS.surfaceGlass, borderColor: COLORS.border }}
-        >
+        <Card variant="glass" className="p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.success + '15' }}>
               <Wallet className="w-4 h-4" style={{ color: COLORS.success }} />
@@ -527,12 +508,9 @@ export function PeriodDetailView({
           <p className="text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
             {formatCurrencyCOP(period.total_gross_pay || 0)}
           </p>
-        </div>
+        </Card>
 
-        <div
-          className="p-5 rounded-2xl border"
-          style={{ backgroundColor: COLORS.surfaceGlass, borderColor: COLORS.border }}
-        >
+        <Card variant="glass" className="p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.warning + '15' }}>
               <TrendingUp className="w-4 h-4" style={{ color: COLORS.warning }} />
@@ -544,12 +522,9 @@ export function PeriodDetailView({
           <p className="text-2xl font-bold" style={{ color: COLORS.warning }}>
             -{formatCurrencyCOP(period.total_deductions || 0)}
           </p>
-        </div>
+        </Card>
 
-        <div
-          className="p-5 rounded-2xl border"
-          style={{ backgroundColor: COLORS.surfaceGlass, borderColor: COLORS.border }}
-        >
+        <Card variant="glass" className="p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.success + '15' }}>
               <DollarSign className="w-4 h-4" style={{ color: COLORS.success }} />
@@ -561,7 +536,7 @@ export function PeriodDetailView({
           <p className="text-2xl font-bold" style={{ color: COLORS.success }}>
             {formatCurrencyCOP(period.total_net_pay || 0)}
           </p>
-        </div>
+        </Card>
       </div>
 
       {/* Employees Table */}

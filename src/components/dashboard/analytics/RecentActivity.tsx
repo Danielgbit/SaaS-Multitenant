@@ -2,6 +2,9 @@
 
 import { Activity, CheckCircle2, XCircle, UserPlus, Clock } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Card } from '@/components/ui/Card'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface ActivityItem {
   id: string
@@ -49,11 +52,7 @@ export function RecentActivity({ activities, loading }: RecentActivityProps) {
 
   if (loading) {
     return (
-      <div className="p-6 rounded-2xl border" style={{ 
-        backgroundColor: COLORS.surfaceGlass,
-        backdropFilter: 'blur(12px)',
-        borderColor: COLORS.border,
-      }}>
+      <Card variant="glass" className="p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
             <Activity className="w-5 h-5" style={{ color: COLORS.primary }} />
@@ -62,29 +61,21 @@ export function RecentActivity({ activities, loading }: RecentActivityProps) {
         </div>
         <div className="space-y-3">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="animate-pulse flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full" style={{ backgroundColor: COLORS.surfaceSubtle }} />
+            <div key={i} className="flex items-start gap-3">
+              <Skeleton variant="circular" width="w-8" height="h-8" />
               <div className="flex-1">
-                <div className="h-4 w-32 rounded mb-2" style={{ backgroundColor: COLORS.surfaceSubtle }} />
-                <div className="h-3 w-24 rounded" style={{ backgroundColor: COLORS.surfaceSubtle }} />
+                <Skeleton variant="text" width="w-32" className="mb-2" />
+                <Skeleton variant="text" width="w-24" />
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div 
-      className="p-6 rounded-2xl border transition-all duration-300"
-      style={{ 
-        backgroundColor: COLORS.surfaceGlass,
-        backdropFilter: 'blur(12px)',
-        borderColor: COLORS.border,
-        boxShadow: '0 4px 24px rgba(15, 76, 92, 0.08)',
-      }}
-    >
+    <Card variant="glass" className="p-6">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
           <Activity className="w-5 h-5" style={{ color: COLORS.primary }} />
@@ -93,23 +84,20 @@ export function RecentActivity({ activities, loading }: RecentActivityProps) {
       </div>
 
       {activities.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ backgroundColor: COLORS.surfaceSubtle }}>
-            <Activity className="w-6 h-6" style={{ color: COLORS.textMuted }} />
-          </div>
-          <p className="text-sm" style={{ color: COLORS.textMuted }}>Sin actividad reciente</p>
-        </div>
+        <EmptyState
+          icon={<Activity className="w-6 h-6" style={{ color: COLORS.textMuted }} />}
+          title="Sin actividad reciente"
+        />
       ) : (
         <div className="space-y-1">
-          {activities.map((activity, index) => {
+          {activities.map((activity) => {
             const style = getActivityIcon(activity.type)
             return (
-              <div 
+              <div
                 key={activity.id}
-                className="flex items-start gap-3 p-2 rounded-lg transition-colors"
-                style={{ animationDelay: `${index * 50}ms` }}
+                className="flex items-start gap-3 p-2 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
               >
-                <div 
+                <div
                   className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
                   style={{ backgroundColor: style.bg, color: style.color }}
                 >
@@ -131,6 +119,6 @@ export function RecentActivity({ activities, loading }: RecentActivityProps) {
           })}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Search, Plus, X, Loader2, User } from 'lucide-react'
 import { searchClients } from '@/services/clients/getClients'
 import { createClientAction } from '@/actions/clients/createClient'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import type { Database } from '@/../types/supabase'
 
 type Client = Database['public']['Tables']['clients']['Row']
@@ -13,25 +14,6 @@ interface ClientSelectorProps {
   value?: string // client ID
   onChange: (clientId: string, clientName: string) => void
   placeholder?: string
-}
-
-// Design system tokens
-const DS = {
-  primary: '#0F4C5C',
-  primaryHover: '#0C3E4A',
-  primaryLight: '#E6F1F4',
-  bg: '#FAFAF9',
-  surface: '#FFFFFF',
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  border: '#E2E8F0',
-  success: '#16A34A',
-  error: '#DC2626',
-  radius: {
-    sm: '6px',
-    md: '10px',
-    lg: '16px',
-  },
 }
 
 export function ClientSelector({
@@ -50,6 +32,7 @@ export function ClientSelector({
   const [newClientPhone, setNewClientPhone] = useState('')
   const [error, setError] = useState<string | null>(null)
 
+  const COLORS = useThemeColors()
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -145,7 +128,7 @@ export function ClientSelector({
       <div className="relative">
         <Search 
           className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" 
-          style={{ color: DS.textSecondary }} 
+          style={{ color: COLORS.textSecondary }} 
         />
         <input
           type="text"
@@ -158,12 +141,11 @@ export function ClientSelector({
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder}
           style={{
-            fontFamily: 'Plus Jakarta Sans, sans-serif',
-            borderRadius: DS.radius.md,
-            borderColor: DS.border,
+            borderRadius: '10px',
+            borderColor: COLORS.border,
             padding: '12px 40px 12px 40px',
-            backgroundColor: DS.surface,
-            color: DS.textPrimary,
+            backgroundColor: COLORS.surface,
+            color: COLORS.textPrimary,
           }}
           className="w-full border focus:outline-none focus:ring-2 transition-all placeholder:text-opacity-60"
         />
@@ -177,7 +159,7 @@ export function ClientSelector({
               inputRef.current?.focus()
             }}
             className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-70 transition-opacity"
-            style={{ color: DS.textSecondary }}
+            style={{ color: COLORS.textSecondary }}
           >
             <X className="w-4 h-4" />
           </button>
@@ -189,16 +171,16 @@ export function ClientSelector({
         <div 
           className="absolute z-50 w-full mt-2 shadow-lg max-h-64 overflow-y-auto"
           style={{
-            borderRadius: DS.radius.lg,
-            backgroundColor: DS.surface,
-            border: `1px solid ${DS.border}`,
+            borderRadius: COLORS.radius.lg,
+            backgroundColor: COLORS.surface,
+            border: `1px solid ${COLORS.border}`,
           }}
         >
           {isLoading && (
             <div className="flex items-center justify-center py-4">
               <Loader2 
                 className="w-5 h-5 animate-spin" 
-                style={{ color: DS.primary }} 
+                style={{ color: COLORS.primary }} 
               />
             </div>
           )}
@@ -211,28 +193,27 @@ export function ClientSelector({
                     type="button"
                     onClick={() => handleSelect(client)}
                     className="w-full flex items-center gap-3 px-4 py-3 transition-colors text-left hover:bg-slate-50"
-                    style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
                   >
                     <div 
                       className="w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: DS.primaryLight }}
+                      style={{ backgroundColor: COLORS.primaryLight }}
                     >
                       <User 
                         className="w-4 h-4" 
-                        style={{ color: DS.primary }} 
+                        style={{ color: COLORS.primary }} 
                       />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p 
                         className="font-medium truncate"
-                        style={{ color: DS.textPrimary }}
+                        style={{ color: COLORS.textPrimary }}
                       >
                         {client.name}
                       </p>
                       {(client.phone || client.email) && (
                         <p 
                           className="text-xs truncate"
-                          style={{ color: DS.textSecondary }}
+                          style={{ color: COLORS.textSecondary }}
                         >
                           {client.phone || client.email}
                         </p>
@@ -272,7 +253,8 @@ export function ClientSelector({
                 value={newClientName}
                 onChange={(e) => setNewClientName(e.target.value)}
                 placeholder="Nombre completo *"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8]"
+                className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2"
+                style={{ borderColor: COLORS.border, '--tw-ring-color': COLORS.primary } as React.CSSProperties}
                 autoFocus
               />
 
@@ -281,7 +263,8 @@ export function ClientSelector({
                 value={newClientPhone}
                 onChange={(e) => setNewClientPhone(e.target.value)}
                 placeholder="Teléfono (opcional)"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8]"
+                className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2"
+                style={{ borderColor: COLORS.border, '--tw-ring-color': COLORS.primary } as React.CSSProperties}
               />
 
               {error && (
@@ -300,7 +283,10 @@ export function ClientSelector({
                   type="button"
                   onClick={handleCreate}
                   disabled={isCreating || !newClientName.trim()}
-                  className="flex-1 px-3 py-2 text-sm bg-[#0F4C5C] hover:bg-[#0C3E4A] disabled:opacity-50 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-3 py-2 text-sm rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={{ backgroundColor: COLORS.primary, color: 'white' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
                 >
                   {isCreating && <Loader2 className="w-3 h-3 animate-spin" />}
                   Crear

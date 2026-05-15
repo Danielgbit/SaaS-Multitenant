@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Badge } from '@/components/ui/Badge'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import type { PeriodEmployeeSummary } from '@/types/payroll'
 
@@ -13,31 +14,28 @@ interface EmployeeRowProps {
 export function EmployeeRow({ employee, compact = false }: EmployeeRowProps) {
   const colors = useThemeColors()
   const initial = employee.name.charAt(0).toUpperCase()
-  const contractLabel = employee.contract_type === 'laboral' ? 'Laboral' : 'Prestación'
-  const contractColor = employee.contract_type === 'laboral' ? colors.primary : colors.success
+  const contractVariant = employee.contract_type === 'laboral' ? 'primary' : 'success'
 
   let payLabel = ''
-  let payColor = colors.textMuted
+  let payVariant: 'warning' | 'primary' | 'info' = 'primary'
   if (employee.payment_type === 'porcentaje') {
     payLabel = `${employee.commission_rate}%`
-    payColor = colors.warning
+    payVariant = 'warning'
   } else if (employee.payment_type === 'fijo') {
     payLabel = 'Fijo'
-    payColor = colors.primary
+    payVariant = 'primary'
   } else if (employee.payment_type === 'mixed') {
     payLabel = `Mixto · ${employee.commission_rate}%`
-    payColor = colors.primary
+    payVariant = 'info'
   }
 
   return (
     <Link
       href={`/payroll/${employee.id}`}
-      className="flex items-center justify-between p-2.5 rounded-xl transition-all duration-200 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+      className="flex items-center justify-between p-2.5 rounded-xl transition-all duration-200 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 hover:bg-slate-100 dark:hover:bg-slate-800"
       style={{
         backgroundColor: colors.surfaceSubtle,
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = colors.border }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = colors.surfaceSubtle }}
     >
       <div className="flex items-center gap-2.5 min-w-0 min-h-[44px]">
         <div
@@ -52,19 +50,13 @@ export function EmployeeRow({ employee, compact = false }: EmployeeRowProps) {
             {employee.name}
           </span>
           <div className="flex items-center gap-1.5">
-            <span
-              className="text-xs px-1.5 py-0.5 rounded-md font-medium"
-              style={{ backgroundColor: contractColor + '20', color: contractColor }}
-            >
-              {contractLabel}
-            </span>
+            <Badge variant={contractVariant} size="sm">
+              {employee.contract_type === 'laboral' ? 'Laboral' : 'Prestación'}
+            </Badge>
             {payLabel && (
-              <span
-                className="text-xs px-1.5 py-0.5 rounded-md font-medium"
-                style={{ backgroundColor: payColor + '20', color: payColor }}
-              >
+              <Badge variant={payVariant} size="sm">
                 {payLabel}
-              </span>
+              </Badge>
             )}
           </div>
         </div>

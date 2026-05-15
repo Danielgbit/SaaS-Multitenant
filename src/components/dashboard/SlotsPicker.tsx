@@ -48,28 +48,8 @@ const [selectedDate, setSelectedDate] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  const COLORS = useThemeColors()
+const COLORS = useThemeColors()
   const today = new Date().toISOString().split('T')[0]
-
-  const DS = {
-    primary: COLORS.primary,
-    primaryHover: COLORS.primary,
-    primaryLight: COLORS.primaryLight,
-    bg: COLORS.surfaceSubtle,
-    surface: COLORS.surface,
-    textPrimary: COLORS.textPrimary,
-    textSecondary: COLORS.textSecondary,
-    border: COLORS.border,
-    success: COLORS.success,
-    warning: COLORS.warning,
-    error: COLORS.error,
-    radius: {
-      sm: '6px',
-      md: '10px',
-      lg: '16px',
-      xl: '24px',
-    },
-  }
 
   // Cargar slots cuando cambie la fecha
   async function loadSlots() {
@@ -196,15 +176,15 @@ const [selectedDate, setSelectedDate] = useState<string>('')
   return (
     <div 
       className="space-y-6 p-6 rounded-2xl"
-      style={{ backgroundColor: DS.surface }}
+      style={{ backgroundColor: COLORS.surface }}
     >
       {/* Header */}
-      <div className="text-center pb-4 border-b" style={{ borderColor: DS.border }}>
+      <div className="text-center pb-4 border-b" style={{ borderColor: COLORS.border }}>
         <h3 
           className="text-2xl font-light mb-1"
           style={{ 
             fontFamily: 'Cormorant Garamond, serif',
-            color: DS.textPrimary 
+            color: COLORS.textPrimary 
           }}
         >
           Reserva tu cita
@@ -213,7 +193,7 @@ const [selectedDate, setSelectedDate] = useState<string>('')
           className="text-sm"
           style={{ 
             fontFamily: 'Plus Jakarta Sans, sans-serif',
-            color: DS.textSecondary 
+            color: COLORS.textSecondary 
           }}
         >
           {serviceName} &middot; {serviceDuration} min
@@ -226,7 +206,7 @@ const [selectedDate, setSelectedDate] = useState<string>('')
           className="block text-sm font-medium"
           style={{ 
             fontFamily: 'Plus Jakarta Sans, sans-serif',
-            color: DS.textSecondary 
+            color: COLORS.textSecondary 
           }}
         >
           Cliente
@@ -250,7 +230,7 @@ const [selectedDate, setSelectedDate] = useState<string>('')
           className="block text-sm font-medium"
           style={{ 
             fontFamily: 'Plus Jakarta Sans, sans-serif',
-            color: DS.textSecondary 
+            color: COLORS.textSecondary 
           }}
         >
           Selecciona una fecha
@@ -258,7 +238,7 @@ const [selectedDate, setSelectedDate] = useState<string>('')
         <div className="relative">
           <Calendar 
             className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" 
-            style={{ color: DS.textSecondary }} 
+            style={{ color: COLORS.textSecondary }} 
           />
           <input
             type="date"
@@ -268,10 +248,10 @@ const [selectedDate, setSelectedDate] = useState<string>('')
             onChange={handleDateChange}
             style={{
               fontFamily: 'Plus Jakarta Sans, sans-serif',
-              borderRadius: DS.radius.md,
-              borderColor: DS.border,
-              backgroundColor: DS.surface,
-              color: DS.textPrimary,
+              borderRadius: COLORS.radius.md,
+              borderColor: COLORS.border,
+              backgroundColor: COLORS.surface,
+              color: COLORS.textPrimary,
               padding: '12px 16px 12px 40px',
             }}
             className="w-full border focus:outline-none focus:ring-2 transition-all"
@@ -284,13 +264,13 @@ const [selectedDate, setSelectedDate] = useState<string>('')
         <div className="flex items-center justify-center py-8 gap-3">
           <Loader2 
             className="w-5 h-5 animate-spin" 
-            style={{ color: DS.primary }} 
+            style={{ color: COLORS.primary }} 
           />
           <span 
             className="text-sm"
             style={{ 
               fontFamily: 'Plus Jakarta Sans, sans-serif',
-              color: DS.textSecondary 
+              color: COLORS.textSecondary 
             }}
           >
             Cargando horarios...
@@ -303,20 +283,20 @@ const [selectedDate, setSelectedDate] = useState<string>('')
         <div 
           className="flex items-start gap-3 p-4"
           style={{ 
-            borderRadius: DS.radius.lg,
+            borderRadius: COLORS.radius.lg,
             backgroundColor: '#FEF2F2',
             border: `1px solid #FECACA`
           }}
         >
           <XCircle 
             className="w-5 h-5 flex-shrink-0 mt-0.5" 
-            style={{ color: DS.error }} 
+            style={{ color: COLORS.error }} 
           />
           <p 
             className="text-sm"
             style={{ 
               fontFamily: 'Plus Jakarta Sans, sans-serif',
-              color: DS.error 
+              color: COLORS.error 
             }}
           >
             {error}
@@ -329,21 +309,21 @@ const [selectedDate, setSelectedDate] = useState<string>('')
         <div 
           className="flex items-start gap-3 p-4 animate-fade-in"
           style={{ 
-            borderRadius: DS.radius.lg,
+            borderRadius: COLORS.radius.lg,
             backgroundColor: '#ECFDF5',
             border: `1px solid #A7F3D0`
           }}
         >
           <CheckCircle2 
             className="w-5 h-5 flex-shrink-0 mt-0.5" 
-            style={{ color: DS.success }} 
+            style={{ color: COLORS.success }} 
           />
           <div>
             <p 
               className="text-sm"
               style={{ 
                 fontFamily: 'Plus Jakarta Sans, sans-serif',
-                color: DS.success 
+                color: COLORS.success 
               }}
             >
               ¡Cita reservada correctamente!
@@ -353,7 +333,7 @@ const [selectedDate, setSelectedDate] = useState<string>('')
               className="text-xs underline mt-1 hover:opacity-80 transition-opacity"
               style={{ 
                 fontFamily: 'Plus Jakarta Sans, sans-serif',
-                color: DS.success 
+                color: COLORS.success 
               }}
             >
               Reservar otra
@@ -369,7 +349,7 @@ const [selectedDate, setSelectedDate] = useState<string>('')
             className="block text-sm font-medium"
             style={{ 
               fontFamily: 'Plus Jakarta Sans, sans-serif',
-              color: DS.textSecondary 
+              color: COLORS.textSecondary 
             }}
           >
             Horarios disponibles
@@ -394,7 +374,7 @@ const [selectedDate, setSelectedDate] = useState<string>('')
                     key={slot.start_time}
                     style={{
                       fontFamily: 'Plus Jakarta Sans, sans-serif',
-                      borderRadius: DS.radius.md,
+                      borderRadius: COLORS.radius.md,
                       padding: '10px 8px',
                       backgroundColor: '#F1F5F9',
                       color: '#94A3B8',
@@ -424,20 +404,20 @@ const [selectedDate, setSelectedDate] = useState<string>('')
                   onClick={() => setSelectedSlot(slot.start_time)}
                   style={{
                     fontFamily: 'Plus Jakarta Sans, sans-serif',
-                    borderRadius: DS.radius.md,
+                    borderRadius: COLORS.radius.md,
                     padding: '10px 8px',
                     transition: 'all 0.2s ease',
                     ...(isSelected
                       ? { 
-                          backgroundColor: DS.primary, 
+                          backgroundColor: COLORS.primary, 
                           color: '#FFFFFF',
-                          boxShadow: `0 4px 12px ${DS.primary}40`
+                          boxShadow: `0 4px 12px ${COLORS.primary}40`
                         }
                       : isAvailable
                       ? { 
-                          backgroundColor: DS.surface, 
-                          color: DS.textPrimary,
-                          border: `1px solid ${DS.border}`
+                          backgroundColor: COLORS.surface, 
+                          color: COLORS.textPrimary,
+                          border: `1px solid ${COLORS.border}`
                         }
                       : { 
                           backgroundColor: '#F1F5F9', 
@@ -461,7 +441,7 @@ const [selectedDate, setSelectedDate] = useState<string>('')
       {!isLoading && selectedDate && slots.length === 0 && !error && (
         <div 
           className="text-center py-8"
-          style={{ color: DS.textSecondary }}
+          style={{ color: COLORS.textSecondary }}
         >
           <Clock className="w-8 h-8 mx-auto mb-3 opacity-50" />
           <p 
@@ -487,12 +467,12 @@ const [selectedDate, setSelectedDate] = useState<string>('')
           onClick={handleBook}
           style={{
             fontFamily: 'Plus Jakarta Sans, sans-serif',
-            borderRadius: DS.radius.md,
+            borderRadius: COLORS.radius.md,
             padding: '14px 24px',
-            backgroundColor: DS.primary,
+            backgroundColor: COLORS.primary,
             color: '#FFFFFF',
             transition: 'all 0.2s ease',
-            boxShadow: `0 4px 14px ${DS.primary}30`,
+            boxShadow: `0 4px 14px ${COLORS.primary}30`,
           }}
           className="w-full font-semibold hover:shadow-lg hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
