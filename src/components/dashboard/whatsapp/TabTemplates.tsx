@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, startTransition } from 'react'
+import { useState, startTransition } from 'react'
 import { FileText, Edit2, RotateCcw, Loader2, Plus, Trash2, Sparkles, Inbox } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { useTemplates } from '@/hooks/useTemplates'

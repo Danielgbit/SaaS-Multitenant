@@ -327,7 +327,7 @@ export function mapProviderStatusToInternal(
   provider: NotificationProviderType,
   providerStatus: string
 ): { status: QueueItemStatus; retryable: boolean } {
-  const statusMap: Record<string, { status: QueueItemStatus; retryable: boolean }> = {
+  const statusMap: Record<string, Record<string, { status: QueueItemStatus; retryable: boolean }>> = {
     wasender: {
       sent: { status: 'sent', retryable: false },
       delivered: { status: 'delivered', retryable: false },

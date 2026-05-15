@@ -64,7 +64,7 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
   const COLORS = useThemeColors()
   const { templates: templatesFromHook, loading: templatesLoading } = useTemplates(organizationId, 'whatsapp')
   const [rules, setRules] = useState<AutomationRule[]>([])
-  const [loading, setLoading] = useState(true)
+  const [rulesLoading, setRulesLoading] = useState(true)
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [editingRule, setEditingRule] = useState<AutomationRule | null>(null)
   const [creatingTrigger, setCreatingTrigger] = useState<AutomationTrigger | null>(null)
@@ -75,8 +75,10 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
     if (rulesResult.success && rulesResult.data) {
       setRules(rulesResult.data)
     }
-    setLoading(false)
+    setRulesLoading(false)
   }, [organizationId])
+
+  const loading = templatesLoading || rulesLoading
 
   useEffect(() => {
     startTransition(() => {
@@ -133,7 +135,6 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
   }
 
   const activeRulesCount = rules.filter((r) => r.isEnabled).length
-  const loading = templatesLoading || rulesLoading
 
   return (
     <div className="space-y-4">
@@ -167,7 +168,7 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
           <div className="divide-y" style={{ borderColor: COLORS.border }}>
             {[1, 2, 3, 4].map((i) => <SkeletonRow key={i} />)}
           </div>
-        ) : rules.length === 0 && templates.length === 0 ? (
+        ) : rules.length === 0 && templatesFromHook.length === 0 ? (
           <div className="py-12 px-4 text-center">
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
@@ -324,7 +325,7 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
       {editingRule && (
         <AutomationEditModal
           rule={editingRule}
-          templates={templates}
+          templates={templatesFromHook}
           onSave={(templateId, delayMinutes) => handleUpdate(editingRule.id, templateId, delayMinutes)}
           onClose={() => setEditingRule(null)}
         />
@@ -332,7 +333,7 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
 
       {creatingTrigger && (
         <AutomationEditModal
-          templates={templates}
+          templates={templatesFromHook}
           onSave={(templateId, delayMinutes) => handleCreate(creatingTrigger, templateId, delayMinutes)}
           onClose={() => setCreatingTrigger(null)}
         />

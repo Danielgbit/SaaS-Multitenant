@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import type { EmployeeAvailability } from '@/types/availability'
+import type { EmployeeAvailability, EmployeeAvailabilityOverride } from '@/types/availability'
 import type { Service } from '@/types/services'
 import { getSpaOverrideForDate } from '@/services/availability/getSpaOverrides'
 
@@ -36,7 +36,7 @@ export interface BookingSettings {
   auto_purge_enabled?: boolean  // si el purge automático está activo
 }
 
-export interface EmployeeAvailabilityOverride {
+export interface LocalEmployeeAvailabilityOverride {
   id: string
   employee_id: string
   date: string
@@ -305,7 +305,7 @@ async function getOverrideForDate(
     return null
   }
 
-  return data
+  return data as EmployeeAvailabilityOverride | null
 }
 
 /**
