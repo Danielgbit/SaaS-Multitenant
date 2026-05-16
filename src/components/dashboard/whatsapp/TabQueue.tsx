@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Search, RefreshCw, X, ChevronLeft, ChevronRight, Loader2, Inbox, CheckSquare, Square, AlertCircle, RotateCcw, Ban } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from './StatusBadge'
 import { AlertBanner } from './AlertBanner'
 import { getQueueItems, getQueueStats, retryQueueItem, cancelQueueItem, retryMultipleQueueItems, cancelMultipleQueueItems, type QueueStats } from '@/actions/notifications/queue'
@@ -23,17 +25,16 @@ interface TabQueueProps {
 }
 
 function SkeletonRow() {
-  const COLORS = useThemeColors()
   return (
     <tr>
-      <td className="px-4 py-3"><div className="w-4 h-4 rounded" style={{ backgroundColor: COLORS.textMuted + '20' }} /></td>
-      <td className="px-4 py-3"><div className="h-4 w-32 rounded" style={{ backgroundColor: COLORS.textMuted + '20' }} /></td>
-      <td className="px-4 py-3"><div className="h-4 w-20 rounded" style={{ backgroundColor: COLORS.textMuted + '20' }} /></td>
-      <td className="px-4 py-3"><div className="h-5 w-16 rounded-full" style={{ backgroundColor: COLORS.textMuted + '20' }} /></td>
-      <td className="px-4 py-3"><div className="h-4 w-12 rounded" style={{ backgroundColor: COLORS.textMuted + '20' }} /></td>
-      <td className="px-4 py-3"><div className="h-4 w-28 rounded" style={{ backgroundColor: COLORS.textMuted + '20' }} /></td>
-      <td className="px-4 py-3"><div className="h-4 w-20 rounded" style={{ backgroundColor: COLORS.textMuted + '20' }} /></td>
-      <td className="px-4 py-3"><div className="h-4 w-16 rounded" style={{ backgroundColor: COLORS.textMuted + '20' }} /></td>
+      <td className="px-4 py-3"><Skeleton variant="circular" width="w-4" height="h-4" /></td>
+      <td className="px-4 py-3"><Skeleton variant="text" width="w-32" height="h-4" /></td>
+      <td className="px-4 py-3"><Skeleton variant="text" width="w-20" height="h-4" /></td>
+      <td className="px-4 py-3"><Skeleton variant="rectangular" width="w-16" height="h-5" /></td>
+      <td className="px-4 py-3"><Skeleton variant="text" width="w-12" height="h-4" /></td>
+      <td className="px-4 py-3"><Skeleton variant="text" width="w-28" height="h-4" /></td>
+      <td className="px-4 py-3"><Skeleton variant="text" width="w-20" height="h-4" /></td>
+      <td className="px-4 py-3"><Skeleton variant="text" width="w-16" height="h-4" /></td>
     </tr>
   )
 }
@@ -254,10 +255,8 @@ export function TabQueue({ organizationId }: TabQueueProps) {
             )}
             <button
               onClick={() => loadItems(page, statusFilter)}
-              className="p-2 rounded-lg transition-colors"
+              className="p-2 rounded-lg transition-colors hover:bg-sky-100 dark:hover:bg-sky-900/20"
               style={{ color: COLORS.primary }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.primarySubtle }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
               aria-label="Actualizar cola"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -344,10 +343,8 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                 <th className="px-4 py-2.5 text-left w-10">
                   <button
                     onClick={toggleSelectAll}
-                    className="p-1 rounded transition-colors"
+                    className="p-1 rounded transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                     style={{ color: COLORS.textMuted }}
-                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                   >
                     {selectedIds.size === filteredItems.length && filteredItems.length > 0 ? (
                       <CheckSquare className="w-4 h-4" style={{ color: COLORS.primary }} />
@@ -387,42 +384,38 @@ export function TabQueue({ organizationId }: TabQueueProps) {
               ) : filteredItems.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-16 text-center">
-                    <div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                      style={{ backgroundColor: COLORS.surfaceSubtle }}
-                    >
-                      {statusFilter === 'failed' ? (
-                        <AlertCircle className="w-7 h-7" style={{ color: COLORS.error }} />
-                      ) : statusFilter === 'pending' ? (
-                        <Inbox className="w-7 h-7" style={{ color: COLORS.warning }} />
-                      ) : searchQuery ? (
-                        <Search className="w-7 h-7" style={{ color: COLORS.textMuted }} />
-                      ) : (
-                        <Inbox className="w-7 h-7" style={{ color: COLORS.textMuted }} />
-                      )}
-                    </div>
-                    <p
-                      className="text-sm font-medium mb-1"
-                      style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                    >
-                      {searchQuery ? 'Sin resultados' : 'La cola está vacía'}
-                    </p>
-                    <p className="text-xs" style={{ color: COLORS.textMuted }}>
-                      {searchQuery
-                        ? `No hay mensajes que coincidan con "${searchQuery}"`
-                        : statusFilter !== 'all'
-                        ? `No hay mensajes con estado "${STATUS_FILTERS.find((f) => f.value === statusFilter)?.label}"`
-                        : 'Los mensajes enviados aparecerán aquí'}
-                    </p>
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        className="mt-3 text-xs font-medium"
-                        style={{ color: COLORS.primary }}
-                      >
-                        Limpiar búsqueda
-                      </button>
-                    )}
+                    <EmptyState
+                      icon={
+                        statusFilter === 'failed' ? (
+                          <AlertCircle className="w-7 h-7" style={{ color: COLORS.error }} />
+                        ) : statusFilter === 'pending' ? (
+                          <Inbox className="w-7 h-7" style={{ color: COLORS.warning }} />
+                        ) : searchQuery ? (
+                          <Search className="w-7 h-7" style={{ color: COLORS.textMuted }} />
+                        ) : (
+                          <Inbox className="w-7 h-7" style={{ color: COLORS.textMuted }} />
+                        )
+                      }
+                      title={searchQuery ? 'Sin resultados' : 'La cola está vacía'}
+                      description={
+                        searchQuery
+                          ? `No hay mensajes que coincidan con "${searchQuery}"`
+                          : statusFilter !== 'all'
+                          ? `No hay mensajes con estado "${STATUS_FILTERS.find((f) => f.value === statusFilter)?.label}"`
+                          : 'Los mensajes enviados aparecerán aquí'
+                      }
+                      action={
+                        searchQuery && (
+                          <button
+                            onClick={() => setSearchQuery('')}
+                            className="mt-3 text-xs font-medium"
+                            style={{ color: COLORS.primary }}
+                          >
+                            Limpiar búsqueda
+                          </button>
+                        )
+                      }
+                    />
                   </td>
                 </tr>
               ) : (
@@ -439,9 +432,7 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                       <td className="px-4 py-3">
                         <button
                           onClick={() => toggleSelectOne(item.id)}
-                          className="p-1 rounded transition-colors"
-                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
-                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+                          className="p-1 rounded transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                         >
                           {isSelected ? (
                             <CheckSquare className="w-4 h-4" style={{ color: COLORS.primary }} />
@@ -511,10 +502,8 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                             <button
                               onClick={() => handleRetry(item.id)}
                               disabled={actionLoading === item.id}
-                              className="p-1.5 rounded-lg transition-colors"
+                              className="p-1.5 rounded-lg transition-colors hover:bg-sky-100 dark:hover:bg-sky-900/20"
                               style={{ color: COLORS.primary }}
-                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.primarySubtle }}
-                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                               aria-label="Reintentar mensaje"
                             >
                               {actionLoading === item.id ? (
@@ -528,10 +517,8 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                             <button
                               onClick={() => handleCancel(item.id)}
                               disabled={actionLoading === item.id}
-                              className="p-1.5 rounded-lg transition-colors"
+                              className="p-1.5 rounded-lg transition-colors hover:bg-red-100 dark:hover:bg-red-900/20"
                               style={{ color: COLORS.error }}
-                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.errorLight ?? '#FEE2E2' }}
-                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                               aria-label="Cancelar mensaje"
                             >
                               {actionLoading === item.id ? (
@@ -563,10 +550,8 @@ export function TabQueue({ organizationId }: TabQueueProps) {
               <button
                 onClick={() => loadItems(page - 1, statusFilter)}
                 disabled={page <= 1}
-                className="p-1.5 rounded-lg transition-colors disabled:opacity-40"
+                className="p-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-sky-100 dark:hover:bg-sky-900/20"
                 style={{ color: COLORS.primary }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.primarySubtle }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                 aria-label="Página anterior"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -577,10 +562,8 @@ export function TabQueue({ organizationId }: TabQueueProps) {
               <button
                 onClick={() => loadItems(page + 1, statusFilter)}
                 disabled={page >= totalPages}
-                className="p-1.5 rounded-lg transition-colors disabled:opacity-40"
+                className="p-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-sky-100 dark:hover:bg-sky-900/20"
                 style={{ color: COLORS.primary }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.primarySubtle }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                 aria-label="Página siguiente"
               >
                 <ChevronRight className="w-4 h-4" />

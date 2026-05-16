@@ -222,10 +222,8 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
             <button
               type="button"
               onClick={() => setShowApiKey(!showApiKey)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
               style={{ color: COLORS.textMuted }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
               aria-label={showApiKey ? 'Ocultar clave API' : 'Mostrar clave API'}
             >
               {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -260,10 +258,8 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
               <button
                 type="button"
                 onClick={() => setShowToken(!showToken)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                 style={{ color: COLORS.textMuted }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                 aria-label={showToken ? 'Ocultar token' : 'Mostrar token'}
               >
                 {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

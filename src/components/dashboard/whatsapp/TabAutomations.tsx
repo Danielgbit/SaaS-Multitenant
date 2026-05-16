@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, startTransition } from 'react'
 import { Zap, Edit2, Plus, Loader2, Clock, FileText, CheckCircle, Circle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Badge } from '@/components/ui/Badge'
 import {
   getAutomationRules,
   toggleAutomationRule,
@@ -45,17 +48,16 @@ const ALL_TRIGGERS: AutomationTrigger[] = [
 ]
 
 function SkeletonRow() {
-  const COLORS = useThemeColors()
   return (
-    <div className="flex items-center justify-between p-4 animate-pulse">
+    <div className="flex items-center justify-between p-4">
       <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-xl" style={{ backgroundColor: COLORS.textMuted + '20' }} />
-        <div>
-          <div className="h-4 w-36 rounded mb-1.5" style={{ backgroundColor: COLORS.textMuted + '20' }} />
-          <div className="h-3 w-48 rounded" style={{ backgroundColor: COLORS.textMuted + '20' }} />
+        <Skeleton variant="circular" width="w-10" height="h-10" />
+        <div className="space-y-1.5">
+          <Skeleton variant="text" width="w-36" height="h-4" />
+          <Skeleton variant="text" width="w-48" height="h-3" />
         </div>
       </div>
-      <div className="w-20 h-7 rounded-full" style={{ backgroundColor: COLORS.textMuted + '20' }} />
+      <Skeleton variant="rectangular" width="w-20" height="h-7" />
     </div>
   )
 }
@@ -169,23 +171,11 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
             {[1, 2, 3, 4].map((i) => <SkeletonRow key={i} />)}
           </div>
         ) : rules.length === 0 && templatesFromHook.length === 0 ? (
-          <div className="py-12 px-4 text-center">
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ backgroundColor: COLORS.surfaceSubtle }}
-            >
-              <Zap className="w-7 h-7" style={{ color: COLORS.textMuted }} />
-            </div>
-            <p
-              className="text-sm font-medium mb-1"
-              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-            >
-              Sin automatizaciones configuradas
-            </p>
-            <p className="text-xs" style={{ color: COLORS.textMuted }}>
-              Crea tu primera template para habilitar automatizaciones
-            </p>
-          </div>
+          <EmptyState
+            icon={<Zap className="w-7 h-7" style={{ color: COLORS.textMuted }} />}
+            title="Sin automatizaciones configuradas"
+            description="Crea tu primera template para habilitar automatizaciones"
+          />
         ) : (
           <div className="divide-y" style={{ borderColor: COLORS.border }}>
             {ALL_TRIGGERS.map((trigger) => {
@@ -196,10 +186,8 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
               return (
                 <div
                   key={trigger}
-                  className="px-4 py-4 transition-colors"
+                  className="px-4 py-4 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                   style={{ backgroundColor: COLORS.surface }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = COLORS.surface }}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
@@ -224,13 +212,7 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
                             {TRIGGER_LABELS[trigger]}
                           </p>
                           {hasRule && rule!.isEnabled && (
-                            <span
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium"
-                              style={{ backgroundColor: COLORS.success + '20', color: COLORS.success }}
-                            >
-                              <span className="w-1 h-1 rounded-full" style={{ backgroundColor: COLORS.success }} />
-                              Activo
-                            </span>
+                            <Badge variant="success" size="sm" pulse>Activo</Badge>
                           )}
                         </div>
                         <p className="text-xs mb-2" style={{ color: COLORS.textMuted }}>
@@ -271,10 +253,8 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
                         <>
                           <button
                             onClick={() => setEditingRule(rule!)}
-                            className="p-2 rounded-xl transition-colors"
+                            className="p-2 rounded-xl transition-colors hover:bg-sky-100 dark:hover:bg-sky-900/20"
                             style={{ color: COLORS.primary }}
-                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.primarySubtle }}
-                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                             aria-label="Editar automatización"
                           >
                             <Edit2 className="w-4 h-4" />

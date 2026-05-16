@@ -185,14 +185,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
         </div>
       )}
 
-      <div
-        className="rounded-2xl border overflow-hidden"
-        style={{
-          backgroundColor: COLORS.surfaceGlass,
-          borderColor: COLORS.border,
-          backdropFilter: 'blur(12px)',
-        }}
-      >
+      <Card variant="glass">
         <div
           className="flex items-center justify-between px-4 py-3 border-b"
           style={{ borderColor: COLORS.border, backgroundColor: COLORS.surfaceSubtle }}
@@ -243,7 +236,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
             </div>
           ))}
         </div>
-      </div>
+      </Card>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {loading ? (
@@ -283,14 +276,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
         )}
       </div>
 
-      <div
-        className="p-4 rounded-2xl border"
-        style={{
-          backgroundColor: COLORS.surfaceGlass,
-          borderColor: COLORS.border,
-          backdropFilter: 'blur(12px)',
-        }}
-      >
+      <Card variant="glass" className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" style={{ color: COLORS.textSecondary }} />
@@ -325,14 +311,9 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
             }}
           />
         </div>
-      </div>
+      </Card>
 
-      <div
-        className="rounded-2xl border overflow-hidden"
-        style={{
-          borderColor: COLORS.border,
-        }}
-      >
+      <Card variant="bordered">
         <div
           className="px-4 py-3 border-b flex items-center justify-between"
           style={{ borderColor: COLORS.border, backgroundColor: COLORS.surfaceSubtle }}
@@ -353,22 +334,13 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
         {loading ? (
           <div className="p-4 space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center gap-3 animate-pulse">
-                <div
-                  className="w-9 h-9 rounded-xl"
-                  style={{ backgroundColor: COLORS.textMuted + '20' }}
-                />
-                <div className="flex-1">
-                  <div
-                    className="h-4 w-36 rounded mb-1.5"
-                    style={{ backgroundColor: COLORS.textMuted + '20' }}
-                  />
-                  <div
-                    className="h-3 w-24 rounded"
-                    style={{ backgroundColor: COLORS.textMuted + '20' }}
-                  />
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton variant="circular" width="w-9" height="h-9" />
+                <div className="flex-1 space-y-1.5">
+                  <Skeleton variant="text" width="w-36" height="h-4" />
+                  <Skeleton variant="text" width="w-24" height="h-3" />
                 </div>
-                <div className="w-16 h-5 rounded-full" style={{ backgroundColor: COLORS.textMuted + '20' }} />
+                <Skeleton variant="rectangular" width="w-16" height="h-5" />
               </div>
             ))}
           </div>
@@ -410,7 +382,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
             ))}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

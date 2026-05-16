@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Badge } from '@/components/ui/Badge'
 import { MessageCircle, Send, XCircle, Clock, Loader2, CheckCircle2, AlertCircle, Phone, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getWhatsAppLogs } from '@/actions/whatsapp/getWhatsAppLogs'
 import { resendWhatsAppReminder } from '@/actions/whatsapp/resendWhatsAppReminder'
@@ -105,16 +107,16 @@ export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
     { key: 'pending', label: 'Pendientes', icon: <Clock className="w-3.5 h-3.5" /> },
   ]
 
-  const getStatusStyle = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'sent':
-        return { label: 'Enviado', color: COLORS.success, bg: COLORS.successLight, icon: <Send className="w-3 h-3" /> }
+        return <Badge variant="success" size="sm"><Send className="w-3 h-3" />Enviado</Badge>
       case 'failed':
-        return { label: 'Fallido', color: COLORS.error, bg: COLORS.errorLight, icon: <XCircle className="w-3 h-3" /> }
+        return <Badge variant="error" size="sm"><XCircle className="w-3 h-3" />Fallido</Badge>
       case 'pending':
-        return { label: 'Pendiente', color: COLORS.warning, bg: COLORS.warningLight, icon: <Clock className="w-3 h-3" /> }
+        return <Badge variant="warning" size="sm"><Clock className="w-3 h-3" />Pendiente</Badge>
       default:
-        return { label: status, color: COLORS.textSecondary, bg: COLORS.surfaceSubtle, icon: <Clock className="w-3 h-3" /> }
+        return <Badge variant="neutral" size="sm"><Clock className="w-3 h-3" />{status}</Badge>
     }
   }
 
@@ -197,23 +199,11 @@ export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
             <p style={{ color: COLORS.textMuted }}>Cargando historial...</p>
           </div>
         ) : logs.length === 0 ? (
-          <div className="p-16 text-center">
-            <div 
-              className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4"
-              style={{ backgroundColor: COLORS.whatsappLight }}
-            >
-              <MessageCircle className="w-8 h-8" style={{ color: COLORS.whatsapp }} />
-            </div>
-            <h3 
-              className="font-semibold text-lg mb-2"
-              style={{ color: COLORS.textPrimary }}
-            >
-              No hay mensajes enviados
-            </h3>
-            <p style={{ color: COLORS.textMuted }}>
-              Los mensajes de WhatsApp aparecerán aquí cuando se envíen
-            </p>
-          </div>
+          <EmptyState
+            icon={<MessageCircle className="w-8 h-8" style={{ color: COLORS.whatsapp }} />}
+            title="No hay mensajes enviados"
+            description="Los mensajes de WhatsApp aparecerán aquí cuando se envíen"
+          />
         ) : (
           <table className="w-full">
             <thead>
@@ -252,14 +242,11 @@ export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
             </thead>
             <tbody>
               {logs.map((log) => {
-                const status = getStatusStyle(log.status)
                 return (
                   <tr 
                     key={log.id}
-                    className="transition-colors group"
+                    className="transition-colors group hover:bg-slate-100 dark:hover:bg-slate-800"
                     style={{ borderBottom: `1px solid ${COLORS.border}` }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
@@ -294,16 +281,7 @@ export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <span
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-                        style={{ 
-                          backgroundColor: status.bg, 
-                          color: status.color,
-                        }}
-                      >
-                        {status.icon}
-                        {status.label}
-                      </span>
+                      {getStatusBadge(log.status)}
                     </td>
                     <td className="px-5 py-4">
                       <span 

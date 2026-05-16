@@ -61,10 +61,8 @@ export function AlertBanner({ type, message, dismissible, onDismiss }: AlertBann
       {dismissible && onDismiss && (
         <button
           onClick={onDismiss}
-          className="p-1 rounded-lg transition-colors"
+          className="p-1 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
           style={{ color: COLORS.textMuted }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
           aria-label="Dismiss"
         >
           <X className="w-4 h-4" />

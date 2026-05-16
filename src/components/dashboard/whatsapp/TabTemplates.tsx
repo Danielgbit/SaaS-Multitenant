@@ -3,6 +3,9 @@
 import { useState, startTransition } from 'react'
 import { FileText, Edit2, RotateCcw, Loader2, Plus, Sparkles, Inbox } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Badge } from '@/components/ui/Badge'
 import { useTemplates } from '@/hooks/useTemplates'
 import { TemplateEditorModal } from './TemplateEditorModal'
 import { DeleteButton } from './ConfirmDeleteButton'
@@ -15,21 +18,20 @@ interface TabTemplatesProps {
 }
 
 function SkeletonCard() {
-  const COLORS = useThemeColors()
   return (
-    <div className="p-4 animate-pulse">
+    <div className="p-4">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="h-4 w-32 rounded" style={{ backgroundColor: COLORS.textMuted + '20' }} />
-            <div className="h-4 w-12 rounded" style={{ backgroundColor: COLORS.textMuted + '20' }} />
+        <div className="flex-1 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <Skeleton variant="text" width="w-32" height="h-4" />
+            <Skeleton variant="text" width="w-12" height="h-4" />
           </div>
-          <div className="h-3 w-24 rounded mb-2" style={{ backgroundColor: COLORS.textMuted + '20' }} />
-          <div className="h-4 w-full rounded" style={{ backgroundColor: COLORS.textMuted + '20' }} />
+          <Skeleton variant="text" width="w-24" height="h-3" />
+          <Skeleton variant="text" />
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl" style={{ backgroundColor: COLORS.textMuted + '20' }} />
-          <div className="w-8 h-8 rounded-xl" style={{ backgroundColor: COLORS.textMuted + '20' }} />
+          <Skeleton variant="circular" width="w-8" height="h-8" />
+          <Skeleton variant="circular" width="w-8" height="h-8" />
         </div>
       </div>
     </div>
@@ -81,45 +83,30 @@ export function TabTemplates({ organizationId }: TabTemplatesProps) {
             {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
           </div>
         ) : templates.length === 0 ? (
-          <div className="py-14 px-4 text-center">
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
-              style={{ backgroundColor: COLORS.surfaceSubtle }}
-            >
-              <Inbox className="w-8 h-8" style={{ color: COLORS.textMuted }} />
-            </div>
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4" style={{ color: COLORS.primary }} />
-              <p
-                className="text-sm font-semibold"
-                style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          <EmptyState
+            icon={<Inbox className="w-8 h-8" style={{ color: COLORS.textMuted }} />}
+            title="Sin templates de WhatsApp"
+            description="Las templates te permiten enviar mensajes predefinidos a tus clientes. Crea tu primera template para comenzar."
+            action={
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all"
+                style={{ backgroundColor: COLORS.primary }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85' }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
               >
-                Sin templates de WhatsApp
-              </p>
-            </div>
-            <p className="text-xs mb-5 max-w-xs mx-auto" style={{ color: COLORS.textMuted }}>
-              Las templates te permiten enviar mensajes predefinidos a tus clientes. Crea tu primera template para comenzar.
-            </p>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all"
-              style={{ backgroundColor: COLORS.primary }}
-              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85' }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
-            >
-              <Plus className="w-4 h-4" />
-              <span>Crear tu primera template</span>
-            </button>
-          </div>
+                <Plus className="w-4 h-4" />
+                <span>Crear tu primera template</span>
+              </button>
+            }
+          />
         ) : (
           <div className="divide-y" style={{ borderColor: COLORS.border }}>
             {templates.map((template) => (
               <div
                 key={template.id}
-                className="px-4 py-4 transition-colors"
+                className="px-4 py-4 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                 style={{ backgroundColor: COLORS.surface }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = COLORS.surface }}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -138,29 +125,16 @@ export function TabTemplates({ organizationId }: TabTemplatesProps) {
                           {template.name}
                         </span>
                         {template.isDefault && (
-                          <span
-                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                            style={{ backgroundColor: COLORS.infoLight, color: COLORS.info }}
-                          >
-                            Sistema
-                          </span>
+                          <Badge variant="info" size="sm">Sistema</Badge>
                         )}
                         {!template.isActive && (
-                          <span
-                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                            style={{ backgroundColor: COLORS.errorLight, color: COLORS.error }}
-                          >
-                            Inactivo
-                          </span>
+                          <Badge variant="error" size="sm">Inactivo</Badge>
                         )}
                         {countVariables(template.body) > 0 && (
-                          <span
-                            className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-medium"
-                            style={{ backgroundColor: COLORS.primarySubtle, color: COLORS.primary }}
-                          >
+                          <Badge variant="primary" size="sm">
                             <Sparkles className="w-3 h-3" />
                             {countVariables(template.body)} var
-                          </span>
+                          </Badge>
                         )}
                       </div>
                       <p className="text-xs mb-2" style={{ color: COLORS.textMuted }}>
@@ -179,10 +153,8 @@ export function TabTemplates({ organizationId }: TabTemplatesProps) {
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={() => setEditingTemplate(template)}
-                      className="p-2 rounded-xl transition-colors"
+                      className="p-2 rounded-xl transition-colors hover:bg-sky-100 dark:hover:bg-sky-900/20"
                       style={{ color: COLORS.primary }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.primarySubtle }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                       aria-label="Editar template"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -192,10 +164,8 @@ export function TabTemplates({ organizationId }: TabTemplatesProps) {
                       <button
                         onClick={() => handleReset(template.id)}
                         disabled={resettingId === template.id}
-                        className="p-2 rounded-xl transition-colors"
+                        className="p-2 rounded-xl transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                         style={{ color: COLORS.textMuted }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
                         aria-label="Resetear template a valor por defecto"
                       >
                         {resettingId === template.id ? (

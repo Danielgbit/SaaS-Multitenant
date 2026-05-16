@@ -51,10 +51,8 @@ export function AutomationEditModal({ rule, templates, onSave, onClose }: Automa
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl transition-colors"
+            className="p-2 rounded-xl transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
             style={{ color: COLORS.textMuted }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
           >
             <X className="w-5 h-5" />
           </button>
@@ -125,10 +123,8 @@ export function AutomationEditModal({ rule, templates, onSave, onClose }: Automa
         >
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+            className="px-4 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
             style={{ color: COLORS.textSecondary }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
           >
             Cancelar
           </button>

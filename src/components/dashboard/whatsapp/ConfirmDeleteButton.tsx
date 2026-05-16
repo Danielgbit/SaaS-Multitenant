@@ -55,10 +55,8 @@ export function DeleteButton({ onDelete, deleting, confirmDelete, onSetConfirmDe
   return (
     <button
       onClick={() => onSetConfirmDelete(true)}
-      className="p-2 rounded-xl transition-colors"
+      className="p-2 rounded-xl transition-colors hover:bg-red-100 dark:hover:bg-red-900/20"
       style={{ color: COLORS.error }}
-      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.errorLight ?? '#FEE2E2' }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
       aria-label="Eliminar template"
     >
       <Trash2 className="w-4 h-4" />
