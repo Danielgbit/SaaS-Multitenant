@@ -30,7 +30,7 @@ export async function markManually(
 
   const { data: appointment, error: apptError } = await (supabase as any)
     .from('appointments')
-    .select('id, organization_id, employee_id, client_id, confirmation_status, price_adjustment')
+    .select('id, organization_id, employee_id, client_id, status, confirmation_status, price_adjustment, created_at')
     .eq('id', appointmentId)
     .single()
 
@@ -58,6 +58,15 @@ export async function markManually(
   }
 
   const now = new Date().toISOString()
+
+  // Shadow Mode: capture seed BEFORE mutation (for drift detection)
+  const shadowSeed = {
+    appointmentId,
+    observedUpdatedAt: appointment.created_at,
+    initialStatus: appointment.status,
+    initialConfirmationStatus: appointment.confirmation_status,
+    correlationId: crypto.randomUUID(),
+  }
 
   // Get prices from appointment_services with employee override support
   const { data: appointmentServices } = await (supabase as any)
@@ -186,6 +195,41 @@ export async function markManually(
   } catch (e) {
     console.warn('[markManually] revalidatePath /calendar error:', e)
   }
+
+  // Shadow Mode: capture context for fire-and-forget validation
+  const shadowContext = {
+    appointmentId,
+    organizationId: appointment.organization_id,
+    correlationId: shadowSeed.correlationId,
+    actorId: user.id,
+    timestamp: now,
+    notes: reason,
+    seed: shadowSeed,
+  }
+
+  // Fire-and-forget shadow validation (does not affect production)
+  import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
+    shadowQueue.enqueue(async () => {
+      await runShadowValidation(
+        {
+          command: 'service:complete',
+          appointmentId: shadowContext.appointmentId,
+          organizationId: shadowContext.organizationId,
+          correlationId: shadowContext.correlationId,
+          actorId: shadowContext.actorId,
+          actorRole: 'assistant',
+          timestamp: shadowContext.timestamp,
+          payload: {
+            reason: shadowContext.notes,
+          },
+        },
+        shadowContext.seed,
+        supabase
+      )
+    })
+  }).catch((e) => {
+    console.error('[markManually] shadow import error:', e)
+  })
 
   return { success: true, logId: log.id }
 }

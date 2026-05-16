@@ -258,30 +258,46 @@ ALTER TABLE appointments ADD CONSTRAINT appointments_confirmation_status_check
 -- 8. MIGRATE DATA FROM whatsapp_settings TO notification_providers
 -- =========================================================================================
 
-INSERT INTO notification_providers (organization_id, channel, provider, is_enabled, config, rate_limit_per_min)
-SELECT
-  ws.organization_id,
-  'whatsapp'::VARCHAR,
-  'n8n'::VARCHAR,
-  ws.enabled,
-  jsonb_build_object('webhook_url', ws.webhook_url, 'api_key', ws.api_key),
-  COALESCE(ws.reminder_hours_before, 24)
-FROM whatsapp_settings ws
-ON CONFLICT (organization_id, channel, provider) DO NOTHING;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'whatsapp_settings' AND column_name = 'organization_id'
+  ) THEN
+    INSERT INTO notification_providers (organization_id, channel, provider, is_enabled, config, rate_limit_per_min)
+    SELECT
+      ws.organization_id,
+      'whatsapp'::VARCHAR,
+      'n8n'::VARCHAR,
+      ws.enabled,
+      jsonb_build_object('webhook_url', ws.webhook_url, 'api_key', ws.api_key),
+      COALESCE(ws.reminder_hours_before, 24)
+    FROM whatsapp_settings ws
+    ON CONFLICT (organization_id, channel, provider) DO NOTHING;
+  END IF;
+END $$;
 
 -- =========================================================================================
 -- 9. MIGRATE DATA FROM email_settings TO notification_providers
 -- =========================================================================================
 
-INSERT INTO notification_providers (organization_id, channel, provider, is_enabled, config)
-SELECT
-  es.organization_id,
-  'email'::VARCHAR,
-  'resend'::VARCHAR,
-  es.enabled,
-  jsonb_build_object('from_email', es.from_email)
-FROM email_settings es
-ON CONFLICT (organization_id, channel, provider) DO NOTHING;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'email_settings' AND column_name = 'from_email'
+  ) THEN
+    INSERT INTO notification_providers (organization_id, channel, provider, is_enabled, config)
+    SELECT
+      es.organization_id,
+      'email'::VARCHAR,
+      'resend'::VARCHAR,
+      es.enabled,
+      jsonb_build_object('from_email', es.from_email)
+    FROM email_settings es
+    ON CONFLICT (organization_id, channel, provider) DO NOTHING;
+  END IF;
+END $$;
 
 -- ROLLBACK:
 -- DROP TABLE IF EXISTS notification_providers CASCADE;

@@ -83,6 +83,31 @@ export async function confirmByReception(
     return { success: false, error: 'Confirmación no encontrada.' }
   }
 
+  // Shadow Mode: capture seed BEFORE mutation (if we have appointment_id)
+  let shadowSeed: {
+    appointmentId: string
+    observedUpdatedAt: string
+    initialStatus: string
+    initialConfirmationStatus: string
+    correlationId: string
+  } | null = null
+  if (confirmation.appointment_id) {
+    const { data: apt } = await (supabase as any)
+      .from('appointments')
+      .select('created_at, status, confirmation_status')
+      .eq('id', confirmation.appointment_id)
+      .single()
+    if (apt) {
+      shadowSeed = {
+        appointmentId: confirmation.appointment_id,
+        observedUpdatedAt: apt.created_at,
+        initialStatus: apt.status,
+        initialConfirmationStatus: apt.confirmation_status,
+        correlationId: crypto.randomUUID(),
+      }
+    }
+  }
+
   // Actualizar confirmación
   const { error: updateError } = await (supabase as any)
     .from('appointment_confirmations')
@@ -131,6 +156,33 @@ export async function confirmByReception(
         console.error('[confirmByReception] payroll auto-add error:', e)
       })
     )
+  }
+
+  // Shadow Mode: fire-and-forget validation (only for 'complete' actions)
+  if (shadowSeed && action === 'complete') {
+    import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
+      shadowQueue.enqueue(async () => {
+        await runShadowValidation(
+          {
+            command: 'payment:confirm',
+            appointmentId: shadowSeed!.appointmentId,
+            organizationId: organization_id,
+            correlationId: shadowSeed!.correlationId,
+            actorId: user.id,
+            actorRole: orgMember.role,
+            timestamp: new Date().toISOString(),
+            payload: {
+              payment_method: payment_method ?? null,
+              notes: notes ?? null,
+            },
+          },
+          shadowSeed!,
+          supabase
+        )
+      })
+    }).catch((e) => {
+      console.error('[confirmByReception] shadow import error:', e)
+    })
   }
 
   // Revalidar paths

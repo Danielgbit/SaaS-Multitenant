@@ -40,7 +40,7 @@ export async function cancelConfirmation(
 
   const { data: appointment, error: apptError } = await (supabase as any)
     .from('appointments')
-    .select('id, organization_id, confirmation_status')
+    .select('id, organization_id, status, confirmation_status, created_at')
     .eq('id', appointmentId)
     .single()
 
@@ -69,6 +69,15 @@ export async function cancelConfirmation(
 
   const now = new Date().toISOString()
 
+  // Shadow Mode: capture seed BEFORE mutation
+  const shadowSeed = {
+    appointmentId,
+    observedUpdatedAt: appointment.created_at,
+    initialStatus: appointment.status,
+    initialConfirmationStatus: appointment.confirmation_status,
+    correlationId: crypto.randomUUID(),
+  }
+
   const { error: updateError } = await (supabase as any)
     .from('appointments')
     .update({
@@ -94,6 +103,28 @@ export async function cancelConfirmation(
   } catch (e) {
     console.warn('[cancelConfirmation] revalidateTag error:', e)
   }
+
+  // Shadow Mode: fire-and-forget validation (does not affect production)
+  import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
+    shadowQueue.enqueue(async () => {
+      await runShadowValidation(
+        {
+          command: 'appointment:cancel',
+          appointmentId: shadowSeed.appointmentId,
+          organizationId: appointment.organization_id,
+          correlationId: shadowSeed.correlationId,
+          actorId: user.id,
+          actorRole: orgMember.role,
+          timestamp: now,
+          payload: { reason: reason ?? null },
+        },
+        shadowSeed,
+        supabase
+      )
+    })
+  }).catch((e) => {
+    console.error('[cancelConfirmation] shadow import error:', e)
+  })
 
   return { success: true }
 }

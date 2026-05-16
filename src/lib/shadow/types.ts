@@ -81,7 +81,6 @@ export interface AppointmentSnapshot {
   confirmation_status: string
   employee_id: string
   client_id: string
-  date: string
   start_time: string
   end_time: string
   price_adjustment: number | null
@@ -90,7 +89,7 @@ export interface AppointmentSnapshot {
   completed_by: string | null
   confirmed_at: string | null
   confirmed_by: string | null
-  updated_at: string
+  created_at: string
   appointment_services?: Array<{
     service_id: string
     price?: number

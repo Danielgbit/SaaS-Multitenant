@@ -7,6 +7,7 @@ import { captureSnapshot, buildLegacyResult } from './capturer'
 import { simulateOrchestrator, detectDrift } from './orchestrator'
 import { storeValidation, storeError } from './store'
 import type { ShadowValidationInput, ShadowSeed } from './types'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 /**
  * Main entry point for shadow validation
@@ -22,7 +23,8 @@ import type { ShadowValidationInput, ShadowSeed } from './types'
  */
 export async function runShadowValidation(
   input: ShadowValidationInput,
-  seed: ShadowSeed
+  seed: ShadowSeed,
+  supabase?: SupabaseClient
 ): Promise<void> {
   const startTime = Date.now()
 
@@ -43,7 +45,7 @@ export async function runShadowValidation(
 
   try {
     // 1. Capture snapshot
-    const { snapshot, snapshotChanged, error: captureError } = await captureSnapshot(seed)
+    const { snapshot, snapshotChanged, error: captureError } = await captureSnapshot(seed, supabase)
 
     if (captureError || !snapshot) {
       logShadow('error', 'snapshot capture failed', {
@@ -51,7 +53,7 @@ export async function runShadowValidation(
         correlationId: input.correlationId,
         error: captureError,
       })
-      await storeError(input, captureError || 'Snapshot capture failed')
+      await storeError(input, captureError || 'Snapshot capture failed', supabase)
       return
     }
 
@@ -103,7 +105,7 @@ export async function runShadowValidation(
       snapshot,
       snapshotChanged,
       driftDetail: driftDetail.length > 0 ? driftDetail : undefined,
-    })
+    }, supabase)
 
     const duration = Date.now() - startTime
     logShadow('info', 'validation completed', {
@@ -122,7 +124,7 @@ export async function runShadowValidation(
     })
 
     try {
-      await storeError(input, error)
+      await storeError(input, error, supabase)
     } catch (storeErr) {
       console.error('[shadow] failed to store error:', storeErr)
     }

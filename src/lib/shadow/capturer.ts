@@ -23,7 +23,6 @@ export async function captureSnapshot(
         confirmation_status,
         employee_id,
         client_id,
-        date,
         start_time,
         end_time,
         price_adjustment,
@@ -32,7 +31,7 @@ export async function captureSnapshot(
         completed_by,
         confirmed_at,
         confirmed_by,
-        updated_at,
+        created_at,
         appointment_services (
           service_id
         )
@@ -48,15 +47,15 @@ export async function captureSnapshot(
       }
     }
 
-    // Observational: did updated_at change while queued?
+    // Observational: did created_at change while queued?
     // This is NOT drift — just indicates concurrent modification
-    const snapshotChanged = data.updated_at !== seed.observedUpdatedAt
+    const snapshotChanged = data.created_at !== seed.observedUpdatedAt
 
     if (snapshotChanged) {
       console.warn('[shadow] snapshot changed while queued', {
         appointmentId: seed.appointmentId,
         expectedUpdatedAt: seed.observedUpdatedAt,
-        actualUpdatedAt: data.updated_at,
+        actualUpdatedAt: data.created_at,
         // Check if state actually changed
         statusChanged: data.status !== seed.initialStatus,
         confirmationChanged: data.confirmation_status !== seed.initialConfirmationStatus,
@@ -70,7 +69,6 @@ export async function captureSnapshot(
       confirmation_status: data.confirmation_status,
       employee_id: data.employee_id,
       client_id: data.client_id,
-      date: data.date,
       start_time: data.start_time,
       end_time: data.end_time,
       price_adjustment: data.price_adjustment,
@@ -79,7 +77,7 @@ export async function captureSnapshot(
       completed_by: data.completed_by,
       confirmed_at: data.confirmed_at,
       confirmed_by: data.confirmed_by,
-      updated_at: data.updated_at,
+      created_at: data.created_at,
       appointment_services: data.appointment_services || [],
     }
 

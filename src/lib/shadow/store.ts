@@ -17,8 +17,11 @@ interface StoreInput {
 /**
  * Persists shadow validation result to database
  */
-export async function storeValidation(data: StoreInput): Promise<void> {
-  const supabase = await createClient()
+export async function storeValidation(
+  data: StoreInput,
+  supabase?: SupabaseClient
+): Promise<void> {
+  const client = supabase || await createClient()
 
   // drift_detected = true ONLY for state-invalidating drift
   const driftDetected = data.driftDetail !== undefined && data.driftDetail.length > 0
@@ -42,7 +45,7 @@ export async function storeValidation(data: StoreInput): Promise<void> {
     actor_role: data.input.actorRole,
   }
 
-  const { error } = await (supabase as any)
+  const { error } = await (client as any)
     .from('shadow_validation_logs')
     .insert(record)
 
@@ -57,9 +60,10 @@ export async function storeValidation(data: StoreInput): Promise<void> {
  */
 export async function storeError(
   input: ShadowValidationInput,
-  error: unknown
+  error: unknown,
+  supabase?: SupabaseClient
 ): Promise<void> {
-  const supabase = await createClient()
+  const client = supabase || await createClient()
 
   const record = {
     organization_id: input.organizationId,
@@ -79,7 +83,7 @@ export async function storeError(
     actor_role: input.actorRole,
   }
 
-  await (supabase as any)
+  await (client as any)
     .from('shadow_validation_logs')
     .insert(record)
 }

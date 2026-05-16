@@ -43,6 +43,7 @@ export async function markCompleted(
       status,
       confirmation_status,
       price_adjustment,
+      created_at,
       clients (
         name,
         phone
@@ -83,7 +84,7 @@ export async function markCompleted(
   // Shadow Mode: capture seed BEFORE mutation (for drift detection)
   const shadowSeed = {
     appointmentId,
-    observedUpdatedAt: appointment.updated_at,
+    observedUpdatedAt: appointment.created_at,
     initialStatus: appointment.status,
     initialConfirmationStatus: appointment.confirmation_status,
     correlationId: crypto.randomUUID(),
@@ -219,7 +220,8 @@ export async function markCompleted(
             notes: shadowContext.notes,
           },
         },
-        shadowContext.seed
+        shadowContext.seed,
+        supabase
       )
     })
   }).catch((e) => {
