@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Loader2,
   HelpCircle,
   Clock,
   Phone,
@@ -19,6 +18,7 @@ import {
   FileText,
   AlertTriangle
 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import {
   CalendarColors,
   Employee,
@@ -534,7 +534,7 @@ export function NewAppointmentWizard({
                           opacity: (quickCreating || !quickName.trim()) ? 0.6 : 1
                         }}
                       >
-                        {quickCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                        {quickCreating ? <Spinner size="sm" /> : <Plus className="w-4 h-4" />}
                         {quickCreating ? 'Creando...' : 'Crear cliente'}
                       </button>
                     </div>
@@ -864,7 +864,7 @@ export function NewAppointmentWizard({
 
                     {loadingSlots && (
                       <div className="flex flex-col items-center justify-center py-8 gap-3">
-                        <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.primary }} />
+                        <Spinner size="md" style={{ color: COLORS.primary }} />
                         <span className="text-sm" style={{ color: COLORS.textMuted }}>Buscando horarios...</span>
                       </div>
                     )}
@@ -1273,7 +1273,7 @@ export function NewAppointmentWizard({
               }}
             >
               {isCreating ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Creando...</>
+                <><Spinner size="sm" /> Creando...</>
               ) : (
                 <><CheckCircle2 className="w-4 h-4" /> Crear Cita</>
               )}

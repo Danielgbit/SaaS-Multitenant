@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
-import { X, AlertTriangle, Trash2, Info, Loader2 } from 'lucide-react'
+import { X, AlertTriangle, Trash2, Info } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Spinner } from './Spinner'
 
 interface ConfirmModalProps {
   isOpen: boolean
@@ -182,7 +183,7 @@ export default function ConfirmModal({
           >
             {loading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Spinner size="sm" />
                 {confirmText}
               </>
             ) : (

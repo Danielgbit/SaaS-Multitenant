@@ -4,7 +4,7 @@
 import { shadowQueue, logShadow } from './queue'
 import { shadowConfig, isFlowEnabled } from './config'
 import { captureSnapshot, buildLegacyResult } from './capturer'
-import { simulateOrchestrator, detectDrift } from './orchestrator'
+import { simulateOrchestrator, detectDrift, classifyObservation } from './orchestrator'
 import { storeValidation, storeError } from './store'
 import type { ShadowValidationInput, ShadowSeed } from './types'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -97,7 +97,23 @@ export async function runShadowValidation(
       })
     }
 
-    // 5. Persist
+    // 5. Classify observation (operational telemetry, no enforcement)
+    const classification = classifyObservation(
+      input.command,
+      snapshot,
+      orchestratorResult,
+      legacyResult
+    )
+
+    if (classification) {
+      input.classification = classification
+      logShadow('info', 'observation classified', {
+        appointmentId: input.appointmentId,
+        classification,
+      })
+    }
+
+    // 6. Persist
     await storeValidation({
       input,
       legacyResult,

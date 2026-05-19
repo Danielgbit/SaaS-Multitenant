@@ -72,6 +72,8 @@ export interface ShadowValidationInput {
   actorRole: string
   timestamp: string
   payload: Record<string, unknown>
+  sourcePath?: string
+  classification?: string
 }
 
 export interface AppointmentSnapshot {

@@ -12,7 +12,6 @@ import {
   Clock,
   User,
   Building2,
-  Loader2,
   Plus,
   X,
   CheckCircle2,
@@ -28,6 +27,7 @@ import {
   Settings2,
   Trash2
 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { PurgeModal, registerPurgeModalHandler } from '@/components/calendar/PurgeModal'
 import {
   Appointment,
@@ -1123,12 +1123,12 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
               <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Servicio</label><input type="text" value={editSearch.service} onChange={e => { setEditSearch({...editSearch, service: e.target.value}); setShowEditDropdowns({...showEditDropdowns, service: true}) }} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface }} />{showEditDropdowns.service && <div className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface }}>{services.filter(s => s.name.toLowerCase().includes(editSearch.service.toLowerCase())).map(s => <button key={s.id} onClick={() => { setEditData({...editData, serviceId: s.id, time: ''}); setEditSearch({...editSearch, service: s.name}); setShowEditDropdowns({...showEditDropdowns, service: false}); setEditSlots([]) }} className="w-full px-4 py-3 text-left" style={{ color: COLORS.textPrimary }}>{s.name} ({s.duration} min)</button>)}</div>}</div>
               <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Profesional</label><input type="text" value={editSearch.employee} onChange={e => { setEditSearch({...editSearch, employee: e.target.value}); setShowEditDropdowns({...showEditDropdowns, employee: true}) }} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface }} />{showEditDropdowns.employee && <div className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface }}>{employees.filter(e => e.name.toLowerCase().includes(editSearch.employee.toLowerCase())).map(e => <button key={e.id} onClick={() => { setEditData({...editData, employeeId: e.id, time: ''}); setEditSearch({...editSearch, employee: e.name}); setShowEditDropdowns({...showEditDropdowns, employee: false}); setEditSlots([]) }} className="w-full px-4 py-3 text-left" style={{ color: COLORS.textPrimary }}>{e.name}</button>)}</div>}</div>
               <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Fecha</label><input type="date" value={editData.date} min={new Date().toISOString().split('T')[0]} onChange={e => { setEditData({...editData, date: e.target.value, time: ''}); setEditSlots([]); setShowTimeWarning(false) }} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} /></div>
-              {editData.date && editData.employeeId && editData.serviceId && <div>{!loadingEditSlots && editSlots.length === 0 && <button onClick={fetchEditSlots} className="w-full px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}>Ver horarios</button>}{loadingEditSlots && <div className="flex justify-center py-4"><Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.primary }} /></div>}{editSlots.length > 0 && <div className="grid grid-cols-4 gap-2">{editSlots.map(s => { const isAvail = s.available; const isSel = editData.time === formatTime(s.start_time); const br = (s as any).blockedReason; if (!isAvail) { return <div key={s.start_time} className="px-2 py-2 rounded-lg text-xs text-center opacity-50 cursor-not-allowed" style={{ backgroundColor: COLORS.surfaceHover, color: COLORS.textMuted }} title={br}>{formatTime(s.start_time)}<br/><span className="text-[10px]" style={{ color: COLORS.warning }}>{br}</span></div> } return <button key={s.start_time} onClick={() => { setEditData({...editData, time: formatTime(s.start_time)}); setShowTimeWarning(false) }} className={`px-2 py-2 rounded-lg text-sm ${isSel ? 'ring-2' : ''}`} style={{ backgroundColor: isSel ? COLORS.primary : COLORS.surfaceSubtle, color: isSel ? '#FFF' : COLORS.textPrimary }}>{formatTime(s.start_time)}</button> })}</div>}</div>}
+              {editData.date && editData.employeeId && editData.serviceId && <div>{!loadingEditSlots && editSlots.length === 0 && <button onClick={fetchEditSlots} className="w-full px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}>Ver horarios</button>}{loadingEditSlots && <div className="flex justify-center py-4"><Spinner size="md" style={{ color: COLORS.primary }} /></div>}{editSlots.length > 0 && <div className="grid grid-cols-4 gap-2">{editSlots.map(s => { const isAvail = s.available; const isSel = editData.time === formatTime(s.start_time); const br = (s as any).blockedReason; if (!isAvail) { return <div key={s.start_time} className="px-2 py-2 rounded-lg text-xs text-center opacity-50 cursor-not-allowed" style={{ backgroundColor: COLORS.surfaceHover, color: COLORS.textMuted }} title={br}>{formatTime(s.start_time)}<br/><span className="text-[10px]" style={{ color: COLORS.warning }}>{br}</span></div> } return <button key={s.start_time} onClick={() => { setEditData({...editData, time: formatTime(s.start_time)}); setShowTimeWarning(false) }} className={`px-2 py-2 rounded-lg text-sm ${isSel ? 'ring-2' : ''}`} style={{ backgroundColor: isSel ? COLORS.primary : COLORS.surfaceSubtle, color: isSel ? '#FFF' : COLORS.textPrimary }}>{formatTime(s.start_time)}</button> })}</div>}</div>}
               <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Notas</label><textarea value={editData.notes} onChange={e => setEditData({...editData, notes: e.target.value})} className="w-full px-4 py-3 rounded-xl border" rows={2} style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} /></div>{showTimeWarning && <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.warningLight }}><p className="text-sm font-medium" style={{ color: COLORS.warning }}>El horario cambió. ¿Continuar?</p></div>}
             </div>
             <div className="px-6 py-4 flex justify-between sticky bottom-0" style={{ borderTop: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surface }}>
               <button onClick={closeEdit} className="px-4 py-2.5 rounded-xl text-sm font-medium" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle }}>Cancelar</button>
-              <button onClick={handleSaveEdit} disabled={!editData.clientId || !editData.serviceId || !editData.employeeId || !editData.time || isSavingEdit} className="px-6 py-2.5 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.primary, color: '#FFF', opacity: (!editData.clientId || !editData.serviceId || !editData.employeeId || !editData.time || isSavingEdit) ? 0.5 : 1 }}>{isSavingEdit ? <><Loader2 className="w-4 h-4 inline animate-spin" />Guardando...</> : 'Guardar'}</button>
+              <button onClick={handleSaveEdit} disabled={!editData.clientId || !editData.serviceId || !editData.employeeId || !editData.time || isSavingEdit} className="px-6 py-2.5 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.primary, color: '#FFF', opacity: (!editData.clientId || !editData.serviceId || !editData.employeeId || !editData.time || isSavingEdit) ? 0.5 : 1 }}>{isSavingEdit ? <><Spinner size="sm" className="inline" />Guardando...</> : 'Guardar'}</button>
             </div>
           </div>
         </div>
@@ -1141,7 +1141,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
             <div className="p-6 text-center"><div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: COLORS.errorLight }}><AlertCircle className="w-8 h-8" style={{ color: COLORS.error }} /></div><h3 className="text-xl font-semibold mb-2" style={{ color: COLORS.textPrimary }}>¿Eliminar?</h3><p className="text-sm" style={{ color: COLORS.textSecondary }}>Esta acción no se puede deshacer.</p></div>
             <div className="px-6 py-4 flex gap-3" style={{ borderTop: `1px solid ${COLORS.border}` }}>
               <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle }}>Cancelar</button>
-              <button onClick={handleDelete} disabled={isDeleting} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.error, color: '#FFF' }}>{isDeleting ? <Loader2 className="w-4 h-4 inline animate-spin" /> : 'Eliminar'}</button>
+              <button onClick={handleDelete} disabled={isDeleting} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.error, color: '#FFF' }}>{isDeleting ? <Spinner size="sm" className="inline" /> : 'Eliminar'}</button>
             </div>
           </div>
         </div>
@@ -1219,7 +1219,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
                 }}
               >
                 {updatingStatus ? (
-                  <Loader2 className="w-4 h-4 inline animate-spin" />
+                  <Spinner size="sm" className="inline" />
                 ) : (
                   'Confirmar Servicio'
                 )}
@@ -1301,7 +1301,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
                 }}
               >
                 {updatingStatus ? (
-                  <Loader2 className="w-4 h-4 inline animate-spin" />
+                  <Spinner size="sm" className="inline" />
                 ) : (
                   'Confirmar Cita'
                 )}

@@ -3,9 +3,9 @@
 import { useState, useTransition, useCallback } from 'react'
 import { X, CheckCircle2, Loader2, AlertCircle, Plus, Minus } from 'lucide-react'
 import { markCompleted } from '@/actions/confirmations/markCompleted'
-import type { MarkCompletedState } from '@/actions/confirmations/schemas'
 import { toast } from 'sonner'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface MarkCompletedModalProps {
   appointmentId: string
@@ -30,6 +30,7 @@ export function MarkCompletedModal({
   const [priceAdjustment, setPriceAdjustment] = useState(0)
   const [notes, setNotes] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const COLORS = useThemeColors()
 
   const finalPrice = basePrice + priceAdjustment
 
@@ -84,20 +85,25 @@ export function MarkCompletedModal({
       aria-labelledby="mark-completed-title"
     >
       <div
-        className="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 backdrop-blur-sm transition-opacity"
+        style={{ backgroundColor: COLORS.overlay }}
         onClick={handleClose}
         aria-hidden="true"
       />
 
-      <div className="relative z-10 bg-white dark:bg-[#1E293B] rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-700/60 overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800/40 bg-slate-50/50 dark:bg-slate-800/20">
+      <div className="relative z-10 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-md border overflow-hidden animate-in zoom-in-95 duration-200"
+        style={{ backgroundColor: COLORS.surface, borderColor: COLORS.border }}>
+        <div className="flex items-center justify-between px-6 py-5 border-b"
+          style={{ borderColor: COLORS.border, backgroundColor: COLORS.surfaceSubtle }}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: COLORS.successLight }}>
+              <CheckCircle2 className="w-5 h-5" style={{ color: COLORS.success }} />
             </div>
             <h2
               id="mark-completed-title"
-              className="text-xl font-bold text-slate-900 dark:text-slate-100 font-serif"
+              className="text-xl font-bold"
+              style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}
             >
               Confirmar Servicio
             </h2>
@@ -107,7 +113,10 @@ export function MarkCompletedModal({
             onClick={handleClose}
             disabled={isPending}
             aria-label="Cerrar modal"
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors duration-200 disabled:opacity-50"
+            className="p-2 rounded-xl transition-colors duration-200 disabled:opacity-50"
+            style={{ color: COLORS.textMuted }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = COLORS.surfaceHover)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           >
             <X className="w-5 h-5" />
           </button>
@@ -116,23 +125,23 @@ export function MarkCompletedModal({
         <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Cliente</span>
-              <span className="font-medium text-slate-900 dark:text-slate-100">{clientName}</span>
+              <span style={{ color: COLORS.textSecondary }}>Cliente</span>
+              <span className="font-medium" style={{ color: COLORS.textPrimary }}>{clientName}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Servicio</span>
-              <span className="font-medium text-slate-900 dark:text-slate-100">{serviceName}</span>
+              <span style={{ color: COLORS.textSecondary }}>Servicio</span>
+              <span className="font-medium" style={{ color: COLORS.textPrimary }}>{serviceName}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Precio base</span>
-              <span className="font-medium text-slate-900 dark:text-slate-100">
+              <span style={{ color: COLORS.textSecondary }}>Precio base</span>
+              <span className="font-medium" style={{ color: COLORS.textPrimary }}>
                 {formatCurrencyCOP(basePrice)}
               </span>
             </div>
           </div>
 
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Ajuste por extras (opcional)
             </label>
             <div className="flex items-center gap-3">
@@ -140,7 +149,10 @@ export function MarkCompletedModal({
                 type="button"
                 onClick={() => adjustPrice(-10000)}
                 disabled={priceAdjustment <= 0 || isPending}
-                className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: COLORS.surfaceHover, color: COLORS.textSecondary }}
+                onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = COLORS.border }}
+                onMouseLeave={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
               >
                 <Minus className="w-4 h-4" />
               </button>
@@ -149,7 +161,8 @@ export function MarkCompletedModal({
                 value={priceAdjustment}
                 onChange={(e) => setPriceAdjustment(Math.max(0, parseInt(e.target.value) || 0))}
                 disabled={isPending}
-                className="flex-1 h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-center font-medium focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-50"
+                className="flex-1 h-10 px-3 rounded-xl border text-center font-medium focus:outline-none focus:ring-2 disabled:opacity-50"
+                style={{ backgroundColor: COLORS.surface, borderColor: COLORS.border, color: COLORS.textPrimary }}
                 placeholder="0"
                 min="0"
                 step="1000"
@@ -158,29 +171,33 @@ export function MarkCompletedModal({
                 type="button"
                 onClick={() => adjustPrice(10000)}
                 disabled={isPending}
-                className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: COLORS.surfaceHover, color: COLORS.textSecondary }}
+                onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = COLORS.border }}
+                onMouseLeave={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
               >
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+            <p className="text-xs text-center" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               decoration, extras, etc.
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40">
+          <div className="p-4 rounded-xl border"
+            style={{ backgroundColor: COLORS.successLight, borderColor: COLORS.success + '40' }}>
             <div className="flex justify-between items-center">
-              <span className="font-medium text-emerald-800 dark:text-emerald-200">
+              <span className="font-medium" style={{ color: COLORS.success }}>
                 Precio Total
               </span>
-              <span className="text-xl font-bold text-emerald-700 dark:text-emerald-300">
+              <span className="text-xl font-bold" style={{ color: COLORS.success }}>
                 {formatCurrencyCOP(finalPrice)}
               </span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Notas para el asistente (opcional)
             </label>
             <textarea
@@ -188,16 +205,18 @@ export function MarkCompletedModal({
               onChange={(e) => setNotes(e.target.value)}
               disabled={isPending}
               rows={2}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 resize-none disabled:opacity-50"
+              className="w-full px-3 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 resize-none disabled:opacity-50"
+              style={{ backgroundColor: COLORS.surface, borderColor: COLORS.border, color: COLORS.textPrimary }}
               placeholder="Decoración con gel..."
               maxLength={500}
             />
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40">
-              <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
-              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            <div className="flex items-center gap-2 p-3 rounded-xl border"
+              style={{ backgroundColor: COLORS.errorLight, borderColor: COLORS.error + '40' }}>
+              <AlertCircle className="w-4 h-4 flex-shrink-0" style={{ color: COLORS.error }} />
+              <p className="text-sm" style={{ color: COLORS.error }}>{error}</p>
             </div>
           )}
 
@@ -206,14 +225,20 @@ export function MarkCompletedModal({
               type="button"
               onClick={handleClose}
               disabled={isPending}
-              className="flex-1 h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+              className="flex-1 h-11 px-4 rounded-xl border font-medium transition-colors disabled:opacity-50"
+              style={{ borderColor: COLORS.border, color: COLORS.textSecondary, backgroundColor: COLORS.surface }}
+              onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
+              onMouseLeave={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = COLORS.surface }}
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="flex-1 h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 h-11 px-4 rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-white"
+              style={{ backgroundColor: COLORS.primary }}
+              onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.opacity = '0.9' }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
             >
               {isPending ? (
                 <>

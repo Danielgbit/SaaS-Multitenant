@@ -12,6 +12,8 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import type { ConfirmationService } from '@/types/confirmations'
 import { createConfirmation } from '@/actions/confirmations/createConfirmation'
 import { formatDuration } from '@/lib/utils/formatTime'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Badge } from '@/components/ui/Badge'
 
 interface Service {
   id: string
@@ -283,10 +285,11 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
 
             {/* Services Grid */}
             {filteredServices.length === 0 ? (
-              <div className="text-center py-12 rounded-2xl" style={{ backgroundColor: COLORS.surfaceGlass, border: `1px solid ${COLORS.border}` }}>
-                <Package className="w-12 h-12 mx-auto mb-4" style={{ color: COLORS.textMuted, opacity: 0.5 }} />
-                <p style={{ color: COLORS.textMuted }}>No hay servicios disponibles</p>
-              </div>
+              <EmptyState
+                icon={<Package className="w-6 h-6" style={{ color: COLORS.textMuted }} />}
+                title="No hay servicios disponibles"
+                description="No se encontraron servicios con ese nombre."
+              />
             ) : (
               <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
                 {filteredServices.map((service) => {
@@ -303,16 +306,9 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                       }}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <span 
-                          className="text-xs font-medium px-2 py-0.5 rounded-full"
-                          style={{ 
-                            backgroundColor: isSelected ? COLORS.primary : COLORS.surfaceSubtle,
-                            color: isSelected ? '#FFFFFF' : COLORS.textMuted,
-                            fontFamily: "'Plus Jakarta Sans', sans-serif"
-                          }}
-                        >
+                        <Badge variant={isSelected ? 'primary' : 'neutral'} size="sm">
                           {formatDuration(service.duration)}
-                        </span>
+                        </Badge>
                         {isSelected && (
                           <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primary }}>
                             <Check className="w-3 h-3 text-white" />

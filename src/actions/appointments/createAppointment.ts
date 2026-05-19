@@ -356,7 +356,7 @@ export async function updateAppointmentStatus(
   // Verificar pertenencia a la organización
   const { data: appointment, error: aptError } = await supabase
     .from('appointments')
-    .select('organization_id')
+    .select('organization_id, status, confirmation_status, created_at')
     .eq('id', appointment_id)
     .single()
 
@@ -366,7 +366,7 @@ export async function updateAppointmentStatus(
 
   const { data: orgMember } = await supabase
     .from('organization_members')
-    .select('organization_id')
+    .select('organization_id, role')
     .eq('user_id', user.id)
     .eq('organization_id', appointment.organization_id)
     .single()
@@ -374,6 +374,15 @@ export async function updateAppointmentStatus(
   if (!orgMember) {
     return { error: 'No perteneces a esta organización.' }
   }
+
+  // Shadow Mode: capture seed BEFORE mutation (only for cancellations)
+  const shadowSeed = status === 'canceled' ? {
+    appointmentId: appointment_id,
+    observedUpdatedAt: appointment.created_at,
+    initialStatus: appointment.status,
+    initialConfirmationStatus: appointment.confirmation_status,
+    correlationId: crypto.randomUUID(),
+  } : null
 
   // Actualizar status
   const { error: updateError } = await supabase
@@ -384,6 +393,31 @@ export async function updateAppointmentStatus(
   if (updateError) {
     console.error('Error updating appointment:', updateError)
     return { error: 'Error al actualizar la cita.' }
+  }
+
+  // Shadow Mode: fire-and-forget validation (only for cancellations)
+  if (shadowSeed) {
+    import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
+      shadowQueue.enqueue(async () => {
+        await runShadowValidation(
+          {
+            command: 'appointment:cancel',
+            appointmentId: shadowSeed!.appointmentId,
+            organizationId: appointment.organization_id,
+            correlationId: shadowSeed!.correlationId,
+            actorId: user.id,
+            actorRole: orgMember!.role,
+            timestamp: new Date().toISOString(),
+            payload: {},
+            sourcePath: 'updateAppointmentStatus',
+          },
+          shadowSeed!,
+          supabase
+        )
+      })
+    }).catch((e) => {
+      console.error('[updateAppointmentStatus] shadow import error:', e)
+    })
   }
 
   // Enviar email de cancelación si aplica

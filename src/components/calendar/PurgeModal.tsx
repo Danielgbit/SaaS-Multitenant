@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Trash2, X, Check, Calendar, Search, Loader2 } from 'lucide-react'
+import { Trash2, X, Check, Calendar, Search } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { PurgeCandidate } from '@/lib/cleanup-helpers'
 import { getAppointmentsByFilters } from '@/lib/cleanup-helpers'
@@ -357,7 +358,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
                 {/* Appointment List */}
                 {listLoading ? (
                   <div className="flex items-center justify-center py-10">
-                    <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.primary }} />
+                    <Spinner size="md" style={{ color: COLORS.primary }} />
                   </div>
                 ) : appointmentsList.length === 0 ? (
                   <div className="text-center py-10">
@@ -486,7 +487,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
                       }}
                     >
                       {previewLoading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Spinner size="sm" />
                       ) : (
                         <Search className="w-4 h-4" />
                       )}
@@ -666,7 +667,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
               }}
             >
               {purging ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Spinner size="sm" />
               ) : (
                 <Trash2 className="w-4 h-4" />
               )}
@@ -686,7 +687,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
               }}
             >
               {purging ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Spinner size="sm" />
               ) : (
                 <Trash2 className="w-4 h-4" />
               )}

@@ -160,8 +160,11 @@ export async function cancelPublicBooking(
         `
         id,
         status,
+        confirmation_status,
         start_time,
         client_id,
+        organization_id,
+        created_at,
         clients!inner(email, phone)
       `
       )
@@ -180,8 +183,11 @@ export async function cancelPublicBooking(
         `
         id,
         status,
+        confirmation_status,
         start_time,
         client_id,
+        organization_id,
+        created_at,
         clients!inner(email, phone)
       `
       )
@@ -258,7 +264,7 @@ export async function cancelPublicBooking(
     }
   }
 
-  // 10. Cancelar la cita
+    // 10. Cancelar la cita
   const { error: updateError } = await supabase
     .from('appointments')
     .update({
@@ -275,6 +281,37 @@ export async function cancelPublicBooking(
       errorType: 'unknown',
     }
   }
+
+  // Shadow Mode: fire-and-forget validation
+  const shadowSeed = {
+    appointmentId: appointment.id,
+    observedUpdatedAt: appointment.created_at,
+    initialStatus: appointment.status,
+    initialConfirmationStatus: appointment.confirmation_status || 'scheduled',
+    correlationId: crypto.randomUUID(),
+  }
+
+  import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
+    shadowQueue.enqueue(async () => {
+      await runShadowValidation(
+        {
+          command: 'appointment:cancel',
+          appointmentId: shadowSeed.appointmentId,
+          organizationId: organization.id,
+          correlationId: shadowSeed.correlationId,
+          actorId: 'system',
+          actorRole: 'system',
+          timestamp: new Date().toISOString(),
+          payload: { reason: cancellationReason ?? null },
+          sourcePath: 'cancelPublicBooking.ts',
+        },
+        shadowSeed,
+        supabase
+      )
+    })
+  }).catch((e) => {
+    console.error('[cancelPublicBooking] shadow import error:', e)
+  })
 
   // 11. Encolar notificación de cancelación
   try {

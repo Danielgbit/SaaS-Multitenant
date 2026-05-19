@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { PaymentModal } from './PaymentModal'
 import { AdjustPriceModal } from './AdjustPriceModal'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 import type { PendingConfirmationWithDetails } from '@/types/confirmations'
 
 interface ConfirmationsPanelProps {
@@ -227,18 +229,17 @@ export function ConfirmationsPanel({
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.textMuted }} />
+            <div className="space-y-3 py-4">
+              <Skeleton variant="rectangular" height="h-24" />
+              <Skeleton variant="rectangular" height="h-24" />
+              <Skeleton variant="rectangular" height="h-24" />
             </div>
           ) : confirmations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${COLORS.success}15` }}>
-                <CheckCircle2 className="w-8 h-8" style={{ color: COLORS.success }} />
-              </div>
-              <p style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                No hay servicios pendientes
-              </p>
-            </div>
+            <EmptyState
+              icon={<CheckCircle2 className="w-6 h-6" style={{ color: COLORS.success }} />}
+              title="Sin servicios pendientes"
+              description="Los servicios completados aparecerán aquí cuando estén listos para confirmar."
+            />
           ) : (
             confirmations.map((confirmation) => (
               <ConfirmationCard

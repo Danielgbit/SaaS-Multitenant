@@ -1,6 +1,7 @@
 'use client'
 
-import { AlertTriangle, Loader2, X, Clock } from 'lucide-react'
+import { AlertTriangle, X, Clock } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 
 interface ForceCreationModalProps {
   isOpen: boolean
@@ -103,7 +104,7 @@ export function ForceCreationModal({
             disabled={isPending}
             className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white transition-colors flex items-center justify-center gap-2"
           >
-            {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isPending && <Spinner size="sm" />}
             Crear de todas formas
           </button>
         </div>

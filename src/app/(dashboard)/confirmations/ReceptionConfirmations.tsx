@@ -11,6 +11,7 @@ import {
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { confirmByReception } from '@/actions/confirmations/confirmByReception'
 import { PaymentModal } from '@/components/dashboard/PaymentModal'
+import { Badge } from '@/components/ui/Badge'
 
 type FilterStatus = 'pending' | 'completed' | 'all'
 
@@ -339,13 +340,9 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                             <h3 className="font-bold truncate" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}>
                               {conf.client_name || 'Cliente'}
                             </h3>
-                            <span className="text-xs px-2 py-0.5 rounded-full" style={{
-                              backgroundColor: conf.confirmation_type === 'walkin' ? `${COLORS.warning}15` : `${COLORS.primary}15`,
-                              color: conf.confirmation_type === 'walkin' ? COLORS.warning : COLORS.primary,
-                              fontFamily: "'Plus Jakarta Sans', sans-serif",
-                            }}>
+                            <Badge variant={conf.confirmation_type === 'walkin' ? 'warning' : 'primary'} size="sm">
                               {conf.confirmation_type === 'walkin' ? 'Walk-in' : 'Programada'}
-                            </span>
+                            </Badge>
                           </div>
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
                             <span className="text-xs" style={{ color: COLORS.textSecondary }}>
@@ -378,13 +375,12 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                               {urgency.label}
                             </span>
                           )}
-                          <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{
-                            backgroundColor: isPending ? `${COLORS.primary}15` : isComplete ? `${COLORS.success}15` : isNoShow ? `${COLORS.error}15` : `${COLORS.textMuted}15`,
-                            color: isPending ? COLORS.primary : isComplete ? COLORS.success : isNoShow ? COLORS.error : COLORS.textMuted,
-                            fontFamily: "'Plus Jakarta Sans', sans-serif",
-                          }}>
+                          <Badge
+                            variant={isPending ? 'primary' : isComplete ? 'success' : isNoShow ? 'error' : 'neutral'}
+                            size="md"
+                          >
                             {isPending ? 'Por cobrar' : isComplete ? 'Pagado' : isNoShow ? 'No asistió' : 'No realizado'}
-                          </span>
+                          </Badge>
                         </div>
                       </div>
                     </div>

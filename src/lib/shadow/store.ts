@@ -43,6 +43,8 @@ export async function storeValidation(
     captured_at: data.input.timestamp,
     actor_id: data.input.actorId,
     actor_role: data.input.actorRole,
+    source_path: data.input.sourcePath ?? null,
+    classification: data.input.classification ?? null,
   }
 
   const { error } = await (client as any)
@@ -81,6 +83,8 @@ export async function storeError(
     captured_at: input.timestamp,
     actor_id: input.actorId,
     actor_role: input.actorRole,
+    source_path: input.sourcePath ?? null,
+    classification: input.classification ?? null,
   }
 
   await (client as any)

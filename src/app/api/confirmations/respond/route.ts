@@ -107,6 +107,15 @@ export async function POST(request: Request) {
       confirmationStatus = 'cancelled'
       appointmentStatus = 'cancelled'
 
+      // Shadow Mode: capture seed BEFORE mutation
+      const shadowSeed = {
+        appointmentId: tokenData.appointmentId,
+        observedUpdatedAt: appointment.created_at,
+        initialStatus: appointment.status,
+        initialConfirmationStatus: appointment.confirmation_status,
+        correlationId: crypto.randomUUID(),
+      }
+
       await supabase
         .from('appointments')
         .update({
@@ -114,6 +123,29 @@ export async function POST(request: Request) {
           confirmation_status: 'cancelled',
         })
         .eq('id', tokenData.appointmentId)
+
+      // Shadow Mode: fire-and-forget validation
+      import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
+        shadowQueue.enqueue(async () => {
+          await runShadowValidation(
+            {
+              command: 'appointment:cancel',
+              appointmentId: shadowSeed.appointmentId,
+              organizationId: tokenData.organizationId,
+              correlationId: shadowSeed.correlationId,
+              actorId: 'system',
+              actorRole: 'system',
+              timestamp: new Date().toISOString(),
+              payload: { reason: 'client_cancelled_via_token' },
+              sourcePath: 'POST/api/confirmations/respond',
+            },
+            shadowSeed,
+            supabase
+          )
+        })
+      }).catch((e) => {
+        console.error('[respond/cancel] shadow import error:', e)
+      })
 
       await supabase
         .from('confirmation_logs')

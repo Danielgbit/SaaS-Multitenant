@@ -96,8 +96,7 @@ export async function createClientAction(
   revalidatePath('/calendar')
   
   try {
-    // @ts-expect-error - revalidateTag signature may vary
-    revalidateTag('clients')
+    revalidateTag('clients', 'max')
   } catch (e) {
     console.log('[createClient] revalidateTag not available or error:', e)
   }

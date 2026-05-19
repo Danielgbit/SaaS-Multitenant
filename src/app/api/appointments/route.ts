@@ -184,7 +184,7 @@ export async function PATCH(request: NextRequest) {
 
     const { data: appointment, error: aptError } = await supabase
       .from('appointments')
-      .select('organization_id')
+      .select('organization_id, status, confirmation_status, created_at')
       .eq('id', appointment_id)
       .single()
 
@@ -203,6 +203,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'No tienes permisos para cambiar el estado de esta cita.' }, { status: 403 })
     }
 
+    // Shadow Mode: capture seed BEFORE mutation (only for cancellations)
+    const shadowSeed = status === 'cancelled' ? {
+      appointmentId: appointment_id,
+      observedUpdatedAt: appointment.created_at,
+      initialStatus: appointment.status,
+      initialConfirmationStatus: appointment.confirmation_status,
+      correlationId: crypto.randomUUID(),
+    } : null
+
     const { error: updateError } = await supabase
       .from('appointments')
       .update({ status })
@@ -211,6 +220,31 @@ export async function PATCH(request: NextRequest) {
     if (updateError) {
       console.error('Error updating appointment:', updateError)
       return NextResponse.json({ error: 'Error al actualizar la cita.' }, { status: 500 })
+    }
+
+    // Shadow Mode: fire-and-forget validation (only for cancellations)
+    if (shadowSeed) {
+      import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
+        shadowQueue.enqueue(async () => {
+          await runShadowValidation(
+            {
+              command: 'appointment:cancel',
+              appointmentId: shadowSeed!.appointmentId,
+              organizationId: appointment.organization_id,
+              correlationId: shadowSeed!.correlationId,
+              actorId: user.id,
+              actorRole: orgMember!.role,
+              timestamp: new Date().toISOString(),
+              payload: {},
+              sourcePath: 'PATCH/api/appointments',
+            },
+            shadowSeed!,
+            supabase
+          )
+        })
+      }).catch((e) => {
+        console.error('[PATCH/appointments] shadow import error:', e)
+      })
     }
 
     return NextResponse.json({ success: true })

@@ -1,5 +1,6 @@
 export { Card } from './Card'
 export { Skeleton } from './Skeleton'
+export { Spinner } from './Spinner'
 export { Badge } from './Badge'
 export { EmptyState } from './EmptyState'
 export { MetricCard } from './MetricCard'

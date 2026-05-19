@@ -174,14 +174,12 @@ export async function markManually(
   }
 
   try {
-    // @ts-ignore - revalidateTag typing issue
-    revalidateTag(`confirmations-${appointment.organization_id}`)
+    revalidateTag(`confirmations-${appointment.organization_id}`, 'max')
   } catch (e) {
     console.warn('[markManually] revalidateTag error:', e)
   }
   try {
-    // @ts-ignore - revalidateTag typing issue
-    revalidateTag(`pending-${appointment.organization_id}`)
+    revalidateTag(`pending-${appointment.organization_id}`, 'max')
   } catch (e) {
     console.warn('[markManually] revalidateTag error:', e)
   }
@@ -222,6 +220,7 @@ export async function markManually(
           payload: {
             reason: shadowContext.notes,
           },
+          sourcePath: 'markManually.ts',
         },
         shadowContext.seed,
         supabase

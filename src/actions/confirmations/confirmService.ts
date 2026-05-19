@@ -149,14 +149,12 @@ export async function confirmService(
   }
 
   try {
-    // @ts-ignore - revalidateTag typing issue
-    revalidateTag(`confirmations-${appointment.organization_id}`)
+    revalidateTag(`confirmations-${appointment.organization_id}`, 'max')
   } catch (e) {
     console.warn('[confirmService] revalidateTag error:', e)
   }
   try {
-    // @ts-ignore - revalidateTag typing issue
-    revalidateTag(`pending-${appointment.organization_id}`)
+    revalidateTag(`pending-${appointment.organization_id}`, 'max')
   } catch (e) {
     console.warn('[confirmService] revalidateTag error:', e)
   }

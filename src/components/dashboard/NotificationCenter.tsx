@@ -12,6 +12,9 @@ import {
   X
 } from 'lucide-react'
 import type { Notification, NotificationType } from '@/types/confirmations'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 type FilterTab = 'all' | 'unread' | 'alerts' | 'reminders'
 
@@ -176,32 +179,6 @@ function NotificationItem({
   )
 }
 
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-      <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
-        <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-      </div>
-      <p className="font-semibold text-slate-900 dark:text-slate-100">Todo en orden</p>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-        No tienes notificaciones pendientes.
-      </p>
-    </div>
-  )
-}
-
-function SkeletonItem() {
-  return (
-    <div className="flex items-start gap-3 p-3 animate-pulse">
-      <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700" />
-      <div className="flex-1">
-        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-2" />
-        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2" />
-      </div>
-    </div>
-  )
-}
-
 export function NotificationCenter({
   userId,
   organizationId,
@@ -217,6 +194,7 @@ export function NotificationCenter({
   const [position, setPosition] = useState<DOMRect | null>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const COLORS = useThemeColors()
 
   const urgency = getUrgencyLevel(unreadCount, oldestUnreadAt)
 
@@ -438,13 +416,17 @@ export function NotificationCenter({
 
         <div className="overflow-y-auto max-h-[360px] scrollbar-thin">
           {loading ? (
-            <div className="p-2">
-              <SkeletonItem />
-              <SkeletonItem />
-              <SkeletonItem />
+            <div className="p-2 space-y-2">
+              <Skeleton variant="text" height="h-4" />
+              <Skeleton variant="text" height="h-4" />
+              <Skeleton variant="text" height="h-4" />
             </div>
           ) : filteredNotifications.length === 0 ? (
-            <EmptyState />
+            <EmptyState
+              icon={<CheckCircle2 className="w-6 h-6" style={{ color: COLORS.success }} />}
+              title="Todo en orden"
+              description="No tienes notificaciones pendientes."
+            />
           ) : (
             <div className="p-2 space-y-1">
               {filteredNotifications.map(notification => (

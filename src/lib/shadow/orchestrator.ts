@@ -2,7 +2,7 @@
 // Given a command + state, what would the orchestrator do?
 
 import { validateTransition, computeTargetState, commandToEvent } from './state-machine'
-import type { AppointmentSnapshot, OrchestratorResult } from './types'
+import type { AppointmentSnapshot, LegacyResult, OrchestratorResult } from './types'
 
 /**
  * Pure function: simulates what the orchestrator would have done
@@ -123,4 +123,42 @@ export function detectDrift(
   }
 
   return drifts
+}
+
+/**
+ * Classifies an operational observation based on detected patterns.
+ * Pure function — no side effects, no enforcement.
+ */
+export function classifyObservation(
+  command: string,
+  snapshot: AppointmentSnapshot,
+  orchestratorResult: OrchestratorResult,
+  legacyResult: LegacyResult
+): string | undefined {
+  // POST_COMPLETION_CANCEL: cancel on already completed appointment
+  if (command === 'appointment:cancel' && snapshot.status === 'completed') {
+    return 'POST_COMPLETION_CANCEL'
+  }
+
+  // LEGACY_SHORTCUT: disallowed transition that legacy system still made
+  if (!orchestratorResult.valid) {
+    if (command === 'service:complete' && snapshot.status === 'completed' && snapshot.confirmation_status === 'completed') {
+      return 'LEGACY_SHORTCUT'
+    }
+    if (command === 'service:complete' && snapshot.status === 'completed' && snapshot.confirmation_status === 'needs_review') {
+      return 'LEGACY_SHORTCUT'
+    }
+  }
+
+  // SEMANTIC_DRIFT: legacy uses different spelling/state than orchestrator expects
+  if (legacyResult.status === 'canceled' && orchestratorResult.targetState?.status === 'cancelled') {
+    return 'SEMANTIC_DRIFT'
+  }
+
+  // HUMAN_OVERRIDE: manual action that bypasses standard flow
+  if (command === 'service:complete_manual') {
+    return 'HUMAN_OVERRIDE'
+  }
+
+  return undefined
 }

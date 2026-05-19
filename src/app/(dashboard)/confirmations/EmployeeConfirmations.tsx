@@ -11,6 +11,7 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import { createConfirmation } from '@/actions/confirmations/createConfirmation'
 import type { ConfirmationService } from '@/types/confirmations'
 import type { AppointmentConfirmation } from '@/actions/confirmations/types'
+import { Badge } from '@/components/ui/Badge'
 
 interface EmployeeConfirmationsProps {
   confirmations: AppointmentConfirmation[]
@@ -208,7 +209,7 @@ export function EmployeeConfirmations({
                 <div key={conf.id}
                   className="animate-in fade-in slide-in-from-bottom-3"
                   style={{ animationDelay: `${index * 80}ms`, animationFillMode: 'backwards' }}>
-                  <div style={{
+                  <div className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200" style={{
                     backgroundColor: COLORS.surfaceGlass,
                     borderRadius: '16px',
                     border: `1px solid ${COLORS.border}`,
@@ -216,9 +217,7 @@ export function EmployeeConfirmations({
                     backdropFilter: 'blur(12px)',
                     opacity: isSuccess ? 0.5 : 1,
                     transition: 'opacity 0.3s ease, box-shadow 0.2s ease, transform 0.2s ease',
-                  }}
-                    onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.08)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-                    onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)' }}>
+                  }}>
                     
                     {/* Header */}
                     <div className="px-6 py-4 flex items-center justify-between"
@@ -232,10 +231,9 @@ export function EmployeeConfirmations({
                             : <Sparkles className="w-5 h-5" style={{ color: COLORS.warning }} />}
                         </div>
                         <div>
-                          <span className="text-sm font-semibold"
-                            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: isScheduled ? COLORS.primary : COLORS.warning }}>
+                          <Badge variant={isScheduled ? 'primary' : 'warning'} size="md">
                             {isScheduled ? 'Cita agendada' : 'Walk-in'}
-                          </span>
+                          </Badge>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <Clock className="w-3 h-3" style={{ color: COLORS.textMuted }} />
                             <span className="text-xs" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>

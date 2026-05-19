@@ -98,6 +98,130 @@ Visual QA validation of all WhatsApp components:
 - Animation consistency confirmed
 - 3 decorative hover handlers identified (deferred)
 
+#### Phase 3.6C — Confirmations Enforcement Execution
+
+Conservative compliance pass on Confirmations module. Applied the enforcement philosophy of "migrate only what brings value" and "preserve domain integrity":
+
+- **ConfirmationsPanel.tsx:** Spinner → `<Skeleton variant="rectangular">` ×3, empty → `<EmptyState>`
+- **NotificationCenter.tsx:** Removed local `SkeletonItem` → `<Skeleton>`, local `EmptyState` → `<EmptyState>`, added `useThemeColors()`
+- **WalkinForm.tsx:** Empty state → `<EmptyState>`, duration badge → `<Badge>`
+- **EmployeeConfirmations.tsx:** Decorative hover handlers → Tailwind `hover:shadow-lg hover:-translate-y-0.5`, type badge → `<Badge>`
+- **ReceptionConfirmations.tsx:** Walk-in/Programada badge → `<Badge>`, status badge (Por cobrar/Pagado/No asistió/No realizado) → `<Badge>`
+- **MarkCompletedModal.tsx:** 20+ hardcoded Tailwind colors → `useThemeColors()` tokens
+- **AdjustPriceModal.tsx:** 15+ hardcoded Tailwind colors → `useThemeColors()` tokens
+
+**Deferred by Design (domain-sensitive — NOT migrated):**
+- `getTimeUrgency()` in ReceptionConfirmations — dynamic state-based urgency coloring
+- `onMouseEnter`/`onMouseLeave` with `!isSuccess` guard in ReceptionConfirmations — conditional operational hover
+- Large card-style empty states in Employee and Reception confirmations — contextual messaging per filter, visual quality > primitive consistency
+- Public `confirmar` page — out of scope
+
+---
+
+### Phase 3.6D — Calendar Module Architecture Audit
+
+Read-only architecture audit of the Calendar module (18 components):
+
+- **Classification model defined:** 4 categories (Safe to Audit / Needs Validation / Operational Visual Systems / Domain Sensitive)
+- **OVS Discovery:** 6 Operational Visual Systems identified (Workload Semaphore, Employee Palette, Status Config, Cluster Gradients, Temporal Pulse, EmptyDay)
+- **Hardcoded colors catalogued:** ~40 instances across 5 files
+- **Theming analysis:** 15/18 components receive COLORS via props, 1 uses useThemeColors(), 1 ignores theme entirely (ForceCreationModal)
+- **Risk matrix built:** 3-axis (Impact × Probability × Interaction Sensitivity per component)
+
+**Outcome:** Calendar is architecturally healthier than expected — no chaos, just underutilized primitives and inconsistencies. Read-only — no enforcement applied.
+
+### Phase 4 — Prevention Layer
+
+Transitioned from per-module enforcement to frontend-wide architectural stability. Established three new governance systems:
+
+#### 4A — OVS Registry (`docs/OPERATIONAL_VISUAL_SYSTEMS.md`)
+
+Independent catalog of intentionally preserved operational visual systems:
+- 6 registered systems from Calendar audit + 6 reserved slots for future modules
+- Each entry: ID, Module, Files, Rationale, Boundary, Detection Rule
+- OVS entries are **not** technical debt — they are protected by policy
+
+#### 4B — Governance Policy Update (`docs/ARCHITECTURE_GOVERNANCE.md` → v1.2)
+
+- Added Policy Layer table (5 layers: Snapshot / Governance / OVS Registry / Drift Detection / Module Audits)
+- Added Allowed Patterns section (OVS, structural skeletons, temporal visuals)
+- Expanded Forbidden Patterns to 10 rules (F1–F10)
+- Added Architecture Guard section documenting the drift detection tool
+
+#### 4C — Drift Detection (`scripts/architecture-guard.ts`)
+
+Automated drift detection with 3 scanners:
+- **Colors scanner:** Hardcoded hex/rgba/Tailwind arbitrary colors outside OVS → WARN/CRITICAL
+- **Primitives scanner:** Manual `<Loader2>` spinners → CRITICAL, `animate-pulse` skeletons outside OVS → WARN
+- **Hover scanner:** Decorative `onMouseEnter`/`onMouseLeave` handlers → WARN
+
+**First run results:** 6 ALLOWED_OVS · 659 WARN · 274 CRITICAL · 0 DEFERRED
+
+**Current results (after Batch 1 — Calendar CPS migration):** 6 ALLOWED_OVS · 13 ALLOWED_CPS · 659 WARN · 266 CRITICAL · 0 DEFERRED
+
+Flags: `--ci` (GitHub Actions annotations), `--json` (programmatic), `--verbose` (include OVS/deferred)
+
+**Note:** CI integration is not yet active. Phase 1 is observability only — no pipeline breaks.
+
+### Phase 4D — Canonical Primitive Spinner (CPS-001)
+
+Added `Spinner` as the first Canonical Primitive System (CPS) entry:
+
+- **Component:** `Spinner.tsx` in `src/components/ui/`
+- **Status:** CPS-001 in the OVS/CPS Registry
+- **Props:** `size` (`sm | md | lg`), `className`
+- **Semantics:** Action-in-progress loading (submits, mutations, syncs) — distinct from `Skeleton` which signals structural content loading
+- **Enforcement:** The architecture guard now recognizes `<Spinner>` usage as canonical. Manual `Loader2 + animate-spin` remains CRITICAL until migrated.
+
+### Phase 4E — Suppression Annotations
+
+Added inline suppression mechanism to architecture guard:
+
+- **Syntax:** `// architecture-guard-ignore-next-line reason: <required reason>`
+- **Scope:** Line-level, cross-scanner
+- **Requirement:** `reason:` is mandatory — suppresses are auditable and categorized
+- **Output:** Suppressed findings appear as `DEFERRED_BY_DESIGN`
+- **Documentation:** Added Suppression Annotations section to Governance policy
+
+### Phase 4F — Scorer Confidence
+
+Added `confidence` field to all scanner findings:
+
+| Level | Meaning | Scanners |
+|-------|---------|----------|
+| `high` | No false positives | Inline hex colors, Loader2 patterns |
+| `medium` | Likely correct | Tailwind arbitrary colors, decorative hover handlers |
+| `heuristic` | Requires review | `animate-pulse` outside OVS |
+
+Confidence is included in `--json` output and `--verbose` CLI mode.
+
+### Phase 4G — Positive CPS Scanner
+
+Added `scanCanonicalPrimitives()` as the 4th architecture guard scanner:
+
+- **Purpose:** Reports active CPS adoption (not just violation reduction)
+- **Behavior:** Each `<Spanner>` usage outside `ui/` is a positive `ALLOWED_CPS` finding
+- **Visibility:** Hidden by default (like OVS); visible in `--verbose` and `--json`
+- **Result after Batch 1:** 13 CPS-001 findings detected across 4 files
+
+This changes the governance model from "only punishment" to
+"punishment + adoption visibility".
+
+### Scanner Precedence
+
+Formalized evaluation order for the 4 scanners:
+
+```
+1. ALLOWED_OVS    → OVS Registry match (file-level exemption)
+2. DEFERRED       → DEFERRED_BY_DESIGN match (file-level)
+3. ALLOWED_CPS    → Canonical primitive usage (positive detection)
+4. CRITICAL       → High-confidence violations
+5. WARN           → Low/medium confidence
+```
+
+CPS findings do NOT block CRITICAL or WARN — a file can use Spinner correctly
+and still have legitimate drift elsewhere.
+
 ---
 
 ## Official UI Primitives
@@ -115,7 +239,12 @@ Specialized card for dashboard metrics. Supports title, value, trend indicator, 
 ### Skeleton
 **File:** `src/components/ui/Skeleton.tsx`
 
-Loading placeholder. Variants: `text`, `circular`, `rectangular`, `metric`. Replaces spinners and custom loading implementations.
+Loading placeholder (structural). Variants: `text`, `circular`, `rectangular`, `metric`. For content structure loading (cards, lists, tables, dashboard placeholders).
+
+### Spinner
+**File:** `src/components/ui/Spinner.tsx`
+
+Loading indicator (action in progress). Props: `size` (`sm | md | lg`). For submits, mutations, syncs, background operations, modal actions.
 
 ### EmptyState
 **File:** `src/components/ui/EmptyState.tsx`
@@ -200,6 +329,16 @@ Complex calendar interaction system with drag-and-drop, time slot generation, an
 
 **Principle:** UI primitives handle presentation. Domain components handle behavior. We enforce primitives for presentation, not domain logic.
 
+### Confirmations-Specific Preserved Patterns
+
+| File | Preserved Pattern | Classification |
+|------|------------------|----------------|
+| ReceptionConfirmations | `getTimeUrgency()` — dynamic urgency coloring | Deferred by Design |
+| ReceptionConfirmations | `onMouseEnter` guard with `!isSuccess` | Deferred by Design |
+| ReceptionConfirmations | Card-style empty state (3 filter messages) | Deferred by Design |
+| EmployeeConfirmations | Card-style empty state ("Todo al día") | Deferred by Design |
+| NotificationCenter | `TYPE_CONFIG`, `getUrgencyLevel()` | Deferred by Design |
+
 ---
 
 ## Violations Eliminated
@@ -224,18 +363,29 @@ Complex calendar interaction system with drag-and-drop, time slot generation, an
 - **Before:** onMouseEnter/onMouseLeave patterns that only changed visual appearance
 - **After:** Tailwind hover classes or removed entirely
 
+### Local EmptyState Functions in NotificationCenter
+- **Before:** `SkeletonItem` component and `EmptyState` function defined locally inside NotificationCenter.tsx
+- **After:** Removed local implementations, imported from `@/components/ui/`
+
+### Decorative Hover Handlers in EmployeeConfirmations
+- **Before:** Custom `onMouseEnter`/`onMouseLeave` handlers changing box-shadow and transform on card
+- **After:** Tailwind `hover:shadow-lg hover:-translate-y-0.5` with `transition-all duration-200`
+
 ---
 
 ## Deferred Technical Debt
 
-The following items were intentionally deferred from this enforcement cycle:
+Items that are actual technical debt — they should be fixed but were out of scope for this enforcement cycle.
 
-### Functional Hover Logic
-Some hover states serve functional purposes (e.g., showing tooltip triggers, drag handles). These were preserved but should be evaluated for separation of concerns in future iterations.
+### NotificationCenter Hardcoded Tailwind Colors
+NotificationItem component uses `bg-slate-50`, `text-slate-500`, and other Tailwind color classes. Filter tabs use `bg-[#0F4C5C]`, `text-slate-500`. These require a full color migration pass.
 
-**File:** TabQueue.tsx (line 429-430) — row hover showing checkbox visibility
-**File:** TabAutomations.tsx (line 289-290) — button state change
-**File:** TabTemplates.tsx (line 95-96) — button state change
+**File:** NotificationCenter.tsx
+
+### needs_review Visual State in Dark Mode (ConfirmationsPanel)
+Uses hardcoded hex colors (`#FEF3C7`, `#D97706`). Works in light mode but may lack contrast in dark mode. Should use `COLORS.warning`/`COLORS.warningLight` with `isDark` fallback.
+
+**File:** ConfirmationsPanel.tsx (lines 52-54)
 
 ### Typography Tokens
 No centralized typography scale exists. Font families and sizes use Tailwind defaults. Future iteration should establish typographic tokens.
@@ -251,17 +401,42 @@ Header section uses raw div instead of Card component. Stylistically inconsisten
 
 ---
 
+## Deferred by Design
+
+Items intentionally preserved because migrating them would degrade domain clarity, UX quality, or operational behavior. These are **not** technical debt — they are conscious architectural decisions.
+
+### Conditional Hover Logic
+Some hover states serve functional purposes (showing tooltip triggers, drag handles) or contain guards (`!isSuccess`). These were preserved because the hover is not decorative — it is conditional on domain state.
+
+**Files:** ReceptionConfirmations.tsx, TabQueue.tsx, TabAutomations.tsx, TabTemplates.tsx
+
+### Operational Empty States
+Large card-style empty states in EmployeeConfirmations and ReceptionConfirmations. These have contextual messaging that changes per filter, distinct background containers, and large custom icons. Migrating to `<EmptyState>` would reduce visual quality and lose domain-specific messaging.
+
+**Files:** EmployeeConfirmations.tsx, ReceptionConfirmations.tsx
+
+### Urgency Badge Systems
+`getTimeUrgency()` in ReceptionConfirmations and `getUrgencyLevel()` in NotificationCenter compute dynamic colors based on time thresholds. These are domain-specific visual systems, not static badges.
+
+**Files:** ReceptionConfirmations.tsx, NotificationCenter.tsx
+
+### needs_review Visual State (ConfirmationsPanel)
+The amber/gold `needs_review` styling in ConfirmationCard is a domain-specific alert state. While the dark mode contrast issue is debt (see above), the pattern itself (distinct amber card for delayed confirmations) is an intentional design decision.
+
+---
+
 ## Modules Status
 
-| Module | Enforcement Status | Skeleton | EmptyState | Badge | Theme | Notes |
-|--------|-------------------|----------|------------|-------|-------|-------|
-| Analytics | ✅ Complete | ✅ | ✅ | ✅ | ✅ | Fully migrated |
-| WhatsApp | ✅ Complete | ✅ | ✅ | ✅ | ✅ | Fully migrated |
-| Calendar | ⚠️ Not Audited | ? | ? | ? | ? | Pending review |
-| Payroll | ⚠️ Partial | ⚠️ | ⚠️ | ⚠️ | ⚠️ | In progress |
-| Clients | ⚠️ Not Audited | ? | ? | ? | ? | Pending review |
-| Billing | ⚠️ Not Audited | ? | ? | ? | ? | Pending review |
-| Settings | ⚠️ Not Audited | ? | ? | ? | ? | Pending review |
+| Module | Enforcement Status | Skeleton | Spinner | EmptyState | Badge | Theme | OVS/CPS | Notes |
+|--------|-------------------|----------|---------|------------|-------|-------|---------|-------|
+| Analytics | ✅ Complete | ✅ | ✅ | ✅ | ✅ | ✅ | — | Fully migrated |
+| WhatsApp | ✅ Complete | ✅ | ✅ | ✅ | ✅ | ✅ | — | Fully migrated |
+| Confirmations | ✅ Complete | ✅ | ✅ | ✅ | ✅ | ✅ | — | Conservative pass; 5 domain items deferred by design |
+| Calendar | 🔍 Audited | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | 🟢 6 OVS · CPS-001 | Migrating Spinner in Batch 1 |
+| Payroll | ⚠️ Partial | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | 🔲 | In progress |
+| Clients | ⚠️ Not Audited | ? | ? | ? | ? | ? | 🔲 | Pending review |
+| Billing | ⚠️ Not Audited | ? | ? | ? | ? | ? | 🔲 | Pending review |
+| Settings | ⚠️ Not Audited | ? | ? | ? | ? | ? | 🔲 | Pending review |
 
 **Legend:**
 - ✅ = Compliant
@@ -274,10 +449,12 @@ Header section uses raw div instead of Card component. Stylistically inconsisten
 ## Final Architecture Outcome
 
 ### Consistency Improvements
-- **100%** of analytics components using official primitives
-- **100%** of WhatsApp components using official primitives
+- **All applicable** repeated UI patterns migrated to official primitives in Analytics
+- **All applicable** repeated UI patterns migrated to official primitives in WhatsApp
+- **All applicable** repeated UI patterns migrated to official primitives in Confirmations
 - **Zero** duplicated StatCard implementations
 - **Zero** local Badge implementations in migrated modules
+- **35+** hardcoded modal colors migrated to theme tokens (MarkCompletedModal + AdjustPriceModal)
 
 ### Duplication Reduction
 - 3+ StatsCard implementations → 1 MetricCard
@@ -303,8 +480,27 @@ Header section uses raw div instead of Card component. Stylistically inconsisten
 - Standardized loading patterns
 - Standardized empty states
 
+### Prevention Layer (Phase 4)
+- **OVS Registry** — Frontend-wide catalog of protected operational visual systems (6 registered, 6 reserved)
+- **CPS Registry** — Canonical Primitive Systems (CPS-001 Spinner), separate from OVS domain patterns
+- **Architecture Guard** — Automated drift detection with 3 scanners, 4 output categories, --ci/--json/--verbose flags, confidence levels, and suppression annotations
+- **Policy Layer Model** — 5 distinct layers (Snapshot / Governance / OVS+CPS Registry / Drift Detection / Module Audits)
+- **Allowed Patterns** — OVS systems, CPS components, structural skeletons, temporal interaction visuals now formally permitted
+- **Forbidden Patterns** — Expanded to 10 rules (F1–F10) covering colors, primitives, hovers, fonts, and duplication
+- **Suppression Annotations** — Line-level `// architecture-guard-ignore-next-line reason:` mechanism for explicit, traceable exceptions
+
+### Remaining Work
+- **Phase 1.1 — Semantic Calibration (in progress):**
+  - Batch 1: Calendar spinner migration ✅ (4 files, 13 Loader2 → Spinner, -8 CRITICAL, +13 ALLOWED_CPS)
+  - Batch 2: Global spinner standardization (59 files remaining, ~90 Loader2)
+  - WARN reclassification (manual 5-bucket analysis, after Batch 2)
+- Calendar enforcement (deferred — audit complete, actionable items identified)
+- Payroll, Clients, Billing, Settings module audits
+- Architecture Guard Phase 2 (CI integration, noise baseline, severity tuning)
+- Remaining technical debt: NotificationCenter hardcoded colors, ConfirmationsPanel dark mode, typography tokens, modal backdrop blur
+
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.3
 **Created:** May 2026
-**Status:** Final
+**Status:** Updated

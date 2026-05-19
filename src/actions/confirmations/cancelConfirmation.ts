@@ -92,14 +92,12 @@ export async function cancelConfirmation(
   }
 
   try {
-    // @ts-ignore - revalidateTag typing issue
-    revalidateTag(`confirmations-${appointment.organization_id}`)
+    revalidateTag(`confirmations-${appointment.organization_id}`, 'max')
   } catch (e) {
     console.warn('[cancelConfirmation] revalidateTag error:', e)
   }
   try {
-    // @ts-ignore - revalidateTag typing issue
-    revalidateTag(`pending-${appointment.organization_id}`)
+    revalidateTag(`pending-${appointment.organization_id}`, 'max')
   } catch (e) {
     console.warn('[cancelConfirmation] revalidateTag error:', e)
   }
@@ -117,6 +115,7 @@ export async function cancelConfirmation(
           actorRole: orgMember.role,
           timestamp: now,
           payload: { reason: reason ?? null },
+          sourcePath: 'cancelConfirmation.ts',
         },
         shadowSeed,
         supabase

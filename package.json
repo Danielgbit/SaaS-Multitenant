@@ -6,7 +6,10 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "guard": "tsx scripts/architecture-guard.ts",
+    "guard:ci": "tsx scripts/architecture-guard.ts --ci",
+    "guard:verbose": "tsx scripts/architecture-guard.ts --verbose"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
@@ -40,6 +43,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
+    "tsx": "^4.22.3",
     "typescript": "^5"
   }
 }
