@@ -12,13 +12,37 @@
  *   tsx scripts/architecture-guard.ts --ci
  *   tsx scripts/architecture-guard.ts --json
  *   tsx scripts/architecture-guard.ts --verbose
+ *   tsx scripts/architecture-guard.ts --export-warn-review
+ *   tsx scripts/architecture-guard.ts --export-warn-review --warn-sample 75
  */
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
+function exportWARNReview(allFindings: Finding[], options: { sample?: number }): void {
+  const warnFindings = allFindings.filter(f => f.category === 'WARN')
+  
+  const entries = warnFindings.map((f, i) => generateWARNReviewEntry(f, i))
+  
+  const finalEntries = options.sample ? stratifiedSample(entries, options.sample) : entries
+  
+  // Ensure docs/governance directory exists
+  const governanceDir = path.join(process.cwd(), 'docs', 'governance')
+  if (!fs.existsSync(governanceDir)) {
+    fs.mkdirSync(governanceDir, { recursive: true })
+  }
+  
+  const outputFile = path.join(governanceDir, options.sample ? 'warn-review-sample.json' : 'warn-review-full.json')
+  fs.writeFileSync(outputFile, JSON.stringify(finalEntries, null, 2))
+  
+  console.log(`✓ Exported ${finalEntries.length} WARN entries to ${path.relative(process.cwd(), outputFile)}`)
+  if (options.sample) {
+    console.log(`  (stratified sample — run without --warn-sample to export all ${entries.length} entries)`)
+  }
+}
+
 /* ------------------------------------------------------------------ */
-/*  Types                                                             */
+/*  Main                                                               */
 /* ------------------------------------------------------------------ */
 
 type Category = 'ALLOWED_OVS' | 'ALLOWED_CPS' | 'WARN' | 'CRITICAL' | 'DEFERRED_BY_DESIGN'
@@ -31,6 +55,21 @@ interface Finding {
   line: number
   reason: string
   detail: string
+}
+
+interface WARNReviewEntry {
+  id: string
+  file: string
+  line: number
+  pattern: 'arbitrary-color' | 'hover-handler' | 'manual-skeleton'
+  value: string
+  context: 'text' | 'bg' | 'border' | 'ring' | 'outline' | 'decoration' | 'accent' | 'caret' | null
+  component_type: string | null
+  confidence: Confidence
+  bucket: 'WARN-LEGITIMATE-OVS' | 'WARN-THEMING' | 'WARN-CPS-CANDIDATE' | 'WARN-TRANSITIONAL' | 'WARN-NOISE' | null
+  requires_followup: boolean
+  notes: string
+  reviewed: boolean
 }
 
 interface OVSWhitelistEntry {
@@ -500,8 +539,97 @@ function printResults(results: ScannerResult[], options: OutputOptions): void {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Main                                                               */
+/*  WARN Review Export                                                  */
 /* ------------------------------------------------------------------ */
+
+const ARBITRARY_COLOR_VALUE_RE = /\b(bg|text|border|ring|outline|decoration|accent|caret)-\[(#[\dA-Fa-f]{3,8}|rgba?\([^)]+\)|hsl\([^)]+\))\]/
+
+function extractColorContext(reason: string): 'text' | 'bg' | 'border' | 'ring' | 'outline' | 'decoration' | 'accent' | 'caret' | null {
+  const match = reason.match(ARBITRARY_COLOR_VALUE_RE)
+  if (match) {
+    return match[1] as any
+  }
+  return null
+}
+
+function extractColorValue(reason: string): string | null {
+  const match = reason.match(ARBITRARY_COLOR_VALUE_RE)
+  if (match) {
+    return match[2]
+  }
+  // For hover handlers and manual skeletons
+  if (reason.includes('animate-pulse')) return 'animate-pulse'
+  if (reason.includes('hover handler')) return 'hover-handler'
+  return null
+}
+
+function determinePattern(reason: string): 'arbitrary-color' | 'hover-handler' | 'manual-skeleton' {
+  if (reason.includes('Tailwind arbitrary color')) return 'arbitrary-color'
+  if (reason.includes('hover handler')) return 'hover-handler'
+  if (reason.includes('animate-pulse')) return 'manual-skeleton'
+  return 'arbitrary-color'
+}
+
+function generateWARNReviewEntry(finding: Finding, index: number): WARNReviewEntry {
+  return {
+    id: `warn-${determinePattern(finding.reason)}-${String(index).padStart(4, '0')}`,
+    file: finding.file,
+    line: finding.line,
+    pattern: determinePattern(finding.reason),
+    value: extractColorValue(finding.reason) || 'unknown',
+    context: extractColorContext(finding.reason),
+    component_type: null,
+    confidence: finding.confidence,
+    bucket: null,
+    requires_followup: false,
+    notes: '',
+    reviewed: false,
+  }
+}
+
+function stratifiedSample(entries: WARNReviewEntry[], targetSize: number): WARNReviewEntry[] {
+  const sample: WARNReviewEntry[] = []
+  
+  // Group by value for stratification
+  const byValue = new Map<string, WARNReviewEntry[]>()
+  entries.forEach(e => {
+    const key = e.value
+    if (!byValue.has(key)) byValue.set(key, [])
+    byValue.get(key)!.push(e)
+  })
+
+  // Stratification config
+  const stratConfig: Array<{ values: string[]; count: number; label: string }> = [
+    { values: ['#38BDF8'], count: 10, label: 'Brand #38BDF8' },
+    { values: ['#0F4C5C'], count: 10, label: 'Brand #0F4C5C' },
+    { values: ['#0C3E4A'], count: 5, label: 'Brand #0C3E4A' },
+    { values: ['#475569', '#0F172A', '#1E293B', '#E2E8F0', '#F8FAFC', '#94A3B8'], count: 15, label: 'Slate neutrals' },
+    { values: ['#DC2626', '#E74C3C', '#16A34A', '#27AE60', '#F59E0B'], count: 10, label: 'Semantic colors' },
+    { values: ['#FAFAF9', '#0EA5E9', '#5eead4', '#0a3d4a', '#219A52'], count: 5, label: 'Misc low-count' },
+  ]
+
+  // Sample by strata
+  for (const stratum of stratConfig) {
+    const available = entries.filter(e => stratum.values.includes(e.value))
+    const take = Math.min(stratum.count, available.length)
+    for (let i = 0; i < take; i++) {
+      sample.push(available[i])
+    }
+  }
+
+  // Add all hover handlers and manual skeletons
+  const hoverHandlers = entries.filter(e => e.pattern === 'hover-handler')
+  const manualSkeletons = entries.filter(e => e.pattern === 'manual-skeleton')
+  
+  for (let i = 0; i < Math.min(10, hoverHandlers.length); i++) {
+    sample.push(hoverHandlers[i])
+  }
+  for (let i = 0; i < Math.min(10, manualSkeletons.length); i++) {
+    sample.push(manualSkeletons[i])
+  }
+
+  return sample
+}
 
 function main(): void {
   const args = process.argv.slice(2)
@@ -510,6 +638,9 @@ function main(): void {
     json: args.includes('--json'),
     verbose: args.includes('--verbose'),
   }
+  const exportReview = args.includes('--export-warn-review')
+  const sampleIndex = args.indexOf('--warn-sample')
+  const sampleSize = sampleIndex !== -1 && args[sampleIndex + 1] ? parseInt(args[sampleIndex + 1], 10) : undefined
 
   const srcDir = path.resolve(process.cwd(), 'src')
   if (!fs.existsSync(srcDir)) {
@@ -571,6 +702,13 @@ function main(): void {
     results[1].findings.push(...primitiveFindings)
     results[2].findings.push(...hoverFindings)
     results[3].findings.push(...cpsFindings)
+  }
+
+  // Handle export-warn-review flag
+  if (exportReview) {
+    const allFindings = results.flatMap(r => r.findings)
+    exportWARNReview(allFindings, { sample: sampleSize })
+    return
   }
 
   printResults(results, options)
