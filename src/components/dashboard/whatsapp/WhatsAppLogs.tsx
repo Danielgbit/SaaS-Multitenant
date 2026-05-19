@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Badge } from '@/components/ui/Badge'
-import { MessageCircle, Send, XCircle, Clock, Loader2, CheckCircle2, AlertCircle, Phone, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
+import { MessageCircle, Send, XCircle, Clock, CheckCircle2, AlertCircle, Phone, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { getWhatsAppLogs } from '@/actions/whatsapp/getWhatsAppLogs'
 import { resendWhatsAppReminder } from '@/actions/whatsapp/resendWhatsAppReminder'
 
@@ -123,7 +124,7 @@ export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
   if (!mounted) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+        <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>
     )
   }
@@ -192,10 +193,7 @@ export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
       >
         {loading ? (
           <div className="p-16 text-center">
-            <Loader2 
-              className="w-8 h-8 mx-auto animate-spin mb-4"
-              style={{ color: COLORS.primary }} 
-            />
+            <Spinner size="lg" className="mx-auto mb-4" style={{ color: COLORS.primary }} />
             <p style={{ color: COLORS.textMuted }}>Cargando historial...</p>
           </div>
         ) : logs.length === 0 ? (
@@ -306,7 +304,7 @@ export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
                           }}
                         >
                           {resendingId === log.id ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <Spinner size="sm" className="w-3 h-3" />
                           ) : (
                             <>
                               <RefreshCw className="w-3 h-3 inline mr-1" />

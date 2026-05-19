@@ -7,7 +7,6 @@ import {
   Calendar, 
   Scissors, 
   MoreVertical, 
-  Loader2, 
   UserX,
   Check,
   AlertCircle,
@@ -17,6 +16,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { Spinner } from '@/components/ui'
 import { toggleEmployeeStatus } from '@/actions/employees/toggleEmployeeStatus'
 import { resendInvitation } from '@/actions/invitations/resendInvitation'
 import { cancelInvitation } from '@/actions/invitations/cancelInvitation'
@@ -316,7 +316,7 @@ export function EmployeeCard({
                     disabled={loading}
                     className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-2 rounded-lg bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 text-[#0F4C5C] dark:text-[#38BDF8] hover:bg-[#0F4C5C]/20 dark:hover:bg-[#38BDF8]/20 shadow-sm transition-all duration-200 disabled:opacity-50"
                   >
-                    {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                    {loading ? <Spinner size="sm" className="w-3.5 h-3.5" /> : <RotateCcw className="w-3.5 h-3.5" />}
                     <span className="hidden sm:inline">Reenviar</span>
                   </button>
                 </>
@@ -346,7 +346,7 @@ export function EmployeeCard({
                 `}
               >
                 {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Spinner size="sm" />
                 ) : (
                   <MoreVertical className="w-4 h-4" />
                 )}

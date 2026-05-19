@@ -29,7 +29,7 @@ export interface ShadowSeed {
   appointmentId: string
   observedUpdatedAt: string
   initialStatus: string
-  initialConfirmationStatus: string
+  initialConfirmationStatus: string | null
   correlationId: string
 }
 

@@ -1,11 +1,7 @@
 'use client'
 
-import {
-  X,
-  AlertTriangle,
-  ArrowRight,
-  Loader2
-} from 'lucide-react'
+import { X, AlertTriangle, ArrowRight } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
@@ -177,7 +173,7 @@ export function ChangesPreviewModal({
             style={{ backgroundColor: COLORS.primary }}
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Spinner size="sm" />
             ) : null}
             {loading ? 'Guardando...' : 'Aplicar Cambios'}
           </button>

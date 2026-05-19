@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Loader2, AlertTriangle } from 'lucide-react'
+import { X, AlertTriangle } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useActionState } from 'react'
 import { deleteClient } from '@/actions/clients/deleteClient'
 import { useThemeColors } from '@/hooks/useThemeColors'
@@ -141,7 +142,7 @@ export function DeleteClientModal({
               }}
               className="flex-1 font-medium transition-colors hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              {isSubmitting && <Spinner size="sm" />}
               Eliminar
             </button>
           </div>

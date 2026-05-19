@@ -11,7 +11,6 @@ import {
   ChevronRight,
   Plus,
   Settings,
-  Loader2,
   AlertTriangle,
   Wallet,
   Receipt,
@@ -19,6 +18,7 @@ import {
   TrendingDown,
   ArrowUpDown
 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { LoanModal } from './LoanModal'
 import { PeriodSelector } from './PeriodSelector'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
@@ -193,7 +193,7 @@ export function PayrollClient({
   if (!mounted) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#38BDF8]" />
+        <Spinner size="lg" className="text-[#38BDF8]" />
       </div>
     )
   }
@@ -401,7 +401,7 @@ export function PayrollClient({
         >
           {loading ? (
             <div className="p-12 text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto" style={{ color: COLORS.primary }} />
+              <Spinner size="lg" className="mx-auto" style={{ color: COLORS.primary }} />
               <p className="mt-3" style={{ color: COLORS.textMuted }}>Calculando comisiones...</p>
             </div>
           ) : (
@@ -611,7 +611,7 @@ export function PayrollClient({
 
           {loading ? (
             <div className="text-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto" style={{ color: COLORS.primary }} />
+              <Spinner size="lg" className="mx-auto" style={{ color: COLORS.primary }} />
               <p className="mt-3" style={{ color: COLORS.textMuted }}>Calculando comisiones...</p>
             </div>
           ) : (

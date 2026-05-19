@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { HelpCircle, Loader2, Mail, Send, XCircle, Clock, Zap, History, CheckCircle2, AlertCircle, Bell, CheckSquare, TrendingUp, Save } from 'lucide-react'
+import { HelpCircle, Mail, Send, XCircle, Clock, Zap, History, CheckCircle2, AlertCircle, Bell, CheckSquare, TrendingUp, Save } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { getEmailSettings } from '@/actions/email/getEmailSettings'
 import { getEmailLogs } from '@/actions/email/getEmailLogs'
 import { updateEmailSettings } from '@/actions/email/updateEmailSettings'
@@ -162,7 +163,7 @@ export function EmailSettingsClient({ organizationId }: EmailSettingsClientProps
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+        <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>
     )
   }
@@ -170,7 +171,7 @@ export function EmailSettingsClient({ organizationId }: EmailSettingsClientProps
   if (!mounted) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+        <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>
     )
   }
@@ -515,7 +516,7 @@ export function EmailSettingsClient({ organizationId }: EmailSettingsClientProps
               }}
             >
               {saving ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Spinner size="sm" className="w-5 h-5" />
               ) : (
                 <Save className="w-5 h-5" />
               )}

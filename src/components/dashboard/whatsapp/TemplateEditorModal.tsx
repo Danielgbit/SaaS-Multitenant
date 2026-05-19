@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Save, RotateCcw, Loader2, Plus, Trash2 } from 'lucide-react'
+import { X, Save, RotateCcw, Plus, Trash2 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { AlertBanner } from './AlertBanner'
 import { updateTemplate, resetTemplateToDefault, createTemplate, deleteTemplate } from '@/actions/notifications/templates'
@@ -319,7 +320,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
                     className="px-3 py-1.5 rounded-xl text-sm font-medium text-white"
                     style={{ backgroundColor: COLORS.error, opacity: deleting ? 0.7 : 1 }}
                   >
-                    {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sí'}
+                    {deleting ? <Spinner size="sm" /> : 'Sí'}
                   </button>
                   <button
                     onClick={() => setConfirmDelete(false)}
@@ -362,7 +363,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
                 }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
               >
-                {resetting ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                {resetting ? <Spinner size="sm" /> : <RotateCcw className="w-4 h-4" />}
                 <span>Resetear a defecto</span>
               </button>
             )}
@@ -385,7 +386,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
                 opacity: saving ? 0.7 : 1,
               }}
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {saving ? <Spinner size="sm" /> : <Save className="w-4 h-4" />}
               <span>{isCreate ? 'Crear' : 'Guardar'}</span>
             </button>
           </div>

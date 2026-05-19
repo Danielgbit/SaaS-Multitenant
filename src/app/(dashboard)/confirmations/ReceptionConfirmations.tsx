@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   CheckCircle, XCircle, Clock,
-  Loader2,
   TrendingUp, Check, X, Sparkles,
   Calendar, MessageSquare, CreditCard, Ban, Receipt
 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { confirmByReception } from '@/actions/confirmations/confirmByReception'
 import { PaymentModal } from '@/components/dashboard/PaymentModal'
@@ -451,7 +451,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                                 boxShadow: `0 4px 12px ${COLORS.primary}30`,
                               }}>
                               {processing === conf.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Spinner size="sm" />
                               ) : (
                                 <><CreditCard className="w-4 h-4" /> Cobrar</>
                               )}

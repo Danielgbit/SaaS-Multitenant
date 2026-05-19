@@ -10,7 +10,6 @@ import {
   Users,
   Clock,
   Receipt,
-  Loader2,
   CheckCircle2,
   AlertTriangle,
   ChevronDown,
@@ -21,6 +20,7 @@ import {
   TrendingDown,
   PiggyBank
 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { generatePayrollReceipt } from '@/actions/payroll/generatePayrollReceipt'
 import { PeriodSelector } from './PeriodSelector'
 import type { CommissionWithDayGroups, EmployeeDebtInfo, PayrollReceipt, PeriodType } from '@/types/payroll'
@@ -149,7 +149,7 @@ export function EmployeePayrollDetail({
   if (!mounted) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+        <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>
     )
   }
@@ -222,7 +222,7 @@ export function EmployeePayrollDetail({
             className="px-6 py-2 rounded-xl font-medium text-white transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
             style={{ backgroundColor: COLORS.primary }}
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clock className="w-4 h-4" />}
+            {loading ? <Spinner size="sm" /> : <Clock className="w-4 h-4" />}
             {loading ? 'Calculando...' : 'Calcular'}
           </button>
         </div>
@@ -672,7 +672,7 @@ export function EmployeePayrollDetail({
               style={{ backgroundColor: COLORS.primary }}
             >
               {generating ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Spinner size="sm" className="w-5 h-5" />
               ) : (
                 <Receipt className="w-5 h-5" />
               )}

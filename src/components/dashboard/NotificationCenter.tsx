@@ -8,7 +8,6 @@ import {
   AlertTriangle,
   Clock,
   CheckCheck,
-  Loader2,
   X
 } from 'lucide-react'
 import type { Notification, NotificationType } from '@/types/confirmations'

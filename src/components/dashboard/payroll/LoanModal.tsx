@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { DollarSign, X, CheckCircle2, AlertTriangle, HelpCircle, Loader2 } from 'lucide-react'
+import { DollarSign, X, CheckCircle2, AlertTriangle, HelpCircle } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { createEmployeeLoan } from '@/actions/payroll/createEmployeeLoan'
 import type { LoanConcept } from '@/types/payroll'
@@ -409,7 +410,7 @@ export function LoanModal({
                   style={{ backgroundColor: COLORS.primary }}
                 >
                   {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Spinner size="sm" />
                   ) : (
                     <DollarSign className="w-4 h-4" />
                   )}

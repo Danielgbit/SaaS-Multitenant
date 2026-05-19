@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { Check, AlertCircle, HelpCircle, UserCircle, Loader2, PhoneCall, MessageCircle, Users, User, BellOff, X, Phone, Mail } from 'lucide-react'
+import { Check, AlertCircle, HelpCircle, UserCircle, PhoneCall, MessageCircle, Users, User, BellOff, X, Phone, Mail } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import type { ConfirmationMethod } from '@/types/clients'
 import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
 import { createClient as createClientAction } from '@/actions/clients/createClient'
@@ -897,7 +898,7 @@ export function EditClientModal({
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Spinner size="sm" />
                   Guardando...
                 </>
               ) : (

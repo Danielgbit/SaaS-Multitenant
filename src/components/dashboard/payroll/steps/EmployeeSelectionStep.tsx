@@ -1,6 +1,7 @@
 'use client'
 
-import { ChevronLeft, FileText, CheckSquare, Pencil, Loader2, Briefcase, Clock, AlertCircle } from 'lucide-react'
+import { ChevronLeft, FileText, CheckSquare, Pencil, Briefcase, Clock, AlertCircle } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import type { ThemeColors } from '@/hooks/useThemeColors'
 import EmployeeCard, { type EmployeeCardData } from '../EmployeeCard'
 import BulkEditModal, { type BulkEditField } from '../BulkEditModal'
@@ -159,7 +160,7 @@ export default function EmployeeSelectionStep({
           <button onClick={onCreate} disabled={selectedCount === 0 || loading}
             className="flex-1 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:shadow-md flex items-center justify-center gap-2"
             style={{ backgroundColor: COLORS.primary }}>
-            {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Creando...</> : 'Crear Período'}
+            {loading ? <><Spinner size="sm" /> Creando...</> : 'Crear Período'}
           </button>
         </div>
       </div>

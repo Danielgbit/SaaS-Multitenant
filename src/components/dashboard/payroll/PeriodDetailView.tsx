@@ -11,7 +11,6 @@ import {
   TrendingUp,
   CheckCircle,
   Clock,
-  Loader2,
   AlertTriangle,
   ChevronRight,
   Pencil,
@@ -27,6 +26,7 @@ import {
   Mail,
   Edit2
 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Badge } from '@/components/ui/Badge'
@@ -362,7 +362,7 @@ export function PeriodDetailView({
   if (!mounted) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+        <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>
     )
   }
@@ -417,7 +417,7 @@ export function PeriodDetailView({
                   className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
                   style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                  {loading ? <Spinner size="sm" /> : <CheckCircle className="w-4 h-4" />}
                   Aprobar
                 </button>
                 <button
@@ -987,7 +987,7 @@ function PaymentModalWrapper({
             className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-50 flex items-center justify-center gap-2"
             style={{ backgroundColor: COLORS.success }}
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+            {loading ? <Spinner size="sm" /> : <CheckCircle className="w-4 h-4" />}
             Confirmar Pago
           </button>
         </div>

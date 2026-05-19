@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X, Mail, Copy, Check, Loader2, UserPlus, Shield, Send } from 'lucide-react'
+import { X, Mail, Copy, Check, UserPlus, Shield, Send } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { createInvitation } from '@/actions/invitations/createInvitation'
 import type { Employee } from '@/types/employees'
 import type { MemberRole } from '@/types/invitations'
@@ -477,7 +478,7 @@ export function InviteEmployeeModal({ isOpen, employee, organizationName, onClos
               >
                 {isPending ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Spinner size="sm" className="w-5 h-5" />
                     <span>Creando...</span>
                   </>
                 ) : (

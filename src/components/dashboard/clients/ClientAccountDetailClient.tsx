@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Loader2, ArrowLeft, DollarSign, TrendingUp, CheckCircle2, CreditCard, AlertTriangle, ShoppingCart, Clock, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
+import { ArrowLeft, DollarSign, TrendingUp, CheckCircle2, CreditCard, AlertTriangle, ShoppingCart, Clock, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import type { ClientAccountTransactionWithDetails, InventoryItemWithStock } from '@/types/clientAccounts'
@@ -60,7 +61,7 @@ export function ClientAccountDetailClient({
   if (!mounted) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+        <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>
     )
   }
@@ -639,7 +640,7 @@ export function ClientAccountDetailClient({
                 className="flex-1 py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 style={{ backgroundColor: COLORS.primary }}
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                {loading ? <Spinner size="sm" className="w-5 h-5" /> : null}
                 {loading ? 'Registrando...' : 'Registrar Venta'}
               </button>
             </div>
@@ -728,7 +729,7 @@ export function ClientAccountDetailClient({
                 className="flex-1 py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 style={{ backgroundColor: COLORS.success }}
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                {loading ? <Spinner size="sm" className="w-5 h-5" /> : null}
                 {loading ? 'Registrando...' : 'Registrar Pago'}
               </button>
             </div>

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Package, Search, AlertTriangle, FolderOpen, ChevronDown, X, Loader2 } from 'lucide-react'
+import { Plus, Package, Search, AlertTriangle, FolderOpen, ChevronDown, X } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
 import { InventoryCard } from './InventoryCard'
@@ -333,7 +334,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
 
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+          <Spinner size="lg" style={{ color: COLORS.primary }} />
         </div>
       ) : items.length === 0 ? (
         <div 

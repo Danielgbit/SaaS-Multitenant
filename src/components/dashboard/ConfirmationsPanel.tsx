@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, Bell, AlertTriangle, CheckCircle2, Loader2, User, Clock, DollarSign, Info, CreditCard } from 'lucide-react'
+import { X, Bell, AlertTriangle, CheckCircle2, User, Clock, DollarSign, Info, CreditCard } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { PaymentModal } from './PaymentModal'
 import { AdjustPriceModal } from './AdjustPriceModal'

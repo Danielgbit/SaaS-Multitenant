@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
-import { X, Trash2, Loader2, AlertTriangle, Check, Calendar, FileText, Wrench, CreditCard, Clock } from 'lucide-react'
+import { X, Trash2, AlertTriangle, Check, Calendar, FileText, Wrench, CreditCard, Clock } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { permanentDeleteEmployee } from '@/actions/employees/permanentDeleteEmployee'
 import { countEmployeeRecords, type EmployeeRecordCounts } from '@/actions/employees/countEmployeeRecords'
 import type { Employee } from '@/types/employees'
@@ -181,7 +182,7 @@ export function PermanentDeleteModal({ employee, onClose }: PermanentDeleteModal
 
           {isLoadingCounts && (
             <div className="flex items-center justify-center py-4">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+              <Spinner size="md" className="text-slate-400" />
             </div>
           )}
 
@@ -261,7 +262,7 @@ export function PermanentDeleteModal({ employee, onClose }: PermanentDeleteModal
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Spinner size="sm" className="w-5 h-5" />
                   <span>Eliminando...</span>
                 </>
               ) : (

@@ -4,7 +4,8 @@ import { useState, useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { applyCode, type ApplyCodeState } from '@/actions/promoCodes/applyCode'
 import { validateCode, type ValidateCodeResult } from '@/actions/promoCodes/validateCode'
-import { TicketIcon, CheckCircle2, XCircle, Loader2, Gift, ArrowRight, Sparkles } from 'lucide-react'
+import { TicketIcon, CheckCircle2, XCircle, Gift, ArrowRight, Sparkles } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
 const initialState: ApplyCodeState = {}
@@ -128,7 +129,7 @@ export function PromoCodeInput() {
             />
             {validating && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Loader2 className="w-5 h-5 animate-spin" style={{ color: COLORS.amber }} />
+                <Spinner size="sm" className="w-5 h-5" style={{ color: COLORS.amber }} />
               </div>
             )}
             {!validating && preview && (
@@ -317,7 +318,7 @@ function ApplyButton() {
     >
       {pending ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <Spinner size="sm" />
           Aplicando...
         </>
       ) : (

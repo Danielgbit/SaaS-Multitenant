@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Scissors, Clock, DollarSign, Loader2, Check } from 'lucide-react'
+import { X, Scissors, Clock, DollarSign, Check } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { needsParsing, parseDuration, formatDurationDisplay, formatDurationInput } from '@/lib/utils/parseDuration'
 import { formatPriceInput, parsePriceToNumber } from '@/lib/utils/parsePrice'
@@ -383,7 +384,7 @@ export function CreateServiceModal({ isOpen, onClose }: CreateServiceModalProps)
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Spinner size="sm" className="w-5 h-5" />
                   <span>Creando...</span>
                 </>
               ) : (

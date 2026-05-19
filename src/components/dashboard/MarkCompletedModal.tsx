@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition, useCallback } from 'react'
-import { X, CheckCircle2, Loader2, AlertCircle, Plus, Minus } from 'lucide-react'
+import { X, CheckCircle2, AlertCircle, Plus, Minus } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { markCompleted } from '@/actions/confirmations/markCompleted'
 import { toast } from 'sonner'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
@@ -242,7 +243,7 @@ export function MarkCompletedModal({
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Spinner size="sm" />
                   Guardando...
                 </>
               ) : (

@@ -1,7 +1,8 @@
 'use client'
 
 import { useActionState } from 'react'
-import { Building2, User, Mail, ArrowRight, Loader2 } from 'lucide-react'
+import { Building2, User, Mail, ArrowRight } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { registerAction } from '@/actions/auth'
 import { PasswordInput } from './PasswordInput'
 
@@ -99,7 +100,7 @@ export function RegisterForm() {
       >
         {isPending ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Spinner size="sm" className="w-5 h-5" />
             <span>Creando...</span>
           </>
         ) : (

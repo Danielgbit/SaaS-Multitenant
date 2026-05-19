@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Pencil, ToggleLeft, ToggleRight, Loader2, Scissors, Clock, DollarSign, Sparkles } from 'lucide-react'
+import { Pencil, ToggleLeft, ToggleRight, Scissors, Clock, DollarSign, Sparkles } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { toggleServiceStatus } from '@/actions/services/toggleServiceStatus'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { formatDuration } from '@/lib/utils/formatTime'
@@ -267,7 +268,7 @@ export function ServiceList({ services, allEmpty, filter = 'all', COLORS }: Serv
                 }}
               >
                 {loadingId === service.id ? (
-                  <Loader2 className="w-4 h-4 animate-spin" style={{ color: COLORS.textMuted }} />
+                  <Spinner size="sm" style={{ color: COLORS.textMuted }} />
                 ) : service.active ? (
                   <ToggleRight className="w-5 h-5" style={{ color: COLORS.success }} />
                 ) : (

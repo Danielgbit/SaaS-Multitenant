@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
-  Package, User, Phone, FileText, Loader2, Check, 
+  Package, User, Phone, FileText, Check, 
   Search, ArrowLeft, ArrowRight, Sparkles, Clock,
   CreditCard, Banknote, DollarSign, X, ShoppingCart,
   CheckCircle, AlertCircle
 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { ConfirmationService } from '@/types/confirmations'
 import { createConfirmation } from '@/actions/confirmations/createConfirmation'
@@ -578,7 +579,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Spinner size="sm" className="w-5 h-5" />
                     Registrando...
                   </>
                 ) : (

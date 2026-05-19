@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Search, Plus, X, Loader2, User } from 'lucide-react'
+import { Search, Plus, X, User } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { searchClients } from '@/services/clients/getClients'
 import { createClientAction } from '@/actions/clients/createClient'
 import { useThemeColors } from '@/hooks/useThemeColors'
@@ -178,10 +179,7 @@ export function ClientSelector({
         >
           {isLoading && (
             <div className="flex items-center justify-center py-4">
-              <Loader2 
-                className="w-5 h-5 animate-spin" 
-                style={{ color: COLORS.primary }} 
-              />
+              <Spinner size="sm" className="w-5 h-5" style={{ color: COLORS.primary }} />
             </div>
           )}
 
@@ -288,7 +286,7 @@ export function ClientSelector({
                   onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9' }}
                   onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
                 >
-                  {isCreating && <Loader2 className="w-3 h-3 animate-spin" />}
+                  {isCreating && <Spinner size="sm" className="w-3 h-3" />}
                   Crear
                 </button>
               </div>

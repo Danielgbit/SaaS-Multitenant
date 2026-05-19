@@ -1,6 +1,7 @@
 'use client'
 
-import { Plus, Trash2, Coffee, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Coffee } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { WEEKDAYS } from '@/types/availability'
 import { formatTime12 } from '@/lib/utils/formatTime'
 import type { EmployeeAvailability } from '@/types/availability'
@@ -101,7 +102,7 @@ export function WeekGrid({ availability, onEdit, onAdd, onDelete, deletingId }: 
                     title="Eliminar horario"
                   >
                     {deletingId === slot.id ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <Spinner size="sm" className="w-3.5 h-3.5" />
                     ) : (
                       <Trash2 className="w-3.5 h-3.5" />
                     )}

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Settings, Building2, Clock, Bell, Loader2, Check, AlertCircle, Database } from 'lucide-react'
+import { Settings, Building2, Clock, Bell, Check, AlertCircle, Database } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { updateBookingSettings } from '@/actions/settings/updateBookingSettings'
 import { updateOrganization } from '@/actions/settings/updateOrganization'
@@ -209,7 +210,7 @@ export default function SettingsClient({
       {/* Content */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+          <Spinner size="lg" style={{ color: COLORS.primary }} />
         </div>
       ) : (
         <div className="space-y-6">
@@ -413,7 +414,7 @@ export default function SettingsClient({
                   color: '#FFFFFF',
                 }}
               >
-                {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                {saving ? <Spinner size="sm" className="w-5 h-5" /> : <Check className="w-5 h-5" />}
                 Guardar cambios
               </button>
             </div>
@@ -528,7 +529,7 @@ export default function SettingsClient({
                   color: '#FFFFFF',
                 }}
               >
-                {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                {saving ? <Spinner size="sm" className="w-5 h-5" /> : <Check className="w-5 h-5" />}
                 Guardar cambios
               </button>
             </div>
@@ -594,7 +595,7 @@ export default function SettingsClient({
                   color: '#FFFFFF',
                 }}
               >
-                {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                {saving ? <Spinner size="sm" className="w-5 h-5" /> : <Check className="w-5 h-5" />}
                 Guardar cambios
               </button>
             </div>

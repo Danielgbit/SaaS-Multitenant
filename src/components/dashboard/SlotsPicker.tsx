@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Loader2, Clock, CheckCircle2, XCircle, Calendar } from 'lucide-react'
+import { Clock, CheckCircle2, XCircle, Calendar } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { createAppointment } from '@/actions/appointments/createAppointment'
 import { ClientSelector } from './ClientSelector'
 import { useThemeColors } from '@/hooks/useThemeColors'
@@ -262,10 +263,7 @@ const COLORS = useThemeColors()
       {/* Loading de slots */}
       {isLoading && (
         <div className="flex items-center justify-center py-8 gap-3">
-          <Loader2 
-            className="w-5 h-5 animate-spin" 
-            style={{ color: COLORS.primary }} 
-          />
+          <Spinner size="sm" className="w-5 h-5" style={{ color: COLORS.primary }} />
           <span 
             className="text-sm"
             style={{ 
@@ -478,7 +476,7 @@ const COLORS = useThemeColors()
         >
           {isBooking ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Spinner size="sm" />
               Reservando...
             </>
           ) : (

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, X, AlertTriangle, Loader2, Link2, Send, Shield } from 'lucide-react'
+import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, X, AlertTriangle, Link2, Send, Shield } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { toast } from 'sonner'
 import { createInvitation } from '@/actions/invitations/createInvitation'
 import { resendInvitation } from '@/actions/invitations/resendInvitation'
@@ -449,7 +450,7 @@ export function EmployeeAccessTab({
                 disabled={isLoading || !canSubmit}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] text-white font-medium shadow-lg shadow-[#0F4C5C]/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {isLoading ? <Spinner size="sm" /> : <Send className="w-4 h-4" />}
                 Crear invitación
               </button>
             </div>

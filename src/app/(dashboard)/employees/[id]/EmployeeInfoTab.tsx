@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { User, Phone, Save, Loader2, Check } from 'lucide-react'
+import { User, Phone, Save, Check } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { updateEmployee } from '@/actions/employees/updateEmployee'
 import { toggleEmployeeStatus } from '@/actions/employees/toggleEmployeeStatus'
 import type { Employee } from '@/types/employees'
@@ -190,7 +191,7 @@ export function EmployeeInfoTab({ employee, organizationId }: EmployeeInfoTabPro
           <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           {isPending ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin relative" />
+              <Spinner size="sm" className="w-5 h-5 relative" />
               <span className="relative">Guardando...</span>
             </>
           ) : saved ? (

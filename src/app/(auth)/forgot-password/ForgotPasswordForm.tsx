@@ -2,7 +2,8 @@
 
 import { useActionState } from 'react'
 import { sendPasswordResetEmail } from '@/actions/auth/sendPasswordResetEmail'
-import { Loader2, Mail, CheckCircle } from 'lucide-react'
+import { Mail, CheckCircle } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 
 type FormState = { error?: string; success?: boolean } | null
 
@@ -61,7 +62,7 @@ export function ForgotPasswordForm() {
       >
         {isPending ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Spinner size="sm" className="w-5 h-5" />
             Enviando...
           </>
         ) : (

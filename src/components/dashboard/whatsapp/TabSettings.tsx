@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Loader2, Save, TestTube, Eye, EyeOff, CheckCircle, AlertTriangle, HelpCircle } from 'lucide-react'
+import { Save, TestTube, Eye, EyeOff, CheckCircle, AlertTriangle, HelpCircle } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { AlertBanner } from './AlertBanner'
 import { getProvider, upsertProvider, testProviderConnection } from '@/actions/notifications/providers'
@@ -104,7 +105,7 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+        <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>
     )
   }
@@ -381,7 +382,7 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
           }}
         >
           {testing ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Spinner size="sm" className="w-5 h-5" />
           ) : (
             <TestTube className="w-5 h-5" />
           )}
@@ -406,7 +407,7 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
           }}
         >
           {saving ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Spinner size="sm" className="w-5 h-5" />
           ) : (
             <Save className="w-5 h-5" />
           )}

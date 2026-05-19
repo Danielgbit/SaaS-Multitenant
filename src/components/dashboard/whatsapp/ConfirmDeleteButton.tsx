@@ -1,6 +1,7 @@
 'use client'
 
-import { Loader2, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface ConfirmDeleteButtonProps {
@@ -20,7 +21,7 @@ export function ConfirmDeleteButton({ onConfirm, loading, label = '¿Eliminar?' 
         className="px-2.5 py-1 rounded-lg text-xs font-semibold text-white"
         style={{ backgroundColor: COLORS.error, opacity: loading ? 0.7 : 1 }}
       >
-        {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : label}
+        {loading ? <Spinner size="sm" className="w-3 h-3" /> : label}
       </button>
       <button
         disabled={loading}

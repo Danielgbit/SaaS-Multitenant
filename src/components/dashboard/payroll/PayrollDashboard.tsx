@@ -95,7 +95,7 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
           suffix="empleados"
           icon={<CheckCircle className="w-4 h-4" />}
           iconColor={colors.success}
-          onClick={dashboardData.employees_ready_to_pay > 0 && dashboardData.current_period ? () => router.push(`/payroll/period/${dashboardData.current_period.id}`) : undefined}
+          onClick={dashboardData.employees_ready_to_pay > 0 && dashboardData.current_period ? () => router.push(`/payroll/period/${dashboardData.current_period!.id}`) : undefined}
           footer={dashboardData.employees_ready_to_pay > 0 && dashboardData.current_period && <span className="text-xs" style={{ color: colors.textMuted }}>Pagar →</span>}
         />
         <MetricCard

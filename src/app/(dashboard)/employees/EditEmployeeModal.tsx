@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X, PencilLine, Phone, Loader2, AlertTriangle, UserX } from 'lucide-react'
+import { X, PencilLine, Phone, AlertTriangle, UserX } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { updateEmployee } from '@/actions/employees/updateEmployee'
 import type { Employee } from '@/types/employees'
 
@@ -147,7 +148,7 @@ export function EditEmployeeModal({ employee, onClose, onDelete }: EditEmployeeM
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Spinner size="sm" className="w-5 h-5" />
                   <span>Guardando...</span>
                 </>
               ) : (

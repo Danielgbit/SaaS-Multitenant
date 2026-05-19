@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertTriangle, X, Loader2, Package, CheckCircle } from 'lucide-react'
+import { AlertTriangle, X, Package, CheckCircle } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
 import { deleteInventoryItem } from '@/actions/inventory/deleteInventoryItem'
@@ -231,7 +232,7 @@ export function DeleteInventoryModal({
               >
                 {isDeleting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Spinner size="sm" />
                     Eliminando...
                   </>
                 ) : (

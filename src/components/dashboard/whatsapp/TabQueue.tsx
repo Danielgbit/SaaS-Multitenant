@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { Search, RefreshCw, X, ChevronLeft, ChevronRight, Loader2, Inbox, CheckSquare, Square, AlertCircle, RotateCcw, Ban } from 'lucide-react'
+import { Search, RefreshCw, X, ChevronLeft, ChevronRight, Inbox, CheckSquare, Square, AlertCircle, RotateCcw, Ban } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -313,7 +314,7 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                 style={{ backgroundColor: COLORS.primary, color: '#FFFFFF' }}
               >
-                {bulkLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
+                {bulkLoading ? <Spinner size="sm" className="w-3 h-3" /> : <RotateCcw className="w-3 h-3" />}
                 Reintentar
               </button>
               <button
@@ -322,7 +323,7 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                 style={{ backgroundColor: COLORS.error, color: '#FFFFFF' }}
               >
-                {bulkLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Ban className="w-3 h-3" />}
+                {bulkLoading ? <Spinner size="sm" className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
                 Cancelar
               </button>
               <button
@@ -507,7 +508,7 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                               aria-label="Reintentar mensaje"
                             >
                               {actionLoading === item.id ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <Spinner size="sm" className="w-3.5 h-3.5" />
                               ) : (
                                 <RefreshCw className="w-3.5 h-3.5" />
                               )}
@@ -522,7 +523,7 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                               aria-label="Cancelar mensaje"
                             >
                               {actionLoading === item.id ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <Spinner size="sm" className="w-3.5 h-3.5" />
                               ) : (
                                 <X className="w-3.5 h-3.5" />
                               )}

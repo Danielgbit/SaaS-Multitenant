@@ -3,7 +3,8 @@
 import { useState, useActionState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useFormStatus } from 'react-dom'
-import { Loader2, UserPlus, CheckCircle, Lock, Mail, AlertCircle } from 'lucide-react'
+import { UserPlus, CheckCircle, Lock, Mail, AlertCircle } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { acceptInvitation } from '@/actions/invitations/acceptInvitation'
 import { setupPasswordAndAccept } from '@/actions/invitations/setupPasswordAndAccept'
 import { PasswordInput } from '@/components/auth/PasswordInput'
@@ -20,7 +21,7 @@ function SubmitButton({ children, pending }: { children: React.ReactNode; pendin
     >
       {isPending ? (
         <>
-          <Loader2 className="w-5 h-5 animate-spin" />
+          <Spinner size="sm" className="w-5 h-5" />
           <span>Procesando...</span>
         </>
       ) : children}

@@ -2,7 +2,8 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { X, PencilLine, Scissors, Clock, DollarSign, Loader2, Check } from 'lucide-react'
+import { X, PencilLine, Scissors, Clock, DollarSign, Check } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { Service } from '@/types/services'
 import { needsParsing, parseDuration, formatDurationDisplay, formatDurationInput } from '@/lib/utils/parseDuration'
@@ -394,7 +395,7 @@ export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Spinner size="sm" className="w-5 h-5" />
                   <span>Guardando...</span>
                 </>
               ) : (

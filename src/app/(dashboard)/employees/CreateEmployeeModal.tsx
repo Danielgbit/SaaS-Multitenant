@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { X, UserPlus, Phone, Loader2, AlertTriangle, RotateCcw } from 'lucide-react'
+import { X, UserPlus, Phone, AlertTriangle, RotateCcw } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { createEmployee } from '@/actions/employees/createEmployee'
 import { toggleEmployeeStatus } from '@/actions/employees/toggleEmployeeStatus'
 import type { Employee } from '@/types/employees'
@@ -215,7 +216,7 @@ export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProp
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Spinner size="sm" className="w-5 h-5" />
                   <span>Creando...</span>
                 </>
               ) : (

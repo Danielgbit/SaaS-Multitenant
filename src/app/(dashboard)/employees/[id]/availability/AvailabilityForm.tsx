@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Loader2, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
+import { CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { setAvailability } from '@/actions/availability/setAvailability'
 import { WEEKDAYS } from '@/types/availability'
 import { BreakTimeFields } from '@/components/availability/BreakTimeFields'
@@ -225,7 +226,7 @@ export function AvailabilityForm({
         >
           {isPending ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Spinner size="sm" />
               {isEditing ? 'Actualizando...' : 'Guardando...'}
             </>
           ) : (

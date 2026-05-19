@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Loader2, ArrowLeft, Settings, CheckCircle2, AlertTriangle, Save } from 'lucide-react'
+import { ArrowLeft, Settings, CheckCircle2, AlertTriangle, Save } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { updatePayrollSettings } from '@/actions/payroll/getPayrollSettings'
 import type { PayrollType } from '@/types/payroll'
@@ -64,7 +65,7 @@ export function PayrollSettingsClient({
   if (!mounted) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+        <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>
     )
   }
@@ -309,7 +310,7 @@ export function PayrollSettingsClient({
             style={{ backgroundColor: COLORS.primary }}
           >
             {saving ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Spinner size="sm" className="w-5 h-5" />
             ) : (
               <Save className="w-5 h-5" />
             )}

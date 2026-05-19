@@ -2,7 +2,8 @@
 
 import { useActionState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Mail, ArrowRight, Loader2 } from 'lucide-react'
+import { Mail, ArrowRight } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { loginAction } from '@/actions/auth'
 import { PasswordInput } from './PasswordInput'
 import Link from 'next/link'
@@ -73,7 +74,7 @@ export function LoginForm() {
       >
         {isPending ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Spinner size="sm" className="w-5 h-5" />
             <span>Iniciando...</span>
           </>
         ) : (

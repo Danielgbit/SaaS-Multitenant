@@ -8,13 +8,13 @@ import {
   CheckCircle2, 
   ChevronRight, 
   ChevronLeft,
-  Loader2,
   X,
   Scissors,
   MapPin,
   Phone,
   Mail
 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { createPublicBooking } from '@/actions/public/createPublicBooking'
 import { formatTime, formatDate as formatDateUtil, formatDuration } from '@/lib/utils/formatTime'
 
@@ -439,7 +439,7 @@ export function BookingWizard({
 
                   {loadingSlots ? (
                     <div className="flex justify-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.primary }} />
+                      <Spinner size="md" style={{ color: COLORS.primary }} />
                     </div>
                   ) : availableSlots.length === 0 ? (
                     <div className="text-center py-6 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
@@ -777,7 +777,7 @@ export function BookingWizard({
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Reservando...
+                      <Spinner size="sm" /> Reservando...
                     </>
                   ) : (
                     <>

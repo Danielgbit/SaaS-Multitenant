@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Loader2 } from 'lucide-react'
+import { X } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { AutomationRule, MessageTemplate } from '@/types/notifications'
 
@@ -137,7 +138,7 @@ export function AutomationEditModal({ rule, templates, onSave, onClose }: Automa
               opacity: saving ? 0.7 : 1,
             }}
           >
-            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+            {saving && <Spinner size="sm" />}
             <span>{rule ? 'Guardar' : 'Crear'}</span>
           </button>
         </div>

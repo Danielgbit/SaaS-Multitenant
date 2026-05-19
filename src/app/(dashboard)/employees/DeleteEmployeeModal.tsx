@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X, UserX, Loader2, AlertTriangle } from 'lucide-react'
+import { X, UserX, AlertTriangle } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { archiveEmployee } from '@/actions/employees/archiveEmployee'
 import type { Employee } from '@/types/employees'
 
@@ -173,7 +174,7 @@ export function DeleteEmployeeModal({ employee, onClose }: DeleteEmployeeModalPr
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Spinner size="sm" className="w-5 h-5" />
                   <span>Archivando...</span>
                 </>
               ) : (

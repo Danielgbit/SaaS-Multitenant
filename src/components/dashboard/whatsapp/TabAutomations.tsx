@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback, startTransition } from 'react'
-import { Zap, Edit2, Plus, Loader2, Clock, FileText, CheckCircle, Circle } from 'lucide-react'
+import { Zap, Edit2, Plus, Clock, FileText, CheckCircle, Circle } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -268,7 +269,7 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
                             aria-checked={rule!.isEnabled}
                           >
                             {togglingId === rule!.id ? (
-                              <Loader2 className="w-4 h-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin" style={{ color: '#FFFFFF' }} />
+                              <Spinner size="sm" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: '#FFFFFF' }} />
                             ) : (
                               <span
                                 className="absolute top-1 w-5 h-5 rounded-full transition-transform"

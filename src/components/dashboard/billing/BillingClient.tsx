@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import {
   CheckCircle2,
-  Loader2,
   Zap,
   X,
   Star,
@@ -15,6 +14,7 @@ import {
   Clock,
   TrendingUp,
 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { createCheckoutSession } from '@/actions/billing/createCheckoutSession'
 import { cancelSubscription } from '@/actions/billing/cancelSubscription'
 import { reactivateSubscription } from '@/actions/billing/reactivateSubscription'
@@ -644,7 +644,7 @@ export function BillingClient({
                   }}
                 >
                   {isCancelling && (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Spinner size="sm" />
                   )}
                   {isCancelling ? 'Cancelando...' : 'Si, cancelar'}
                 </button>

@@ -3,7 +3,8 @@
 import { useEffect, useActionState } from 'react'
 import { useRouter } from 'next/navigation'
 import { resetPassword } from '@/actions/auth/resetPassword'
-import { Loader2, CheckCircle } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { PasswordInput } from '@/components/auth/PasswordInput'
 
 type FormState = { error?: string; success?: boolean } | null
@@ -73,7 +74,7 @@ export function ResetPasswordForm() {
       >
         {isPending ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Spinner size="sm" className="w-5 h-5" />
             Guardando...
           </>
         ) : (

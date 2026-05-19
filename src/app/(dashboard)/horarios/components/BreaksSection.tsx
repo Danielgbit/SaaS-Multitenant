@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Coffee, Plus, X, Check, Save, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Coffee, Plus, X, Check, Save, ChevronDown, ChevronUp } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { setAvailability } from '@/actions/availability/setAvailability'
 import { WEEKDAYS } from '@/types/availability'
 import type { EmployeeWithSchedules } from '@/types/availability'
@@ -340,7 +341,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#38BDF8] text-white font-medium text-sm hover:bg-[#38BDF8]/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isCreating ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Spinner size="sm" />
                 ) : (
                   <Save className="w-4 h-4" />
                 )}

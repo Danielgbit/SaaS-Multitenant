@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Calendar, Plus, X, Check, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Calendar, Plus, X, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { createOverride, deleteOverride } from '@/actions/availability/overrideActions'
 import { WEEKDAYS } from '@/types/availability'
 import type { EmployeeWithSchedules } from '@/types/availability'

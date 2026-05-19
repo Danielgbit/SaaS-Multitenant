@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, startTransition } from 'react'
-import { FileText, Edit2, RotateCcw, Loader2, Plus, Sparkles, Inbox } from 'lucide-react'
+import { FileText, Edit2, RotateCcw, Plus, Sparkles, Inbox } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -169,7 +170,7 @@ export function TabTemplates({ organizationId }: TabTemplatesProps) {
                         aria-label="Resetear template a valor por defecto"
                       >
                         {resettingId === template.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <Spinner size="sm" />
                         ) : (
                           <RotateCcw className="w-4 h-4" />
                         )}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Scissors, Clock, DollarSign, Check, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Scissors, Clock, DollarSign, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { updateEmployeeService } from '@/actions/employees/updateEmployeeService'
 import { formatDuration } from '@/lib/utils/formatTime'
 import type { Service } from '@/types/services'

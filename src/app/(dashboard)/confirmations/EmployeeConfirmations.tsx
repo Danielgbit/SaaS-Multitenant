@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   CheckCircle, Clock, Package, User, Phone, 
-  Loader2, DollarSign, Calendar, Sparkles, 
+  DollarSign, Calendar, Sparkles, 
   ArrowRight, Check, Wallet
 } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { createConfirmation } from '@/actions/confirmations/createConfirmation'
 import type { ConfirmationService } from '@/types/confirmations'
@@ -323,7 +324,7 @@ export function EmployeeConfirmations({
                             boxShadow: `0 4px 12px ${COLORS.primary}30`,
                           }}>
                           {submitting === conf.id ? (
-                            <><Loader2 className="w-5 h-5 animate-spin" /> Confirmando...</>
+                            <><Spinner size="sm" className="w-5 h-5" /> Confirmando...</>
                           ) : (
                             <><CheckCircle className="w-5 h-5" /> Confirmar {allSelected ? 'servicios' : 'selección'} <ArrowRight className="w-4 h-4" /></>
                           )}

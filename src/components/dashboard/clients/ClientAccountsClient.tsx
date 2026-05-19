@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import {
-  Loader2,
   Wallet,
   DollarSign,
   AlertTriangle,

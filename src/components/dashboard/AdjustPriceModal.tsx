@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition, useCallback } from 'react'
-import { X, Loader2, AlertCircle, DollarSign } from 'lucide-react'
+import { X, AlertCircle, DollarSign } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { adjustPrice } from '@/actions/confirmations/adjustPrice'
 import { toast } from 'sonner'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
@@ -213,7 +214,7 @@ export function AdjustPriceModal({
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Spinner size="sm" />
                   Guardando...
                 </>
               ) : (

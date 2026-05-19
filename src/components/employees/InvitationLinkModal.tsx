@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Link2, Copy, Check, Mail, Clock, AlertTriangle, Loader2, Send } from 'lucide-react'
+import { X, Link2, Copy, Check, Mail, Clock, AlertTriangle, Send } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import type { Employee } from '@/types/employees'
 import type { Invitation } from '@/types/invitations'
 
@@ -238,7 +239,7 @@ export function InvitationLinkModal({
             >
               {isResending ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Spinner size="sm" />
                   <span>Enviando...</span>
                 </>
               ) : (

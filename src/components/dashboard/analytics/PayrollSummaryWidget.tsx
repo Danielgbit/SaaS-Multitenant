@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Receipt, Users, TrendingUp, AlertCircle, Loader2, ArrowRight } from 'lucide-react'
+import { Receipt, Users, TrendingUp, AlertCircle, ArrowRight } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from '@/components/ui/Card'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
@@ -29,7 +30,7 @@ export function PayrollSummaryWidget({ summary, loading }: PayrollSummaryWidgetP
           <h3 className="font-semibold" style={{ color: COLORS.textPrimary }}>Nómina</h3>
         </div>
         <div className="flex justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin" style={{ color: COLORS.textMuted }} />
+          <Spinner size="md" style={{ color: COLORS.textMuted }} />
         </div>
       </Card>
     )

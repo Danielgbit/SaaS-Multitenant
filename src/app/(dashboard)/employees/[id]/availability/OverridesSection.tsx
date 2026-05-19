@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Plus, Loader2, X, CalendarDays, Clock, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, X, CalendarDays, Clock, ChevronDown, ChevronUp } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { createOverride, deleteOverride } from '@/actions/availability/overrideActions'
 import { formatDate } from '@/lib/utils/formatTime'
 import ConfirmModal from '@/components/ui/ConfirmModal'
@@ -312,7 +313,7 @@ export function OverridesSection({ employeeId, overrides: initialOverrides, empl
                   disabled={isPending}
                   className="px-4 py-2.5 text-sm font-medium rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] disabled:opacity-50 text-white transition-all duration-200 flex items-center gap-2 cursor-pointer"
                 >
-                  {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isPending && <Spinner size="sm" />}
                   Crear excepción
                 </button>
               </div>
@@ -420,7 +421,7 @@ export function OverridesSection({ employeeId, overrides: initialOverrides, empl
                       aria-label={`Eliminar excepción del ${override.date}`}
                     >
                       {isDeleting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Spinner size="sm" />
                       ) : (
                         <X className="w-4 h-4" />
                       )}

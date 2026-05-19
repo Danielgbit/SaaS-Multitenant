@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { Mail, Send, XCircle, Clock, Loader2, AlertCircle, CheckCircle2, MailOpen, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Mail, Send, XCircle, Clock, AlertCircle, CheckCircle2, MailOpen, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { getEmailLogs } from '@/actions/email/getEmailLogs'
 
 interface LogEntry {
@@ -103,7 +104,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
   if (!mounted) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+        <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>
     )
   }
@@ -172,10 +173,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
       >
         {loading ? (
           <div className="p-16 text-center">
-            <Loader2 
-              className="w-8 h-8 mx-auto animate-spin mb-4"
-              style={{ color: COLORS.primary }} 
-            />
+            <Spinner size="lg" className="mx-auto mb-4" style={{ color: COLORS.primary }} />
             <p style={{ color: COLORS.textMuted }}>Cargando historial...</p>
           </div>
         ) : logs.length === 0 ? (

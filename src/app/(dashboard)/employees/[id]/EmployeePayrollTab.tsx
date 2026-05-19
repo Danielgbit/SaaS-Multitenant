@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { Briefcase, Percent, DollarSign, AlertTriangle, CheckCircle2, Clock, Loader2, Save } from 'lucide-react'
+import { Briefcase, Percent, DollarSign, AlertTriangle, CheckCircle2, Clock, Save } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import type { PaymentType, ContractType, SalaryFrequency, EmploymentType } from '@/types/employees'
 import { updateEmployeePayroll } from '@/actions/employees/updateEmployeePayroll'
 
@@ -526,7 +527,7 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
           style={{ backgroundColor: COLORS.primary }}
         >
           {saving ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Spinner size="sm" className="w-5 h-5" />
           ) : (
             <Save className="w-5 h-5" />
           )}

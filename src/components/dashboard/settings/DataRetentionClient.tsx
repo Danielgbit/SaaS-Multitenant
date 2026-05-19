@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Loader2, Database, Info, CheckCircle2, Trash2, ChevronRight, AlertCircle } from 'lucide-react'
+import { Database, Info, CheckCircle2, Trash2, ChevronRight, AlertCircle } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { updateRetentionSettings } from '@/actions/appointments/purgeAppointments'
 import { PurgeModal } from '@/components/calendar/PurgeModal'
@@ -64,7 +65,7 @@ export function DataRetentionClient({
   if (!mounted) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: COLORS.primary }} />
+        <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>
     )
   }
@@ -195,7 +196,7 @@ export function DataRetentionClient({
             color: '#FFFFFF',
           }}
         >
-          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+          {saving ? <Spinner size="sm" className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
           Guardar configuración
         </button>
       </div>

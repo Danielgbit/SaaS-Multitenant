@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition, useCallback, useEffect } from 'react'
-import { X, Loader2, AlertCircle, CheckCircle2, Banknote, Smartphone, CreditCard, QrCode, Clock, ChevronDown, ChevronUp, Plus, Minus, Sparkles, DollarSign } from 'lucide-react'
+import { X, AlertCircle, CheckCircle2, Banknote, Smartphone, CreditCard, QrCode, Clock, ChevronDown, ChevronUp, Plus, Minus, Sparkles, DollarSign } from 'lucide-react'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 
@@ -344,7 +345,7 @@ export function PaymentModal({
             className="flex-1 h-12 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             style={{ backgroundColor: COLORS.primary, color: '#FFFFFF', boxShadow: `0 4px 12px ${COLORS.primary}30` }}>
             {isPending ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Procesando...</>
+              <><Spinner size="sm" /> Procesando...</>
             ) : (
               <><Sparkles className="w-4 h-4" /> Cobrar {formatCurrencyCOP(finalPrice)}</>
             )}
