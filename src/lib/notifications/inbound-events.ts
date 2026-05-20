@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import type { NotificationInboundEvent, NotificationProviderType } from '@/types/notifications'
+import type { NotificationChannel, NotificationInboundEvent, NotificationProviderType } from '@/types/notifications'
 
 interface RecordInboundParams {
   organizationId?: string
@@ -27,7 +27,26 @@ export async function recordInboundEvent(params: RecordInboundParams): Promise<R
     .single()
 
   if (existing) {
-    return { event: existing as unknown as NotificationInboundEvent, created: false }
+    const existingMapped = existing as unknown as Record<string, unknown>
+    return {
+      event: {
+        id: existingMapped.id as string,
+        organizationId: existingMapped.organization_id as string | undefined,
+        providerMessageId: existingMapped.provider_message_id as string,
+        channel: existingMapped.channel as NotificationChannel,
+        provider: existingMapped.provider as NotificationProviderType,
+        fromPhone: existingMapped.from_phone as string | undefined,
+        rawPayload: existingMapped.raw_payload as Record<string, unknown>,
+        parsedAction: existingMapped.parsed_action as string | undefined,
+        processed: existingMapped.processed as boolean,
+        processedAt: existingMapped.processed_at as string | undefined,
+        processingTimeMs: existingMapped.processing_time_ms as number | undefined,
+        errorMessage: existingMapped.error_message as string | undefined,
+        traceId: existingMapped.trace_id as string | undefined,
+        createdAt: existingMapped.created_at as string,
+      },
+      created: false,
+    }
   }
 
   const traceId = params.traceId || crypto.randomUUID()
@@ -55,13 +74,49 @@ export async function recordInboundEvent(params: RecordInboundParams): Promise<R
         .select('*')
         .eq('provider_message_id', params.providerMessageId)
         .single()
-      return { event: retry as unknown as NotificationInboundEvent, created: false }
+      const retryMapped = retry as unknown as Record<string, unknown>
+      return {
+        event: {
+          id: retryMapped.id as string,
+          organizationId: retryMapped.organization_id as string | undefined,
+          providerMessageId: retryMapped.provider_message_id as string,
+          channel: retryMapped.channel as NotificationChannel,
+          provider: retryMapped.provider as NotificationProviderType,
+          fromPhone: retryMapped.from_phone as string | undefined,
+          rawPayload: retryMapped.raw_payload as Record<string, unknown>,
+          parsedAction: retryMapped.parsed_action as string | undefined,
+          processed: retryMapped.processed as boolean,
+          processedAt: retryMapped.processed_at as string | undefined,
+          processingTimeMs: retryMapped.processing_time_ms as number | undefined,
+          errorMessage: retryMapped.error_message as string | undefined,
+          traceId: retryMapped.trace_id as string | undefined,
+          createdAt: retryMapped.created_at as string,
+        },
+        created: false,
+      }
     }
     console.error('[recordInboundEvent] insert error:', error)
     throw error
   }
 
-  return { event: data as unknown as NotificationInboundEvent, created: true }
+  const mapped = data as unknown as Record<string, unknown>
+  const event: NotificationInboundEvent = {
+    id: mapped.id as string,
+    organizationId: mapped.organization_id as string | undefined,
+    providerMessageId: mapped.provider_message_id as string,
+    channel: mapped.channel as NotificationChannel,
+    provider: mapped.provider as NotificationProviderType,
+    fromPhone: mapped.from_phone as string | undefined,
+    rawPayload: mapped.raw_payload as Record<string, unknown>,
+    parsedAction: mapped.parsed_action as string | undefined,
+    processed: mapped.processed as boolean,
+    processedAt: mapped.processed_at as string | undefined,
+    processingTimeMs: mapped.processing_time_ms as number | undefined,
+    errorMessage: mapped.error_message as string | undefined,
+    traceId: mapped.trace_id as string | undefined,
+    createdAt: mapped.created_at as string,
+  }
+  return { event, created: true }
 }
 
 export async function isEventProcessed(providerMessageId: string): Promise<boolean> {

@@ -1,37 +1,16 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createChannel } from '@/lib/notifications/channels'
-import type { ProcessQueueResult, NotificationChannel } from '@/types/notifications'
+import type { ProcessQueueResult, NotificationChannel, NotificationProviderType, ProviderSnapshot } from '@/types/notifications'
 import { logNotificationEvent } from '@/lib/notifications/event-timeline'
 import { moveToDeadLetter } from '@/lib/notifications/dead-letter'
+import { assertValidTransition, type QueueStatus } from '@/lib/notifications/state-machine'
+import { classifyError, calculateBackoff } from '@/lib/notifications/retry-strategy'
 
 export const runtime = 'edge'
 
 const BATCH_SIZE = 50
-const PROCESSING_TIMEOUT_MINUTES = 10
 const RATE_LIMIT_WINDOW_MS = 60 * 1000
-
-async function recoverStuckJobs(supabase: Awaited<ReturnType<typeof createServiceRoleClient>>): Promise<number> {
-  const tenMinutesAgo = new Date(Date.now() - PROCESSING_TIMEOUT_MINUTES * 60 * 1000).toISOString()
-
-  const { data, error } = await (supabase as any)
-    .from('notification_queue')
-    .update({
-      status: 'pending',
-      claimed_at: null,
-      processing_timeout_at: null,
-    })
-    .eq('status', 'processing')
-    .lt('claimed_at', tenMinutesAgo)
-    .select('id')
-
-  if (error) {
-    console.error('[processNotifications] Recovery error:', error)
-    return 0
-  }
-
-  return (data?.length || 0)
-}
 
 async function checkRateLimit(
   supabase: Awaited<ReturnType<typeof createServiceRoleClient>>,
@@ -52,6 +31,50 @@ async function checkRateLimit(
   return (count || 0) < providerRateLimit
 }
 
+async function resolveProviderConfig(
+  supabase: Awaited<ReturnType<typeof createServiceRoleClient>>,
+  item: Record<string, unknown>
+): Promise<{ config: Record<string, unknown>; rateLimit: number } | null> {
+  const snapshot = (item.provider_snapshot ?? null) as ProviderSnapshot | null
+
+  if (snapshot?.providerId) {
+    const { data: provider } = await (supabase as any)
+      .from('notification_providers')
+      .select('config, rate_limit_per_min')
+      .eq('id', snapshot.providerId)
+      .eq('is_enabled', true)
+      .single()
+
+    if (provider) {
+      return {
+        config: (provider.config as Record<string, unknown>) || {},
+        rateLimit: (provider.rate_limit_per_min as number) || 30,
+      }
+    }
+
+    return null
+  }
+
+  // Fallback legacy: items sin snapshot
+  const { data: provider } = await (supabase as any)
+    .from('notification_providers')
+    .select('config, rate_limit_per_min')
+    .eq('organization_id', item.organization_id)
+    .eq('channel', item.channel)
+    .eq('is_enabled', true)
+    .limit(1)
+    .single()
+
+  if (provider) {
+    return {
+      config: (provider.config as Record<string, unknown>) || {},
+      rateLimit: (provider.rate_limit_per_min as number) || 30,
+    }
+  }
+
+  return null
+}
+
 async function processNotificationBatch(
   supabase: Awaited<ReturnType<typeof createServiceRoleClient>>
 ): Promise<ProcessQueueResult> {
@@ -63,44 +86,46 @@ async function processNotificationBatch(
     errors: [],
   }
 
-  const recoveredCount = await recoverStuckJobs(supabase)
-  if (recoveredCount > 0) {
-    console.log(`[processNotifications] Recovered ${recoveredCount} stuck jobs`)
-  }
-
+  // Claim atómico via RPC con FOR UPDATE SKIP LOCKED
   const { data: batch, error: claimError } = await (supabase as any)
-    .from('notification_queue')
-    .select(`
-      *,
-      notification_providers!left(config, is_enabled, rate_limit_per_min)
-    `)
-    .eq('status', 'pending')
-    .lte('scheduled_at', new Date().toISOString())
-    .order('scheduled_at', { ascending: true })
-    .limit(BATCH_SIZE)
+    .rpc('claim_notification_batch', {
+      batch_size: BATCH_SIZE,
+      worker_id: crypto.randomUUID(),
+      worker_ver: 'v2',
+    })
 
   if (claimError || !batch || batch.length === 0) {
+    if (claimError) {
+      console.error('[processNotifications] RPC claim error:', claimError)
+    }
     return result
   }
 
-  const batchIds = batch.map((item: { id: string }) => item.id)
-
-  await (supabase as any)
-    .from('notification_queue')
-    .update({
-      status: 'processing',
-      claimed_at: new Date().toISOString(),
-      processing_timeout_at: new Date(Date.now() + PROCESSING_TIMEOUT_MINUTES * 60 * 1000).toISOString(),
-      attempts: batch.map(() => 0),
-    })
-    .in('id', batchIds)
-
-  for (const item of batch as (Record<string, unknown>)[]) {
+  for (const item of batch as Record<string, unknown>[]) {
     try {
-      const providerConfig = (item.notification_providers as Record<string, unknown>)?.config as Record<string, unknown> || {}
-      const rateLimit = (item.notification_providers as Record<string, unknown>)?.rate_limit_per_min as number || 30
+      const resolved = await resolveProviderConfig(supabase, item)
+      if (!resolved) {
+        assertValidTransition('processing' as QueueStatus, 'failed_permanently', { itemId: item.id })
+        await (supabase as any)
+          .from('notification_queue')
+          .update({
+            status: 'failed_permanently',
+            last_error: `No provider config found for queue item ${item.id}`,
+            claimed_at: null,
+          })
+          .eq('id', item.id)
+        result.failed++
+        continue
+      }
 
-      const withinLimit = await checkRateLimit(supabase, item.organization_id as string, item.channel as NotificationChannel, rateLimit)
+      const { config: providerConfig, rateLimit } = resolved
+
+      const withinLimit = await checkRateLimit(
+        supabase,
+        item.organization_id as string,
+        item.channel as NotificationChannel,
+        rateLimit,
+      )
       if (!withinLimit) {
         await (supabase as any)
           .from('notification_queue')
@@ -111,7 +136,6 @@ async function processNotificationBatch(
       }
 
       const channelAdapter = createChannel(item.channel as NotificationChannel, providerConfig)
-
       if (!channelAdapter) {
         await (supabase as any)
           .from('notification_queue')
@@ -151,6 +175,7 @@ async function processNotificationBatch(
       const now = new Date().toISOString()
 
       if (sendResult.success) {
+        assertValidTransition('processing' as QueueStatus, 'sent', { itemId: item.id })
         await (supabase as any)
           .from('notification_queue')
           .update({
@@ -163,35 +188,37 @@ async function processNotificationBatch(
           })
           .eq('id', item.id)
         result.sent++
+
         try {
           await logNotificationEvent({
             organizationId: item.organization_id as string,
             queueItemId: item.id as string,
             eventType: 'SENT',
             metadata: { providerMessageId: sendResult.providerMessageId },
-traceId: item.trace_id as string || undefined,
+            traceId: item.trace_id as string || undefined,
           })
         } catch {}
       } else {
         const newAttempts = ((item.attempts as number) || 0) + 1
         const maxAttempts = (item.max_attempts as number) || 3
+        const { retryable } = classifyError(sendResult.error || '', undefined)
 
-        if (newAttempts >= maxAttempts) {
+        if (newAttempts >= maxAttempts || !retryable) {
+          const targetStatus = retryable ? 'failed' : 'failed_permanently' as QueueStatus
+          assertValidTransition('processing' as QueueStatus, targetStatus, { itemId: item.id })
+
           await (supabase as any)
             .from('notification_queue')
             .update({
-              status: sendResult.retryable ? 'failed' : 'failed_permanently',
+              status: targetStatus,
               last_error: sendResult.error,
               attempts: newAttempts,
               claimed_at: null,
               processing_timeout_at: null,
-              next_retry_at: sendResult.retryable
-                ? new Date(Date.now() + newAttempts * 5 * 60 * 1000).toISOString()
-                : null,
             })
             .eq('id', item.id)
 
-          if (!sendResult.retryable) {
+          if (!retryable) {
             try {
               await moveToDeadLetter({
                 queueItem: {
@@ -218,6 +245,8 @@ traceId: item.trace_id as string || undefined,
           }
           result.failed++
         } else {
+          assertValidTransition('processing' as QueueStatus, 'pending', { itemId: item.id })
+          const backoffMs = calculateBackoff(newAttempts)
           await (supabase as any)
             .from('notification_queue')
             .update({
@@ -226,7 +255,7 @@ traceId: item.trace_id as string || undefined,
               last_error: sendResult.error,
               claimed_at: null,
               processing_timeout_at: null,
-              next_retry_at: new Date(Date.now() + newAttempts * 5 * 60 * 1000).toISOString(),
+              next_retry_at: new Date(Date.now() + backoffMs).toISOString(),
             })
             .eq('id', item.id)
         }
@@ -285,11 +314,13 @@ export async function GET() {
     endpoint: '/api/cron/process-notifications',
     schedule: 'Every 5 minutes via Pipedream',
     features: [
-      'FOR UPDATE SKIP LOCKED',
-      'Stuck job recovery (>10min processing)',
+      'RPC atomic claim (FOR UPDATE SKIP LOCKED)',
+      'Stuck job recovery (processing_timeout_at)',
+      'Provider snapshot resolution',
       'Per-org per-channel rate limiting',
-      'Exponential retry (max 3 attempts)',
-      'failed_permanently for non-retryable errors',
+      'Exponential backoff with jitter',
+      'State machine validation',
+      'Dead letter for permanent failures',
     ],
   })
 }

@@ -223,6 +223,11 @@ export async function NotificationOrchestrator(
           trace_id: traceId,
           scheduled_at: scheduledDate.toISOString(),
           created_at: new Date().toISOString(),
+          provider_snapshot: provider ? {
+            providerId: provider.id,
+            provider: provider.provider,
+            channel: rule.channel,
+          } : null,
         }
 
         const { error: insertError } = await (supabase as any)
@@ -336,10 +341,9 @@ async function fetchAppointment(
       employee_id,
       status,
       confirmation_status,
-      clients!inner(name, phone, email, confirmation_method, confirmations_enabled, preferred_contact),
-      employees!inner(name, user_id),
-      services!inner(name),
-      organizations!inner(name, phone, address)
+       clients!inner(name, phone, email, confirmation_method, confirmations_enabled, preferred_contact),
+       employees!inner(name, user_id),
+       organizations!inner(name)
     `)
     .eq('id', appointmentId)
     .single()

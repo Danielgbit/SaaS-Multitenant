@@ -36,6 +36,12 @@ export type TemplateType =
   | 'payroll_receipt'
   | 'confirmation_request'
 
+export interface ProviderSnapshot {
+  providerId: string
+  provider: NotificationProviderType
+  channel: NotificationChannel
+}
+
 export type ConfirmationTokenAction = 'confirm' | 'cancel' | 'reschedule'
 
 export interface TemplateVariable {
@@ -126,6 +132,10 @@ export interface NotificationQueueItem {
   readAt?: string
   traceId: string
   claimedAt?: string
+  providerSnapshot?: ProviderSnapshot
+  lastClaimedAt?: string
+  claimedBy?: string
+  workerVersion?: string
   createdAt: string
 }
 
