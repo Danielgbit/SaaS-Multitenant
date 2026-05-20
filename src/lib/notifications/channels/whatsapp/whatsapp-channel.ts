@@ -3,6 +3,7 @@ import type { NotificationChannel, NotificationProviderType } from '@/types/noti
 import type { WhatsAppProvider } from './providers/types'
 import { WasenderProvider } from './providers/wasender'
 import { N8NProvider } from './providers/n8n'
+import { MockProvider } from './providers/mock'
 
 export class WhatsAppChannel implements NotificationChannelAdapter {
   private provider: WhatsAppProvider
@@ -17,6 +18,9 @@ export class WhatsAppChannel implements NotificationChannelAdapter {
       case 'evolution':
       case 'twilio':
         throw new Error(`Provider ${providerType} no implementado`)
+      case 'mock':
+        this.provider = new MockProvider(config) as WhatsAppProvider
+        break
       case 'n8n':
       default:
         this.provider = new N8NProvider(config)

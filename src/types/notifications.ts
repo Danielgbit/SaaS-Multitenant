@@ -79,6 +79,8 @@ export interface SendResult {
   error?: string
   retryable?: boolean
   rawResponse?: unknown
+  mock?: boolean
+  mockPayload?: unknown
 }
 
 export interface NotificationChannelAdapter {

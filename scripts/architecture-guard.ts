@@ -33,7 +33,14 @@ function exportWARNReview(allFindings: Finding[], options: { sample?: number }):
   }
   
   const outputFile = path.join(governanceDir, options.sample ? 'warn-review-sample.json' : 'warn-review-full.json')
-  fs.writeFileSync(outputFile, JSON.stringify(finalEntries, null, 2))
+  const output = {
+    schema_version: 'warn-review-v1.2',
+    generated_at: new Date().toISOString(),
+    export_mode: options.sample ? 'sample' : 'full',
+    total_entries: finalEntries.length,
+    entries: finalEntries,
+  }
+  fs.writeFileSync(outputFile, JSON.stringify(output, null, 2))
   
   console.log(`✓ Exported ${finalEntries.length} WARN entries to ${path.relative(process.cwd(), outputFile)}`)
   if (options.sample) {
@@ -65,7 +72,17 @@ interface WARNReviewEntry {
   value: string
   context: 'text' | 'bg' | 'border' | 'ring' | 'outline' | 'decoration' | 'accent' | 'caret' | null
   component_type: string | null
+  // Scanner epistemology: "¿esto existe?"
   confidence: Confidence
+  // Semantic epistemology: "¿qué significa?"
+  classification_confidence: 'high' | 'medium' | 'uncertain' | null
+  // System ontology: origin (genealogía), structure (forma interna), maturity_gap (deuda real)
+  system: {
+    origin: 'formal' | 'legacy' | 'emergent' | 'runtime' | 'isolate' | null
+    structure: 'cohesive' | 'fragmented' | 'emergent-cohesive' | null
+    maturity_gap: 'tokenization' | 'abstraction' | 'coverage' | 'migration' | 'none' | null
+  } | null
+  // Projection layer (derived from system ontology, legacy-compatible)
   bucket: 'WARN-LEGITIMATE-OVS' | 'WARN-THEMING' | 'WARN-CPS-CANDIDATE' | 'WARN-TRANSITIONAL' | 'WARN-NOISE' | null
   requires_followup: boolean
   notes: string
@@ -580,6 +597,8 @@ function generateWARNReviewEntry(finding: Finding, index: number): WARNReviewEnt
     context: extractColorContext(finding.reason),
     component_type: null,
     confidence: finding.confidence,
+    classification_confidence: null,
+    system: null,
     bucket: null,
     requires_followup: false,
     notes: '',
