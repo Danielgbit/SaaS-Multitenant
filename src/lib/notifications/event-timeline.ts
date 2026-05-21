@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { NotificationEvent, NotificationEventType } from '@/types/notifications'
 
 interface LogEventParams {
-  organizationId: string
+  organizationId?: string
   queueItemId?: string
   messageId?: string
   conversationId?: string

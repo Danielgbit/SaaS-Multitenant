@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/notifications/logger'
 import type { DeadLetterNotification, NotificationChannel } from '@/types/notifications'
 
 interface MoveToDLQParams {
@@ -41,7 +42,7 @@ export async function moveToDeadLetter(params: MoveToDLQParams): Promise<DeadLet
     .single()
 
   if (error) {
-    console.error('[moveToDeadLetter] error:', error)
+    logger.error('moveToDeadLetter failed', { originalQueueId: item.id, error })
     throw error
   }
 
@@ -79,7 +80,7 @@ export async function replayFromDeadLetter(dlqId: string): Promise<void> {
     })
 
   if (insertError) {
-    console.error('[replayFromDeadLetter] re-insert error:', insertError)
+    logger.error('replayFromDeadLetter re-insert failed', { dlqId, error: insertError })
     throw insertError
   }
 

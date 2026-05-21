@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/notifications/logger'
 import type { NotificationMessageRecord } from '@/types/notifications'
 
 interface LogOutboundParams {
@@ -47,7 +48,7 @@ export async function logOutboundMessage(params: LogOutboundParams): Promise<Not
     .single()
 
   if (error) {
-    console.error('[logOutboundMessage] error:', error)
+    logger.error('logOutboundMessage failed', { error, organizationId: params.organizationId, queueItemId: params.queueItemId })
     throw error
   }
 
@@ -75,7 +76,7 @@ export async function logInboundMessage(params: LogInboundParams): Promise<Notif
     .single()
 
   if (error) {
-    console.error('[logInboundMessage] error:', error)
+    logger.error('logInboundMessage failed', { error, organizationId: params.organizationId, providerMessageId: params.providerMessageId })
     throw error
   }
 

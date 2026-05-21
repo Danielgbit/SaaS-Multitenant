@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createChannel } from '@/lib/notifications/channels'
 import { getTemplateWithRender } from '@/lib/notifications/template-engine'
+import { logger } from '@/lib/notifications/logger'
 import {
   type AutomationTrigger,
   type NotificationChannel,
@@ -244,22 +245,21 @@ export async function NotificationOrchestrator(
 
         queued++
 
+        await logNotificationEvent({
+          organizationId: appointment.organization_id,
+          eventType: 'QUEUED',
+          metadata: { trigger, channel: rule.channel, appointmentId },
+          traceId,
+        }).catch(() => {})
+
         if (rule.channel === 'whatsapp' && toAddress) {
           try {
-            const conversation = await getOrCreateConversation(
+            await getOrCreateConversation(
               appointment.organization_id,
               toAddress.replace(/\D/g, '')
             )
-            await logNotificationEvent({
-              organizationId: appointment.organization_id,
-              conversationId: conversation.id,
-              queueItemId: undefined,
-              eventType: 'QUEUED',
-              metadata: { trigger, channel: rule.channel, appointmentId },
-              traceId,
-            })
           } catch (convErr) {
-            console.error('[orchestrator] conversation tracking error:', convErr)
+            logger.warn('Conversation tracking failed', { traceId, error: convErr, organizationId: appointment.organization_id })
           }
         }
 
@@ -301,7 +301,7 @@ export async function NotificationOrchestrator(
                   traceId,
                 })
               } catch (logErr) {
-                console.error('[orchestrator] event log error:', logErr)
+                logger.warn('Event log failed (non-fatal)', { traceId, error: logErr })
               }
             } else {
               errors.push(`Send failed for ${rule.channel}: ${result.error}`)
@@ -315,7 +315,7 @@ export async function NotificationOrchestrator(
 
     return { success: true, queued, sent, errors, traceId }
   } catch (error) {
-    console.error('[NotificationOrchestrator] Error:', error)
+    logger.error('Orchestrator failed', { traceId, error })
     return {
       success: false,
       queued,

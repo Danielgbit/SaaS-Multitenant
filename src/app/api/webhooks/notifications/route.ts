@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { logger } from '@/lib/notifications/logger'
 import { mapProviderStatusToInternal } from '@/types/notifications'
 import { recordInboundEvent, markEventProcessed } from '@/lib/notifications/inbound-events'
 import { processInboundReply } from '@/lib/notifications/processor'
@@ -24,6 +25,7 @@ function detectProvider(
 export async function POST(request: Request) {
   const span = startSpan('webhook:notifications')
   const rawBody = await request.text()
+  const supabase = await createServiceRoleClient()
 
   try {
     const body = JSON.parse(rawBody) as Record<string, unknown>
@@ -31,6 +33,12 @@ export async function POST(request: Request) {
     if (!body || Object.keys(body).length === 0) {
       return NextResponse.json({ error: 'Empty payload' }, { status: 400 })
     }
+
+    await logNotificationEvent({
+      eventType: 'WEBHOOK_RECEIVED',
+      metadata: { payloadSize: rawBody.length },
+      traceId: span.traceId,
+    }).catch(() => {})
 
     const { provider: detectedProvider, providerType } = detectProvider(body)
     const provider = detectedProvider
@@ -40,8 +48,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    await logNotificationEvent({
+      eventType: 'WEBHOOK_VALIDATED',
+      metadata: { providerType, payloadSize: rawBody.length },
+      traceId: span.traceId,
+    }).catch(() => {})
+
     const parsed = provider.parseWebhook(body)
-    const supabase = await createServiceRoleClient()
 
     if (parsed.providerMessageId) {
       const { data: queueItem } = await (supabase as any)
@@ -172,7 +185,7 @@ export async function POST(request: Request) {
       traceId: span.traceId,
     })
   } catch (error) {
-    console.error('[webhooks/notifications] Fatal error:', error)
+    logger.error('Webhook fatal', { traceId: span.traceId, error })
     return NextResponse.json(
       { success: false, error: 'Internal server error', traceId: span.traceId },
       { status: 500 }

@@ -1,3 +1,5 @@
+import { logger } from '@/lib/notifications/logger'
+
 export type QueueStatus =
   | 'pending'
   | 'processing'
@@ -10,7 +12,7 @@ export type QueueStatus =
 
 const VALID_TRANSITIONS: Record<QueueStatus, QueueStatus[]> = {
   pending: ['processing', 'cancelled'],
-  processing: ['sent', 'failed', 'failed_permanently'],
+  processing: ['sent', 'failed', 'failed_permanently', 'pending'],
   failed: ['pending'],
   sent: ['delivered', 'read'],
   delivered: ['read'],
@@ -30,7 +32,7 @@ export function assertValidTransition(
 ): void {
   if (!canTransition(from, to)) {
     const error = new Error(`Invalid state transition: ${from} → ${to}`)
-    console.error('[state-machine] Invalid transition', {
+    logger.warn('Invalid state transition', {
       from,
       to,
       validTargets: VALID_TRANSITIONS[from] ?? [],

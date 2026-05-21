@@ -256,6 +256,11 @@ export type NotificationEventType =
   | 'CANCELLED'
   | 'DEAD_LETTERED'
   | 'REPLAYED'
+  | 'WEBHOOK_RECEIVED'
+  | 'WEBHOOK_VALIDATED'
+  | 'REPLY_PARSED'
+  | 'APPOINTMENT_UPDATED'
+  | 'REQUEUED_FROM_STUCK'
 
 export interface NotificationConversation {
   id: string

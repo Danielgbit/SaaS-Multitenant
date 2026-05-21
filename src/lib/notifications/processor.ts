@@ -33,6 +33,13 @@ export async function processInboundReply(
     return { action: 'unknown' }
   }
 
+  await logNotificationEvent({
+    organizationId: event.organizationId,
+    eventType: 'REPLY_PARSED',
+    metadata: { action, fromPhone: event.fromPhone, textLength: text.length },
+    traceId: event.traceId,
+  }).catch(() => {})
+
   const fromPhone = event.fromPhone?.replace(/\D/g, '') || ''
 
   const { data: queueItem } = await (supabase as any)
@@ -59,6 +66,13 @@ export async function processInboundReply(
         confirmed_at: new Date().toISOString(),
       })
       .eq('id', appointmentId)
+
+    await logNotificationEvent({
+      organizationId: orgId,
+      eventType: 'APPOINTMENT_UPDATED',
+      metadata: { appointmentId, action: 'confirmed', newStatus: 'confirmed' },
+      traceId: event.traceId,
+    }).catch(() => {})
 
     await (supabase as any)
       .from('confirmation_logs')
@@ -87,6 +101,13 @@ export async function processInboundReply(
         confirmation_status: 'cancelled',
       })
       .eq('id', appointmentId)
+
+    await logNotificationEvent({
+      organizationId: orgId,
+      eventType: 'APPOINTMENT_UPDATED',
+      metadata: { appointmentId, action: 'cancelled', newStatus: 'cancelled' },
+      traceId: event.traceId,
+    }).catch(() => {})
 
     await (supabase as any)
       .from('confirmation_logs')

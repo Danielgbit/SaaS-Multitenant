@@ -19,7 +19,9 @@ import {
   Receipt,
   Wallet,
   WalletCards,
-  Clock
+  Clock,
+  Bell,
+  ShieldCheck
 } from 'lucide-react'
 import { getRoleLabel, isEmpleado } from '@/lib/rbac'
 
@@ -65,6 +67,21 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
       icon: CheckCircle,
       active: pathname.startsWith('/confirmations'),
       group: 'Operaciones',
+    },
+    {
+      href: '/notificaciones',
+      label: 'Notificaciones',
+      icon: Bell,
+      active: pathname === '/notificaciones' || pathname.startsWith('/notificaciones/dead-letter'),
+      group: 'Operaciones',
+    },
+    {
+      href: '/notificaciones/validacion',
+      label: 'Validación V2',
+      icon: ShieldCheck,
+      active: pathname.startsWith('/notificaciones/validacion'),
+      group: 'Operaciones',
+      badge: 'Beta',
     },
     {
       href: '/employees',
@@ -346,7 +363,7 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
                         aria-hidden="true" 
                       />
                       <span 
-                        className="whitespace-nowrap overflow-hidden transition-all duration-300"
+                        className="whitespace-nowrap overflow-hidden transition-all duration-300 flex items-center gap-2"
                         style={{ 
                           opacity: isCollapsed ? 0 : 1,
                           width: isCollapsed ? '0' : 'auto',
@@ -354,6 +371,11 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
                         }}
                       >
                         {route.label}
+                        {route.badge && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                            {route.badge}
+                          </span>
+                        )}
                       </span>
                       
                       {isActive && (
@@ -372,10 +394,15 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
                         >
                           <Icon className="w-4 h-4 text-[#38BDF8]" aria-hidden="true" />
                           <span 
-                            className="text-sm font-medium"
+                            className="text-sm font-medium flex items-center gap-2"
                             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                           >
                             {route.label}
+                            {route.badge && (
+                              <span className="text-[9px] font-semibold px-1 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                                {route.badge}
+                              </span>
+                            )}
                           </span>
                         </div>
                         <div 

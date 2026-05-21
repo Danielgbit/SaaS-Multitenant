@@ -1,3 +1,4 @@
+import { logger } from '@/lib/notifications/logger'
 import type { SendResult, QueueItemStatus } from '@/types/notifications'
 import type { WhatsAppProvider, ParsedWebhook, WhatsAppSendParams } from './types'
 
@@ -18,8 +19,12 @@ export class MockProvider implements WhatsAppProvider {
       metadata: { mock: true },
     }
 
-    console.log('🟡 WHATSAPP MOCK — sendMessage')
-    console.dir(payload, { depth: null })
+    logger.debug('MockProvider sendMessage', {
+      to: params.to,
+      bodyLength: params.body?.length,
+      appointmentId: params.appointmentId,
+      traceId: params.traceId,
+    })
 
     if (params.to.includes('999')) {
       return { success: false, retryable: true, error: 'Mock: simulated failure' }

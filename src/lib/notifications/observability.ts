@@ -1,3 +1,5 @@
+import { logger } from '@/lib/notifications/logger'
+
 export interface Span {
   traceId: string
   label: string
@@ -36,7 +38,7 @@ export async function withTracing<T>(
     }
   } catch (error) {
     const processingTimeMs = endSpan(span)
-    console.error(`[${label}] error after ${processingTimeMs}ms:`, error)
+    logger.error(`withTracing failed: ${label}`, { traceId: span.traceId, label, durationMs: processingTimeMs, error })
     throw error
   }
 }

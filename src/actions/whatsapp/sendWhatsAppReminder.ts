@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { enqueueShadowSeed } from '@/lib/notifications/shadow/seeder'
 
 const SendReminderSchema = z.object({
   appointmentId: z.string().uuid(),
@@ -101,18 +102,20 @@ export async function sendWhatsAppReminder(
       minute: '2-digit',
     })
 
+    const templateVariables: Record<string, string> = {
+      name: apt.clients.name,
+      phone: apt.clients.phone,
+      date: formattedDate,
+      time: formattedTime,
+      business: apt.organizations?.name || '',
+      service: apt.services?.name || '',
+      employee: apt.employees?.name || '',
+    }
+
     const messagePayload = {
       phone: apt.clients.phone,
       message: `¡Hola ${apt.clients.name}! Te recordamos que tienes una cita mañana (${formattedDate}) a las ${formattedTime} en ${apt.organizations?.name || 'nuestro establecimiento'}.`,
-      variables: {
-        name: apt.clients.name,
-        phone: apt.clients.phone,
-        date: formattedDate,
-        time: formattedTime,
-        business: apt.organizations?.name,
-        service: apt.services?.name,
-        employee: apt.employees?.name,
-      },
+      variables: templateVariables,
       appointment_id: apt.id,
       message_type: 'reminder',
     }
@@ -154,8 +157,38 @@ export async function sendWhatsAppReminder(
 
     if (!response.ok) {
       console.error('N8N webhook failed:', n8nResponse)
+
+      await enqueueShadowSeed({
+        appointmentId: apt.id,
+        organizationId: apt.organization_id,
+        to: apt.clients.phone,
+        templateName: 'reminder',
+        templateVariables: messagePayload.variables,
+        renderedMessage: messagePayload.message,
+        status: 'failed',
+        responseStatus: response.status,
+        errorMessage: n8nResponse,
+        sentAt: new Date().toISOString(),
+        providerUrl: settings.webhook_url,
+        channel: 'whatsapp',
+      })
+
       return { success: false, error: 'Error al enviar mensaje' }
     }
+
+    await enqueueShadowSeed({
+      appointmentId: apt.id,
+      organizationId: apt.organization_id,
+      to: apt.clients.phone,
+      templateName: 'reminder',
+      templateVariables: messagePayload.variables,
+      renderedMessage: messagePayload.message,
+      status: 'sent',
+      responseStatus: response.status,
+      sentAt: new Date().toISOString(),
+      providerUrl: settings.webhook_url,
+      channel: 'whatsapp',
+    })
 
     return { success: true }
   } catch (error) {

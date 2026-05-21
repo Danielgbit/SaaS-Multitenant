@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/notifications/logger'
 import type { NotificationChannel, NotificationInboundEvent, NotificationProviderType } from '@/types/notifications'
 
 interface RecordInboundParams {
@@ -95,7 +96,7 @@ export async function recordInboundEvent(params: RecordInboundParams): Promise<R
         created: false,
       }
     }
-    console.error('[recordInboundEvent] insert error:', error)
+    logger.error('recordInboundEvent insert failed', { providerMessageId: params.providerMessageId, error })
     throw error
   }
 

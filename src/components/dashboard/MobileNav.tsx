@@ -21,7 +21,9 @@ import {
   LogOut,
   Receipt,
   Wallet,
-  WalletCards
+  WalletCards,
+  Bell,
+  ShieldCheck
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getRoleLabel, isEmpleado } from '@/lib/rbac'
@@ -64,6 +66,21 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       icon: CheckCircle,
       active: pathname.startsWith('/confirmations'),
       group: 'Operaciones',
+    },
+    {
+      href: '/notificaciones',
+      label: 'Notificaciones',
+      icon: Bell,
+      active: pathname === '/notificaciones' || pathname.startsWith('/notificaciones/dead-letter'),
+      group: 'Operaciones',
+    },
+    {
+      href: '/notificaciones/validacion',
+      label: 'Validación V2',
+      icon: ShieldCheck,
+      active: pathname.startsWith('/notificaciones/validacion'),
+      group: 'Operaciones',
+      badge: 'Beta',
     },
     {
       href: '/employees',
@@ -332,7 +349,14 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
                       className={`w-5 h-5 transition-transform duration-200 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} 
                       aria-hidden="true" 
                     />
-                    {route.label}
+                    <span className="flex items-center gap-2">
+                      {route.label}
+                      {route.badge && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                          {route.badge}
+                        </span>
+                      )}
+                    </span>
                   </Link>
                 )
               })}

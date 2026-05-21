@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createChannel } from '@/lib/notifications/channels'
+import { logger, logFailureOnce } from '@/lib/notifications/logger'
 import type { ProcessQueueResult, NotificationChannel, NotificationProviderType, ProviderSnapshot } from '@/types/notifications'
 import { logNotificationEvent } from '@/lib/notifications/event-timeline'
 import { moveToDeadLetter } from '@/lib/notifications/dead-letter'
@@ -86,7 +87,6 @@ async function processNotificationBatch(
     errors: [],
   }
 
-  // Claim atómico via RPC con FOR UPDATE SKIP LOCKED
   const { data: batch, error: claimError } = await (supabase as any)
     .rpc('claim_notification_batch', {
       batch_size: BATCH_SIZE,
@@ -96,13 +96,24 @@ async function processNotificationBatch(
 
   if (claimError || !batch || batch.length === 0) {
     if (claimError) {
-      console.error('[processNotifications] RPC claim error:', claimError)
+      logger.error('RPC claim failed', { error: claimError })
     }
     return result
   }
 
   for (const item of batch as Record<string, unknown>[]) {
+    const failureLogged: Record<string, boolean> = {}
+    const traceId = item.trace_id ? String(item.trace_id) : undefined
+
     try {
+      await logNotificationEvent({
+        organizationId: item.organization_id as string,
+        queueItemId: item.id as string,
+        eventType: 'PROCESSING',
+        metadata: { attempt: item.attempts || 0 },
+        traceId,
+      }).catch(() => {})
+
       const resolved = await resolveProviderConfig(supabase, item)
       if (!resolved) {
         assertValidTransition('processing' as QueueStatus, 'failed_permanently', { itemId: item.id })
@@ -114,6 +125,14 @@ async function processNotificationBatch(
             claimed_at: null,
           })
           .eq('id', item.id)
+        logFailureOnce(failureLogged, item.id as string, 'Provider config not found', { traceId, queueItemId: item.id as string, organizationId: item.organization_id as string })
+        await logNotificationEvent({
+          organizationId: item.organization_id as string,
+          queueItemId: item.id as string,
+          eventType: 'FAILED',
+          metadata: { reason: 'no_provider_config' },
+          traceId,
+        }).catch(() => {})
         result.failed++
         continue
       }
@@ -137,6 +156,7 @@ async function processNotificationBatch(
 
       const channelAdapter = createChannel(item.channel as NotificationChannel, providerConfig)
       if (!channelAdapter) {
+        assertValidTransition('processing' as QueueStatus, 'failed_permanently', { itemId: item.id })
         await (supabase as any)
           .from('notification_queue')
           .update({
@@ -145,6 +165,14 @@ async function processNotificationBatch(
             claimed_at: null,
           })
           .eq('id', item.id)
+        logFailureOnce(failureLogged, item.id as string, 'Unsupported channel', { traceId, queueItemId: item.id as string, channel: item.channel as string })
+        await logNotificationEvent({
+          organizationId: item.organization_id as string,
+          queueItemId: item.id as string,
+          eventType: 'FAILED',
+          metadata: { reason: 'unsupported_channel', channel: item.channel },
+          traceId,
+        }).catch(() => {})
         result.failed++
         continue
       }
@@ -159,18 +187,8 @@ async function processNotificationBatch(
         idempotencyKey: item.idempotency_key as string,
         scheduledAt: item.scheduled_at as string,
         variables: (item.variables as Record<string, string>) || {},
-        metadata: { traceId: item.trace_id },
+        metadata: { traceId },
       })
-
-      try {
-        await logNotificationEvent({
-          organizationId: item.organization_id as string,
-          queueItemId: item.id as string,
-          eventType: 'PROCESSING',
-          metadata: { attempt: item.attempts || 0 },
-          traceId: item.trace_id ? String(item.trace_id) : undefined,
-        })
-      } catch {}
 
       const now = new Date().toISOString()
 
@@ -195,7 +213,7 @@ async function processNotificationBatch(
             queueItemId: item.id as string,
             eventType: 'SENT',
             metadata: { providerMessageId: sendResult.providerMessageId },
-            traceId: item.trace_id as string || undefined,
+            traceId: traceId || undefined,
           })
         } catch {}
       } else {
@@ -218,6 +236,14 @@ async function processNotificationBatch(
             })
             .eq('id', item.id)
 
+          await logNotificationEvent({
+            organizationId: item.organization_id as string,
+            queueItemId: item.id as string,
+            eventType: 'FAILED',
+            metadata: { error: sendResult.error, attempt: newAttempts, maxAttempts },
+            traceId,
+          }).catch(() => {})
+
           if (!retryable) {
             try {
               await moveToDeadLetter({
@@ -239,8 +265,8 @@ async function processNotificationBatch(
                 queueItemId: item.id as string,
                 eventType: 'DEAD_LETTERED',
                 metadata: { error: sendResult.error, errorCode: 'MAX_ATTEMPTS' },
-                traceId: item.trace_id ? String(item.trace_id) : undefined,
-              })
+                traceId,
+              }).catch(() => {})
             } catch {}
           }
           result.failed++
@@ -258,13 +284,21 @@ async function processNotificationBatch(
               next_retry_at: new Date(Date.now() + backoffMs).toISOString(),
             })
             .eq('id', item.id)
+
+          await logNotificationEvent({
+            organizationId: item.organization_id as string,
+            queueItemId: item.id as string,
+            eventType: 'FAILED',
+            metadata: { error: sendResult.error, attempt: newAttempts, retryable: true, nextRetryMs: backoffMs },
+            traceId,
+          }).catch(() => {})
         }
       }
 
       result.processed++
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error)
-      console.error(`[processNotifications] Error processing ${item.id}:`, errMsg)
+      logger.error('Item processing failed', { queueItemId: item.id as string, traceId, error: errMsg })
 
       await (supabase as any)
         .from('notification_queue')
@@ -274,6 +308,15 @@ async function processNotificationBatch(
           claimed_at: null,
         })
         .eq('id', item.id)
+
+      logFailureOnce(failureLogged, item.id as string, 'Item processing failed', { traceId, queueItemId: item.id as string, error: errMsg })
+      await logNotificationEvent({
+        organizationId: item.organization_id as string,
+        queueItemId: item.id as string,
+        eventType: 'FAILED',
+        metadata: { error: errMsg, reason: 'unexpected_error' },
+        traceId,
+      }).catch(() => {})
 
       result.errors.push(`Item ${item.id}: ${errMsg}`)
       result.failed++
