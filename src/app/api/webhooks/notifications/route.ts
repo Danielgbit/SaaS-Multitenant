@@ -5,7 +5,9 @@ import { mapProviderStatusToInternal } from '@/types/notifications'
 import { recordInboundEvent, markEventProcessed } from '@/lib/notifications/inbound-events'
 import { processInboundReply } from '@/lib/notifications/processor'
 import { logNotificationEvent } from '@/lib/notifications/event-timeline'
+import { logInboundMessage } from '@/lib/notifications/messages'
 import { startSpan, endSpan } from '@/lib/notifications/observability'
+import { normalizeWebhook } from '@/lib/notifications/normalization'
 import { WasenderProvider } from '@/lib/notifications/channels/whatsapp/providers/wasender'
 import { N8NProvider } from '@/lib/notifications/channels/whatsapp/providers/n8n'
 import type { WhatsAppProvider } from '@/lib/notifications/channels/whatsapp/providers/types'
@@ -56,14 +58,26 @@ export async function POST(request: Request) {
 
     const parsed = provider.parseWebhook(body)
 
+    const providerHeaders: Record<string, string> = {}
+    request.headers.forEach((value, key) => {
+      if (key.startsWith('x-') || key === 'authorization' || key === 'content-type') {
+        providerHeaders[key] = value
+      }
+    })
+
+    const normalized = normalizeWebhook(providerType, body)
+
     if (parsed.providerMessageId) {
       const { data: queueItem } = await (supabase as any)
         .from('notification_queue')
-        .select('id, organization_id, channel, status, attempts, max_attempts, appointment_id, trace_id')
+        .select('id, organization_id, channel, status, attempts, max_attempts, appointment_id, trace_id, correlation_id')
         .eq('provider_message_id', parsed.providerMessageId)
         .single()
 
       if (queueItem) {
+        const qiRecord = queueItem as Record<string, unknown>
+        const correlationId = (qiRecord.correlation_id as string) || `notif_webhook_${span.traceId.slice(0, 8)}_${Date.now()}`
+
         if (parsed.status) {
           const mapped = mapProviderStatusToInternal(providerType, parsed.status)
           const updateData: Record<string, unknown> = {
@@ -77,11 +91,11 @@ export async function POST(request: Request) {
           } else if (mapped.status === 'read') {
             updateData.read_at = parsed.timestamp
           } else if (mapped.status === 'failed' && mapped.retryable) {
-            const newAttempts = ((queueItem as Record<string, unknown>).attempts as number || 0) + 1
+            const newAttempts = (qiRecord.attempts as number || 0) + 1
             updateData.attempts = newAttempts
             updateData.last_error = parsed.rawPayload?.error as string || null
             updateData.next_retry_at = new Date(Date.now() + newAttempts * 5 * 60 * 1000).toISOString()
-            if (newAttempts >= ((queueItem as Record<string, unknown>).max_attempts as number || 3)) {
+            if (newAttempts >= (qiRecord.max_attempts as number || 3)) {
               updateData.status = 'failed_permanently'
             } else {
               updateData.status = 'pending'
@@ -94,24 +108,53 @@ export async function POST(request: Request) {
           await (supabase as any)
             .from('notification_queue')
             .update(updateData)
-            .eq('id', (queueItem as Record<string, unknown>).id)
+            .eq('id', qiRecord.id)
 
-          if (['delivered', 'read', 'failed_permanently'].includes(mapped.status)) {
-            const eventType = mapped.status === 'delivered' ? 'DELIVERED'
-              : mapped.status === 'read' ? 'READ'
-              : 'FAILED'
+          const eventType = mapped.status === 'delivered' ? 'DELIVERED'
+            : mapped.status === 'read' ? 'READ'
+            : mapped.status === 'failed_permanently' ? 'FAILED'
+            : null
+
+          if (eventType) {
             await logNotificationEvent({
-              organizationId: (queueItem as Record<string, unknown>).organization_id as string,
-              queueItemId: (queueItem as Record<string, unknown>).id as string,
+              organizationId: qiRecord.organization_id as string,
+              queueItemId: qiRecord.id as string,
               eventType,
               metadata: { providerStatus: parsed.status },
-              traceId: (queueItem as Record<string, unknown>).trace_id as string || span.traceId,
+              traceId: qiRecord.trace_id as string || span.traceId,
+              providerMessageId: parsed.providerMessageId,
+              correlationId,
             })
+          }
+
+          try {
+            await logInboundMessage({
+              organizationId: qiRecord.organization_id as string,
+              providerMessageId: parsed.providerMessageId,
+              direction: 'inbound',
+              channel: (qiRecord.channel as string) || 'whatsapp',
+              fromPhone: parsed.fromPhone || '',
+              payload: parsed.rawPayload as Record<string, unknown>,
+              text: parsed.text,
+              traceId: qiRecord.trace_id as string || span.traceId,
+              responsePayload: parsed.rawPayload as Record<string, unknown>,
+              responseHeaders: providerHeaders,
+              responseStatus: 200,
+              normalizedPayload: normalized as unknown as Record<string, unknown>,
+              correlationId,
+            })
+          } catch {}
+
+          if (mapped.status === 'delivered') {
+            await (supabase as any)
+              .from('notification_queue')
+              .update({ completed_at: new Date().toISOString() })
+              .eq('id', qiRecord.id)
           }
 
           return NextResponse.json({
             success: true,
-            updated: (queueItem as Record<string, unknown>).id,
+            updated: qiRecord.id,
             traceId: span.traceId,
           })
         }

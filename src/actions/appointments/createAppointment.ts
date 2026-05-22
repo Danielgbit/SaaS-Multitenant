@@ -145,13 +145,13 @@ export async function createAppointment(
     .eq('organization_id', organization_id)
     .single()
 
-  const { data: bookingSettingsData } = await supabase
+  const { data: bookingSettingsData } = await (supabase as any)
     .from('booking_settings')
     .select('timezone, reminder_hours_before, use_notification_v2')
     .eq('organization_id', organization_id)
     .single()
 
-  const useNotificationV2 = bookingSettingsData?.use_notification_v2 === true
+  const useNotificationV2 = (bookingSettingsData as any)?.use_notification_v2 === true
 
   // 7. Calcular hora de fin
   // Normalizar timestamp: si tiene Z, quitarlo para que coincida con formato de slots (sin Z)

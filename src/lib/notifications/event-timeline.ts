@@ -9,6 +9,10 @@ interface LogEventParams {
   eventType: NotificationEventType
   metadata?: Record<string, unknown>
   traceId?: string
+  latencyMs?: number
+  workerId?: string
+  providerMessageId?: string
+  correlationId?: string
 }
 
 export async function logNotificationEvent(params: LogEventParams): Promise<void> {
@@ -24,6 +28,10 @@ export async function logNotificationEvent(params: LogEventParams): Promise<void
       event_type: params.eventType,
       metadata: params.metadata || {},
       trace_id: params.traceId || null,
+      latency_ms: params.latencyMs || null,
+      worker_id: params.workerId || null,
+      provider_message_id: params.providerMessageId || null,
+      correlation_id: params.correlationId || null,
     })
 }
 

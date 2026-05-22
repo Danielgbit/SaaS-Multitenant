@@ -15,6 +15,7 @@ interface MoveToDLQParams {
     error_code?: string
     attempts: number
     trace_id?: string
+    correlation_id?: string
   }
 }
 
@@ -37,6 +38,7 @@ export async function moveToDeadLetter(params: MoveToDLQParams): Promise<DeadLet
       error_code: item.error_code || null,
       attempts: item.attempts || 0,
       trace_id: traceId,
+      correlation_id: item.correlation_id || null,
     })
     .select()
     .single()

@@ -8,6 +8,7 @@ import { AdjustPriceModal } from './AdjustPriceModal'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { realtimeManager } from '@/lib/realtime-manager'
 import type { PendingConfirmationWithDetails } from '@/types/confirmations'
 
 interface ConfirmationsPanelProps {
@@ -172,14 +173,13 @@ export function ConfirmationsPanel({
 
   useEffect(() => {
     if (!isOpen) return
-    const supabase = createClient()
-    const channel = supabase
-      .channel(`confirmations-${organizationId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `organization_id=eq.${organizationId}` }, () => fetchPending())
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'appointments', filter: `organization_id=eq.${organizationId}` }, () => fetchPending())
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
-  }, [isOpen, organizationId, fetchPending])
+    const unsubAppointments = realtimeManager.onAppointmentsChange(fetchPending)
+    const unsubNotifications = realtimeManager.onNotificationsInsert(fetchPending)
+    return () => {
+      unsubAppointments()
+      unsubNotifications()
+    }
+  }, [isOpen, fetchPending])
 
   const handlePay = useCallback((confirmation: PendingConfirmationWithDetails) => {
     setSelectedConfirmation(confirmation)

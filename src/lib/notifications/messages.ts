@@ -12,6 +12,14 @@ interface LogOutboundParams {
   payload: Record<string, unknown>
   status: string
   traceId?: string
+  requestPayload?: Record<string, unknown>
+  responsePayload?: Record<string, unknown>
+  responseHeaders?: Record<string, unknown>
+  responseStatus?: number
+  retryCount?: number
+  normalizedPayload?: Record<string, unknown>
+  correlationId?: string
+  errorMessage?: string
 }
 
 interface LogInboundParams {
@@ -24,10 +32,21 @@ interface LogInboundParams {
   payload: Record<string, unknown>
   text?: string
   traceId?: string
+  requestPayload?: Record<string, unknown>
+  responsePayload?: Record<string, unknown>
+  responseHeaders?: Record<string, unknown>
+  responseStatus?: number
+  normalizedPayload?: Record<string, unknown>
+  correlationId?: string
 }
 
 export async function logOutboundMessage(params: LogOutboundParams): Promise<NotificationMessageRecord> {
   const supabase = await createClient()
+
+  if (params.providerMessageId) {
+    const existing = await findMessageByProviderId(params.providerMessageId)
+    if (existing) return existing
+  }
 
   const insertData = {
     conversation_id: params.conversationId || null,
@@ -39,6 +58,14 @@ export async function logOutboundMessage(params: LogOutboundParams): Promise<Not
     payload: params.payload,
     status: params.status,
     trace_id: params.traceId || null,
+    request_payload: params.requestPayload || null,
+    response_payload: params.responsePayload || null,
+    response_headers: params.responseHeaders || null,
+    response_status: params.responseStatus || null,
+    retry_count: params.retryCount ?? 0,
+    normalized_payload: params.normalizedPayload || null,
+    error_message: params.errorMessage || null,
+    correlation_id: params.correlationId || null,
   }
 
   const { data, error } = await (supabase as any)
@@ -55,6 +82,29 @@ export async function logOutboundMessage(params: LogOutboundParams): Promise<Not
   return data as unknown as NotificationMessageRecord
 }
 
+export async function logOutboundAttempt(params: {
+  messageId: string
+  attemptNumber: number
+  requestPayload?: Record<string, unknown>
+  responsePayload?: Record<string, unknown>
+  responseStatus?: number
+  error?: string
+  durationMs?: number
+}): Promise<void> {
+  const supabase = await createClient()
+  await (supabase as any)
+    .from('notification_messages')
+    .update({
+      retry_count: params.attemptNumber,
+      request_payload: params.requestPayload || null,
+      response_payload: params.responsePayload || null,
+      response_status: params.responseStatus || null,
+      error_message: params.error || null,
+      processing_time_ms: params.durationMs || null,
+    })
+    .eq('id', params.messageId)
+}
+
 export async function logInboundMessage(params: LogInboundParams): Promise<NotificationMessageRecord> {
   const supabase = await createClient()
 
@@ -67,6 +117,12 @@ export async function logInboundMessage(params: LogInboundParams): Promise<Notif
     payload: { ...params.payload, text: params.text },
     status: 'received',
     trace_id: params.traceId || null,
+    request_payload: params.requestPayload || null,
+    response_payload: params.responsePayload || null,
+    response_headers: params.responseHeaders || null,
+    response_status: params.responseStatus || null,
+    normalized_payload: params.normalizedPayload || null,
+    correlation_id: params.correlationId || null,
   }
 
   const { data, error } = await (supabase as any)

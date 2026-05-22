@@ -57,14 +57,16 @@ export class N8NProvider implements WhatsAppProvider {
       }
 
       let providerMessageId: string | undefined
+      let responseBody: Record<string, unknown> | undefined
       try {
         const data = await response.json() as Record<string, unknown>
         providerMessageId = String(data.message_id || data.id || '')
+        responseBody = data
       } catch {
         providerMessageId = undefined
       }
 
-      return { success: true, providerMessageId }
+      return { success: true, providerMessageId, rawResponse: { status: response.status, body: responseBody } }
     } catch (error) {
       clearTimeout(timeoutId)
       const err = error as Error

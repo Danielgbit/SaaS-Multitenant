@@ -12,7 +12,7 @@ export async function isV2EnabledForOrg(organizationId: string): Promise<boolean
       .eq('organization_id', organizationId)
       .single()
 
-    return data?.use_notification_v2 === true
+    return (data as any)?.use_notification_v2 === true
   } catch {
     return false
   }

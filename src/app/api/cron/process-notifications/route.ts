@@ -7,6 +7,8 @@ import { logNotificationEvent } from '@/lib/notifications/event-timeline'
 import { moveToDeadLetter } from '@/lib/notifications/dead-letter'
 import { assertValidTransition, type QueueStatus } from '@/lib/notifications/state-machine'
 import { classifyError, calculateBackoff } from '@/lib/notifications/retry-strategy'
+import { logOutboundMessage, logOutboundAttempt } from '@/lib/notifications/messages'
+import { normalizeSendResponse } from '@/lib/notifications/normalization'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -89,10 +91,12 @@ async function processNotificationBatch(
     errors: [],
   }
 
+  const workerId = crypto.randomUUID()
+
   const { data: batch, error: claimError } = await (supabase as any)
     .rpc('claim_notification_batch', {
       batch_size: BATCH_SIZE,
-      worker_id: crypto.randomUUID(),
+      worker_id: workerId,
       worker_ver: 'v2',
     })
 
@@ -107,7 +111,14 @@ async function processNotificationBatch(
     const failureLogged: Record<string, boolean> = {}
     const traceId = item.trace_id ? String(item.trace_id) : undefined
 
+    const processingStartedAt = new Date().toISOString()
+
     try {
+      await (supabase as any)
+        .from('notification_queue')
+        .update({ processing_started_at: processingStartedAt })
+        .eq('id', item.id)
+
       await logNotificationEvent({
         organizationId: item.organization_id as string,
         queueItemId: item.id as string,
@@ -225,6 +236,7 @@ async function processNotificationBatch(
           .update({
             status: 'sent',
             sent_at: now,
+            completed_at: now,
             provider_message_id: sendResult.providerMessageId,
             provider_response: sendResult.rawResponse as Record<string, unknown> | null,
             claimed_at: null,
@@ -244,17 +256,50 @@ async function processNotificationBatch(
             latencyMs,
             latencySeconds: Math.round(latencyMs / 1000),
           })
-        } catch {}
 
-        try {
+          const providerType = channelAdapter.getProviderName()
+          const sentPayload = {
+            channel: item.channel as NotificationChannel,
+            to_address: item.to_address as string,
+            body: (item.rendered_body as string) || '',
+            variables: (item.variables as Record<string, string>) || {},
+            appointment_id: item.appointment_id as string,
+            trace_id: traceId,
+          }
+          const normalizedResponse = normalizeSendResponse(providerType, sendResult.rawResponse)
+          const correlationId = (item.correlation_id as string) || `notif_${(traceId || crypto.randomUUID()).slice(0, 8)}_${Date.now()}`
+
           await logNotificationEvent({
             organizationId: item.organization_id as string,
             queueItemId: item.id as string,
             eventType: 'SENT',
             metadata: { providerMessageId: sendResult.providerMessageId },
             traceId: traceId || undefined,
+            latencyMs,
+            providerMessageId: sendResult.providerMessageId,
+            correlationId,
+            workerId: workerId,
+          })
+
+          await logOutboundMessage({
+            organizationId: item.organization_id as string,
+            queueItemId: item.id as string,
+            providerMessageId: sendResult.providerMessageId,
+            direction: 'outbound',
+            channel: item.channel as string,
+            payload: { to_address: item.to_address, body: item.rendered_body, variables: item.variables },
+            status: 'sent',
+            traceId,
+            requestPayload: sentPayload,
+            responsePayload: normalizedResponse.raw as Record<string, unknown> | undefined,
+            responseStatus: normalizedResponse.statusCode,
+            normalizedPayload: normalizedResponse as unknown as Record<string, unknown>,
+            correlationId,
+          }).catch((err: unknown) => {
+            logger.error('logOutboundMessage failed in cron', { error: err, queueItemId: item.id as string })
           })
         } catch {}
+
       } else {
         const newAttempts = ((item.attempts as number) || 0) + 1
         const maxAttempts = (item.max_attempts as number) || 3
@@ -275,13 +320,36 @@ async function processNotificationBatch(
             })
             .eq('id', item.id)
 
+          const correlationId = (item.correlation_id as string) || `notif_${(traceId || crypto.randomUUID()).slice(0, 8)}_${Date.now()}`
+
           await logNotificationEvent({
             organizationId: item.organization_id as string,
             queueItemId: item.id as string,
             eventType: 'FAILED',
             metadata: { error: sendResult.error, attempt: newAttempts, maxAttempts },
             traceId,
+            workerId,
+            correlationId,
+            providerMessageId: sendResult.providerMessageId,
           }).catch(() => {})
+
+          try {
+            await logOutboundMessage({
+              organizationId: item.organization_id as string,
+              queueItemId: item.id as string,
+              providerMessageId: sendResult.providerMessageId,
+              direction: 'outbound',
+              channel: item.channel as string,
+              payload: { to_address: item.to_address, body: item.rendered_body, variables: item.variables },
+              status: retryable ? 'failed' : 'failed_permanently',
+              traceId,
+              responsePayload: sendResult.rawResponse as Record<string, unknown> | undefined,
+              responseStatus: sendResult.rawResponse ? (sendResult.rawResponse as Record<string, unknown>).status as number : undefined,
+              errorMessage: sendResult.error,
+              retryCount: newAttempts,
+              correlationId,
+            }).catch(() => {})
+          } catch {}
 
           if (!retryable) {
             try {
@@ -297,6 +365,7 @@ async function processNotificationBatch(
                   last_error: sendResult.error,
                   attempts: newAttempts,
                   trace_id: item.trace_id as string | undefined,
+                  correlation_id: correlationId,
                 },
               })
               await logNotificationEvent({
@@ -305,6 +374,8 @@ async function processNotificationBatch(
                 eventType: 'DEAD_LETTERED',
                 metadata: { error: sendResult.error, errorCode: 'MAX_ATTEMPTS' },
                 traceId,
+                workerId,
+                correlationId,
               }).catch(() => {})
             } catch {}
           }
@@ -324,13 +395,35 @@ async function processNotificationBatch(
             })
             .eq('id', item.id)
 
+          const correlationId = (item.correlation_id as string) || `notif_${(traceId || crypto.randomUUID()).slice(0, 8)}_${Date.now()}`
+
           await logNotificationEvent({
             organizationId: item.organization_id as string,
             queueItemId: item.id as string,
             eventType: 'FAILED',
             metadata: { error: sendResult.error, attempt: newAttempts, retryable: true, nextRetryMs: backoffMs },
             traceId,
+            workerId,
+            correlationId,
+            providerMessageId: sendResult.providerMessageId,
           }).catch(() => {})
+
+          try {
+            await logOutboundMessage({
+              organizationId: item.organization_id as string,
+              queueItemId: item.id as string,
+              providerMessageId: sendResult.providerMessageId,
+              direction: 'outbound',
+              channel: item.channel as string,
+              payload: { to_address: item.to_address, body: item.rendered_body, variables: item.variables },
+              status: 'failed',
+              traceId,
+              responsePayload: sendResult.rawResponse as Record<string, unknown> | undefined,
+              errorMessage: sendResult.error,
+              retryCount: newAttempts,
+              correlationId,
+            }).catch(() => {})
+          } catch {}
         }
       }
 

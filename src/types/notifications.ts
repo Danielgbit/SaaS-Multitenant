@@ -136,6 +136,9 @@ export interface NotificationQueueItem {
   lastClaimedAt?: string
   claimedBy?: string
   workerVersion?: string
+  processingStartedAt?: string
+  completedAt?: string
+  correlationId?: string
   createdAt: string
 }
 
@@ -289,6 +292,13 @@ export interface NotificationMessageRecord {
   errorCode?: string
   errorMessage?: string
   traceId?: string
+  requestPayload?: Record<string, unknown>
+  responsePayload?: Record<string, unknown>
+  responseHeaders?: Record<string, unknown>
+  responseStatus?: number
+  retryCount?: number
+  normalizedPayload?: Record<string, unknown>
+  correlationId?: string
   createdAt: string
 }
 
@@ -300,12 +310,15 @@ export interface NotificationInboundEvent {
   provider: NotificationProviderType
   fromPhone?: string
   rawPayload: Record<string, unknown>
+  normalizedPayload?: Record<string, unknown>
+  providerHeaders?: Record<string, unknown>
   parsedAction?: string
   processed: boolean
   processedAt?: string
   processingTimeMs?: number
   errorMessage?: string
   traceId?: string
+  correlationId?: string
   createdAt: string
 }
 
@@ -325,6 +338,7 @@ export interface DeadLetterNotification {
   replayStatus: 'pending' | 'replayed' | 'discarded'
   replayedAt?: string
   traceId?: string
+  correlationId?: string
   metadata: Record<string, unknown>
 }
 
@@ -337,6 +351,10 @@ export interface NotificationEvent {
   eventType: NotificationEventType
   metadata: Record<string, unknown>
   traceId?: string
+  latencyMs?: number
+  workerId?: string
+  providerMessageId?: string
+  correlationId?: string
   createdAt: string
 }
 

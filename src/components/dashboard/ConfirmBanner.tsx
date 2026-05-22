@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Bell, X, ChevronRight, AlertTriangle, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { playServiceReadySound } from '@/lib/sound/notification'
 import { toast } from 'sonner'
 import { captureError } from '@/lib/error-logger'
+import { realtimeManager } from '@/lib/realtime-manager'
 
 interface PendingConfirmation {
   id: string
@@ -75,7 +76,6 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
   const [loading, setLoading] = useState(true)
   const [dismissed, setDismissed] = useState(false)
   const [lastCount, setLastCount] = useState(0)
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const supabase = createClient()
 
   const fetchPending = useCallback(async () => {
@@ -125,31 +125,10 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
 
   useEffect(() => {
     fetchPending()
-
-    // Realtime subscription - reemplaza polling cada 60s
-    channelRef.current = supabase
-      .channel(`confirmations-banner-${organizationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'appointments',
-          filter: `organization_id=eq.${organizationId}`,
-        },
-        () => {
-          // Cualquier cambio en appointments refetcha los pendientes
-          fetchPending()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current)
-      }
-    }
-  }, [fetchPending, organizationId, supabase])
+    realtimeManager.init(organizationId)
+    const unsub = realtimeManager.onAppointmentsChange(fetchPending)
+    return () => { unsub() }
+  }, [fetchPending, organizationId])
 
   if (loading || pending.length === 0 || dismissed) {
     return null

@@ -5,6 +5,7 @@ import { StuckProcessingAlert } from '@/components/dashboard/notifications/Stuck
 import { EventTimeline } from '@/components/dashboard/notifications/EventTimeline'
 import { QueueChart } from '@/components/dashboard/notifications/QueueChart'
 import { DeadLetterBanner } from '@/components/dashboard/notifications/DeadLetterBanner'
+import { DashboardSearch } from '@/components/dashboard/notifications/DashboardSearch'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -122,6 +123,8 @@ export default async function NotificationsPage() {
           </p>
         </div>
       </div>
+
+      <DashboardSearch />
 
       <QueueHealthCards queue={data.queue} deadLetters={data.deadLetters} />
 
