@@ -1,19 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Bell, X, ChevronRight, AlertTriangle, Clock, DollarSign } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Bell, X, ChevronRight, AlertTriangle, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { playServiceReadySound } from '@/lib/sound/notification'
 import { toast } from 'sonner'
+import { captureError } from '@/lib/error-logger'
 
 interface PendingConfirmation {
   id: string
-  clients?: { name: string }
-  employees?: { name: string }
+  clients?: { name: string }[]
+  employees?: { name: string }[]
   start_time: string
   completed_at: string | null
-  confirmation_status: string
-  price_adjustment: number
+  confirmation_status: string | null
+  price_adjustment: number | null
   notes: string | null
 }
 
@@ -74,11 +75,11 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
   const [loading, setLoading] = useState(true)
   const [dismissed, setDismissed] = useState(false)
   const [lastCount, setLastCount] = useState(0)
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const supabase = createClient()
 
   const fetchPending = useCallback(async () => {
-    const supabase = createClient()
-
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('appointments')
       .select(`
         id,
@@ -94,7 +95,13 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
       .in('confirmation_status', ['completed', 'needs_review'])
       .order('completed_at', { ascending: true })
 
-    if (!error && data) {
+    if (error) {
+      captureError('confirm-banner-fetch', error, { organizationId })
+      setLoading(false)
+      return
+    }
+
+    if (data) {
       const newCount = data.length
       if (newCount > 0 && newCount > lastCount) {
         playServiceReadySound()
@@ -114,13 +121,35 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
       setDismissed(false)
     }
     setLoading(false)
-  }, [organizationId, lastCount, onOpenPanel])
+  }, [organizationId, lastCount, onOpenPanel, supabase])
 
   useEffect(() => {
     fetchPending()
-    const interval = setInterval(fetchPending, 60000)
-    return () => clearInterval(interval)
-  }, [fetchPending])
+
+    // Realtime subscription - reemplaza polling cada 60s
+    channelRef.current = supabase
+      .channel(`confirmations-banner-${organizationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments',
+          filter: `organization_id=eq.${organizationId}`,
+        },
+        () => {
+          // Cualquier cambio en appointments refetcha los pendientes
+          fetchPending()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+      }
+    }
+  }, [fetchPending, organizationId, supabase])
 
   if (loading || pending.length === 0 || dismissed) {
     return null
@@ -157,13 +186,13 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
                       key={p.id}
                       className="inline-flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-300"
                     >
-                      <span className="font-medium">{p.clients?.name || 'Cliente'}</span>
+                      <span className="font-medium">{p.clients?.[0]?.name || 'Cliente'}</span>
                       <TimeBadge completedAt={p.completed_at} />
                     </span>
                   ))
                 ) : (
                   <span className="text-[10px] text-amber-600 dark:text-amber-400">
-                    {pending.slice(0, 2).map((p) => p.clients?.name || 'Cliente').join(', ')}...
+                    {pending.slice(0, 2).map((p) => p.clients?.[0]?.name || 'Cliente').join(', ')}...
                   </span>
                 )}
               </div>

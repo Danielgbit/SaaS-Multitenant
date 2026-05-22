@@ -28,6 +28,7 @@ export interface RouteDefinition {
   hideForEmpleado?: boolean
   showOnlyForEmpleado?: boolean
   badge?: string
+  active?: boolean
 }
 
 export const dashboardRoutes: RouteDefinition[] = [

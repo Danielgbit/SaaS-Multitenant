@@ -2,15 +2,18 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { 
-  AppointmentWithDetails, 
-  Employee, 
-  Client, 
-  Service, 
+import {
+  AppointmentWithDetails,
+  Employee,
+  Client,
+  Service,
   TimeSlot,
   NewAppointmentData,
   EditAppointmentData
 } from '@/types/calendar'
+import { getWeekDates, formatDateKey, formatTime, formatDateTimeFull, formatMonthYear, isToday, getWeekRange, groupAppointmentsByDay } from '@/lib/calendar/date-utils'
+import { categorizeSlots } from '@/lib/calendar/slots'
+import { buildEmployeeMap, buildClientMap, buildServiceMap, enrichAppointmentsWithDetails } from '@/lib/calendar/transformers'
 
 interface UseAppointmentsReturn {
   // State
@@ -151,31 +154,7 @@ export function useAppointments(organizationId: string): UseAppointmentsReturn {
   const [showTimeWarning, setShowTimeWarning] = useState(false)
 
   // Week dates
-  const weekDates = useMemo(() => {
-    const start = new Date(currentDate)
-    const day = start.getDay()
-    const diff = start.getDate() - day + (day === 0 ? -6 : 1)
-    const monday = new Date(start.setDate(diff))
-    const dates: Date[] = []
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(monday)
-      date.setDate(monday.getDate() + i)
-      dates.push(date)
-    }
-    return dates
-  }, [currentDate])
-
-  const formatDateKey = (date: Date): string => date.toISOString().split('T')[0]
-
-  const formatTime = (dateString: string): string => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false })
-  }
-
-  const formatDateTimeFull = (dateString: string): string => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-  }
+  const weekDates = useMemo(() => getWeekDates(currentDate), [currentDate])
 
   // Fetch data
   useEffect(() => {
@@ -194,19 +173,11 @@ export function useAppointments(organizationId: string): UseAppointmentsReturn {
         ])
         if (aptRes.error) throw aptRes.error
 
-        const empMap = new Map<string, Employee>()
-        empRes.data?.forEach(e => empMap.set(e.id, e))
-        const cliMap = new Map<string, Client>()
-        cliRes.data?.forEach(c => cliMap.set(c.id, c))
-        const srvMap = new Map<string, Service>()
-        srvRes.data?.forEach(s => srvMap.set(s.id, s))
+        const empMap = buildEmployeeMap(empRes.data ?? [])
+        const cliMap = buildClientMap(cliRes.data ?? [])
+        const srvMap = buildServiceMap(srvRes.data ?? [])
 
-        const withDetails: AppointmentWithDetails[] = (aptRes.data ?? []).map((apt: any) => ({
-          ...apt,
-          employee: empMap.get(apt.employee_id),
-          client: cliMap.get(apt.client_id),
-          service: apt.service_id ? srvMap.get(apt.service_id) : undefined
-        }))
+        const withDetails = enrichAppointmentsWithDetails(aptRes.data ?? [], empMap, cliMap, srvMap)
         setAppointments(withDetails)
         setEmployees(empRes.data ?? [])
         setClients(cliRes.data ?? [])
@@ -219,15 +190,10 @@ export function useAppointments(organizationId: string): UseAppointmentsReturn {
     fetchData()
   }, [organizationId, currentDate, supabase, weekDates])
 
-  const appointmentsByDay = useMemo(() => {
-    const grouped: Record<string, AppointmentWithDetails[]> = {}
-    weekDates.forEach(d => { grouped[formatDateKey(d)] = [] })
-    appointments.forEach(apt => {
-      const key = formatDateKey(new Date(apt.start_time))
-      if (grouped[key]) grouped[key].push(apt)
-    })
-    return grouped
-  }, [appointments, weekDates])
+  const appointmentsByDay = useMemo(
+    () => groupAppointmentsByDay(appointments, weekDates),
+    [appointments, weekDates]
+  )
 
   // Navigation
   const goToPrevWeek = useCallback(() => { 
@@ -243,13 +209,6 @@ export function useAppointments(organizationId: string): UseAppointmentsReturn {
   }, [currentDate])
   
   const goToToday = useCallback(() => setCurrentDate(new Date()), [])
-  
-  const formatMonthYear = () => currentDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-  const isToday = (d: Date) => formatDateKey(d) === formatDateKey(new Date())
-  const getWeekRange = () => {
-    const o: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
-    return `${weekDates[0].toLocaleDateString('es-ES', o)} - ${weekDates[6].toLocaleDateString('es-ES', o)}`
-  }
 
   // Modal actions
   const openNewModal = () => setShowNewAppointmentModal(true)
@@ -320,12 +279,6 @@ export function useAppointments(organizationId: string): UseAppointmentsReturn {
       setSlotsError('Error al cargar horarios')
     }
     finally { setLoadingSlots(false) }
-  }
-
-  const categorizeSlots = (slots: TimeSlot[]) => {
-    const m: TimeSlot[] = [], a: TimeSlot[] = []
-    slots.forEach(s => { const h = parseInt(s.start_time.split('T')[1].slice(0, 2), 10); (h < 13 ? m : a).push(s) })
-    return { morning: m, afternoon: a }
   }
 
   // Create appointment
@@ -494,9 +447,9 @@ export function useAppointments(organizationId: string): UseAppointmentsReturn {
     setShowEmployeeDropdown,
     
     // Helpers
-    formatMonthYear,
+    formatMonthYear: () => formatMonthYear(currentDate),
     isToday,
-    getWeekRange,
+    getWeekRange: () => getWeekRange(weekDates),
     formatDateKey,
     formatTime,
     formatDateTimeFull,
