@@ -1,3 +1,7 @@
+/**
+ * @deprecated V1 WhatsApp functions. Use V2 notification system for new code.
+ * @see src/lib/notifications/orchestrator.ts
+ */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'

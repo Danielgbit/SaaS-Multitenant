@@ -1,3 +1,4 @@
+/** @deprecated V1 direct send. Use V2 orchestrator. */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'

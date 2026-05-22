@@ -8,6 +8,7 @@ export async function runDailyReminderScheduler(): Promise<{
   processed: number
   sent: number
   failed: number
+  skippedV2: number
   errors: string[]
 }> {
   const supabase = await createClient()
@@ -15,6 +16,7 @@ export async function runDailyReminderScheduler(): Promise<{
   const errors: string[] = []
   let sent = 0
   let failed = 0
+  let skippedV2 = 0
 
   try {
     const tomorrow = new Date()
@@ -30,22 +32,39 @@ export async function runDailyReminderScheduler(): Promise<{
       .eq('enabled', true)
 
     if (orgsError || !organizations || organizations.length === 0) {
-      return { success: true, processed: 0, sent: 0, failed: 0, errors: [] }
+      return { success: true, processed: 0, sent: 0, failed: 0, skippedV2: 0, errors: [] }
     }
 
     const orgIds = organizations.map((org: any) => org.organization_id)
 
+    const { data: settingsList } = await (supabase as any)
+      .from('booking_settings')
+      .select('organization_id, use_notification_v2')
+      .in('organization_id', orgIds)
+
+    const v2Orgs = new Set(
+      (settingsList || [])
+        .filter((s: any) => s.use_notification_v2 === true)
+        .map((s: any) => s.organization_id)
+    )
+
+    const v1OrgIds = orgIds.filter((id: string) => !v2Orgs.has(id))
+
+    if (v1OrgIds.length === 0) {
+      return { success: true, processed: 0, sent: 0, failed: 0, skippedV2: orgIds.length, errors: [] }
+    }
+
     const { data: appointments, error: aptsError } = await (supabase as any)
       .from('appointments')
       .select('id')
-      .in('organization_id', orgIds)
+      .in('organization_id', v1OrgIds)
       .gte('start_time', tomorrow.toISOString())
       .lte('start_time', tomorrowEnd.toISOString())
       .in('status', ['pending', 'confirmed'])
 
     if (aptsError || !appointments) {
       errors.push('Error al buscar citas')
-      return { success: false, processed: 0, sent: 0, failed: 0, errors }
+      return { success: false, processed: 0, sent: 0, failed: 0, skippedV2: 0, errors }
     }
 
     for (const apt of appointments) {
@@ -63,11 +82,12 @@ export async function runDailyReminderScheduler(): Promise<{
       processed: appointments.length,
       sent,
       failed,
+      skippedV2,
       errors,
     }
   } catch (error) {
     console.error('Error in runDailyReminderScheduler:', error)
     errors.push(String(error))
-    return { success: false, processed: 0, sent, failed, errors }
+    return { success: false, processed: 0, sent, failed, skippedV2: 0, errors }
   }
 }

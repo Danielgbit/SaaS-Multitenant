@@ -34,7 +34,7 @@ export function MobileNav({ isOpen, onClose, role }: MobileNavProps) {
       route.href === '/dashboard'
         ? pathname === '/dashboard' || pathname === '/'
         : route.href === '/notificaciones'
-          ? pathname === '/notificaciones' || pathname.startsWith('/notificaciones/dead-letter')
+          ? pathname === '/notificaciones' || pathname.startsWith('/notificaciones/dead-letter') || pathname.startsWith('/notificaciones/validacion') || pathname.startsWith('/notificaciones/messages')
           : route.href === '/payroll'
             ? pathname.startsWith('/payroll') && !pathname.startsWith('/payroll/mi')
             : pathname.startsWith(route.href),

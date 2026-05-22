@@ -5,6 +5,7 @@ import {
   CheckCircle,
   Bell,
   ShieldCheck,
+  FileSearch,
   Users,
   Receipt,
   WalletCards,
@@ -62,6 +63,12 @@ export const dashboardRoutes: RouteDefinition[] = [
     icon: ShieldCheck,
     group: 'Operaciones',
     badge: 'Beta',
+  },
+  {
+    href: '/notificaciones/messages',
+    label: 'Inspector',
+    icon: FileSearch,
+    group: 'Operaciones',
   },
   {
     href: '/employees',
