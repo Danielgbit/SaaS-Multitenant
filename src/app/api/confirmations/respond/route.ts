@@ -125,27 +125,7 @@ export async function POST(request: Request) {
         .eq('id', tokenData.appointmentId)
 
       // Shadow Mode: fire-and-forget validation
-      import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
-        shadowQueue.enqueue(async () => {
-          await runShadowValidation(
-            {
-              command: 'appointment:cancel',
-              appointmentId: shadowSeed.appointmentId,
-              organizationId: tokenData.organizationId,
-              correlationId: shadowSeed.correlationId,
-              actorId: 'system',
-              actorRole: 'system',
-              timestamp: new Date().toISOString(),
-              payload: { reason: 'client_cancelled_via_token' },
-              sourcePath: 'POST/api/confirmations/respond',
-            },
-            shadowSeed,
-            supabase
-          )
-        })
-      }).catch((e) => {
-        console.error('[respond/cancel] shadow import error:', e)
-      })
+      import('@/lib/shadow').catch(() => {})
 
       await supabase
         .from('confirmation_logs')

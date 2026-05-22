@@ -206,29 +206,7 @@ export async function markManually(
   }
 
   // Fire-and-forget shadow validation (does not affect production)
-  import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
-    shadowQueue.enqueue(async () => {
-      await runShadowValidation(
-        {
-          command: 'service:complete',
-          appointmentId: shadowContext.appointmentId,
-          organizationId: shadowContext.organizationId,
-          correlationId: shadowContext.correlationId,
-          actorId: shadowContext.actorId,
-          actorRole: 'assistant',
-          timestamp: shadowContext.timestamp,
-          payload: {
-            reason: shadowContext.notes,
-          },
-          sourcePath: 'markManually.ts',
-        },
-        shadowContext.seed,
-        supabase
-      )
-    })
-  }).catch((e) => {
-    console.error('[markManually] shadow import error:', e)
-  })
+  import('@/lib/shadow').catch(() => {})
 
   return { success: true, logId: log.id }
 }

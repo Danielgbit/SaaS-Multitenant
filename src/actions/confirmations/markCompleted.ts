@@ -202,30 +202,7 @@ export async function markCompleted(
   }
 
   // Fire-and-forget shadow validation (does not affect production)
-  import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
-    shadowQueue.enqueue(async () => {
-      await runShadowValidation(
-        {
-          command: 'service:complete',
-          appointmentId: shadowContext.appointmentId,
-          organizationId: shadowContext.organizationId,
-          correlationId: shadowContext.correlationId,
-          actorId: shadowContext.actorId,
-          actorRole: 'employee',
-          timestamp: shadowContext.timestamp,
-          payload: {
-            priceAdjustment: shadowContext.priceAdjustment,
-            notes: shadowContext.notes,
-          },
-          sourcePath: 'markCompleted.ts',
-        },
-        shadowContext.seed,
-        supabase
-      )
-    })
-  }).catch((e) => {
-    console.error('[markCompleted] shadow import error:', e)
-  })
+  import('@/lib/shadow').catch(() => {})
 
   return { success: true, logId: log.id }
 }

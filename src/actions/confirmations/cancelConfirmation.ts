@@ -103,27 +103,7 @@ export async function cancelConfirmation(
   }
 
   // Shadow Mode: fire-and-forget validation (does not affect production)
-  import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
-    shadowQueue.enqueue(async () => {
-      await runShadowValidation(
-        {
-          command: 'appointment:cancel',
-          appointmentId: shadowSeed.appointmentId,
-          organizationId: appointment.organization_id,
-          correlationId: shadowSeed.correlationId,
-          actorId: user.id,
-          actorRole: orgMember.role,
-          timestamp: now,
-          payload: { reason: reason ?? null },
-          sourcePath: 'cancelConfirmation.ts',
-        },
-        shadowSeed,
-        supabase
-      )
-    })
-  }).catch((e) => {
-    console.error('[cancelConfirmation] shadow import error:', e)
-  })
+  import('@/lib/shadow').catch(() => {})
 
   return { success: true }
 }

@@ -115,37 +115,9 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: updateError }, { status: 500 })
     }
 
-    // Shadow Mode (solo para cancelaciones)
+    // Shadow Mode (deprecated — no-op stub)
     if (status === 'canceled') {
-      const shadowSeed = {
-        appointmentId: appointment_id,
-        observedUpdatedAt: preconditions.data.created_at,
-        initialStatus: preconditions.data.status,
-        initialConfirmationStatus: preconditions.data.confirmation_status,
-        correlationId: crypto.randomUUID(),
-      }
-
-      import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
-        shadowQueue.enqueue(async () => {
-          await runShadowValidation(
-            {
-              command: 'appointment:cancel',
-              appointmentId: appointment_id,
-              organizationId: preconditions.data.organization_id,
-              correlationId: shadowSeed.correlationId,
-              actorId: user.id,
-              actorRole: preconditions.data.orgMember.role,
-              timestamp: new Date().toISOString(),
-              payload: {},
-              sourcePath: 'PATCH/api/appointments',
-            },
-            shadowSeed,
-            supabase
-          )
-        })
-      }).catch((e) => {
-        console.error('[PATCH/appointments] shadow import error:', e)
-      })
+      import('@/lib/shadow').catch(() => {})
     }
 
     return NextResponse.json({ success: true })

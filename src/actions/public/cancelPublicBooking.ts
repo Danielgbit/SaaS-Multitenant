@@ -291,27 +291,7 @@ export async function cancelPublicBooking(
     correlationId: crypto.randomUUID(),
   }
 
-  import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
-    shadowQueue.enqueue(async () => {
-      await runShadowValidation(
-        {
-          command: 'appointment:cancel',
-          appointmentId: shadowSeed.appointmentId,
-          organizationId: organization.id,
-          correlationId: shadowSeed.correlationId,
-          actorId: 'system',
-          actorRole: 'system',
-          timestamp: new Date().toISOString(),
-          payload: { reason: cancellationReason ?? null },
-          sourcePath: 'cancelPublicBooking.ts',
-        },
-        shadowSeed,
-        supabase
-      )
-    })
-  }).catch((e) => {
-    console.error('[cancelPublicBooking] shadow import error:', e)
-  })
+  import('@/lib/shadow').catch(() => {})
 
   // 11. Encolar notificación de cancelación
   try {

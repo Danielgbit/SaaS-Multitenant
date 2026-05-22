@@ -173,38 +173,9 @@ export async function updateAppointmentStatus(
   const { error: updateError } = await updateAppointmentStatusInDb(supabase, appointment_id, status)
   if (updateError) return { error: updateError }
 
-  // Shadow Mode (solo para cancelaciones)
+  // Shadow Mode (deprecated — no-op stub)
   if (status === 'canceled') {
-    const { organization_id, created_at, status: oldStatus, confirmation_status } = preconditions.data
-    const shadowSeed = {
-      appointmentId: appointment_id,
-      observedUpdatedAt: created_at,
-      initialStatus: oldStatus,
-      initialConfirmationStatus: confirmation_status,
-      correlationId: crypto.randomUUID(),
-    }
-
-    import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
-      shadowQueue.enqueue(async () => {
-        await runShadowValidation(
-          {
-            command: 'appointment:cancel',
-            appointmentId: appointment_id,
-            organizationId: organization_id,
-            correlationId: shadowSeed.correlationId,
-            actorId: user.id,
-            actorRole: preconditions.data.orgMember.role,
-            timestamp: new Date().toISOString(),
-            payload: {},
-            sourcePath: 'updateAppointmentStatus',
-          },
-          shadowSeed,
-          supabase
-        )
-      })
-    }).catch((e) => {
-      console.error('[updateAppointmentStatus] shadow import error:', e)
-    })
+    import('@/lib/shadow').catch(() => {})
   }
 
   // Email para cambios de estado críticos

@@ -161,52 +161,9 @@ export async function confirmByReception(
   // Shadow Mode: fire-and-forget validation
   if (shadowSeed) {
     if (action === 'complete') {
-      import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
-        shadowQueue.enqueue(async () => {
-          await runShadowValidation(
-            {
-              command: 'payment:confirm',
-              appointmentId: shadowSeed!.appointmentId,
-              organizationId: organization_id,
-              correlationId: shadowSeed!.correlationId,
-              actorId: user.id,
-              actorRole: orgMember.role,
-              timestamp: new Date().toISOString(),
-              payload: {
-                payment_method: payment_method ?? null,
-                notes: notes ?? null,
-              },
-              sourcePath: 'confirmByReception.ts',
-            },
-            shadowSeed!,
-            supabase
-          )
-        })
-      }).catch((e) => {
-        console.error('[confirmByReception] shadow import error:', e)
-      })
+      import('@/lib/shadow').catch(() => {})
     } else if (action === 'not_performed') {
-      import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
-        shadowQueue.enqueue(async () => {
-          await runShadowValidation(
-            {
-              command: 'appointment:cancel',
-              appointmentId: shadowSeed!.appointmentId,
-              organizationId: organization_id,
-              correlationId: shadowSeed!.correlationId,
-              actorId: user.id,
-              actorRole: orgMember.role,
-              timestamp: new Date().toISOString(),
-              payload: { reason: 'not_performed', notes: notes ?? null },
-              sourcePath: 'confirmByReception.ts',
-            },
-            shadowSeed!,
-            supabase
-          )
-        })
-      }).catch((e) => {
-        console.error('[confirmByReception/not_performed] shadow import error:', e)
-      })
+      import('@/lib/shadow').catch(() => {})
     }
   }
 
