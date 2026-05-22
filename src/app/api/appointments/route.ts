@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { generateSlots } from '@/services/slots/generateSlots'
-import { z } from 'zod'
-
-const CreateAppointmentSchema = z.object({
-  employee_id: z.string().uuid('ID de empleado inválido'),
-  client_id: z.string().uuid('ID de cliente inválido'),
-  service_id: z.string().uuid('ID de servicio inválido'),
-  start_time: z.string().min(1, 'Fecha inválida'),
-  organization_id: z.string().uuid('ID de organización inválido'),
-  notes: z.string().optional(),
-})
+import {
+  CreateAppointmentSchema,
+  checkCreatePreconditions,
+  computeAppointmentTimes,
+  verifySlotAvailability,
+  insertAppointment,
+} from '@/lib/appointments/create-appointment-core'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const parsed = CreateAppointmentSchema.safeParse(body)
+
     if (!parsed.success) {
       return NextResponse.json(
         { error: parsed.error.issues[0]?.message || 'Datos inválidos' },
@@ -26,11 +25,7 @@ export async function POST(request: NextRequest) {
     const { employee_id, client_id, service_id, start_time, organization_id, notes } = parsed.data
     const supabase = await createClient()
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
     }
@@ -46,199 +41,105 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No perteneces a esta organización.' }, { status: 403 })
     }
 
-    const { data: employee, error: empError } = await supabase
-      .from('employees')
-      .select('id, organization_id, active')
-      .eq('id', employee_id)
-      .eq('organization_id', organization_id)
-      .single()
-
-    if (empError || !employee || !employee.active) {
-      return NextResponse.json({ error: 'El empleado no existe o no está activo.' }, { status: 400 })
+    const preconditions = await checkCreatePreconditions(supabase, parsed.data)
+    if (!preconditions.success) {
+      return NextResponse.json({ error: preconditions.error }, { status: 400 })
     }
 
-    const { data: client, error: clientError } = await supabase
-      .from('clients')
-      .select('id, organization_id')
-      .eq('id', client_id)
-      .eq('organization_id', organization_id)
-      .single()
+    const { startDate, endDate } = computeAppointmentTimes(start_time, preconditions.data.service.duration)
 
-    if (clientError || !client) {
-      return NextResponse.json({ error: 'El cliente no existe.' }, { status: 400 })
+    const slotCheck = await verifySlotAvailability(
+      supabase, employee_id, service_id, start_time, organization_id,
+      { bypassNotice: true }
+    )
+    if (!slotCheck.success) {
+      return NextResponse.json({ error: slotCheck.error }, { status: 400 })
     }
 
-    const { data: service, error: serviceError } = await supabase
-      .from('services')
-      .select('duration, active')
-      .eq('id', service_id)
-      .eq('organization_id', organization_id)
-      .single()
-
-    if (serviceError || !service || !service.active) {
-      return NextResponse.json({ error: 'El servicio no existe o no está activo.' }, { status: 400 })
-    }
-
-    // Normalizar start_time para comparación (quitar Z si tiene)
-    const normalizedStartTime = start_time.endsWith('Z')
-      ? start_time.slice(0, -1)
-      : start_time
-
-    const startDate = new Date(normalizedStartTime)
-    const endDate = new Date(startDate.getTime() + service.duration * 60 * 1000)
-
-    const dateStr = start_time.split('T')[0]
-
-    const availableSlots = await generateSlots({
-      employeeId: employee_id,
-      serviceId: service_id,
-      date: dateStr,
-      organizationId: organization_id,
-      bypassNotice: true,
+    const insertResult = await insertAppointment(supabase, {
+      organization_id,
+      client_id,
+      employee_id,
+      service_id,
+      start_time: startDate.toISOString(),
+      end_time: endDate.toISOString(),
+      notes: notes || null,
     })
 
-    if (availableSlots.length === 0) {
-      return NextResponse.json(
-        { error: 'No hay horarios disponibles para este día. El empleado puede tener el día libre o el spa cerrado.' },
-        { status: 400 }
-      )
+    if (!insertResult.success) {
+      return NextResponse.json({ error: insertResult.error }, { status: 500 })
     }
 
-    const slotAvailable = availableSlots.some(
-      (slot) => {
-        const slotNormalized = slot.start_time.endsWith('Z')
-          ? slot.start_time.slice(0, -1)
-          : slot.start_time
-        return slot.available && slotNormalized === normalizedStartTime
-      }
-    )
-
-    if (!slotAvailable) {
-      return NextResponse.json(
-        { error: 'El horario seleccionado ya no está disponible. Por favor elige otro horario.' },
-        { status: 400 }
-      )
-    }
-
-    const { data: appointment, error: insertError } = await supabase
-      .from('appointments')
-      .insert({
-        organization_id,
-        client_id,
-        employee_id,
-        start_time: startDate.toISOString(),
-        end_time: endDate.toISOString(),
-        status: 'pending',
-        notes: notes || null,
-      })
-      .select('id')
-      .single()
-
-    if (insertError) {
-      console.error('Error creating appointment:', insertError)
-      return NextResponse.json({ error: 'Error al crear la cita.' }, { status: 500 })
-    }
-
-    await supabase
-      .from('appointment_services')
-      .insert({
-        appointment_id: appointment.id,
-        service_id,
-      })
-
-    return NextResponse.json({ success: true, appointmentId: appointment.id })
+    return NextResponse.json({ success: true, appointmentId: insertResult.data.id })
   } catch (err) {
     console.error('Error in appointments API:', err)
     return NextResponse.json({ error: 'Error interno del servidor.' }, { status: 500 })
   }
 }
 
-const UpdateStatusSchema = z.object({
-  appointment_id: z.string().uuid('ID de cita inválido'),
-  status: z.enum(['pending', 'confirmed', 'completed', 'cancelled', 'no_show']),
-})
+// =============================================================================
+// PATCH - Actualizar status
+// =============================================================================
+
+import {
+  validateUpdateStatusInput,
+  checkUpdateStatusPreconditions,
+  updateAppointmentStatusInDb,
+} from '@/lib/appointments/update-appointment-core'
 
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json()
-    const parsed = UpdateStatusSchema.safeParse(body)
+    const validated = validateUpdateStatusInput(body)
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0]?.message || 'Datos inválidos' },
-        { status: 400 }
-      )
+    if (!validated.success) {
+      return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
     }
 
-    const { appointment_id, status } = parsed.data
+    const { appointment_id, status } = validated.data
     const supabase = await createClient()
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
     }
 
-    const { data: appointment, error: aptError } = await supabase
-      .from('appointments')
-      .select('organization_id, status, confirmation_status, created_at')
-      .eq('id', appointment_id)
-      .single()
-
-    if (aptError || !appointment) {
-      return NextResponse.json({ error: 'Cita no encontrada.' }, { status: 404 })
+    const preconditions = await checkUpdateStatusPreconditions(supabase, appointment_id, user.id)
+    if (!preconditions.success) {
+      const statusCode = preconditions.statusCode || 500
+      return NextResponse.json({ error: preconditions.error }, { status: statusCode })
     }
 
-    const { data: orgMember } = await supabase
-      .from('organization_members')
-      .select('organization_id, role')
-      .eq('user_id', user.id)
-      .eq('organization_id', appointment.organization_id)
-      .single()
-
-    if (!orgMember || orgMember.role === 'empleado') {
-      return NextResponse.json({ error: 'No tienes permisos para cambiar el estado de esta cita.' }, { status: 403 })
-    }
-
-    // Shadow Mode: capture seed BEFORE mutation (only for cancellations)
-    const shadowSeed = status === 'cancelled' ? {
-      appointmentId: appointment_id,
-      observedUpdatedAt: appointment.created_at,
-      initialStatus: appointment.status,
-      initialConfirmationStatus: appointment.confirmation_status,
-      correlationId: crypto.randomUUID(),
-    } : null
-
-    const { error: updateError } = await supabase
-      .from('appointments')
-      .update({ status })
-      .eq('id', appointment_id)
-
+    const { error: updateError } = await updateAppointmentStatusInDb(supabase, appointment_id, status)
     if (updateError) {
-      console.error('Error updating appointment:', updateError)
-      return NextResponse.json({ error: 'Error al actualizar la cita.' }, { status: 500 })
+      return NextResponse.json({ error: updateError }, { status: 500 })
     }
 
-    // Shadow Mode: fire-and-forget validation (only for cancellations)
-    if (shadowSeed) {
+    // Shadow Mode (solo para cancelaciones)
+    if (status === 'canceled') {
+      const shadowSeed = {
+        appointmentId: appointment_id,
+        observedUpdatedAt: preconditions.data.created_at,
+        initialStatus: preconditions.data.status,
+        initialConfirmationStatus: preconditions.data.confirmation_status,
+        correlationId: crypto.randomUUID(),
+      }
+
       import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
         shadowQueue.enqueue(async () => {
           await runShadowValidation(
             {
               command: 'appointment:cancel',
-              appointmentId: shadowSeed!.appointmentId,
-              organizationId: appointment.organization_id,
-              correlationId: shadowSeed!.correlationId,
+              appointmentId: appointment_id,
+              organizationId: preconditions.data.organization_id,
+              correlationId: shadowSeed.correlationId,
               actorId: user.id,
-              actorRole: orgMember!.role,
+              actorRole: preconditions.data.orgMember.role,
               timestamp: new Date().toISOString(),
               payload: {},
               sourcePath: 'PATCH/api/appointments',
             },
-            shadowSeed!,
+            shadowSeed,
             supabase
           )
         })
@@ -255,7 +156,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 // =============================================================================
-// PUT /api/appointments - Editar cita completa
+// PUT - Editar cita
 // =============================================================================
 
 const UpdateAppointmentSchema = z.object({
@@ -283,11 +184,7 @@ export async function PUT(request: NextRequest) {
     const { appointment_id, employee_id, client_id, service_id, start_time, notes, ignoreAvailability } = parsed.data
     const supabase = await createClient()
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
     }
@@ -323,7 +220,7 @@ export async function PUT(request: NextRequest) {
         .eq('id', employee_id)
         .eq('organization_id', currentAppointment.organization_id)
         .single()
-      
+
       if (!employee || !employee.active) {
         return NextResponse.json({ error: 'El empleado no existe o no está activo.' }, { status: 400 })
       }
@@ -337,7 +234,7 @@ export async function PUT(request: NextRequest) {
         .eq('id', client_id)
         .eq('organization_id', currentAppointment.organization_id)
         .single()
-      
+
       if (!client) {
         return NextResponse.json({ error: 'El cliente no existe.' }, { status: 400 })
       }
@@ -351,24 +248,18 @@ export async function PUT(request: NextRequest) {
         .eq('id', service_id)
         .eq('organization_id', currentAppointment.organization_id)
         .single()
-      
+
       if (!service || !service.active) {
         return NextResponse.json({ error: 'El servicio no existe o no está activo.' }, { status: 400 })
       }
-      
+
       const aptServices = currentAppointment as any
       const currentServiceId = aptServices.appointment_services?.[0]?.service_id
       if (service_id !== currentServiceId) {
-        await supabase
-          .from('appointment_services')
-          .delete()
-          .eq('appointment_id', appointment_id)
-        
-        await supabase
-          .from('appointment_services')
-          .insert({ appointment_id, service_id })
+        await supabase.from('appointment_services').delete().eq('appointment_id', appointment_id)
+        await supabase.from('appointment_services').insert({ appointment_id, service_id })
       }
-      
+
       if (start_time) {
         const startDate = new Date(start_time)
         const endDate = new Date(startDate.getTime() + service.duration * 60 * 1000)
@@ -389,7 +280,7 @@ export async function PUT(request: NextRequest) {
       const empId = employee_id || currentAppointment.employee_id
       const aptServices = currentAppointment as any
       const srvId = service_id || aptServices.appointment_services?.[0]?.service_id
-      
+
       if (empId && srvId) {
         const dateStr = start_time.split('T')[0]
         const slots = await generateSlots({
@@ -436,7 +327,7 @@ export async function PUT(request: NextRequest) {
 }
 
 // =============================================================================
-// DELETE /api/appointments - Eliminar cita
+// DELETE - Eliminar cita
 // =============================================================================
 
 const DeleteAppointmentSchema = z.object({
@@ -458,11 +349,7 @@ export async function DELETE(request: NextRequest) {
     const { appointment_id } = parsed.data
     const supabase = await createClient()
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado.' }, { status: 401 })
     }
@@ -488,10 +375,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'No tienes permisos para eliminar esta cita.' }, { status: 403 })
     }
 
-    await supabase
-      .from('appointment_services')
-      .delete()
-      .eq('appointment_id', appointment_id)
+    await supabase.from('appointment_services').delete().eq('appointment_id', appointment_id)
 
     const { error: deleteError } = await supabase
       .from('appointments')

@@ -2,63 +2,29 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { z } from 'zod'
-import { generateSlots } from '@/services/slots/generateSlots'
 import { generateConfirmationToken } from '@/lib/appointments/confirmation-links/tokens'
 import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
+import {
+  validateCreateInput,
+  checkCreatePreconditions,
+  computeAppointmentTimes,
+  verifySlotAvailability,
+  insertAppointment,
+} from '@/lib/appointments/create-appointment-core'
 
-// =============================================================================
-// SCHEMA DE VALIDACIÓN
-// =============================================================================
-
-const CreateAppointmentSchema = z.object({
-  employee_id: z.string().uuid('ID de empleado inválido'),
-  client_id: z.string().uuid('ID de cliente inválido'),
-  service_id: z.string().uuid('ID de servicio inválido'),
-  start_time: z.string().min(1, 'Fecha inválida'),
-  organization_id: z.string().uuid('ID de organización inválido'),
-  notes: z.string().optional(),
-})
-
-type CreateAppointmentInput = z.infer<typeof CreateAppointmentSchema>
-
-// =============================================================================
-// SERVER ACTION
-// =============================================================================
-
-/**
- * Crea una nueva cita verificando disponibilidad antes de insertar.
- * 
- * @param input - Datos de la cita a crear
- * @returns Error si falla, success si se crea correctamente
- */
 export async function createAppointment(
-  input: CreateAppointmentInput
+  input: unknown
 ): Promise<{ error?: string; success?: boolean; appointmentId?: string }> {
-  // 1. Validar input con Zod
-  const parsed = CreateAppointmentSchema.safeParse(input)
+  const validated = validateCreateInput(input)
+  if (!validated.success) return { error: validated.error }
 
-  if (!parsed.success) {
-    const firstError = parsed.error.issues[0]?.message
-    return { error: firstError || 'Datos inválidos' }
-  }
-
-  const { employee_id, client_id, service_id, start_time, organization_id, notes } = parsed.data
-
+  const { employee_id, client_id, service_id, start_time, organization_id, notes } = validated.data
   const supabase = await createClient()
 
-  // 2. Verificar usuario autenticado
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) return { error: 'No autorizado.' }
 
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
-  // 3. Verificar que el usuario pertenece a la organización
   const { data: orgMember, error: orgError } = await supabase
     .from('organization_members')
     .select('organization_id, role')
@@ -66,182 +32,55 @@ export async function createAppointment(
     .eq('organization_id', organization_id)
     .single()
 
-  if (orgError || !orgMember) {
-    return { error: 'No perteneces a esta organización.' }
-  }
+  if (orgError || !orgMember) return { error: 'No perteneces a esta organización.' }
 
-  // 4. Verificar que el empleado existe y pertenece a la org
-  const { data: employee, error: empError } = await supabase
-    .from('employees')
-    .select('id, organization_id, active')
-    .eq('id', employee_id)
-    .eq('organization_id', organization_id)
-    .single()
+  const preconditions = await checkCreatePreconditions(supabase, validated.data)
+  if (!preconditions.success) return { error: preconditions.error }
 
-  if (empError || !employee) {
-    return { error: 'El empleado no existe o no pertenece a tu organización.' }
-  }
+  const { service } = preconditions.data
 
-  if (!employee.active) {
-    return { error: 'El empleado no está activo.' }
-  }
+  const { startDate, endDate, normalizedStart } = computeAppointmentTimes(start_time, service.duration)
 
-  // 5. Verificar que el cliente existe y pertenece a la org
-  const { data: client, error: clientError } = await supabase
-    .from('clients')
-    .select('id, organization_id')
-    .eq('id', client_id)
-    .eq('organization_id', organization_id)
-    .single()
+  const slotCheck = await verifySlotAvailability(supabase, employee_id, service_id, start_time, organization_id)
+  if (!slotCheck.success) return { error: slotCheck.error }
 
-  if (clientError || !client) {
-    return { error: 'El cliente no existe o no pertenece a tu organización.' }
-  }
+  const insertResult = await insertAppointment(supabase, {
+    organization_id,
+    client_id,
+    employee_id,
+    service_id,
+    start_time: startDate.toISOString(),
+    end_time: endDate.toISOString(),
+    notes: notes || null,
+  })
 
-  // 6. Obtener duración del servicio
-  const { data: service, error: serviceError } = await supabase
-    .from('services')
-    .select('id, name, duration, active, price')
-    .eq('id', service_id)
-    .eq('organization_id', organization_id)
-    .single()
+  if (!insertResult.success) return { error: insertResult.error }
 
-  if (serviceError || !service) {
-    return { error: 'El servicio no existe o no pertenece a tu organización.' }
-  }
+  const appointment = insertResult.data
 
-  if (!service.active) {
-    return { error: 'El servicio no está activo.' }
-  }
-
-  // 6.5 Obtener datos relacionados para notificaciones (antes de crear la cita)
-  const { data: clientData } = await supabase
-    .from('clients')
-    .select('name, phone, email')
-    .eq('id', client_id)
-    .single()
-
-  const { data: employeeData } = await supabase
-    .from('employees')
-    .select('name')
-    .eq('id', employee_id)
-    .single()
-
-  const { data: orgData } = await supabase
-    .from('organizations')
-    .select('name, phone, address')
-    .eq('id', organization_id)
-    .single()
-
-  const { data: whatsappSettings } = await (supabase as any)
-    .from('whatsapp_settings')
-    .select('enabled')
-    .eq('organization_id', organization_id)
-    .single()
-
-  const { data: emailSettings } = await (supabase as any)
-    .from('email_settings')
-    .select('enabled, send_confirmation')
-    .eq('organization_id', organization_id)
-    .single()
-
-  const { data: bookingSettingsData } = await (supabase as any)
-    .from('booking_settings')
-    .select('timezone, reminder_hours_before, use_notification_v2')
-    .eq('organization_id', organization_id)
-    .single()
+  // Obtener datos para notificaciones
+  const [clientData, employeeData, orgData, whatsappSettings, emailSettings, bookingSettingsData] = await Promise.all([
+    supabase.from('clients').select('name, phone, email').eq('id', client_id).single().then(r => r.data),
+    supabase.from('employees').select('name').eq('id', employee_id).single().then(r => r.data),
+    supabase.from('organizations').select('name, phone, address').eq('id', organization_id).single().then(r => r.data),
+    (supabase as any).from('whatsapp_settings').select('enabled').eq('organization_id', organization_id).single().then((r: any) => r.data),
+    (supabase as any).from('email_settings').select('enabled, send_confirmation').eq('organization_id', organization_id).single().then((r: any) => r.data),
+    (supabase as any).from('booking_settings').select('timezone, reminder_hours_before, use_notification_v2').eq('organization_id', organization_id).single().then((r: any) => r.data),
+  ])
 
   const useNotificationV2 = (bookingSettingsData as any)?.use_notification_v2 === true
 
-  // 7. Calcular hora de fin
-  // Normalizar timestamp: si tiene Z, quitarlo para que coincida con formato de slots (sin Z)
-  const normalizedStartTime = start_time.endsWith('Z')
-    ? start_time.slice(0, -1)
-    : start_time
-  const startDate = new Date(normalizedStartTime)
-  const endDate = new Date(startDate.getTime() + service.duration * 60 * 1000)
-
-  // 8. VERIFICAR DISPONIBILIDAD (prevenir race conditions)
-  const dateStr = start_time.split('T')[0]
-
-  try {
-    const availableSlots = await generateSlots({
-      employeeId: employee_id,
-      serviceId: service_id,
-      date: dateStr,
-      organizationId: organization_id,
-    })
-
-    if (availableSlots.length === 0) {
-      return { error: 'No hay horarios disponibles para este día. El empleado puede tener el día libre o el spa cerrado.' }
-    }
-
-    const slotAvailable = availableSlots.some(
-      (slot) => {
-        const slotNormalized = slot.start_time.endsWith('Z')
-          ? slot.start_time.slice(0, -1)
-          : slot.start_time
-        return slot.available && slotNormalized === normalizedStartTime
-      }
-    )
-
-    if (!slotAvailable) {
-      return { error: 'El horario seleccionado ya no está disponible. Por favor elige otro horario.' }
-    }
-  } catch (genError) {
-    console.error('Error verifying slot availability:', genError)
-    return { error: 'Error al verificar disponibilidad.' }
-  }
-
-  // 9. Crear la cita (dentro de transaction implícita)
-  const { data: appointment, error: insertError } = await supabase
-    .from('appointments')
-    .insert({
-      organization_id,
-      client_id,
-      employee_id,
-      start_time: startDate.toISOString(),
-      end_time: endDate.toISOString(),
-      status: 'pending',
-      notes: notes || null,
-    })
-    .select('id, start_time, end_time, status')
-    .single()
-
-  if (insertError) {
-    console.error('Error creating appointment:', insertError)
-    return { error: 'Error al crear la cita. Intenta de nuevo.' }
-  }
-
-  // 10. Crear la relación appointment_services
-  const { error: relationError } = await supabase
-    .from('appointment_services')
-    .insert({
-      appointment_id: appointment.id,
-      service_id,
-    })
-
-  if (relationError) {
-    console.error('Error creating appointment_service relation:', relationError)
-  }
-
-  // 11. Generar confirmation token para link de confirmar/cancelar
+  // Generar confirmation token
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const tokenResult = await generateConfirmationToken(
-    appointment.id,
-    organization_id,
-    'confirm'
-  )
-
+  const tokenResult = await generateConfirmationToken(appointment.id, organization_id, 'confirm')
   const confirmationLink = tokenResult.success && tokenResult.token
     ? `${appUrl}/confirmar/${tokenResult.token}`
     : undefined
 
-  // 12. Encolar notificación via NotificationOrchestrator (V2) o legacy (V1)
+  // Notificaciones
   if (useNotificationV2) {
     try {
       const { NotificationOrchestrator } = await import('@/lib/notifications/orchestrator')
-
       await NotificationOrchestrator('appointment_created', appointment.id, {
         id: appointment.id,
         organization_id,
@@ -261,7 +100,6 @@ export async function createAppointment(
       console.error('[createAppointment] Orchestrator error:', orchestratorError)
     }
   } else {
-    // Fallback: usar sistema legacy (queueWhatsAppMessage + queueEmailMessage)
     try {
       if (whatsappSettings?.enabled && clientData?.phone) {
         await queueWhatsAppMessage({
@@ -271,21 +109,13 @@ export async function createAppointment(
           template: 'appointment_confirmation',
           variables: {
             name: clientData.name,
-            date: startDate.toLocaleDateString('es-ES', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-            }),
-            time: startDate.toLocaleTimeString('es-ES', {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
+            date: startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }),
+            time: startDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
           },
         })
       }
 
       if (emailSettings?.enabled && emailSettings?.send_confirmation && clientData?.email) {
-        const duration = service?.duration || 30
         await queueEmailMessage({
           organizationId: organization_id,
           appointmentId: appointment.id,
@@ -295,19 +125,12 @@ export async function createAppointment(
           variables: {
             businessName: (orgData as any)?.name || 'Negocio',
             clientName: clientData.name,
-            serviceName: service?.name || 'Servicio',
+            serviceName: service.name || 'Servicio',
             employeeName: employeeData?.name || 'Profesional',
-            date: startDate.toLocaleDateString('es-ES', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-            }),
-            time: startDate.toLocaleTimeString('es-ES', {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            duration: `${duration} min`,
-            price: service?.price ? `${service.price}€` : undefined,
+            date: startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }),
+            time: startDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            duration: `${service.duration} min`,
+            price: service.price ? `${service.price}€` : undefined,
           },
         })
       }
@@ -316,7 +139,6 @@ export async function createAppointment(
     }
   }
 
-  // 13. Revalidar paths relevantes
   revalidatePath('/calendar')
   revalidatePath('/employees')
 
@@ -324,96 +146,59 @@ export async function createAppointment(
 }
 
 // =============================================================================
-// ACTUALIZAR STATUS
+// UPDATE STATUS
 // =============================================================================
 
-const UpdateStatusSchema = z.object({
-  appointment_id: z.string().uuid('ID de cita inválido'),
-  status: z.enum(['pending', 'confirmed', 'completed', 'canceled', 'no_show']),
-})
+import {
+  validateUpdateStatusInput,
+  checkUpdateStatusPreconditions,
+  updateAppointmentStatusInDb,
+} from '@/lib/appointments/update-appointment-core'
 
 export async function updateAppointmentStatus(
-  input: z.infer<typeof UpdateStatusSchema>
+  input: unknown
 ): Promise<{ error?: string; success?: boolean }> {
-  const parsed = UpdateStatusSchema.safeParse(input)
+  const validated = validateUpdateStatusInput(input)
+  if (!validated.success) return { error: validated.error }
 
-  if (!parsed.success) {
-    return { error: 'Datos inválidos' }
-  }
-
-  const { appointment_id, status } = parsed.data
-
+  const { appointment_id, status } = validated.data
   const supabase = await createClient()
 
-  // Verificar autenticación
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) return { error: 'No autorizado.' }
 
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
+  const preconditions = await checkUpdateStatusPreconditions(supabase, appointment_id, user.id)
+  if (!preconditions.success) return { error: preconditions.error }
 
-  // Verificar pertenencia a la organización
-  const { data: appointment, error: aptError } = await supabase
-    .from('appointments')
-    .select('organization_id, status, confirmation_status, created_at')
-    .eq('id', appointment_id)
-    .single()
+  const { error: updateError } = await updateAppointmentStatusInDb(supabase, appointment_id, status)
+  if (updateError) return { error: updateError }
 
-  if (aptError || !appointment) {
-    return { error: 'Cita no encontrada.' }
-  }
+  // Shadow Mode (solo para cancelaciones)
+  if (status === 'canceled') {
+    const { organization_id, created_at, status: oldStatus, confirmation_status } = preconditions.data
+    const shadowSeed = {
+      appointmentId: appointment_id,
+      observedUpdatedAt: created_at,
+      initialStatus: oldStatus,
+      initialConfirmationStatus: confirmation_status,
+      correlationId: crypto.randomUUID(),
+    }
 
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', appointment.organization_id)
-    .single()
-
-  if (!orgMember) {
-    return { error: 'No perteneces a esta organización.' }
-  }
-
-  // Shadow Mode: capture seed BEFORE mutation (only for cancellations)
-  const shadowSeed = status === 'canceled' ? {
-    appointmentId: appointment_id,
-    observedUpdatedAt: appointment.created_at,
-    initialStatus: appointment.status,
-    initialConfirmationStatus: appointment.confirmation_status,
-    correlationId: crypto.randomUUID(),
-  } : null
-
-  // Actualizar status
-  const { error: updateError } = await supabase
-    .from('appointments')
-    .update({ status })
-    .eq('id', appointment_id)
-
-  if (updateError) {
-    console.error('Error updating appointment:', updateError)
-    return { error: 'Error al actualizar la cita.' }
-  }
-
-  // Shadow Mode: fire-and-forget validation (only for cancellations)
-  if (shadowSeed) {
     import('@/lib/shadow').then(({ shadowQueue, runShadowValidation }) => {
       shadowQueue.enqueue(async () => {
         await runShadowValidation(
           {
             command: 'appointment:cancel',
-            appointmentId: shadowSeed!.appointmentId,
-            organizationId: appointment.organization_id,
-            correlationId: shadowSeed!.correlationId,
+            appointmentId: appointment_id,
+            organizationId: organization_id,
+            correlationId: shadowSeed.correlationId,
             actorId: user.id,
-            actorRole: orgMember!.role,
+            actorRole: preconditions.data.orgMember.role,
             timestamp: new Date().toISOString(),
             payload: {},
             sourcePath: 'updateAppointmentStatus',
           },
-          shadowSeed!,
+          shadowSeed,
           supabase
         )
       })
@@ -422,82 +207,65 @@ export async function updateAppointmentStatus(
     })
   }
 
-  // Enviar email de cancelación si aplica
+  // Email para cambios de estado críticos
   if (status === 'canceled' || status === 'completed' || status === 'no_show') {
     try {
-      const { data: appointmentData } = await supabase
+      const { data: aptData } = await supabase
         .from('appointments')
         .select('client_id, employee_id, start_time')
         .eq('id', appointment_id)
         .single()
 
-      if (!appointmentData?.client_id || !appointmentData?.employee_id) {
-        return { success: true }
-      }
-
-      const { data: clientData } = await supabase
-        .from('clients')
-        .select('name, email')
-        .eq('id', appointmentData.client_id)
-        .single()
-
-      if (!clientData?.email) {
-        return { success: true }
-      }
-
-      const { data: employeeData } = await supabase
-        .from('employees')
-        .select('name')
-        .eq('id', appointmentData.employee_id)
-        .single()
-
-      const { data: emailSettings } = await (supabase as any)
-        .from('email_settings')
-        .select('enabled')
-        .eq('organization_id', appointment.organization_id)
-        .single()
-
-      if (emailSettings?.enabled && clientData.email) {
-        const { data: orgData } = await supabase
-          .from('organizations')
-          .select('name')
-          .eq('id', appointment.organization_id)
+      if (aptData?.client_id && aptData?.employee_id) {
+        const { data: clientInfo } = await supabase
+          .from('clients')
+          .select('name, email')
+          .eq('id', aptData.client_id)
           .single()
 
-        const startDate = new Date(appointmentData.start_time)
-        
-        let emailType: 'appointment_cancelled' | 'appointment_completed' | 'appointment_no_show'
-        if (status === 'canceled') {
-          emailType = 'appointment_cancelled'
-        } else if (status === 'completed') {
-          emailType = 'appointment_completed'
-        } else {
-          emailType = 'appointment_no_show'
-        }
+        if (clientInfo?.email) {
+          const { data: empInfo } = await supabase
+            .from('employees')
+            .select('name')
+            .eq('id', aptData.employee_id)
+            .single()
 
-        await queueEmailMessage({
-          organizationId: appointment.organization_id,
-          appointmentId: appointment_id,
-          clientId: appointmentData.client_id,
-          emailType,
-          to: clientData.email,
-          variables: {
-            businessName: orgData?.name || 'Negocio',
-            clientName: clientData.name,
-            serviceName: 'Servicio',
-            employeeName: employeeData?.name || 'Profesional',
-            date: startDate.toLocaleDateString('es-ES', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-            }),
-            time: startDate.toLocaleTimeString('es-ES', {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            duration: '30 min',
-          },
-        })
+          const { data: emailCfg } = await (supabase as any)
+            .from('email_settings')
+            .select('enabled')
+            .eq('organization_id', preconditions.data.organization_id)
+            .single()
+
+          if (emailCfg?.enabled) {
+            const { data: org } = await supabase
+              .from('organizations')
+              .select('name')
+              .eq('id', preconditions.data.organization_id)
+              .single()
+
+            const startDate = new Date(aptData.start_time)
+            const emailType = status === 'canceled' ? 'appointment_cancelled'
+              : status === 'completed' ? 'appointment_completed'
+              : 'appointment_no_show'
+
+            await queueEmailMessage({
+              organizationId: preconditions.data.organization_id,
+              appointmentId: appointment_id,
+              clientId: aptData.client_id,
+              emailType,
+              to: clientInfo.email,
+              variables: {
+                businessName: org?.name || 'Negocio',
+                clientName: clientInfo.name,
+                serviceName: 'Servicio',
+                employeeName: empInfo?.name || 'Profesional',
+                date: startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }),
+                time: startDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+                duration: '30 min',
+              },
+            })
+          }
+        }
       }
     } catch (emailError) {
       console.error('Error sending status email:', emailError)
