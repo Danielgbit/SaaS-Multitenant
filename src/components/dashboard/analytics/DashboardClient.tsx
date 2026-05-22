@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Calendar, CheckCircle2, DollarSign, Users, TrendingUp, XCircle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { useAnalytics } from '@/hooks/useAnalytics'
+import { ChartErrorBoundary, ChartSkeleton } from '@/components/ui/ChartErrorBoundary'
 import { PeriodSelector } from './PeriodSelector'
 import { StatsCard } from './StatsCard'
 import { TrendChart } from './TrendChart'
@@ -223,7 +224,9 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
         
         {/* Left Column - Chart + Activity */}
         <div className="space-y-6">
-          <TrendChart data={data?.trend || []} loading={loading} />
+          <ChartErrorBoundary chartName="Evolución de Citas" fallback={<ChartSkeleton />}>
+            <TrendChart data={data?.trend || []} loading={loading} />
+          </ChartErrorBoundary>
           <RecentActivity activities={data?.recentActivity || []} loading={loading} />
         </div>
 

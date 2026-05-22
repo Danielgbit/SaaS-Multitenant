@@ -12,10 +12,8 @@ interface AppointmentDetails {
   confirmation_status: string
   organizations: {
     name: string
-    phone?: string
-    address?: string
   } | null
-  services: {
+  services?: {
     name: string
   } | null
   employees: {
@@ -84,8 +82,7 @@ export default function ConfirmarPage() {
           end_time,
           status,
           confirmation_status,
-          organizations!inner(name, phone, address),
-          services!inner(name),
+          organizations!inner(name),
           employees!inner(name),
           clients!inner(name, phone)
         `)
@@ -221,11 +218,6 @@ export default function ConfirmarPage() {
           <p className="text-gray-600">
             Esta cita ha sido cancelada. Si deseas reprogramar, por favor contacta al negocio.
           </p>
-          {appointment?.organizations?.phone && (
-            <p className="mt-4 text-[#0F4C5C] font-medium">
-              Tel: {appointment.organizations.phone}
-            </p>
-          )}
         </div>
       </div>
     )
@@ -325,15 +317,6 @@ export default function ConfirmarPage() {
 
             {error && (
               <p className="mt-4 text-red-500 text-sm text-center">{error}</p>
-            )}
-
-            {appointment.organizations?.phone && (
-              <p className="mt-6 text-center text-gray-500 text-sm">
-                ¿Dudas? Llámanos al{' '}
-                <a href={`tel:${appointment.organizations.phone}`} className="text-[#0F4C5C] font-medium">
-                  {appointment.organizations.phone}
-                </a>
-              </p>
             )}
           </div>
         </div>

@@ -1,5 +1,4 @@
 export * from './types'
 export * from './factory'
-export * from './whatsapp-n8n.channel'
 export * from './email-resend.channel'
 export * from './in-app.channel'

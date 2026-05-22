@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { enqueueShadowSeed } from '@/lib/notifications/shadow/seeder'
 
 const WHATSAPP_TEMPLATES = {
   appointment_reminder: {
@@ -94,29 +95,83 @@ export async function queueWhatsAppMessage(
       })
     }
 
-    const { data, error } = await supabase
-      .from('whatsapp_messages')
+    const { data: settings } = await supabase
+      .from('integrations')
+      .select('config')
+      .eq('organization_id', organizationId)
+      .eq('type', 'whatsapp')
+      .single()
+
+    const config = (settings?.config as Record<string, unknown>) || {}
+    const webhookUrl = config.webhook_url as string
+    const apiKey = config.api_key as string
+
+    if (!webhookUrl) {
+      console.error('[queueWhatsAppMessage] No webhook URL configured for org', organizationId)
+      return { success: false, error: 'WhatsApp no configurado' }
+    }
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`
+    }
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        phone,
+        message,
+        variables,
+        appointment_id: appointmentId,
+        message_type: template,
+      }),
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    const n8nResponse = await response.text()
+
+    await supabase
+      .from('whatsapp_logs')
       .insert({
         organization_id: organizationId,
         appointment_id: appointmentId || null,
-        phone,
-        template,
-        payload: {
-          message,
-          variables,
-        },
-        status: 'pending',
-        scheduled_at: new Date().toISOString(),
+        phone_number: phone,
+        message_type: template,
+        status: response.ok ? 'sent' : 'failed',
+        error_message: response.ok ? null : n8nResponse,
+        n8n_response: response.ok ? { status: response.status } : null,
+        sent_at: response.ok ? new Date().toISOString() : null,
       })
-      .select()
-      .single()
 
-    if (error) {
-      console.error('Error queueing WhatsApp message:', error)
-      return { success: false, error: 'Error al encolar mensaje' }
+    if (!response.ok) {
+      console.error('[queueWhatsAppMessage] N8N webhook failed:', n8nResponse)
+      return { success: false, error: 'Error al enviar mensaje' }
     }
 
-    return { success: true, data }
+    enqueueShadowSeed({
+      appointmentId: appointmentId || '',
+      organizationId,
+      to: phone,
+      templateName: template,
+      templateVariables: variables || {},
+      renderedMessage: message,
+      status: 'sent',
+      responseStatus: response.status,
+      sentAt: new Date().toISOString(),
+      providerUrl: webhookUrl,
+      channel: 'whatsapp',
+    }).catch(() => {})
+
+    return { success: true }
   } catch (error) {
     console.error('Error in queueWhatsAppMessage:', error)
     return { success: false, error: 'Error inesperado' }

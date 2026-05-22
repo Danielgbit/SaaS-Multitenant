@@ -44,8 +44,13 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/reset-password') ||
     request.nextUrl.pathname.startsWith('/invite')
 
+  const isPublicRoute =
+    request.nextUrl.pathname.startsWith('/confirmar') ||
+    request.nextUrl.pathname.startsWith('/help') ||
+    request.nextUrl.pathname.startsWith('/reservar')
+
   // Usuario no autenticado intentando acceder a rutas protegidas → redirigir a login
-  if (!user && !isAuthRoute && request.nextUrl.pathname !== '/') {
+  if (!user && !isAuthRoute && !isPublicRoute && request.nextUrl.pathname !== '/') {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

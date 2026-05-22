@@ -254,7 +254,7 @@ export async function createAppointment(
         services: null,
         organizations: orgData || null,
         booking_settings: bookingSettingsData || undefined,
-      } as any)
+      } as any, { confirmationLink })
     } catch (orchestratorError) {
       console.error('[createAppointment] Orchestrator error:', orchestratorError)
     }

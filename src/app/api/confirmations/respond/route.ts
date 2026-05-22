@@ -7,7 +7,7 @@ import {
 } from '@/actions/notifications/confirmations/tokens'
 import type { ConfirmationTokenAction } from '@/types/notifications'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   try {

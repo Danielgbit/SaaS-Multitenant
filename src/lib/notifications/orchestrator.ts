@@ -1,12 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { createChannel } from '@/lib/notifications/channels'
 import { getTemplateWithRender } from '@/lib/notifications/template-engine'
 import { logger } from '@/lib/notifications/logger'
 import {
   type AutomationTrigger,
   type NotificationChannel,
   type TemplateType,
-  type SendResult,
   generateIdempotencyKey,
 } from '@/types/notifications'
 import { randomUUID } from 'crypto'
@@ -51,7 +49,6 @@ interface AppointmentData {
 interface OrchestratorResult {
   success: boolean
   queued: number
-  sent: number
   errors: string[]
   traceId: string
 }
@@ -138,18 +135,18 @@ async function getBookingSettings(
 export async function NotificationOrchestrator(
   trigger: AutomationTrigger,
   appointmentId: string,
-  appointmentData?: AppointmentData
+  appointmentData?: AppointmentData,
+  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
 ): Promise<OrchestratorResult> {
   const supabase = await createClient()
   const traceId = randomUUID()
   const errors: string[] = []
   let queued = 0
-  let sent = 0
 
   try {
     const appointment = appointmentData || await fetchAppointment(supabase, appointmentId)
     if (!appointment) {
-      return { success: false, queued: 0, sent: 0, errors: ['Appointment not found'], traceId }
+      return { success: false, queued: 0, errors: ['Appointment not found'], traceId }
     }
 
     const bookingSettings = await getBookingSettings(supabase, appointment.organization_id)
@@ -157,7 +154,7 @@ export async function NotificationOrchestrator(
 
     const rules = await getAutomationRules(supabase, appointment.organization_id, trigger)
     if (rules.length === 0) {
-      return { success: true, queued: 0, sent: 0, errors: [], traceId }
+      return { success: true, queued: 0, errors: [], traceId }
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -172,11 +169,13 @@ export async function NotificationOrchestrator(
           continue
         }
 
+        const variables = buildTemplateVariables(appointment, links?.confirmationLink, links?.cancellationLink, links?.rescheduleLink)
+
         const template = await getTemplateWithRender(
           appointment.organization_id,
           rule.channel,
           rule.template_id ? '' : (trigger as string),
-          {}
+          variables
         )
 
         if (!template && !rule.template_id) {
@@ -185,8 +184,6 @@ export async function NotificationOrchestrator(
         }
 
         let templateId = rule.template_id || ''
-        const variables = buildTemplateVariables(appointment)
-
         const renderedBody = template?.body || ''
         const renderedSubject = template?.subject
 
@@ -262,64 +259,17 @@ export async function NotificationOrchestrator(
             logger.warn('Conversation tracking failed', { traceId, error: convErr, organizationId: appointment.organization_id })
           }
         }
-
-        if (delayMinutes === 0 && rule.channel !== 'in_app') {
-          const channelAdapter = createChannel(rule.channel, provider.config as Record<string, unknown>)
-          if (channelAdapter) {
-            const result: SendResult = await channelAdapter.send({
-              channel: rule.channel,
-              toAddress,
-              subject: renderedSubject,
-              body: renderedBody,
-              appointmentId,
-              organizationId: appointment.organization_id,
-              idempotencyKey,
-              variables,
-              metadata: { traceId },
-            })
-
-            if (result.success) {
-              await (supabase as any)
-                .from('notification_queue')
-                .update({
-                  status: 'sent',
-                  sent_at: new Date().toISOString(),
-                  provider_message_id: result.providerMessageId,
-                })
-                .eq('idempotency_key', idempotencyKey)
-              sent++
-              try {
-                await logNotificationEvent({
-                  organizationId: appointment.organization_id,
-                  eventType: 'SENT',
-                  metadata: {
-                    trigger,
-                    channel: rule.channel,
-                    appointmentId,
-                    providerMessageId: result.providerMessageId,
-                  },
-                  traceId,
-                })
-              } catch (logErr) {
-                logger.warn('Event log failed (non-fatal)', { traceId, error: logErr })
-              }
-            } else {
-              errors.push(`Send failed for ${rule.channel}: ${result.error}`)
-            }
-          }
-        }
       } catch (e) {
         errors.push(`Rule processing error: ${e}`)
       }
     }
 
-    return { success: true, queued, sent, errors, traceId }
+    return { success: true, queued, errors, traceId }
   } catch (error) {
     logger.error('Orchestrator failed', { traceId, error })
     return {
       success: false,
       queued,
-      sent,
       errors: [...errors, String(error)],
       traceId,
     }
@@ -367,42 +317,48 @@ function getRecipientAddress(
 
 export async function dispatchConfirmationRequest(
   appointmentId: string,
-  appointmentData?: AppointmentData
+  appointmentData?: AppointmentData,
+  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
 ): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('confirmation_requested', appointmentId, appointmentData)
+  return NotificationOrchestrator('confirmation_requested', appointmentId, appointmentData, links)
 }
 
 export async function dispatchAppointmentCreated(
   appointmentId: string,
-  appointmentData?: AppointmentData
+  appointmentData?: AppointmentData,
+  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
 ): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('appointment_created', appointmentId, appointmentData)
+  return NotificationOrchestrator('appointment_created', appointmentId, appointmentData, links)
 }
 
 export async function dispatchAppointmentReminder(
   appointmentId: string,
-  appointmentData?: AppointmentData
+  appointmentData?: AppointmentData,
+  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
 ): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('appointment_reminder', appointmentId, appointmentData)
+  return NotificationOrchestrator('appointment_reminder', appointmentId, appointmentData, links)
 }
 
 export async function dispatchAppointmentCancelled(
   appointmentId: string,
-  appointmentData?: AppointmentData
+  appointmentData?: AppointmentData,
+  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
 ): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('appointment_cancelled', appointmentId, appointmentData)
+  return NotificationOrchestrator('appointment_cancelled', appointmentId, appointmentData, links)
 }
 
 export async function dispatchAppointmentCompleted(
   appointmentId: string,
-  appointmentData?: AppointmentData
+  appointmentData?: AppointmentData,
+  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
 ): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('appointment_completed', appointmentId, appointmentData)
+  return NotificationOrchestrator('appointment_completed', appointmentId, appointmentData, links)
 }
 
 export async function dispatchAppointmentNoShow(
   appointmentId: string,
-  appointmentData?: AppointmentData
+  appointmentData?: AppointmentData,
+  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
 ): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('appointment_no_show', appointmentId, appointmentData)
+  return NotificationOrchestrator('appointment_no_show', appointmentId, appointmentData, links)
 }

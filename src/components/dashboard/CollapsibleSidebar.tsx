@@ -3,26 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import {
-  CalendarDays,
-  Users,
-  Scissors,
-  LayoutDashboard,
-  UserCircle,
-  CreditCard,
-  MessageSquare,
-  Mail,
-  Package,
-  CheckCircle,
-  Settings,
-  ChevronLeft,
-  Receipt,
-  Wallet,
-  WalletCards,
-  Clock,
-  Bell,
-  ShieldCheck
-} from 'lucide-react'
+import { dashboardRoutes, filterRoutesByRole, groupRoutesByGroup, type RouteDefinition } from '@/lib/navigation'
+import { ChevronLeft } from 'lucide-react'
 import { getRoleLabel, isEmpleado } from '@/lib/rbac'
 
 interface CollapsibleSidebarProps {
@@ -46,174 +28,21 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
   const isStaff = role === 'staff'
   const isEmpleado = role === 'empleado'
 
-  const allRoutes = [
-    {
-      href: '/dashboard',
-      label: 'Dashboard',
-      icon: LayoutDashboard,
-      active: pathname === '/dashboard' || pathname === '/',
-      group: 'Operaciones',
-    },
-    {
-      href: '/calendar',
-      label: 'Agenda',
-      icon: CalendarDays,
-      active: pathname.startsWith('/calendar'),
-      group: 'Operaciones',
-    },
-    {
-      href: '/confirmations',
-      label: 'Confirmaciones',
-      icon: CheckCircle,
-      active: pathname.startsWith('/confirmations'),
-      group: 'Operaciones',
-    },
-    {
-      href: '/notificaciones',
-      label: 'Notificaciones',
-      icon: Bell,
-      active: pathname === '/notificaciones' || pathname.startsWith('/notificaciones/dead-letter'),
-      group: 'Operaciones',
-    },
-    {
-      href: '/notificaciones/validacion',
-      label: 'Validación V2',
-      icon: ShieldCheck,
-      active: pathname.startsWith('/notificaciones/validacion'),
-      group: 'Operaciones',
-      badge: 'Beta',
-    },
-    {
-      href: '/employees',
-      label: 'Equipo',
-      icon: Users,
-      active: pathname.startsWith('/employees'),
-      group: 'Gestión',
-      hideForStaff: true,
-      hideForEmpleado: true,
-    },
-    {
-      href: '/payroll',
-      label: 'Nómina',
-      icon: Receipt,
-      active: pathname.startsWith('/payroll') && !pathname.startsWith('/payroll/mi'),
-      group: 'Gestión',
-      hideForStaff: true,
-      hideForEmpleado: true,
-    },
-    {
-      href: '/payroll/mi',
-      label: 'Mi Nómina',
-      icon: WalletCards,
-      active: pathname === '/payroll/mi',
-      group: 'Gestión',
-      showOnlyForEmpleado: true,
-    },
-    {
-      href: '/clients',
-      label: 'Clientes',
-      icon: UserCircle,
-      active: pathname.startsWith('/clients'),
-      group: 'Gestión',
-      hideForEmpleado: true,
-    },
-    {
-      href: '/clients/accounts',
-      label: 'Cuentas por Cobrar',
-      icon: Wallet,
-      active: pathname.startsWith('/clients/accounts'),
-      group: 'Gestión',
-      hideForEmpleado: true,
-    },
-    {
-      href: '/services',
-      label: 'Servicios',
-      icon: Scissors,
-      active: pathname.startsWith('/services'),
-      group: 'Gestión',
-      hideForEmpleado: true,
-    },
-    {
-      href: '/horarios',
-      label: 'Horarios',
-      icon: Clock,
-      active: pathname.startsWith('/horarios'),
-      group: 'Configuración',
-      hideForStaff: true,
-      hideForEmpleado: true,
-    },
-    {
-      href: '/inventory',
-      label: 'Inventario',
-      icon: Package,
-      active: pathname.startsWith('/inventory'),
-      group: 'Gestión',
-      hideForStaff: true,
-      hideForEmpleado: true,
-    },
-    {
-      href: '/whatsapp',
-      label: 'WhatsApp',
-      icon: MessageSquare,
-      active: pathname.startsWith('/whatsapp'),
-      group: 'Integraciones',
-      hideForStaff: true,
-      hideForEmpleado: true,
-    },
-    {
-      href: '/email',
-      label: 'Email',
-      icon: Mail,
-      active: pathname.startsWith('/email'),
-      group: 'Integraciones',
-      hideForStaff: true,
-      hideForEmpleado: true,
-    },
-    {
-      href: '/billing',
-      label: 'Facturación',
-      icon: CreditCard,
-      active: pathname.startsWith('/billing'),
-      group: 'Sistema',
-      hideForStaff: true,
-      hideForEmpleado: true,
-    },
-    {
-      href: '/settings',
-      label: 'Ajustes',
-      icon: Settings,
-      active: pathname.startsWith('/settings'),
-      group: 'Sistema',
-      hideForStaff: true,
-      hideForEmpleado: true,
-    },
-  ]
+  const filteredRoutes = filterRoutesByRole(dashboardRoutes, role)
 
-  const filteredRoutes = allRoutes.filter(route => {
-    if (isStaff && route.hideForStaff) {
-      return false
-    }
-    if (isEmpleado && route.hideForEmpleado) {
-      return false
-    }
-    if (route.showOnlyForEmpleado && !isEmpleado) {
-      return false
-    }
-    if (route.hideForStaff && route.hideForEmpleado) {
-      if (role === 'staff' || role === 'empleado') {
-        return false
-      }
-    }
-    return true
-  })
+  const routesWithActive: RouteDefinition[] = filteredRoutes.map(route => ({
+    ...route,
+    active:
+      route.href === '/dashboard'
+        ? pathname === '/dashboard' || pathname === '/'
+        : route.href === '/notificaciones'
+          ? pathname === '/notificaciones' || pathname.startsWith('/notificaciones/dead-letter')
+          : route.href === '/payroll'
+            ? pathname.startsWith('/payroll') && !pathname.startsWith('/payroll/mi')
+            : pathname.startsWith(route.href),
+  }))
 
-  const groupedRoutes = filteredRoutes.reduce((acc, route) => {
-    if (!acc[route.group]) {
-      acc[route.group] = []
-    }
-    acc[route.group].push(route)
-    return acc
-  }, {} as Record<string, typeof filteredRoutes>)
+  const groupedRoutes = groupRoutesByGroup(routesWithActive)
 
   useEffect(() => {
     if (hoveredRoute && isCollapsed) {

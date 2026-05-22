@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { ErrorFallback } from '@/components/ui/ErrorFallback'
 import { captureError } from '@/lib/error-logger'
 
-export default function HorariosError({
+export default function PayrollError({
   error,
   reset,
 }: {
@@ -12,16 +12,16 @@ export default function HorariosError({
   reset: () => void
 }) {
   useEffect(() => {
-    captureError('horarios-error', error, {
-      route: '/horarios',
+    captureError('payroll-error', error, {
+      route: '/payroll',
     })
   }, [error])
 
   return (
     <div className="max-w-4xl mx-auto text-center py-12">
       <ErrorFallback
-        title="Error en horarios"
-        description={error.message || 'No se pudo cargar la página de horarios.'}
+        title="Error en nómina"
+        description={error.message || 'No se pudo cargar el módulo de nómina.'}
         retry={reset}
       />
     </div>

@@ -8,7 +8,8 @@ import { moveToDeadLetter } from '@/lib/notifications/dead-letter'
 import { assertValidTransition, type QueueStatus } from '@/lib/notifications/state-machine'
 import { classifyError, calculateBackoff } from '@/lib/notifications/retry-strategy'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
+export const maxDuration = 60
 
 const BATCH_SIZE = 50
 const RATE_LIMIT_WINDOW_MS = 60 * 1000

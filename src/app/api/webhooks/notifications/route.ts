@@ -11,7 +11,7 @@ import { N8NProvider } from '@/lib/notifications/channels/whatsapp/providers/n8n
 import type { WhatsAppProvider } from '@/lib/notifications/channels/whatsapp/providers/types'
 import type { NotificationProviderType } from '@/types/notifications'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 function detectProvider(
   payload: Record<string, unknown>
