@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { generateSlots } from '@/services/slots/generateSlots'
-import { generateConfirmationToken } from '@/actions/notifications/confirmations/tokens'
+import { generateConfirmationToken } from '@/lib/appointments/confirmation-links/tokens'
 import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 
@@ -147,9 +147,11 @@ export async function createAppointment(
 
   const { data: bookingSettingsData } = await supabase
     .from('booking_settings')
-    .select('timezone, reminder_hours_before')
+    .select('timezone, reminder_hours_before, use_notification_v2')
     .eq('organization_id', organization_id)
     .single()
+
+  const useNotificationV2 = bookingSettingsData?.use_notification_v2 === true
 
   // 7. Calcular hora de fin
   // Normalizar timestamp: si tiene Z, quitarlo para que coincida con formato de slots (sin Z)
@@ -235,8 +237,8 @@ export async function createAppointment(
     ? `${appUrl}/confirmar/${tokenResult.token}`
     : undefined
 
-  // 12. Encolar notificación via NotificationOrchestrator (V2)
-  if (process.env.NOTIFICATION_SYSTEM_V2_ENABLED === 'true') {
+  // 12. Encolar notificación via NotificationOrchestrator (V2) o legacy (V1)
+  if (useNotificationV2) {
     try {
       const { NotificationOrchestrator } = await import('@/lib/notifications/orchestrator')
 

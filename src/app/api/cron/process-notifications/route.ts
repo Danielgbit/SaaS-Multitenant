@@ -11,6 +11,7 @@ import { classifyError, calculateBackoff } from '@/lib/notifications/retry-strat
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
+const DRY_RUN = process.env.PROCESS_NOTIFICATIONS_DRY_RUN === 'true'
 const BATCH_SIZE = 50
 const RATE_LIMIT_WINDOW_MS = 60 * 1000
 
@@ -178,6 +179,30 @@ async function processNotificationBatch(
         continue
       }
 
+      if (DRY_RUN) {
+        logger.info('dry_run_send', {
+          queueItemId: item.id as string,
+          channel: item.channel as string,
+          toAddress: item.to_address as string,
+          organizationId: item.organization_id as string,
+          appointmentId: item.appointment_id as string,
+          provider: channelAdapter.getProviderName(),
+          traceId,
+        })
+
+        await (supabase as any)
+          .from('notification_queue')
+          .update({
+            status: 'pending',
+            claimed_at: null,
+            processing_timeout_at: null,
+          })
+          .eq('id', item.id)
+
+        result.skipped++
+        continue
+      }
+
       const sendResult = await channelAdapter.send({
         channel: item.channel as NotificationChannel,
         toAddress: item.to_address as string,
@@ -207,6 +232,19 @@ async function processNotificationBatch(
           })
           .eq('id', item.id)
         result.sent++
+
+        try {
+          const created = new Date(item.created_at as string).getTime()
+          const sent = new Date(now).getTime()
+          const latencyMs = sent - created
+          logger.info('queue_latency', {
+            queueItemId: item.id as string,
+            organizationId: item.organization_id as string,
+            channel: item.channel as string,
+            latencyMs,
+            latencySeconds: Math.round(latencyMs / 1000),
+          })
+        } catch {}
 
         try {
           await logNotificationEvent({
@@ -342,6 +380,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       message: `Processed: ${result.processed}, Sent: ${result.sent}, Failed: ${result.failed}, Skipped: ${result.skipped}`,
       ...result,
+      dryRun: DRY_RUN,
     })
   } catch (error) {
     console.error('[processNotifications] Fatal error:', error)
@@ -365,6 +404,7 @@ export async function GET() {
       'Exponential backoff with jitter',
       'State machine validation',
       'Dead letter for permanent failures',
+      DRY_RUN ? '⚠️ DRY RUN MODE (no messages sent)' : 'Production mode',
     ],
   })
 }

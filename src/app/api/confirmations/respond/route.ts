@@ -4,7 +4,7 @@ import {
   validateConfirmationToken,
   useConfirmationToken,
   invalidateConfirmationTokens,
-} from '@/actions/notifications/confirmations/tokens'
+} from '@/lib/appointments/confirmation-links/tokens'
 import type { ConfirmationTokenAction } from '@/types/notifications'
 
 export const runtime = 'nodejs'

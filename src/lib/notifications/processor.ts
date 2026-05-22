@@ -22,6 +22,101 @@ function parseAction(text: string): 'confirm' | 'cancel' | 'unknown' {
   return 'unknown'
 }
 
+async function findAppointmentByPhone(
+  supabase: Awaited<ReturnType<typeof createServiceRoleClient>>,
+  fromPhone: string
+): Promise<{ appointmentId: string; organizationId: string; queueItemId: string } | null> {
+  const cleanPhone = fromPhone.replace(/\D/g, '')
+
+  // 1. Buscar conversación activa con appointment_id vinculado
+  const { data: conversation } = await (supabase as any)
+    .from('notification_conversations')
+    .select('appointment_id')
+    .eq('client_phone', cleanPhone)
+    .eq('status', 'active')
+    .not('appointment_id', 'is', null)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (conversation?.appointment_id) {
+    const { data: queueItem } = await (supabase as any)
+      .from('notification_queue')
+      .select('id, organization_id')
+      .eq('appointment_id', conversation.appointment_id)
+      .eq('channel', 'whatsapp')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (queueItem) {
+      return {
+        appointmentId: conversation.appointment_id,
+        organizationId: queueItem.organization_id,
+        queueItemId: queueItem.id,
+      }
+    }
+  }
+
+  // 2. Fallback: buscar cliente por teléfono y su última cita activa
+  const { data: client } = await (supabase as any)
+    .from('clients')
+    .select('id')
+    .eq('phone', cleanPhone)
+    .limit(1)
+    .single()
+
+  if (client?.id) {
+    const { data: appointment } = await (supabase as any)
+      .from('appointments')
+      .select('id, organization_id')
+      .eq('client_id', client.id)
+      .in('status', ['confirmed', 'pending'])
+      .gte('start_time', new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString())
+      .order('start_time', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (appointment) {
+      const { data: queueItem } = await (supabase as any)
+        .from('notification_queue')
+        .select('id')
+        .eq('appointment_id', appointment.id)
+        .eq('channel', 'whatsapp')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      return {
+        appointmentId: appointment.id,
+        organizationId: appointment.organization_id,
+        queueItemId: queueItem?.id || '',
+      }
+    }
+  }
+
+  // 3. Fallback final: último queue_item por teléfono (comportamiento original)
+  const { data: queueItem } = await (supabase as any)
+    .from('notification_queue')
+    .select('appointment_id, organization_id, id')
+    .eq('to_address', cleanPhone)
+    .eq('channel', 'whatsapp')
+    .not('appointment_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (queueItem?.appointment_id) {
+    return {
+      appointmentId: queueItem.appointment_id,
+      organizationId: queueItem.organization_id,
+      queueItemId: queueItem.id,
+    }
+  }
+
+  return null
+}
+
 export async function processInboundReply(
   event: NotificationInboundEvent
 ): Promise<ProcessResult> {
@@ -40,23 +135,14 @@ export async function processInboundReply(
     traceId: event.traceId,
   }).catch(() => {})
 
-  const fromPhone = event.fromPhone?.replace(/\D/g, '') || ''
+  const fromPhone = event.fromPhone || ''
+  const resolved = await findAppointmentByPhone(supabase, fromPhone)
 
-  const { data: queueItem } = await (supabase as any)
-    .from('notification_queue')
-    .select('appointment_id, organization_id, id')
-    .eq('to_address', fromPhone)
-    .eq('channel', 'whatsapp')
-    .not('appointment_id', 'is', null)
-    .order('created_at', { ascending: false })
-    .limit(1)
-
-  if (!queueItem || !queueItem[0]?.appointment_id) {
+  if (!resolved) {
     return { action }
   }
 
-  const appointmentId = queueItem[0].appointment_id
-  const orgId = queueItem[0].organization_id
+  const { appointmentId, organizationId: orgId, queueItemId } = resolved
 
   if (action === 'confirm') {
     await (supabase as any)
@@ -88,7 +174,7 @@ export async function processInboundReply(
 
     await logNotificationEvent({
       organizationId: orgId,
-      queueItemId: queueItem[0]?.id,
+      queueItemId,
       eventType: 'CONFIRMED',
       metadata: { channel: 'whatsapp_reply', reply_action: 'confirm' },
       traceId: event.traceId,
@@ -123,7 +209,7 @@ export async function processInboundReply(
 
     await logNotificationEvent({
       organizationId: orgId,
-      queueItemId: queueItem[0]?.id,
+      queueItemId,
       eventType: 'CANCELLED',
       metadata: { channel: 'whatsapp_reply', reply_action: 'cancel' },
       traceId: event.traceId,

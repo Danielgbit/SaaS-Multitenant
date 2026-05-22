@@ -2,19 +2,20 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Calendar, CheckCircle2, DollarSign, Users, TrendingUp, XCircle } from 'lucide-react'
+import { Calendar, CheckCircle2, DollarSign, TrendingUp } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { useAnalytics } from '@/hooks/useAnalytics'
 import { ChartErrorBoundary, ChartSkeleton } from '@/components/ui/ChartErrorBoundary'
 import { PeriodSelector } from './PeriodSelector'
-import { StatsCard } from './StatsCard'
-import { TrendChart } from './TrendChart'
-import { RecentActivity } from './RecentActivity'
-import { UpcomingAppointments } from './UpcomingAppointments'
-import { EmployeePerformance } from './EmployeePerformance'
-import { PayrollSummaryWidget } from './PayrollSummaryWidget'
-import { AlertsPanel } from './AlertsPanel'
-import { TopServicesList } from './TopServicesList'
+import {
+  SuspenseOverviewStats,
+  SuspenseTrendChart,
+  SuspenseRecentActivity,
+  SuspenseUpcoming,
+  SuspenseEmployeePerformance,
+  SuspensePayrollSummary,
+  SuspenseAlerts,
+  SuspenseTopServices,
+} from './DashboardSections'
 import type { Period } from './types'
 
 interface DashboardClientProps {
@@ -27,64 +28,6 @@ interface DashboardClientProps {
 export function DashboardClient({ organizationId, role, employeeName }: DashboardClientProps) {
   const COLORS = useThemeColors()
   const [period, setPeriod] = useState<Period>('month')
-  const { loading, data } = useAnalytics({ organizationId, period })
-
-  const totalAppointments = data?.overview.appointments || 0
-  const completedAppointments = data?.overview.completionRate && totalAppointments
-    ? Math.round((data.overview.completionRate / 100) * totalAppointments)
-    : 0
-  const cancellationRate = totalAppointments > 0
-    ? Math.round(((totalAppointments - completedAppointments) / totalAppointments) * 100)
-    : 0
-
-  const statsCards = [
-    {
-      title: 'Citas',
-      value: data?.overview.appointments || 0,
-      change: data?.overview.appointmentsChange,
-      icon: <Calendar className="w-4 h-4" />,
-      iconColor: COLORS.primary
-    },
-    {
-      title: 'Ingresos',
-      value: data?.overview.revenue || 0,
-      prefix: 'COP ',
-      change: data?.overview.revenueChange,
-      icon: <DollarSign className="w-4 h-4" />,
-      iconColor: COLORS.success
-    },
-    {
-      title: 'Nuevos Clientes',
-      value: data?.overview.clients || 0,
-      change: data?.overview.clientsChange,
-      icon: <Users className="w-4 h-4" />,
-      iconColor: COLORS.info
-    },
-    {
-      title: 'Ticket Promedio',
-      value: data?.overview.avgTicket || 0,
-      prefix: 'COP ',
-      change: data?.overview.appointmentsChange,
-      icon: <TrendingUp className="w-4 h-4" />,
-      iconColor: COLORS.warning
-    },
-    {
-      title: 'Finalizadas',
-      value: data?.overview.completionRate || 0,
-      suffix: '%',
-      change: data?.overview.completionRateChange,
-      icon: <CheckCircle2 className="w-4 h-4" />,
-      iconColor: COLORS.success
-    },
-    {
-      title: 'Canceladas',
-      value: cancellationRate || 0,
-      suffix: '%',
-      change: undefined,
-      icon: <XCircle className="w-4 h-4" />,
-      iconColor: COLORS.error
-    }
-  ]
 
   if (role === 'empleado') {
     return (
@@ -202,22 +145,8 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
         </div>
       )}
 
-      {/* KPI Cards Grid - 6 cards in 3x2 on tablet, 6x1 on desktop */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-        {statsCards.map((stat) => (
-          <StatsCard
-            key={stat.title}
-            title={stat.title}
-            value={stat.value}
-            change={stat.change}
-            prefix={stat.prefix}
-            suffix={stat.suffix}
-            icon={stat.icon}
-            iconColor={stat.iconColor}
-            loading={loading}
-          />
-        ))}
-      </div>
+      {/* KPI Cards Grid - Suspense with skeleton */}
+      <SuspenseOverviewStats orgId={organizationId} period={period} />
 
       {/* Main Content Grid - 2 columns on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -225,22 +154,23 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
         {/* Left Column - Chart + Activity */}
         <div className="space-y-6">
           <ChartErrorBoundary chartName="Evolución de Citas" fallback={<ChartSkeleton />}>
-            <TrendChart data={data?.trend || []} loading={loading} />
+            <SuspenseTrendChart orgId={organizationId} period={period} />
           </ChartErrorBoundary>
-          <RecentActivity activities={data?.recentActivity || []} loading={loading} />
+          <SuspenseRecentActivity orgId={organizationId} />
         </div>
 
         {/* Right Column - Widgets */}
         <div className="space-y-6">
-          <UpcomingAppointments appointments={data?.upcomingAppointments || []} loading={loading} />
-          <EmployeePerformance employees={data?.employeePerformance || []} loading={loading} />
-          <PayrollSummaryWidget summary={data?.payrollSummary} loading={loading} />
-          <AlertsPanel alerts={data?.alerts || []} loading={loading} />
+          <SuspenseUpcoming orgId={organizationId} />
+          <SuspenseEmployeePerformance orgId={organizationId} period={period} />
+          <SuspensePayrollSummary orgId={organizationId} />
+          <SuspenseAlerts orgId={organizationId} />
         </div>
       </div>
 
       {/* Bottom Section - Top Services */}
-      <TopServicesList services={data?.topServices || []} loading={loading} />
+      <SuspenseTopServices orgId={organizationId} period={period} />
     </div>
   )
 }
+
