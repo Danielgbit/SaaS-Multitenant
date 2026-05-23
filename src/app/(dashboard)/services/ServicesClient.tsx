@@ -131,7 +131,7 @@ export function ServicesClient({ services }: ServicesClientProps) {
       </div>
 
       {services.length > 0 && (
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {statCards.map(({ label, value, icon: Icon, color }, index) => (
             <div
               key={label}

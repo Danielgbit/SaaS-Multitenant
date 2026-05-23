@@ -88,7 +88,8 @@ export default async function MessagesSearchPage({
 
       {results && results.results.length > 0 ? (
         <div className="rounded-xl border overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[700px] whitespace-nowrap">
             <thead>
               <tr className="border-b" style={{ borderColor: 'hsl(var(--border))', backgroundColor: 'hsl(var(--muted) / 0.3)' }}>
                 <th className="text-left font-medium px-4 py-3 text-muted-foreground">Fecha</th>
@@ -140,6 +141,7 @@ export default async function MessagesSearchPage({
               ))}
             </tbody>
           </table>
+          </div>
           <div className="px-4 py-2 text-xs text-muted-foreground border-t" style={{ borderColor: 'hsl(var(--border))' }}>
             {results.total} resultado(s) · Mostrando hasta 50
           </div>

@@ -15,12 +15,10 @@ interface HeaderProps {
   organizationName?: string | null
   role?: string | null
   userId?: string | null
-  onMenuToggle?: () => void
-  showHamburger?: boolean
   onConfirmationsToggle?: () => void
 }
 
-export function Header({ organizationConnected, organizationName, role, userId, onMenuToggle, showHamburger, onConfirmationsToggle }: HeaderProps) {
+export function Header({ organizationConnected, organizationName, role, userId, onConfirmationsToggle }: HeaderProps) {
   const COLORS = useThemeColors()
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
@@ -73,18 +71,6 @@ export function Header({ organizationConnected, organizationName, role, userId, 
       </div>
 
       <div className="flex items-center gap-2">
-        {showHamburger && onMenuToggle && (
-          <button
-            onClick={onMenuToggle}
-            className="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 md:hidden"
-            aria-label="Abrir menú"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        )}
-
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           className="relative p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] dark:focus-visible:ring-[#38BDF8]"

@@ -376,9 +376,9 @@ export function NotificationCenter({
         transform: position ? undefined : 'translateX(-50%)',
       }}
     >
-      <div
-        className="w-[384px] max-h-[480px] bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-900/15 border border-slate-200/60 dark:border-slate-700/60 overflow-hidden animate-slide-down-notif"
-      >
+        <div
+          className="w-full max-w-[calc(100vw-2rem)] sm:max-w-[384px] max-h-[480px] bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-900/15 border border-slate-200/60 dark:border-slate-700/60 overflow-hidden animate-slide-down-notif"
+        >
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-slate-700/60">
           <div className="flex items-center gap-2">
             <Bell className="w-4 h-4 text-slate-600 dark:text-slate-400" />

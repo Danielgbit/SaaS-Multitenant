@@ -183,7 +183,8 @@ export default async function ValidationPage() {
         </div>
       ) : (
         <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[700px] whitespace-nowrap">
             <thead>
               <tr className="border-b" style={{ borderColor: 'hsl(var(--border))', backgroundColor: 'hsl(var(--muted) / 0.3)' }}>
                 <th className="text-left font-medium px-4 py-3 text-muted-foreground">Fecha</th>
@@ -245,6 +246,7 @@ export default async function ValidationPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

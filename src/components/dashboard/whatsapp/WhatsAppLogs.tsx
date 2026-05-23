@@ -203,7 +203,8 @@ export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
             description="Los mensajes de WhatsApp aparecerán aquí cuando se envíen"
           />
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px] whitespace-nowrap">
             <thead>
               <tr style={{ backgroundColor: COLORS.surfaceSubtle }}>
                 <th 
@@ -319,6 +320,7 @@ export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

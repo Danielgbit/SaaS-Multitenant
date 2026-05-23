@@ -274,7 +274,7 @@ export function PaymentModal({
             <label className="block text-sm font-semibold" style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Método de pago
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
               {PAYMENT_METHODS.map(({ code, label, icon: Icon, desc }) => (
                 <button
                   key={code}

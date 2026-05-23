@@ -155,7 +155,7 @@ export function EditAppointmentModal({
                 </div>
               )}
               {editSlots.length > 0 && (
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                   {editSlots.map(s => {
                     const isAvail = s.available
                     const isSel = editData.time === formatTime(s.start_time)

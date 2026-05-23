@@ -90,6 +90,7 @@ function DashboardShellContent({
           isOpen={mobileNavOpen}
           onClose={() => setMobileNavOpen(false)}
           role={role}
+          organizationName={organizationName}
         />
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
@@ -99,8 +100,6 @@ function DashboardShellContent({
               organizationName={organizationName}
               role={role}
               userId={userId}
-              onMenuToggle={() => setMobileNavOpen(true)}
-              showHamburger
               onConfirmationsToggle={() => setConfirmationsPanelOpen(!confirmationsPanelOpen)}
             />
 
@@ -125,7 +124,7 @@ function DashboardShellContent({
             onClose={() => setConfirmationsPanelOpen(false)}
           />
 
-          <main className="flex-1 overflow-y-auto w-full scroll-smooth">
+          <main className="flex-1 overflow-y-auto w-full scroll-smooth pb-20 md:pb-0">
             <div className="w-full max-w-[1280px] mx-auto p-6 md:p-8 lg:p-10">
               {children}
             </div>

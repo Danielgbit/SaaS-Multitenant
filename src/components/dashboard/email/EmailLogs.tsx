@@ -195,7 +195,8 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
             </p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px] whitespace-nowrap">
             <thead>
               <tr style={{ backgroundColor: COLORS.surfaceSubtle }}>
                 <th 
@@ -299,6 +300,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

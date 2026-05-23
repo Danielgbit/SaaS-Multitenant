@@ -452,7 +452,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-7 min-h-[500px]">
+      <div className="grid grid-cols-1 md:grid-cols-7 md:min-h-[500px]">
         {weekDates.map((date, i) => {
           const dayKey = formatDateKey(date)
           const dayAppts = appointmentsByDay[dayKey] || []
