@@ -49,7 +49,7 @@ export function UpcomingAppointments({ appointments, loading }: UpcomingAppointm
 
   if (loading) {
     return (
-      <Card variant="glass" className="p-6">
+      <Card variant="surface" className="p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
             <Calendar className="w-5 h-5" style={{ color: COLORS.primary }} />
@@ -72,7 +72,7 @@ export function UpcomingAppointments({ appointments, loading }: UpcomingAppointm
   }
 
   return (
-    <Card variant="glass" className="p-6">
+    <Card variant="surface" className="p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>

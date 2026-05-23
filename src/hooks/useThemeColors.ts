@@ -7,7 +7,11 @@ export interface ThemeColors {
   primaryGradient: string
   gradientFrom: string
   gradientTo: string
+  gradientRefined: string
   primarySubtle: string
+  accentTeal: string
+  accentTealLight: string
+  accentTealSubtle: string
   surface: string
   surfaceSubtle: string
   surfaceGlass: string
@@ -35,8 +39,8 @@ export interface ThemeColors {
   infoLight?: string
   overlay?: string
   glass: string
-  radius: { sm: string; md: string; lg: string; xl: string }
-  shadow: { sm: string; md: string; lg: string; xl: string }
+  radius: { sm: string; md: string; lg: string; xl: string; button: string; card: string; modal: string }
+  shadow: { sm: string; md: string; lg: string; xl: string; tealSm: string; tealMd: string; tealLg: string; tealXl: string }
   shadowInput: string
   transition: string
   headerBg: string
@@ -59,13 +63,19 @@ export function useThemeColors(): ThemeColors {
 
   return {
     primary: isDark ? '#38BDF8' : '#0F4C5C',
-    primaryLight: isDark ? '#0EA5E9' : '#1A6B7C',
+    primaryLight: isDark ? '#2DD4BF' : '#14B8A6',
     primaryGradient: isDark
-      ? 'linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)'
-      : 'linear-gradient(135deg, #0F4C5C 0%, #0C3E4A 100%)',
+      ? 'linear-gradient(135deg, #38BDF8 0%, #2DD4BF 100%)'
+      : 'linear-gradient(135deg, #0F4C5C 0%, #115E59 100%)',
     gradientFrom: isDark ? '#38BDF8' : '#0F4C5C',
-    gradientTo: isDark ? '#0EA5E9' : '#0C3E4A',
+    gradientTo: isDark ? '#2DD4BF' : '#115E59',
+    gradientRefined: isDark
+      ? 'linear-gradient(135deg, #38BDF8 0%, #2DD4BF 100%)'
+      : 'linear-gradient(135deg, #0F4C5C 0%, #134E4A 100%)',
     primarySubtle: isDark ? '#38BDF815' : '#0F4C5C10',
+    accentTeal: isDark ? '#2DD4BF' : '#14B8A6',
+    accentTealLight: isDark ? '#14B8A615' : '#14B8A610',
+    accentTealSubtle: isDark ? '#2DD4BF20' : '#2DD4BF15',
     surface: isDark ? '#0F172A' : '#FFFFFF',
     surfaceSubtle: isDark ? '#1E293B' : '#F8FAFC',
     surfaceGlass: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
@@ -93,12 +103,24 @@ export function useThemeColors(): ThemeColors {
     infoLight: isDark ? '#0C4A6E' : '#E0F2FE',
     overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.4)',
     glass: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-    radius: { sm: '6px', md: '10px', lg: '16px', xl: '24px' },
+    radius: {
+      sm: '6px',
+      md: '10px',
+      lg: '16px',
+      xl: '24px',
+      button: '12px',
+      card: '20px',
+      modal: '28px',
+    },
     shadow: {
       sm: '0 1px 2px rgba(0,0,0,0.05)',
       md: '0 4px 6px rgba(0,0,0,0.1)',
       lg: '0 10px 15px rgba(0,0,0,0.1)',
       xl: '0 20px 25px rgba(0,0,0,0.15)',
+      tealSm: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 8px rgba(15,76,92,0.04)',
+      tealMd: isDark ? '0 4px 24px rgba(0,0,0,0.3)' : '0 4px 24px rgba(15,76,92,0.06)',
+      tealLg: isDark ? '0 8px 40px rgba(0,0,0,0.4)' : '0 8px 40px rgba(15,76,92,0.10)',
+      tealXl: isDark ? '0 16px 64px rgba(0,0,0,0.5)' : '0 16px 64px rgba(15,76,92,0.14)',
     },
     shadowInput: isDark
       ? '0 1px 2px rgba(0,0,0,0.3)'

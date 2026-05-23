@@ -1,10 +1,47 @@
 'use client'
 
-import { type ReactNode } from 'react'
+import { type ReactNode, useEffect, useRef } from 'react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from './Card'
 import { Skeleton } from './Skeleton'
+import { motion, useMotionValue, useTransform } from 'framer-motion'
+
+interface MetricCardProps {
+  title: string
+  value: number | string
+  prefix?: string
+  suffix?: string
+  icon?: ReactNode
+  iconColor?: string
+  change?: number
+  trendLabel?: string
+  loading?: boolean
+  onClick?: () => void
+  footer?: ReactNode
+  className?: string
+  sparkline?: number[] // Optional sparkline data for premium KPIs
+}
+
+function CountUpNumber({ value, isCurrency = false }: { value: number; isCurrency?: boolean }) {
+  const motionValue = useMotionValue(0)
+  const displayValue = useTransform(motionValue, (v) => 
+    isCurrency ? `$${v.toLocaleString('es-ES')}` : Math.round(v).toLocaleString('es-ES')
+  )
+  const prevValueRef = useRef<number>(0)
+
+  useEffect(() => {
+    // Only animate on first load or when value actually changes
+    if (value !== prevValueRef.current) {
+      const numValue = typeof value === 'number' ? value : parseFloat(value) || 0
+      motionValue.set(0)
+      motionValue.set(numValue)
+      prevValueRef.current = numValue
+    }
+  }, [value, motionValue])
+
+  return <motion.span>{displayValue}</motion.span>
+}
 
 interface MetricCardProps {
   title: string
@@ -34,15 +71,17 @@ export function MetricCard({
   onClick,
   footer,
   className = '',
+  sparkline,
 }: MetricCardProps) {
   const COLORS = useThemeColors()
   const resolvedIconColor = iconColor || COLORS.primary
   const formattedValue = typeof value === 'number' ? value.toLocaleString('es-ES') : value
   const isPositive = change !== undefined && change >= 0
+  const isNumeric = typeof value === 'number'
 
   if (loading) {
     return (
-      <Card variant="glass" className={`p-5 ${className}`}>
+      <Card variant="surface" className={`p-5 ${className}`}>
         <Skeleton variant="metric" />
       </Card>
     )
@@ -50,8 +89,8 @@ export function MetricCard({
 
   return (
     <Card
-      variant="glass"
-      hover={onClick ? 'lift' : 'none'}
+      variant="surface"
+      hover={onClick ? 'glow' : 'none'}
       className={`group p-5 ${className}`}
     >
       <div
@@ -69,9 +108,7 @@ export function MetricCard({
             <div
               className="p-2.5 rounded-xl transition-transform duration-200 group-hover:scale-110"
               style={{
-                backgroundColor: COLORS.isDark
-                  ? `${resolvedIconColor}20`
-                  : `${resolvedIconColor}15`,
+                background: `radial-gradient(circle at center, ${COLORS.accentTealSubtle}, transparent)`,
               }}
             >
               <span style={{ color: resolvedIconColor }}>{icon}</span>
@@ -79,19 +116,31 @@ export function MetricCard({
           )}
         </div>
 
-        <div className="flex items-end gap-2 mb-1">
+        <div className="flex items-end gap-2 mb-1 relative">
           {prefix && (
             <span className="text-xl font-semibold" style={{ color: COLORS.textSecondary }}>
               {prefix}
             </span>
           )}
           <span className="text-3xl font-bold" style={{ color: COLORS.textPrimary }}>
-            {formattedValue}
+            {isNumeric ? <CountUpNumber value={value as number} /> : formattedValue}
           </span>
           {suffix && (
             <span className="text-lg font-medium mb-1" style={{ color: COLORS.textSecondary }}>
               {suffix}
             </span>
+          )}
+          {sparkline && sparkline.length > 0 && (
+            <div className="absolute bottom-0 right-0 w-20 h-10 opacity-30 pointer-events-none">
+              <svg viewBox="0 0 80 40" className="w-full h-full" preserveAspectRatio="none">
+                <path
+                  d={`M 0 40 ${sparkline.map((v, i) => `L ${(i / (sparkline.length - 1)) * 80} ${40 - (v / Math.max(...sparkline)) * 35}`).join(' ')}`}
+                  fill={COLORS.accentTealSubtle}
+                  stroke={COLORS.accentTeal}
+                  strokeWidth="2"
+                />
+              </svg>
+            </div>
           )}
         </div>
 

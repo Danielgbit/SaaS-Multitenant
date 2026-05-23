@@ -1,33 +1,39 @@
 'use client'
 
 import { type ReactNode } from 'react'
-import { useThemeColors } from '@/hooks/useThemeColors'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
 
-interface CardProps {
+const cardVariants = cva('rounded-[20px] transition-all duration-200', {
+  variants: {
+    variant: {
+      surface: 'bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-slate-700/60',
+      glass: 'bg-white/80 dark:bg-white/[0.04] backdrop-blur-xl border border-white/20 dark:border-white/10',
+      floating: 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/20 dark:border-white/15',
+    },
+    hover: {
+      none: '',
+      lift: 'hover:-translate-y-0.5 hover:shadow-[0_8px_40px_rgba(15,76,92,0.1)] dark:hover:shadow-[0_8px_40px_rgba(0,0,0,0.4)] cursor-pointer',
+      glow: 'hover:-translate-y-0.5 hover:shadow-[0_8px_40px_rgba(20,184,166,0.12)] dark:hover:shadow-[0_8px_40px_rgba(45,212,191,0.08)] cursor-pointer',
+    },
+  },
+  defaultVariants: {
+    variant: 'surface',
+    hover: 'none',
+  },
+})
+
+interface CardProps extends VariantProps<typeof cardVariants> {
   children: ReactNode
-  variant?: 'glass' | 'solid' | 'bordered'
-  hover?: 'lift' | 'none'
   className?: string
   style?: React.CSSProperties
 }
 
-export function Card({ children, variant = 'glass', hover = 'none', className = '', style }: CardProps) {
-  const COLORS = useThemeColors()
-
-  const hoverClasses = hover === 'lift'
-    ? 'transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer'
-    : ''
-
-  const baseClasses = 'rounded-2xl border'
-
+export function Card({ children, variant = 'surface', hover = 'none', className = '', style }: CardProps) {
   return (
     <div
-      className={`${baseClasses} ${variant === 'glass' ? 'backdrop-blur-md shadow-glass dark:shadow-glass-dark' : ''} ${hoverClasses} ${className}`}
-      style={{
-        ...(variant !== 'bordered' ? { backgroundColor: variant === 'solid' ? COLORS.surface : COLORS.surfaceGlass } : {}),
-        borderColor: COLORS.border,
-        ...style,
-      }}
+      className={cn(cardVariants({ variant, hover }), className)}
+      style={style}
     >
       {children}
     </div>

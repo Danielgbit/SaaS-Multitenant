@@ -11,6 +11,7 @@ export interface StatsCardProps {
   icon?: ReactNode
   iconColor?: string
   loading: boolean
+  sparkline?: number[]
 }
 
 export interface TrendChartProps {

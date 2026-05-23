@@ -3,7 +3,7 @@
 import { MetricCard } from '@/components/ui/MetricCard'
 import type { StatsCardProps } from './types'
 
-export function StatsCard({ title, value, change, prefix, suffix, icon, iconColor, loading }: StatsCardProps) {
+export function StatsCard({ title, value, change, prefix, suffix, icon, iconColor, loading, sparkline }: StatsCardProps & { sparkline?: number[] }) {
   return (
     <MetricCard
       title={title}
@@ -15,6 +15,7 @@ export function StatsCard({ title, value, change, prefix, suffix, icon, iconColo
       change={change}
       trendLabel="vs período anterior"
       loading={loading}
+      sparkline={sparkline}
     />
   )
 }

@@ -26,7 +26,7 @@ export function EmployeePerformance({ employees, loading }: EmployeePerformanceP
 
   if (loading) {
     return (
-      <Card variant="glass" className="p-6">
+      <Card variant="surface" className="p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
             <Trophy className="w-5 h-5" style={{ color: COLORS.primary }} />
@@ -49,7 +49,7 @@ export function EmployeePerformance({ employees, loading }: EmployeePerformanceP
   }
 
   return (
-    <Card variant="glass" className="p-6">
+    <Card variant="surface" className="p-6">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
           <Trophy className="w-5 h-5" style={{ color: COLORS.primary }} />

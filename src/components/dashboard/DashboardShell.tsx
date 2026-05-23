@@ -77,7 +77,7 @@ function DashboardShellContent({
 
   return (
     <>
-      <div className="flex h-screen bg-[#FAFAF9] dark:bg-[#0F172A] font-sans antialiased selection:bg-[#0F4C5C]/20 dark:selection:bg-[#38BDF8]/30">
+      <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#0F172A] font-sans antialiased selection:bg-[#0F4C5C]/20 dark:selection:bg-[#38BDF8]/30">
 
         <CollapsibleSidebar
           role={role}

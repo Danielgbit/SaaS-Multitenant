@@ -482,7 +482,7 @@ export function PeriodDetailView({
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card variant="glass" className="p-5">
+        <Card variant="surface" className="p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.primary + '15' }}>
               <Users className="w-4 h-4" style={{ color: COLORS.primary }} />
@@ -496,7 +496,7 @@ export function PeriodDetailView({
           </p>
         </Card>
 
-        <Card variant="glass" className="p-5">
+        <Card variant="surface" className="p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.success + '15' }}>
               <Wallet className="w-4 h-4" style={{ color: COLORS.success }} />
@@ -510,7 +510,7 @@ export function PeriodDetailView({
           </p>
         </Card>
 
-        <Card variant="glass" className="p-5">
+        <Card variant="surface" className="p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.warning + '15' }}>
               <TrendingUp className="w-4 h-4" style={{ color: COLORS.warning }} />
@@ -524,7 +524,7 @@ export function PeriodDetailView({
           </p>
         </Card>
 
-        <Card variant="glass" className="p-5">
+        <Card variant="surface" className="p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.success + '15' }}>
               <DollarSign className="w-4 h-4" style={{ color: COLORS.success }} />

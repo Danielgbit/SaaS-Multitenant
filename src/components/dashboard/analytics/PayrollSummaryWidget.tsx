@@ -24,7 +24,7 @@ export function PayrollSummaryWidget({ summary, loading }: PayrollSummaryWidgetP
 
   if (loading) {
     return (
-      <Card variant="solid" className="p-6">
+      <Card variant="surface" className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <Receipt className="w-5 h-5" style={{ color: COLORS.textMuted }} />
           <h3 className="font-semibold" style={{ color: COLORS.textPrimary }}>Nómina</h3>
@@ -37,7 +37,7 @@ export function PayrollSummaryWidget({ summary, loading }: PayrollSummaryWidgetP
   }
 
   return (
-    <Card variant="solid" className="p-0 overflow-hidden">
+    <Card variant="surface" className="p-0 overflow-hidden">
       <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: COLORS.border }}>
         <div className="flex items-center gap-2">
           <Receipt className="w-5 h-5" style={{ color: COLORS.success }} />

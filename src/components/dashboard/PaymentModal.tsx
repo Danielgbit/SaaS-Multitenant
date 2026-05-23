@@ -5,6 +5,7 @@ import { X, AlertCircle, CheckCircle2, Banknote, Smartphone, CreditCard, QrCode,
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface ServiceItem {
   name: string
@@ -124,28 +125,82 @@ export function PaymentModal({
 
   if (showSuccess) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200" role="dialog" aria-modal="true">
-        <div className="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-sm" />
-        <div className="relative z-10 flex flex-col items-center py-16 px-10 rounded-3xl shadow-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700/60 animate-in zoom-in-95 duration-300">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6" style={{ backgroundColor: COLORS.successLight }}>
-            <CheckCircle2 className="w-10 h-10" style={{ color: COLORS.success }} />
-          </div>
-          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
-            Cobro Exitoso
-          </h2>
-          <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }} className="text-center">
-            {formatCurrencyCOP(finalPrice)} cobrados a {clientName}
-          </p>
-        </div>
-      </div>
+      <AnimatePresence>
+        <motion.div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4" 
+          role="dialog" 
+          aria-modal="true"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div 
+            className="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.div 
+            className="relative z-10 flex flex-col items-center py-16 px-10 rounded-3xl shadow-2xl bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700/60"
+            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
+            <motion.div 
+              className="w-20 h-20 rounded-full flex items-center justify-center mb-6" 
+              style={{ backgroundColor: COLORS.successLight }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 25, delay: 0.1 }}
+            >
+              <motion.div
+                initial={{ scale: 0, rotate: -45 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.2 }}
+              >
+                <CheckCircle2 className="w-10 h-10" style={{ color: COLORS.success }} />
+              </motion.div>
+            </motion.div>
+            <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+              Cobro Exitoso
+            </h2>
+            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }} className="text-center">
+              {formatCurrencyCOP(finalPrice)} cobrados a {clientName}
+            </p>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
     )
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title">
-      <div className="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-sm" onClick={handleClose} aria-hidden="true" />
+    <AnimatePresence>
+      <motion.div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4" 
+        role="dialog" 
+        aria-modal="true" 
+        aria-labelledby="payment-modal-title"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div 
+          className="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-sm" 
+          onClick={handleClose} 
+          aria-hidden="true"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        />
 
-      <div className="relative z-10 bg-white dark:bg-[#1E293B] rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-700/60 overflow-hidden animate-in zoom-in-95 duration-200">
+        <motion.div 
+          className="relative z-10 bg-white dark:bg-[#1E293B] rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-700/60 overflow-hidden"
+          initial={{ opacity: 0, scale: 0.95, y: 8 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 8 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: COLORS.border, backgroundColor: COLORS.isDark ? '#1E293B' : '#FAFAF9' }}>
           <div className="flex items-center gap-3">
@@ -228,13 +283,13 @@ export function PaymentModal({
                   disabled={isPending}
                   className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   style={{
-                    borderColor: selectedMethod === code ? COLORS.primary : 'transparent',
-                    backgroundColor: selectedMethod === code ? `${COLORS.primary}12` : COLORS.isDark ? '#0F172A' : '#F8FAFC',
-                    boxShadow: selectedMethod === code ? `0 0 0 2px ${COLORS.primary}25` : 'none',
+                    borderColor: selectedMethod === code ? COLORS.accentTeal : 'transparent',
+                    backgroundColor: selectedMethod === code ? COLORS.accentTealLight : COLORS.isDark ? '#0F172A' : '#F8FAFC',
+                    boxShadow: selectedMethod === code ? COLORS.shadow.tealMd : 'none',
                   }}
                 >
-                  <Icon className="w-5 h-5" style={{ color: selectedMethod === code ? COLORS.primary : COLORS.textMuted }} />
-                  <span className="text-[11px] font-semibold leading-tight text-center" style={{ color: selectedMethod === code ? COLORS.primary : COLORS.textSecondary }}>
+                  <Icon className="w-5 h-5" style={{ color: selectedMethod === code ? COLORS.accentTeal : COLORS.textMuted }} />
+                  <span className="text-[11px] font-semibold leading-tight text-center" style={{ color: selectedMethod === code ? COLORS.accentTeal : COLORS.textSecondary }}>
                     {label}
                   </span>
                   <span className="text-[9px] leading-tight text-center" style={{ color: COLORS.textMuted }}>{desc}</span>
@@ -343,7 +398,7 @@ export function PaymentModal({
           </button>
           <button type="button" onClick={handleSubmit} disabled={isPending || !selectedMethod}
             className="flex-1 h-12 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            style={{ backgroundColor: COLORS.primary, color: '#FFFFFF', boxShadow: `0 4px 12px ${COLORS.primary}30` }}>
+            style={{ backgroundColor: COLORS.primary, color: '#FFFFFF', boxShadow: COLORS.shadow.tealMd }}>
             {isPending ? (
               <><Spinner size="sm" /> Procesando...</>
             ) : (
@@ -351,7 +406,8 @@ export function PaymentModal({
             )}
           </button>
         </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   )
 }

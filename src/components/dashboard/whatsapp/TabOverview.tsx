@@ -185,7 +185,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
         </div>
       )}
 
-      <Card variant="glass">
+      <Card variant="surface">
         <div
           className="flex items-center justify-between px-4 py-3 border-b"
           style={{ borderColor: COLORS.border, backgroundColor: COLORS.surfaceSubtle }}
@@ -241,10 +241,10 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {loading ? (
           <>
-            <Card variant="glass" className="p-5"><Skeleton variant="metric" /></Card>
-            <Card variant="glass" className="p-5"><Skeleton variant="metric" /></Card>
-            <Card variant="glass" className="p-5"><Skeleton variant="metric" /></Card>
-            <Card variant="glass" className="p-5"><Skeleton variant="metric" /></Card>
+            <Card variant="surface" className="p-5"><Skeleton variant="metric" /></Card>
+            <Card variant="surface" className="p-5"><Skeleton variant="metric" /></Card>
+            <Card variant="surface" className="p-5"><Skeleton variant="metric" /></Card>
+            <Card variant="surface" className="p-5"><Skeleton variant="metric" /></Card>
           </>
         ) : (
           <>
@@ -276,7 +276,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
         )}
       </div>
 
-      <Card variant="glass" className="p-4">
+      <Card variant="surface" className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" style={{ color: COLORS.textSecondary }} />
@@ -313,7 +313,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
         </div>
       </Card>
 
-      <Card variant="bordered">
+      <Card variant="surface">
         <div
           className="px-4 py-3 border-b flex items-center justify-between"
           style={{ borderColor: COLORS.border, backgroundColor: COLORS.surfaceSubtle }}
@@ -345,7 +345,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
             ))}
           </div>
         ) : recentItems.length === 0 ? (
-          <Card variant="bordered" className="py-12">
+          <Card variant="surface" className="py-12">
             <EmptyState
               icon={<Inbox className="w-7 h-7" style={{ color: COLORS.textMuted }} />}
               title="Sin mensajes recientes"

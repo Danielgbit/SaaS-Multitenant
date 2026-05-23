@@ -118,7 +118,7 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
 
       {/* No periods empty state */}
       {!hasAnyPeriod && !error && (
-        <Card variant="bordered" className="p-8">
+        <Card variant="surface" className="p-8">
           <EmptyState
             icon={<Calendar className="w-10 h-10" style={{ color: colors.primary }} />}
             title="Sin períodos de nómina"

@@ -3,12 +3,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background-light: #FAFAF9;
+  --color-background-light: #F8FAFC;
   --color-background-dark: #151b1d;
   --color-text-main: #1C1917;
   --color-text-muted: #78716C;
   --color-border-color: #E7E5E4;
   --color-primary: #0F4C5C;
+  --color-accent-teal: #14B8A6;
 }
 
 @layer base {
@@ -157,5 +158,14 @@
 
   .animate-slide-down-notif {
     animation: slideDownNotif 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-glow-pulse {
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(20, 184, 166, 0); }
   }
 }
