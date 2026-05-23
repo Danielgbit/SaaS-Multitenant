@@ -7,14 +7,14 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import { ChartErrorBoundary, ChartSkeleton } from '@/components/ui/ChartErrorBoundary'
 import { PeriodSelector } from './PeriodSelector'
 import {
-  SuspenseOverviewStats,
-  SuspenseTrendChart,
-  SuspenseRecentActivity,
-  SuspenseUpcoming,
-  SuspenseEmployeePerformance,
-  SuspensePayrollSummary,
-  SuspenseAlerts,
-  SuspenseTopServices,
+  OverviewStatsGrid,
+  TrendChartSection,
+  RecentActivitySection,
+  UpcomingSection,
+  EmployeePerformanceSection,
+  PayrollSummarySection,
+  AlertsSection,
+  TopServicesSection,
 } from './DashboardSections'
 import type { Period } from './types'
 
@@ -145,8 +145,8 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
         </div>
       )}
 
-      {/* KPI Cards Grid - Suspense with skeleton */}
-      <SuspenseOverviewStats orgId={organizationId} period={period} />
+      {/* KPI Cards Grid */}
+      <OverviewStatsGrid orgId={organizationId} period={period} />
 
       {/* Main Content Grid - 2 columns on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -154,23 +154,22 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
         {/* Left Column - Chart + Activity */}
         <div className="space-y-6">
           <ChartErrorBoundary chartName="Evolución de Citas" fallback={<ChartSkeleton />}>
-            <SuspenseTrendChart orgId={organizationId} period={period} />
+            <TrendChartSection orgId={organizationId} period={period} />
           </ChartErrorBoundary>
-          <SuspenseRecentActivity orgId={organizationId} />
+          <RecentActivitySection orgId={organizationId} />
         </div>
 
         {/* Right Column - Widgets */}
         <div className="space-y-6">
-          <SuspenseUpcoming orgId={organizationId} />
-          <SuspenseEmployeePerformance orgId={organizationId} period={period} />
-          <SuspensePayrollSummary orgId={organizationId} />
-          <SuspenseAlerts orgId={organizationId} />
+          <UpcomingSection orgId={organizationId} />
+          <EmployeePerformanceSection orgId={organizationId} period={period} />
+          <PayrollSummarySection orgId={organizationId} />
+          <AlertsSection orgId={organizationId} />
         </div>
       </div>
 
       {/* Bottom Section - Top Services */}
-      <SuspenseTopServices orgId={organizationId} period={period} />
+      <TopServicesSection orgId={organizationId} period={period} />
     </div>
   )
 }
-

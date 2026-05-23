@@ -1,7 +1,7 @@
 'use client'
 
-import { Suspense } from 'react'
-import { useServerActionResult } from '@/lib/use-server-action'
+import { useServerAction } from '@/lib/use-server-action'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import { getOverviewStats } from '@/actions/analytics/getOverviewStats'
 import { getAppointmentsTrend } from '@/actions/analytics/getAppointmentsTrend'
 import { getTopServices } from '@/actions/analytics/getTopServices'
@@ -21,23 +21,43 @@ import { TopServicesList } from './TopServicesList'
 import { StatsGridSkeleton, ChartSectionSkeleton, SidebarSectionSkeleton, TableSkeleton } from './DashboardSkeletons'
 import type { Period } from './types'
 
-function OverviewStatsGrid({ orgId, period }: { orgId: string; period: Period }) {
-  const result = useServerActionResult(
+function ErrorState({ error }: { error: Error }) {
+  const COLORS = useThemeColors()
+  return (
+    <div className="p-4 rounded-xl border" style={{ borderColor: COLORS.error, backgroundColor: COLORS.errorLight }}>
+      <p className="text-sm font-medium" style={{ color: COLORS.error }}>
+        Error al cargar los datos
+      </p>
+      <p className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
+        {error.message}
+      </p>
+    </div>
+  )
+}
+
+export function OverviewStatsGrid({ orgId, period }: { orgId: string; period: Period }) {
+  const { data, loading, error } = useServerAction(
     () => getOverviewStats(orgId, period),
     [orgId, period]
   )
 
+  if (loading && !data) return <StatsGridSkeleton />
+  if (error) return <ErrorState error={error} />
+  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
+  if (!data?.data) return null
+
+  const result = data.data
   const statsCards = [
-    { title: 'Citas', value: result.data!.appointments, change: result.data!.appointmentsChange },
-    { title: 'Ingresos', value: result.data!.revenue, change: result.data!.revenueChange },
-    { title: 'Nuevos Clientes', value: result.data!.clients, change: result.data!.clientsChange },
-    { title: 'Ticket Promedio', value: result.data!.avgTicket, change: result.data!.appointmentsChange },
-    { title: 'Finalizadas', value: result.data!.completionRate, suffix: '%', change: result.data!.completionRateChange },
+    { title: 'Citas', value: result.appointments, change: result.appointmentsChange },
+    { title: 'Ingresos', value: result.revenue, change: result.revenueChange },
+    { title: 'Nuevos Clientes', value: result.clients, change: result.clientsChange },
+    { title: 'Ticket Promedio', value: result.avgTicket, change: result.appointmentsChange },
+    { title: 'Finalizadas', value: result.completionRate, suffix: '%', change: result.completionRateChange },
   ]
 
-  const total = result.data!.appointments
-  const completed = result.data!.completionRate && total
-    ? Math.round((result.data!.completionRate / 100) * total) : 0
+  const total = result.appointments
+  const completed = result.completionRate && total
+    ? Math.round((result.completionRate / 100) * total) : 0
   const cancelled = total > 0 ? Math.round(((total - completed) / total) * 100) : 0
 
   return (
@@ -50,132 +70,102 @@ function OverviewStatsGrid({ orgId, period }: { orgId: string; period: Period })
   )
 }
 
-export function SuspenseOverviewStats({ orgId, period }: { orgId: string; period: Period }) {
-  return (
-    <Suspense fallback={<StatsGridSkeleton />}>
-      <OverviewStatsGrid orgId={orgId} period={period} />
-    </Suspense>
-  )
-}
-
-function TrendChartSection({ orgId, days }: { orgId: string; days: number }) {
-  const result = useServerActionResult(
+export function TrendChartSection({ orgId, period }: { orgId: string; period: Period }) {
+  const days = period === 'year' ? 90 : period === 'month' ? 30 : period === 'week' ? 14 : 7
+  const { data, loading, error } = useServerAction(
     () => getAppointmentsTrend(orgId, days),
     [orgId, days]
   )
 
-  return <TrendChart data={result.data!} loading={false} />
+  if (loading && !data) return <ChartSectionSkeleton />
+  if (error) return <ErrorState error={error} />
+  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
+  if (!data?.data) return null
+
+  return <TrendChart data={data.data} loading={false} />
 }
 
-export function SuspenseTrendChart({ orgId, period }: { orgId: string; period: Period }) {
-  const days = period === 'year' ? 90 : period === 'month' ? 30 : period === 'week' ? 14 : 7
-
-  return (
-    <Suspense fallback={<ChartSectionSkeleton />}>
-      <TrendChartSection orgId={orgId} days={days} />
-    </Suspense>
-  )
-}
-
-function RecentActivitySection({ orgId, limit }: { orgId: string; limit: number }) {
-  const result = useServerActionResult(
-    () => getRecentActivity(orgId, limit),
-    [orgId, limit]
+export function RecentActivitySection({ orgId }: { orgId: string }) {
+  const { data, loading, error } = useServerAction(
+    () => getRecentActivity(orgId, 8),
+    [orgId]
   )
 
-  return <RecentActivity activities={result.data!} loading={false} />
+  if (loading && !data) return <SidebarSectionSkeleton height="h-36" />
+  if (error) return <ErrorState error={error} />
+  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
+  if (!data?.data) return null
+
+  return <RecentActivity activities={data.data} loading={false} />
 }
 
-export function SuspenseRecentActivity({ orgId }: { orgId: string }) {
-  return (
-    <Suspense fallback={<SidebarSectionSkeleton height="h-36" />}>
-      <RecentActivitySection orgId={orgId} limit={8} />
-    </Suspense>
-  )
-}
-
-function UpcomingSection({ orgId, limit }: { orgId: string; limit: number }) {
-  const result = useServerActionResult(
-    () => getUpcomingAppointments(orgId, limit),
-    [orgId, limit]
+export function UpcomingSection({ orgId }: { orgId: string }) {
+  const { data, loading, error } = useServerAction(
+    () => getUpcomingAppointments(orgId, 5),
+    [orgId]
   )
 
-  return <UpcomingAppointments appointments={result.data!} loading={false} />
+  if (loading && !data) return <SidebarSectionSkeleton />
+  if (error) return <ErrorState error={error} />
+  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
+  if (!data?.data) return null
+
+  return <UpcomingAppointments appointments={data.data} loading={false} />
 }
 
-export function SuspenseUpcoming({ orgId }: { orgId: string }) {
-  return (
-    <Suspense fallback={<SidebarSectionSkeleton />}>
-      <UpcomingSection orgId={orgId} limit={5} />
-    </Suspense>
-  )
-}
-
-function EmployeePerformanceSection({ orgId, period }: { orgId: string; period: Period }) {
-  const result = useServerActionResult(
+export function EmployeePerformanceSection({ orgId, period }: { orgId: string; period: Period }) {
+  const { data, loading, error } = useServerAction(
     () => getEmployeePerformance(orgId, period),
     [orgId, period]
   )
 
-  return <EmployeePerformance employees={result.data!} loading={false} />
+  if (loading && !data) return <SidebarSectionSkeleton />
+  if (error) return <ErrorState error={error} />
+  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
+  if (!data?.data) return null
+
+  return <EmployeePerformance employees={data.data} loading={false} />
 }
 
-export function SuspenseEmployeePerformance({ orgId, period }: { orgId: string; period: Period }) {
-  return (
-    <Suspense fallback={<SidebarSectionSkeleton />}>
-      <EmployeePerformanceSection orgId={orgId} period={period} />
-    </Suspense>
-  )
-}
-
-function PayrollSummarySection({ orgId }: { orgId: string }) {
-  const result = useServerActionResult(
+export function PayrollSummarySection({ orgId }: { orgId: string }) {
+  const { data, loading, error } = useServerAction(
     () => getPayrollSummary(orgId),
     [orgId]
   )
 
-  return <PayrollSummaryWidget summary={result.data!} loading={false} />
+  if (loading && !data) return <SidebarSectionSkeleton height="h-32" />
+  if (error) return <ErrorState error={error} />
+  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
+  if (!data?.data) return null
+
+  return <PayrollSummaryWidget summary={data.data} loading={false} />
 }
 
-export function SuspensePayrollSummary({ orgId }: { orgId: string }) {
-  return (
-    <Suspense fallback={<SidebarSectionSkeleton height="h-32" />}>
-      <PayrollSummarySection orgId={orgId} />
-    </Suspense>
-  )
-}
-
-function AlertsSection({ orgId }: { orgId: string }) {
-  const result = useServerActionResult(
+export function AlertsSection({ orgId }: { orgId: string }) {
+  const { data, loading, error } = useServerAction(
     () => getSystemAlerts(orgId),
     [orgId]
   )
 
-  return <AlertsPanel alerts={result.data!} loading={false} />
+  if (loading && !data) return <SidebarSectionSkeleton />
+  if (error) return <ErrorState error={error} />
+  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
+  if (!data?.data) return null
+
+  return <AlertsPanel alerts={data.data} loading={false} />
 }
 
-export function SuspenseAlerts({ orgId }: { orgId: string }) {
-  return (
-    <Suspense fallback={<SidebarSectionSkeleton />}>
-      <AlertsSection orgId={orgId} />
-    </Suspense>
-  )
-}
-
-function TopServicesSection({ orgId, period }: { orgId: string; period: Period }) {
+export function TopServicesSection({ orgId, period }: { orgId: string; period: Period }) {
   const days = period === 'year' ? 365 : period === 'month' ? 30 : 7
-  const result = useServerActionResult(
+  const { data, loading, error } = useServerAction(
     () => getTopServices(orgId, 5, days),
     [orgId, days]
   )
 
-  return <TopServicesList services={result.data!} loading={false} />
-}
+  if (loading && !data) return <TableSkeleton rows={3} />
+  if (error) return <ErrorState error={error} />
+  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
+  if (!data?.data) return null
 
-export function SuspenseTopServices({ orgId, period }: { orgId: string; period: Period }) {
-  return (
-    <Suspense fallback={<TableSkeleton rows={3} />}>
-      <TopServicesSection orgId={orgId} period={period} />
-    </Suspense>
-  )
+  return <TopServicesList services={data.data} loading={false} />
 }

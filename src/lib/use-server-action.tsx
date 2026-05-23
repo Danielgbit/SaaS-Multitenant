@@ -1,37 +1,63 @@
-import { use, useMemo, type ReactNode } from 'react'
+"use client"
 
-type PromiseResult<T> = [T, null] | [null, Error]
+import { useEffect, useRef, useState } from "react"
+
+interface ServerActionState<T> {
+  data: T | null
+  error: Error | null
+  loading: boolean
+}
 
 export function useServerAction<T>(
   action: () => Promise<T>,
   deps: unknown[]
-): T {
-  const promise = useMemo(action, deps)
-  return use(promise)
-}
+): ServerActionState<T> {
+  const [state, setState] = useState<ServerActionState<T>>({
+    data: null,
+    error: null,
+    loading: true,
+  })
 
-export function useServerActionResult<T extends { success: boolean; error?: string }>(
-  action: () => Promise<T>,
-  deps: unknown[]
-): T {
-  const result = useServerAction(action, deps)
-  if (!result.success) {
-    throw new Error(result.error || 'Error desconocido')
-  }
-  return result
-}
+  const requestIdRef = useRef(0)
+  const actionRef = useRef(action)
+  actionRef.current = action
 
-export function withSuspense<
-  T extends { success: boolean; error?: string; data?: unknown }
->(
-  Component: (props: any) => ReactNode,
-  actionFactory: (props: any) => () => Promise<T>
-) {
-  return function SuspenseWrapper(props: any) {
-    const result = useServerAction(actionFactory(props), Object.values(props))
-    if (!result.success) {
-      throw new Error(result.error || 'Error')
+  useEffect(() => {
+    let mounted = true
+    const requestId = ++requestIdRef.current
+
+    setState(prev => ({
+      ...prev,
+      loading: true,
+      error: null,
+    }))
+
+    actionRef.current()
+      .then(data => {
+        if (!mounted) return
+        if (requestId !== requestIdRef.current) return
+
+        setState({
+          data,
+          error: null,
+          loading: false,
+        })
+      })
+      .catch(error => {
+        if (!mounted) return
+        if (requestId !== requestIdRef.current) return
+
+        setState({
+          data: null,
+          error,
+          loading: false,
+        })
+      })
+
+    return () => {
+      mounted = false
     }
-    return <Component {...props} data={result.data!} />
-  }
+  }, deps)
+
+  return state
 }
