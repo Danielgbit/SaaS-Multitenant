@@ -35,6 +35,7 @@ export class WhatsAppChannel implements NotificationChannelAdapter {
       variables: message.variables || {},
       appointmentId: message.appointmentId,
       traceId: (message.metadata?.traceId as string) || '',
+      attemptNumber: (message.metadata?.attemptNumber as number) || undefined,
     })
   }
 

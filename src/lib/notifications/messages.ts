@@ -16,10 +16,14 @@ interface LogOutboundParams {
   responsePayload?: Record<string, unknown>
   responseHeaders?: Record<string, unknown>
   responseStatus?: number
+  durationMs?: number
   retryCount?: number
   normalizedPayload?: Record<string, unknown>
   correlationId?: string
   errorMessage?: string
+  errorType?: string
+  attemptNumber?: number
+  providerName?: string
 }
 
 interface LogInboundParams {
@@ -62,9 +66,13 @@ export async function logOutboundMessage(params: LogOutboundParams): Promise<Not
     response_payload: params.responsePayload || null,
     response_headers: params.responseHeaders || null,
     response_status: params.responseStatus || null,
+    processing_time_ms: params.durationMs || null,
     retry_count: params.retryCount ?? 0,
     normalized_payload: params.normalizedPayload || null,
     error_message: params.errorMessage || null,
+    error_type: params.errorType || null,
+    attempt_number: params.attemptNumber ?? 0,
+    provider_name: params.providerName || null,
     correlation_id: params.correlationId || null,
   }
 
@@ -89,6 +97,7 @@ export async function logOutboundAttempt(params: {
   responsePayload?: Record<string, unknown>
   responseStatus?: number
   error?: string
+  errorType?: string
   durationMs?: number
 }): Promise<void> {
   const supabase = await createClient()
@@ -100,6 +109,7 @@ export async function logOutboundAttempt(params: {
       response_payload: params.responsePayload || null,
       response_status: params.responseStatus || null,
       error_message: params.error || null,
+      error_type: params.errorType || null,
       processing_time_ms: params.durationMs || null,
     })
     .eq('id', params.messageId)

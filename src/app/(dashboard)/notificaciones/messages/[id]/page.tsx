@@ -5,8 +5,9 @@ import { getMessageInspectorData, getRetryHistory, getInboundEvents } from '@/li
 import { RawWebhookViewer } from '@/components/dashboard/notifications/RawWebhookViewer'
 import { RetryTimeline } from '@/components/dashboard/notifications/RetryTimeline'
 import { Badge } from '@/components/ui/Badge'
-import { ArrowLeft, Copy, Clock, Send, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
+import { ArrowLeft, Copy, Clock, Send, CheckCircle2, AlertTriangle, XCircle, RotateCcw } from 'lucide-react'
 import type { Metadata } from 'next'
+import { MessageReplayButton } from '@/components/dashboard/notifications/MessageReplayButton'
 import type { NotificationEvent, NotificationInboundEvent, NotificationMessageRecord, NotificationQueueItem } from '@/types/notifications'
 
 export const metadata: Metadata = {
@@ -233,6 +234,7 @@ export default async function MessageInspectorPage({
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold">Inspector de Mensaje</h1>
           <Badge variant={statusBadgeVariant(status)} size="md">{status}</Badge>
+          <MessageReplayButton messageId={id} currentStatus={status} />
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>Canal: <span className="font-mono">{channel}</span></span>
@@ -369,6 +371,11 @@ export default async function MessageInspectorPage({
               <InfoRow label="Correlation ID" value={corrId} mono />
               <InfoRow label="Worker Version" value={qi?.workerVersion} mono />
               <InfoRow label="Claimed By" value={qi?.claimedBy} mono />
+              <InfoRow label="Replayed From" value={qi?.replayedFromQueueItemId} mono />
+              <InfoRow label="Replay Reason" value={qi?.replayReason} />
+              <InfoRow label="Manual Replay" value={qi?.manualReplay ? 'Sí' : 'No'} />
+              <InfoRow label="Replayed By" value={qi?.replayedByUserId ? `${qi.replayedByUserId.slice(0, 8)}...` : undefined} mono />
+              <InfoRow label="Replayed At" value={formatDate(qi?.replayedAt)} />
             </div>
             <div>
               <InfoRow label="Retry Count" value={qi?.attempts?.toString()} />

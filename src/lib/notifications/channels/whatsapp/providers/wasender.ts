@@ -1,5 +1,6 @@
 import type { SendResult, QueueItemStatus } from '@/types/notifications'
 import type { WhatsAppProvider, ParsedWebhook, WhatsAppSendParams } from './types'
+import { redactHeaders, truncatePayload, classifyProviderError } from '@/lib/notifications/redact-secrets'
 
 export class WasenderProvider implements WhatsAppProvider {
   readonly name = 'wasender'
@@ -29,11 +30,19 @@ export class WasenderProvider implements WhatsAppProvider {
       'Authorization': `Bearer ${this.apiKey}`,
     }
 
+    const url = `${this.baseUrl}/message/sendText/${this.instanceId}`
+    const httpRequest = {
+      url,
+      method: 'POST' as const,
+      headers: redactHeaders(headers),
+      body: truncatePayload(payload),
+    }
+
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 30000)
+    const startedAt = Date.now()
 
     try {
-      const url = `${this.baseUrl}/message/sendText/${this.instanceId}`
       const response = await fetch(url, {
         method: 'POST',
         headers,
@@ -42,33 +51,67 @@ export class WasenderProvider implements WhatsAppProvider {
       })
 
       clearTimeout(timeoutId)
+      const durationMs = Date.now() - startedAt
+      const httpStatus = response.status
+
+      let rawResponse: unknown
+      try {
+        rawResponse = await response.json()
+      } catch {
+        rawResponse = await response.text()
+      }
+
+      const responseHeaders: Record<string, string> = {}
+      response.headers.forEach((value, key) => { responseHeaders[key] = value })
 
       if (!response.ok) {
-        const errorText = await response.text()
+        const errorText = typeof rawResponse === 'string' ? rawResponse : JSON.stringify(rawResponse)
         return {
           success: false,
-          error: `Wasender error: ${response.status} - ${errorText}`,
-          retryable: response.status >= 500 || response.status === 429,
+          error: `Wasender error: ${httpStatus} - ${errorText}`,
+          retryable: httpStatus >= 500 || httpStatus === 429,
+          errorType: classifyProviderError(new Error(errorText), httpStatus),
+          httpRequest,
+          httpStatus,
+          responseHeaders: redactHeaders(responseHeaders),
+          rawResponse,
+          durationMs,
+          attemptNumber: params.attemptNumber,
         }
       }
 
       let providerMessageId: string | undefined
-      try {
-        const responseText = await response.text()
-        const data = JSON.parse(responseText) as Record<string, unknown>
+      if (rawResponse && typeof rawResponse === 'object' && !Array.isArray(rawResponse)) {
+        const data = rawResponse as Record<string, unknown>
         providerMessageId = String(data.id || data.messageId || (data.key as Record<string, unknown>)?.id || '')
-      } catch {
-        providerMessageId = undefined
       }
 
-      return { success: true, providerMessageId, rawResponse: { status: response.status } }
+      return {
+        success: true,
+        providerMessageId,
+        rawResponse,
+        httpRequest,
+        httpStatus,
+        responseHeaders: redactHeaders(responseHeaders),
+        durationMs,
+        attemptNumber: params.attemptNumber,
+      }
     } catch (error) {
       clearTimeout(timeoutId)
+      const durationMs = Date.now() - startedAt
       const err = error as Error
-      if (err.name === 'AbortError') {
-        return { success: false, error: 'Timeout enviando a Wasender (30s)', retryable: true }
+      const errorType = classifyProviderError(err)
+
+      return {
+        success: false,
+        error: err.name === 'AbortError' ? 'Timeout enviando a Wasender (30s)' : err.message,
+        retryable: true,
+        errorType,
+        httpRequest,
+        rawResponse: err.message,
+        durationMs,
+        attemptNumber: params.attemptNumber,
       }
-      return { success: false, error: err.message, retryable: true }
     }
   }
 

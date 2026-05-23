@@ -79,12 +79,25 @@ export interface NotificationMessage {
   metadata?: Record<string, unknown>
 }
 
+export interface HttpRequest {
+  url: string
+  method: string
+  headers: Record<string, string>
+  body: unknown
+}
+
 export interface SendResult {
   success: boolean
   providerMessageId?: string
   error?: string
+  errorType?: 'timeout' | 'network' | 'rate_limit' | 'server_error' | 'invalid_response' | 'unknown'
   retryable?: boolean
   rawResponse?: unknown
+  httpRequest?: HttpRequest
+  httpStatus?: number
+  responseHeaders?: Record<string, string>
+  durationMs?: number
+  attemptNumber?: number
   mock?: boolean
   mockPayload?: unknown
 }
@@ -139,6 +152,11 @@ export interface NotificationQueueItem {
   processingStartedAt?: string
   completedAt?: string
   correlationId?: string
+  replayedFromQueueItemId?: string
+  replayReason?: string
+  manualReplay?: boolean
+  replayedByUserId?: string
+  replayedAt?: string
   createdAt: string
 }
 
@@ -290,7 +308,9 @@ export interface NotificationMessageRecord {
   status: string
   processingTimeMs?: number
   errorCode?: string
+  errorType?: string
   errorMessage?: string
+  attemptNumber?: number
   traceId?: string
   requestPayload?: Record<string, unknown>
   responsePayload?: Record<string, unknown>

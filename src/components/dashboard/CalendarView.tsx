@@ -9,50 +9,37 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
-  Clock,
   User,
-  Building2,
   Plus,
-  X,
   CheckCircle2,
   AlertCircle,
   XCircle,
-  Circle,
-  Phone,
-  Mail,
-  FileText,
-  HelpCircle,
-  Sparkles,
-  AlertTriangle,
-  Settings2,
-  Trash2
+  Trash2,
 } from 'lucide-react'
 import { Spinner } from '@/components/ui'
-import { PurgeModal, registerPurgeModalHandler } from '@/components/calendar/PurgeModal'
+import { PurgeModal } from '@/components/calendar/PurgeModal'
 import {
-  Appointment,
   Employee,
   Client,
   Service,
   AppointmentWithDetails,
   CalendarViewProps,
-  TimeSlot,
-  NewAppointmentData,
-  EditAppointmentData,
-  CalendarColors
 } from '@/types/calendar'
-import { ConfirmationButton } from './ConfirmationButton'
 import { useAppointmentModal } from '@/components/providers/AppointmentModalProvider'
 import { useCalendarFilters } from '@/hooks/useCalendarFilters'
 import { EmployeeSelectorBar } from '@/components/calendar/EmployeeSelectorBar'
-import { AppointmentCardV2 } from '@/components/calendar/AppointmentCardV2'
-import { AppointmentClusterCard } from '@/components/calendar/AppointmentClusterCard'
 import { AppointmentList } from '@/components/calendar/AppointmentList'
 import { ScheduleWarningBanner } from '@/components/calendar/ScheduleWarningBanner'
 import { NewAppointmentWizard } from '@/components/calendar/wizard/NewAppointmentWizard'
-import { formatTime, convertTo24Hour, formatDuration } from '@/lib/utils/formatTime'
-import React from 'react'
+import { formatTime, convertTo24Hour } from '@/lib/utils/formatTime'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { toast } from 'sonner'
+import { useCalendarModals } from '@/hooks/calendar/useCalendarModals'
+import { useCalendarMutations } from '@/hooks/calendar/useCalendarMutations'
+import { useAppointmentForm } from '@/hooks/calendar/useAppointmentForm'
+import { AppointmentDetailModal } from '@/components/calendar/AppointmentDetailModal'
+import { ConfirmActionModal } from '@/components/calendar/ConfirmActionModal'
+import { EditAppointmentModal } from '@/components/calendar/EditAppointmentModal'
 
 export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const COLORS = useThemeColors()
@@ -76,6 +63,16 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     '#EC4899', '#F59E0B', '#06B6D4', '#84CC16', '#F43F5E'
   ]
 
+  const modals = useCalendarModals()
+  const form = useAppointmentForm(organizationId)
+  const mutations = useCalendarMutations(organizationId, {
+    onSuccess: () => setCurrentDate(new Date(currentDate)),
+    selectedAppointment: modals.selectedAppointment,
+    newAppointmentData: form.newAppointmentData,
+    editData: form.editData,
+    convertTo24Hour,
+  })
+
   const { selectedAppointmentId, closeModal } = useAppointmentModal()
 
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -85,48 +82,6 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentWithDetails | null>(null)
-  const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false)
-  const [wizardStep, setWizardStep] = useState(1)
-  const [newAppointmentData, setNewAppointmentData] = useState({
-    clientId: '', serviceId: '', employeeId: '', date: '', time: '', notes: ''
-  })
-  const [clientSearch, setClientSearch] = useState('')
-  const [serviceSearch, setServiceSearch] = useState('')
-  const [employeeSearch, setEmployeeSearch] = useState('')
-  const [showClientDropdown, setShowClientDropdown] = useState(false)
-  const [showServiceDropdown, setShowServiceDropdown] = useState(false)
-  const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false)
-  const [availableSlots, setAvailableSlots] = useState<{start_time: string, end_time: string, available: boolean, blockedReason?: string}[]>([])
-  const [loadingSlots, setLoadingSlots] = useState(false)
-  const [slotsError, setSlotsError] = useState<string | null>(null)
-  const [updatingStatus, setUpdatingStatus] = useState(false)
-  const [isCreating, setIsCreating] = useState(false)
-  
-  // Edit mode
-  const [isEditing, setIsEditing] = useState(false)
-  const [editData, setEditData] = useState({ clientId: '', serviceId: '', employeeId: '', date: '', time: '', notes: '' })
-  const [editSearch, setEditSearch] = useState({ client: '', service: '', employee: '' })
-  const [showEditDropdowns, setShowEditDropdowns] = useState({ client: false, service: false, employee: false })
-  const [editSlots, setEditSlots] = useState<{start_time: string, end_time: string, available: boolean, blockedReason?: string}[]>([])
-  const [loadingEditSlots, setLoadingEditSlots] = useState(false)
-  const [isSavingEdit, setIsSavingEdit] = useState(false)
-  const [showTimeWarning, setShowTimeWarning] = useState(false)
-
-  // Purge modal
-  const [showPurgeModal, setShowPurgeModal] = useState(false)
-  
-  // Delete mode
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-
-  // Confirm Service Modal (bypass when employee didn't confirm)
-  const [showConfirmServiceModal, setShowConfirmServiceModal] = useState(false)
-  const [pendingConfirmService, setPendingConfirmService] = useState<AppointmentWithDetails | null>(null)
-
-  // Confirm Appointment Modal (bypass when client didn't confirm via WhatsApp)
-  const [showConfirmAppointmentModal, setShowConfirmAppointmentModal] = useState(false)
-  const [pendingConfirmAppointment, setPendingConfirmAppointment] = useState<AppointmentWithDetails | null>(null)
 
   // Employee filter hook
   const {
@@ -260,22 +215,23 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     if (selectedAppointmentId && appointments.length > 0) {
       const apt = appointments.find(a => a.id === selectedAppointmentId)
       if (apt) {
-        setSelectedAppointment(apt)
+        modals.setSelectedAppointment(apt)
       }
     }
   }, [selectedAppointmentId, appointments])
 
   useEffect(() => {
-    if (selectedAppointment) {
-      const apt = appointments.find(a => a.id === selectedAppointment.id)
-      if (!apt) {
-        setSelectedAppointment(null)
+    const apt = modals.selectedAppointment
+    if (apt) {
+      const found = appointments.find(a => a.id === apt.id)
+      if (!found) {
+        modals.setSelectedAppointment(null)
       }
     }
   }, [appointments])
 
   const handleCloseAppointmentModal = () => {
-    setSelectedAppointment(null)
+    modals.setSelectedAppointment(null)
     closeModal()
   }
 
@@ -299,276 +255,83 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     return `${weekDates[0].toLocaleDateString('es-ES', o)} - ${weekDates[6].toLocaleDateString('es-ES', o)}`
   }
 
-  const openNewModal = () => setShowNewAppointmentModal(true)
-  const closeNewModal = () => {
-    setShowNewAppointmentModal(false)
-    setWizardStep(1)
-    setNewAppointmentData({ clientId: '', serviceId: '', employeeId: '', date: '', time: '', notes: '' })
-    setClientSearch(''); setServiceSearch(''); setEmployeeSearch('')
-    setShowClientDropdown(false); setShowServiceDropdown(false); setShowEmployeeDropdown(false)
-    setAvailableSlots([])
-  }
-
-  const nextStep = () => { if (wizardStep < 4) setWizardStep(wizardStep + 1) }
-  const prevStep = () => { if (wizardStep > 1) setWizardStep(wizardStep - 1) }
-
-  const fetchSlots = async () => {
-    if (!newAppointmentData.employeeId || !newAppointmentData.serviceId || !newAppointmentData.date) return
-    setLoadingSlots(true)
-    setSlotsError(null)
-    try {
-      const res = await fetch(`/api/slots?employeeId=${newAppointmentData.employeeId}&serviceId=${newAppointmentData.serviceId}&date=${newAppointmentData.date}&organizationId=${organizationId}&bypassNotice=true`)
-      const data = await res.json()
-      if (data.error) {
-        setSlotsError(data.error + (data.details ? ` (${data.details})` : ''))
-        return
-      }
-      if (data.slots && data.slots.length > 0) {
-        setAvailableSlots(data.slots)
-      } else {
-        setSlotsError('Este empleado no tiene horarios disponibles para este día. Configure los horarios del empleado para poder agendar citas.')
-      }
-    } catch (e) { 
-      console.error('[SLOTS] Error:', e)
-      setSlotsError('Error al cargar horarios')
-    }
-    finally { setLoadingSlots(false) }
-  }
-
-  const categorizeSlots = (slots: typeof availableSlots) => {
-    const m: typeof availableSlots = [], a: typeof availableSlots = []
-    slots.forEach(s => { const h = parseInt(s.start_time.split('T')[1].slice(0, 2), 10); (h < 13 ? m : a).push(s) })
-    return { morning: m, afternoon: a }
-  }
-  const { morning: mornSlots, afternoon: aftSlots } = categorizeSlots(availableSlots)
+  const { morning: mornSlots, afternoon: aftSlots } = form.categorizeSlots(form.availableSlots)
 
   const handleCreate = async () => {
-    if (!newAppointmentData.clientId || !newAppointmentData.serviceId || !newAppointmentData.employeeId || !newAppointmentData.time) return
-    const time24 = convertTo24Hour(newAppointmentData.time)
-    const startTime = `${newAppointmentData.date}T${time24}:00.000Z`
-    setIsCreating(true)
-    try {
-      const payload: Record<string, string> = {
-        employee_id: newAppointmentData.employeeId,
-        client_id: newAppointmentData.clientId,
-        service_id: newAppointmentData.serviceId,
-        start_time: startTime,
-        organization_id: organizationId,
-      }
-      if (newAppointmentData.notes?.trim()) {
-        payload.notes = newAppointmentData.notes.trim()
-      }
-      const res = await fetch('/api/appointments', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      const data = await res.json()
-      if (data.error) { alert(data.error); return }
-      closeNewModal(); setCurrentDate(new Date(currentDate))
-    } catch (e) { console.error(e); alert('Error') }
-    finally { setIsCreating(false) }
+    await mutations.handleCreate()
+    if (!mutations.isCreating) {
+      form.resetNewForm()
+      modals.setShowNewAppointmentModal(false)
+    }
   }
 
-  const handleStatus = async (status: string) => {
-    if (!selectedAppointment) return
-    setUpdatingStatus(true)
-    try {
-      const res = await fetch('/api/appointments', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ appointment_id: selectedAppointment.id, status }) })
-      const data = await res.json()
-      if (data.error) { alert(data.error); return }
-      setSelectedAppointment(null); setCurrentDate(new Date(currentDate))
-    } catch (e) { console.error(e); alert('Error') }
-    finally { setUpdatingStatus(false) }
-  }
+  const handleStatus = mutations.handleStatus
 
   const openEdit = () => {
-    if (!selectedAppointment) return
-    const apt = selectedAppointment as any
-    setEditData({ clientId: selectedAppointment.client_id, serviceId: apt?.service?.id || '', employeeId: selectedAppointment.employee_id, date: selectedAppointment.start_time.split('T')[0], time: formatTime(selectedAppointment.start_time), notes: selectedAppointment.notes || '' })
-    setEditSearch({ client: selectedAppointment.client?.name || '', service: apt?.service?.name || '', employee: selectedAppointment.employee?.name || '' })
-    setIsEditing(true); setShowTimeWarning(false)
+    if (!modals.selectedAppointment) return
+    const apt = modals.selectedAppointment as any
+    form.setEditData({
+      clientId: modals.selectedAppointment.client_id,
+      serviceId: apt?.service?.id || '',
+      employeeId: modals.selectedAppointment.employee_id,
+      date: modals.selectedAppointment.start_time.split('T')[0],
+      time: formatTime(modals.selectedAppointment.start_time),
+      notes: modals.selectedAppointment.notes || '',
+    })
+    form.setEditSearch({
+      client: modals.selectedAppointment.client?.name || '',
+      service: apt?.service?.name || '',
+      employee: modals.selectedAppointment.employee?.name || '',
+    })
+    form.setShowTimeWarning(false)
   }
 
-  const closeEdit = () => {
-    setIsEditing(false)
-    setEditData({ clientId: '', serviceId: '', employeeId: '', date: '', time: '', notes: '' })
-    setEditSearch({ client: '', service: '', employee: '' })
-    setShowEditDropdowns({ client: false, service: false, employee: false })
-    setEditSlots([]); setShowTimeWarning(false)
-  }
+  const closeEdit = () => { form.resetEditForm() }
 
   const handleAdminConfirmService = (apt: AppointmentWithDetails) => {
-    setPendingConfirmService(apt)
-    setShowConfirmServiceModal(true)
+    modals.setPendingConfirmService(apt)
+    modals.setShowConfirmServiceModal(true)
   }
 
   const confirmServiceFromModal = async (reason?: string) => {
-    if (!pendingConfirmService) return
-
-    const formData = new FormData()
-    formData.append('appointmentId', pendingConfirmService.id)
-    formData.append('reason', reason || 'Confirmado por admin desde calendario')
-
-    setUpdatingStatus(true)
-    try {
-      const { markManually } = await import('@/actions/confirmations/markManually')
-      const result = await markManually({ success: false }, formData)
-      if (result.error) {
-        alert(result.error)
-        return
-      }
-      setSelectedAppointment(null)
-      setCurrentDate(new Date(currentDate))
-    } catch (e) {
-      console.error(e)
-      alert('Error al confirmar servicio')
-    } finally {
-      setUpdatingStatus(false)
-      setShowConfirmServiceModal(false)
-      setPendingConfirmService(null)
+    if (!modals.pendingConfirmService) return
+    await mutations.confirmServiceFromModal(reason)
+    if (!mutations.updatingStatus) {
+      modals.setShowConfirmServiceModal(false)
+      modals.setPendingConfirmService(null)
     }
   }
 
   const handleConfirmAppointment = (apt: AppointmentWithDetails) => {
-    setPendingConfirmAppointment(apt)
-    setShowConfirmAppointmentModal(true)
+    modals.setPendingConfirmAppointment(apt)
+    modals.setShowConfirmAppointmentModal(true)
   }
 
-  const confirmAppointmentFromModal = async (reason?: string) => {
-    if (!pendingConfirmAppointment) return
-
-    setUpdatingStatus(true)
-    try {
-      const res = await fetch('/api/appointments', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          appointment_id: pendingConfirmAppointment.id,
-          status: 'confirmed'
-        })
-      })
-      const data = await res.json()
-      if (data.error) {
-        alert(data.error)
-        return
-      }
-      setSelectedAppointment(null)
-      setCurrentDate(new Date(currentDate))
-    } catch (e) {
-      console.error(e)
-      alert('Error al confirmar la cita')
-    } finally {
-      setUpdatingStatus(false)
-      setShowConfirmAppointmentModal(false)
-      setPendingConfirmAppointment(null)
+  const confirmAppointmentFromModal = async () => {
+    if (!modals.pendingConfirmAppointment) return
+    modals.setSelectedAppointment(modals.pendingConfirmAppointment)
+    await mutations.confirmAppointmentFromModal()
+    if (!mutations.updatingStatus) {
+      modals.setShowConfirmAppointmentModal(false)
+      modals.setPendingConfirmAppointment(null)
     }
   }
 
-  const fetchEditSlots = async () => {
-    if (!editData.employeeId || !editData.serviceId || !editData.date) return
-    setLoadingEditSlots(true)
-    try {
-      const res = await fetch(`/api/slots?employeeId=${editData.employeeId}&serviceId=${editData.serviceId}&date=${editData.date}&organizationId=${organizationId}&bypassNotice=true`)
-      const data = await res.json()
-      if (data.slots) setEditSlots(data.slots)
-    } catch (e) { console.error(e) }
-    finally { setLoadingEditSlots(false) }
-  }
-
   const handleSaveEdit = async () => {
-    if (!selectedAppointment || !editData.clientId || !editData.serviceId || !editData.employeeId || !editData.time) return
-    const orig = formatTime(selectedAppointment.start_time)
-    if (orig !== editData.time && !showTimeWarning) { setShowTimeWarning(true); return }
-    const time24 = convertTo24Hour(editData.time)
-    const startTime = `${editData.date}T${time24}:00.000Z`
-    setIsSavingEdit(true)
-    try {
-      const res = await fetch('/api/appointments', {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointment_id: selectedAppointment.id, employee_id: editData.employeeId, client_id: editData.clientId, service_id: editData.serviceId, start_time: startTime, notes: editData.notes || null })
-      })
-      const data = await res.json()
-      if (data.error) { alert(data.error); return }
-      closeEdit(); setSelectedAppointment(null); setCurrentDate(new Date(currentDate))
-    } catch (e) { console.error(e); alert('Error') }
-    finally { setIsSavingEdit(false); setShowTimeWarning(false) }
+    if (!modals.selectedAppointment || !form.editData.clientId || !form.editData.serviceId || !form.editData.employeeId || !form.editData.time) return
+    const orig = formatTime(modals.selectedAppointment.start_time)
+    if (orig !== form.editData.time && !form.showTimeWarning) { form.setShowTimeWarning(true); return }
+    const success = await mutations.handleSaveEdit()
+    if (success) { closeEdit(); modals.setSelectedAppointment(null) }
   }
 
   const handleDelete = async () => {
-    if (!selectedAppointment) return
-    setIsDeleting(true)
-    try {
-      const res = await fetch('/api/appointments', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ appointment_id: selectedAppointment.id }) })
-      const data = await res.json()
-      if (data.error) { alert(data.error); return }
-      setShowDeleteConfirm(false); setSelectedAppointment(null); setCurrentDate(new Date(currentDate))
-    } catch (e) { console.error(e); alert('Error') }
-    finally { setIsDeleting(false) }
+    await mutations.handleDelete()
+    if (!mutations.isDeleting) {
+      modals.setShowDeleteConfirm(false)
+      modals.setSelectedAppointment(null)
+    }
   }
-
-  if (loading || !mounted) return (
-    <div suppressHydrationWarning className="rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800" style={{ boxShadow: '0 4px 24px rgba(15,76,92,0.08)' }}>
-      {/* Skeleton Header */}
-      <div suppressHydrationWarning className="px-6 md:px-8 py-5 md:py-6 flex items-center justify-between bg-slate-50 dark:bg-slate-700/50">
-        <div className="animate-pulse">
-          <div className="h-7 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
-          <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
-        </div>
-        <div className="flex gap-2">
-          <div className="h-10 w-20 bg-slate-200 dark:bg-slate-700 rounded-lg" />
-          <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700 rounded-lg" />
-        </div>
-      </div>
-      {/* Skeleton Week Days */}
-      <div suppressHydrationWarning className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-600">
-        {[...Array(7)].map((_, i) => (
-          <div key={i} className="py-4 text-center">
-            <div className="h-3 w-8 bg-slate-200 dark:bg-slate-700 rounded mx-auto mb-2" />
-            <div className="h-6 w-6 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto" />
-          </div>
-        ))}
-      </div>
-      {/* Skeleton Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-7 min-h-[500px]">
-        {[...Array(7)].map((_, i) => (
-          <div suppressHydrationWarning key={i} className={`p-3 border-r border-slate-200 dark:border-slate-600 ${i === 6 ? '' : ''}`}>
-            {[...Array(3)].map((_, j) => (
-              <div key={j} className="p-3 rounded-xl mb-2 animate-pulse">
-                <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
-                <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
-                <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700 rounded" />
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-
-  if (error) return (
-    <div className="flex items-center justify-center h-[600px] rounded-2xl" style={{ backgroundColor: COLORS.surface, boxShadow: '0 4px 24px rgba(15,76,92,0.08)' }}>
-      <div className="flex flex-col items-center gap-4 text-center px-6">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: COLORS.errorLight }}>
-          <Calendar className="w-8 h-8" style={{ color: COLORS.error }} />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold mb-1" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>
-            Error
-          </h3>
-          <p style={{ color: COLORS.textSecondary }} className="text-sm">
-            {error}
-          </p>
-        </div>
-        <button 
-          onClick={goToToday} 
-          className="px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 hover:scale-[1.02]"
-          style={{ backgroundColor: COLORS.primary, color: '#FFF', boxShadow: '0 4px 12px rgba(15,76,92,0.25)' }}
-        >
-          Reintentar
-        </button>
-      </div>
-    </div>
-  )
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: '0 4px 24px rgba(15,76,92,0.08)', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
@@ -618,7 +381,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
           </div>
           {userRole === 'owner' || userRole === 'admin' ? (
             <button
-              onClick={openNewModal}
+              onClick={() => modals.setShowNewAppointmentModal(true)}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
               style={{ backgroundColor: '#FFFFFF', color: COLORS.primary, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
             >
@@ -727,7 +490,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
                   COLORS={COLORS}
                   STATUS_CONFIG={STATUS_CONFIG}
                   formatTime={formatTime}
-                  onAppointmentClick={setSelectedAppointment}
+                  onAppointmentClick={modals.setSelectedAppointment}
                   showEmployeeDot={selectedEmployeeId === 'all'}
                   employeeColors={employeeColorMap}
                   isAllEmployees={selectedEmployeeId === 'all'}
@@ -773,7 +536,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
           {/* Purge button */}
           {mounted && (
             <button
-              onClick={() => setShowPurgeModal(true)}
+              onClick={() => modals.setShowPurgeModal(true)}
               className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 hover:scale-[1.02] hover:brightness-110 cursor-pointer"
               style={{
                 backgroundColor: COLORS.warning + '14',
@@ -790,535 +553,134 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
       </div>
 
       {/* Detail Modal */}
-      {selectedAppointment && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200" 
-          style={{ backgroundColor: 'rgba(15,23,42,0.8)', backdropFilter: 'blur(8px)' }} 
-          onClick={handleCloseAppointmentModal}
-        >
-          <div 
-            className="w-full max-w-md rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200" 
-            style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 64px rgba(0,0,0,0.4)' }} 
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Header Premium */}
-            <div 
-              className="px-6 py-5 relative overflow-hidden" 
-              style={{ 
-                background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primary}CC 100%)`,
-              }}
-            >
-              {/* Decorative elements */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-              
-              <div className="flex items-start justify-between relative z-10">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 
-                      className="text-xl font-semibold text-white" 
-                      style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 600 }}
-                    >
-                      Detalles de Cita
-                    </h3>
-                    <span className="text-xs text-white/60 font-mono">#{selectedAppointment.id.slice(0, 8)}</span>
-                  </div>
-                </div>
-                <button 
-                  onClick={handleCloseAppointmentModal} 
-                  className="w-8 h-8 rounded-lg hover:bg-white/20 transition-all duration-200 flex items-center justify-center cursor-pointer"
-                  aria-label="Cerrar modal"
-                >
-                  <X className="w-5 h-5 text-white/80" />
-                </button>
-              </div>
-            </div>
-            
-            {/* Body */}
-            <div className="p-6">
-              {(() => { 
-                const st = (STATUS_CONFIG as Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }>)[selectedAppointment.status] || { color: COLORS.textSecondary, bg: COLORS.borderLight, label: selectedAppointment.status, icon: <Circle className="w-3.5 h-3.5" /> }
-                return (
-                  <div className="space-y-5">
-                    {/* Status Badge - Full width */}
-                    <div className="flex items-center justify-between">
-                      <div 
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" 
-                        style={{ backgroundColor: st.bg, color: st.color }}
-                      >
-                        {st.icon}
-                        <span>{st.label}</span>
-                      </div>
-                      <span className="text-sm font-medium" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: COLORS.textSecondary }}>
-                        {formatTime(selectedAppointment.start_time)}
-                      </span>
-                    </div>
-                    
-                    {/* Client Info - Premium Card */}
-                    <div 
-                      className="p-4 rounded-xl transition-colors duration-200" 
-                      style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <div 
-                          className="w-10 h-10 rounded-lg flex items-center justify-center" 
-                          style={{ backgroundColor: COLORS.primary + '20' }}
-                        >
-                          <User className="w-5 h-5" style={{ color: COLORS.primary }} />
-                        </div>
-                        <span 
-                          className="text-xs uppercase tracking-wider font-medium" 
-                          style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                        >
-                          Cliente
-                        </span>
-                      </div>
-                      <p 
-                        className="text-lg font-semibold mb-1" 
-                        style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                      >
-                        {selectedAppointment.client?.name || 'N/A'}
-                      </p>
-                      {selectedAppointment.client?.phone && (
-                        <div 
-                          className="flex items-center gap-2 text-sm" 
-                          style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                        >
-                          <Phone className="w-4 h-4" />
-                          <span>{selectedAppointment.client.phone}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Info Grid 2x2 */}
-                    <div className="grid grid-cols-2 gap-3">
-                      {/* Fecha */}
-                      <div 
-                        className="p-4 rounded-xl transition-colors duration-200" 
-                        style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Calendar className="w-4 h-4" style={{ color: COLORS.primary }} />
-                          <span 
-                            className="text-xs uppercase tracking-wider font-medium" 
-                            style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                          >
-                            Fecha
-                          </span>
-                        </div>
-                        <p 
-                          className="text-sm font-medium" 
-                          style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                        >
-                          {new Date(selectedAppointment.start_time).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}
-                        </p>
-                      </div>
-                      
-                      {/* Hora */}
-                      <div 
-                        className="p-4 rounded-xl transition-colors duration-200" 
-                        style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Clock className="w-4 h-4" style={{ color: COLORS.primary }} />
-                          <span 
-                            className="text-xs uppercase tracking-wider font-medium" 
-                            style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                          >
-                            Hora
-                          </span>
-                        </div>
-                        <p 
-                          className="text-sm font-medium" 
-                          style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                        >
-                          {formatTime(selectedAppointment.start_time)}
-                        </p>
-                      </div>
-                      
-                      {/* Profesional */}
-                      <div 
-                        className="p-4 rounded-xl transition-colors duration-200" 
-                        style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Building2 className="w-4 h-4" style={{ color: COLORS.primary }} />
-                          <span 
-                            className="text-xs uppercase tracking-wider font-medium" 
-                            style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                          >
-                            Profesional
-                          </span>
-                        </div>
-                        <p 
-                          className="text-sm font-medium" 
-                          style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                        >
-                          {selectedAppointment.employee?.name?.split(' ').map(n => n[0]).join('').toUpperCase() + '. ' + selectedAppointment.employee?.name?.split(' ').slice(1).join(' ') || 'N/A'}
-                        </p>
-                      </div>
-                      
-                      {/* Servicio */}
-                      <div 
-                        className="p-4 rounded-xl transition-colors duration-200" 
-                        style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Sparkles className="w-4 h-4" style={{ color: COLORS.primary }} />
-                          <span 
-                            className="text-xs uppercase tracking-wider font-medium" 
-                            style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                          >
-                            Servicio
-                          </span>
-                        </div>
-                        <p 
-                          className="text-sm font-medium" 
-                          style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                        >
-                          {selectedAppointment.service?.name || 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Notas */}
-                    {selectedAppointment.notes && (
-                      <div 
-                        className="p-4 rounded-xl" 
-                        style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <FileText className="w-4 h-4" style={{ color: COLORS.primary }} />
-                          <span 
-                            className="text-xs uppercase tracking-wider font-medium" 
-                            style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                          >
-                            Notas
-                          </span>
-                        </div>
-                        <p 
-                          className="text-sm" 
-                          style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                        >
-                          {selectedAppointment.notes}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )
-              })()}
-            </div>
-            
-            {/* Footer Actions */}
-            <div 
-              className="px-6 py-4 flex items-center justify-end gap-3" 
-              style={{ borderTop: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surfaceSubtle }}
-            >
-              {/* Confirmar - solo visible si NO está confirmado y no es empleado */}
-              {userRole !== 'empleado' && selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && selectedAppointment.status !== 'confirmed' && (
-                <button
-                  onClick={() => handleConfirmAppointment(selectedAppointment)}
-                  disabled={updatingStatus}
-                  className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:brightness-110 cursor-pointer"
-                  style={{ backgroundColor: '#10B981', color: '#FFF' }}
-                >
-                  Confirmar
-                </button>
-              )}
-
-              {/* Confirmar Servicio - si empleado NO marcó Listo */}
-              {userRole !== 'empleado' && selectedAppointment.status === 'confirmed' && selectedAppointment.confirmation_status !== 'completed' && (
-                <button
-                  onClick={() => handleAdminConfirmService(selectedAppointment)}
-                  disabled={updatingStatus}
-                  className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:brightness-110 cursor-pointer"
-                  style={{ backgroundColor: '#F59E0B', color: '#FFF' }}
-                >
-                  Confirmar Servicio
-                </button>
-              )}
-              
-              {/* Para empleado: botón de confirmación de pago */}
-              {userRole === 'empleado' && selectedAppointment.status === 'confirmed' && (
-                <ConfirmationButton
-                  appointmentId={selectedAppointment.id}
-                  clientName={selectedAppointment.client?.name || 'Cliente'}
-                  serviceName={selectedAppointment.service?.name || 'Servicio'}
-                  basePrice={selectedAppointment.service?.price || 0}
-                  disabled={selectedAppointment.confirmation_status === 'completed' || selectedAppointment.confirmation_status === 'confirmed'}
-                  onCompleted={() => { setSelectedAppointment(null); setCurrentDate(new Date(currentDate)) }}
-                />
-              )}
-              
-              {/* Acciones de owner/admin */}
-              {userRole !== 'empleado' && selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && (
-                <>
-                  <button 
-                    onClick={() => setShowDeleteConfirm(true)} 
-                    className="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
-                    style={{ color: '#EF4444', backgroundColor: 'transparent', border: '1px solid #EF444440' }}
-                  >
-                    Cancelar
-                  </button>
-                  <button 
-                    onClick={openEdit} 
-                    className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:brightness-110 cursor-pointer"
-                    style={{ backgroundColor: COLORS.primary, color: '#FFF' }}
-                  >
-                    Editar
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <AppointmentDetailModal
+        appointment={modals.selectedAppointment}
+        COLORS={COLORS}
+        STATUS_CONFIG={STATUS_CONFIG}
+        userRole={userRole || ''}
+        updatingStatus={mutations.updatingStatus}
+        formatTime={formatTime}
+        onClose={handleCloseAppointmentModal}
+        onConfirmAppointment={() => modals.selectedAppointment && handleConfirmAppointment(modals.selectedAppointment)}
+        onAdminConfirmService={() => modals.selectedAppointment && handleAdminConfirmService(modals.selectedAppointment)}
+        onDelete={() => modals.setShowDeleteConfirm(true)}
+        onEdit={openEdit}
+        onCompleted={() => { modals.setSelectedAppointment(null); setCurrentDate(new Date(currentDate)) }}
+      />
 
       {/* New Appointment Modal - Wizard */}
-      {showNewAppointmentModal && (
+      {modals.showNewAppointmentModal && (
         <NewAppointmentWizard
           COLORS={COLORS}
-          wizardStep={wizardStep}
-          newAppointmentData={newAppointmentData}
+          wizardStep={form.wizardStep}
+          newAppointmentData={form.newAppointmentData}
           clients={clients}
           services={services}
           employees={employees}
-          availableSlots={availableSlots}
-          loadingSlots={loadingSlots}
-          slotsError={slotsError}
-          clientSearch={clientSearch}
-          serviceSearch={serviceSearch}
-          employeeSearch={employeeSearch}
-          showClientDropdown={showClientDropdown}
-          showServiceDropdown={showServiceDropdown}
-          showEmployeeDropdown={showEmployeeDropdown}
-          isCreating={isCreating}
+          availableSlots={form.availableSlots}
+          loadingSlots={form.loadingSlots}
+          slotsError={form.slotsError}
+          clientSearch={form.clientSearch}
+          serviceSearch={form.serviceSearch}
+          employeeSearch={form.employeeSearch}
+          showClientDropdown={form.showClientDropdown}
+          showServiceDropdown={form.showServiceDropdown}
+          showEmployeeDropdown={form.showEmployeeDropdown}
+          isCreating={mutations.isCreating}
           organizationId={organizationId}
-          categorizeSlots={categorizeSlots}
-          onNextStep={nextStep}
-          onPrevStep={prevStep}
-          onClose={closeNewModal}
-          onSetClientSearch={setClientSearch}
-          onSetServiceSearch={setServiceSearch}
-          onSetEmployeeSearch={setEmployeeSearch}
-          onSetShowClientDropdown={setShowClientDropdown}
-          onSetShowServiceDropdown={setShowServiceDropdown}
-          onSetShowEmployeeDropdown={setShowEmployeeDropdown}
-          onSetNewAppointmentData={(data) => setNewAppointmentData({...newAppointmentData, ...data})}
-          onFetchSlots={fetchSlots}
+          categorizeSlots={form.categorizeSlots}
+          onNextStep={form.nextStep}
+          onPrevStep={form.prevStep}
+          onClose={() => { modals.setShowNewAppointmentModal(false); form.resetNewForm() }}
+          onSetClientSearch={form.setClientSearch}
+          onSetServiceSearch={form.setServiceSearch}
+          onSetEmployeeSearch={form.setEmployeeSearch}
+          onSetShowClientDropdown={form.setShowClientDropdown}
+          onSetShowServiceDropdown={form.setShowServiceDropdown}
+          onSetShowEmployeeDropdown={form.setShowEmployeeDropdown}
+          onSetNewAppointmentData={(data) => form.setNewAppointmentData({...form.newAppointmentData, ...data})}
+          onFetchSlots={form.fetchSlots}
           onCreate={handleCreate}
         />
       )}
 
       {/* Edit Modal */}
-      {isEditing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }} onClick={closeEdit}>
-          <div className="w-full max-w-md rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto" style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }} onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}><div className="flex items-center justify-between"><h3 className="text-xl font-semibold">Editar Cita</h3><button onClick={closeEdit} className="p-1.5 rounded-lg hover:bg-white/20"><X className="w-5 h-5" /></button></div></div>
-            <div className="p-6 space-y-4">
-              <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Cliente</label><input type="text" value={editSearch.client} onChange={e => { setEditSearch({...editSearch, client: e.target.value}); setShowEditDropdowns({...showEditDropdowns, client: true}) }} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface }} />{showEditDropdowns.client && <div className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface }}>{clients.filter(c => c.name.toLowerCase().includes(editSearch.client.toLowerCase())).map(c => <button key={c.id} onClick={() => { setEditData({...editData, clientId: c.id}); setEditSearch({...editSearch, client: c.name}); setShowEditDropdowns({...showEditDropdowns, client: false}) }} className="w-full px-4 py-3 text-left" style={{ color: COLORS.textPrimary }}>{c.name}</button>)}</div>}</div>
-              <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Servicio</label><input type="text" value={editSearch.service} onChange={e => { setEditSearch({...editSearch, service: e.target.value}); setShowEditDropdowns({...showEditDropdowns, service: true}) }} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface }} />{showEditDropdowns.service && <div className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface }}>{services.filter(s => s.name.toLowerCase().includes(editSearch.service.toLowerCase())).map(s => <button key={s.id} onClick={() => { setEditData({...editData, serviceId: s.id, time: ''}); setEditSearch({...editSearch, service: s.name}); setShowEditDropdowns({...showEditDropdowns, service: false}); setEditSlots([]) }} className="w-full px-4 py-3 text-left" style={{ color: COLORS.textPrimary }}>{s.name} ({s.duration} min)</button>)}</div>}</div>
-              <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Profesional</label><input type="text" value={editSearch.employee} onChange={e => { setEditSearch({...editSearch, employee: e.target.value}); setShowEditDropdowns({...showEditDropdowns, employee: true}) }} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface }} />{showEditDropdowns.employee && <div className="absolute z-20 w-full mt-2 rounded-xl border overflow-hidden max-h-48 overflow-y-auto" style={{ backgroundColor: COLORS.surface }}>{employees.filter(e => e.name.toLowerCase().includes(editSearch.employee.toLowerCase())).map(e => <button key={e.id} onClick={() => { setEditData({...editData, employeeId: e.id, time: ''}); setEditSearch({...editSearch, employee: e.name}); setShowEditDropdowns({...showEditDropdowns, employee: false}); setEditSlots([]) }} className="w-full px-4 py-3 text-left" style={{ color: COLORS.textPrimary }}>{e.name}</button>)}</div>}</div>
-              <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Fecha</label><input type="date" value={editData.date} min={new Date().toISOString().split('T')[0]} onChange={e => { setEditData({...editData, date: e.target.value, time: ''}); setEditSlots([]); setShowTimeWarning(false) }} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} /></div>
-              {editData.date && editData.employeeId && editData.serviceId && <div>{!loadingEditSlots && editSlots.length === 0 && <button onClick={fetchEditSlots} className="w-full px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}>Ver horarios</button>}{loadingEditSlots && <div className="flex justify-center py-4"><Spinner size="md" style={{ color: COLORS.primary }} /></div>}{editSlots.length > 0 && <div className="grid grid-cols-4 gap-2">{editSlots.map(s => { const isAvail = s.available; const isSel = editData.time === formatTime(s.start_time); const br = (s as any).blockedReason; if (!isAvail) { return <div key={s.start_time} className="px-2 py-2 rounded-lg text-xs text-center opacity-50 cursor-not-allowed" style={{ backgroundColor: COLORS.surfaceHover, color: COLORS.textMuted }} title={br}>{formatTime(s.start_time)}<br/><span className="text-[10px]" style={{ color: COLORS.warning }}>{br}</span></div> } return <button key={s.start_time} onClick={() => { setEditData({...editData, time: formatTime(s.start_time)}); setShowTimeWarning(false) }} className={`px-2 py-2 rounded-lg text-sm ${isSel ? 'ring-2' : ''}`} style={{ backgroundColor: isSel ? COLORS.primary : COLORS.surfaceSubtle, color: isSel ? '#FFF' : COLORS.textPrimary }}>{formatTime(s.start_time)}</button> })}</div>}</div>}
-              <div><label className="block text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>Notas</label><textarea value={editData.notes} onChange={e => setEditData({...editData, notes: e.target.value})} className="w-full px-4 py-3 rounded-xl border" rows={2} style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }} /></div>{showTimeWarning && <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.warningLight }}><p className="text-sm font-medium" style={{ color: COLORS.warning }}>El horario cambió. ¿Continuar?</p></div>}
-            </div>
-            <div className="px-6 py-4 flex justify-between sticky bottom-0" style={{ borderTop: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surface }}>
-              <button onClick={closeEdit} className="px-4 py-2.5 rounded-xl text-sm font-medium" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle }}>Cancelar</button>
-              <button onClick={handleSaveEdit} disabled={!editData.clientId || !editData.serviceId || !editData.employeeId || !editData.time || isSavingEdit} className="px-6 py-2.5 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.primary, color: '#FFF', opacity: (!editData.clientId || !editData.serviceId || !editData.employeeId || !editData.time || isSavingEdit) ? 0.5 : 1 }}>{isSavingEdit ? <><Spinner size="sm" className="inline" />Guardando...</> : 'Guardar'}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditAppointmentModal
+        isEditing={form.editData.clientId !== ''}
+        editData={form.editData}
+        editSearch={form.editSearch}
+        showEditDropdowns={form.showEditDropdowns}
+        editSlots={form.editSlots}
+        loadingEditSlots={form.loadingEditSlots}
+        showTimeWarning={form.showTimeWarning}
+        isSavingEdit={mutations.isSavingEdit}
+        clients={clients}
+        services={services}
+        employees={employees}
+        COLORS={COLORS}
+        formatTime={formatTime}
+        onClose={closeEdit}
+        onSetEditData={(data) => form.setEditData({...form.editData, ...data})}
+        onSetEditSearch={(data) => form.setEditSearch({...form.editSearch, ...data})}
+        onSetShowEditDropdowns={(d) => form.setShowEditDropdowns({...form.showEditDropdowns, ...d})}
+        onFetchEditSlots={form.fetchEditSlots}
+        onSave={handleSaveEdit}
+      />
 
       {/* Delete Confirm */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setShowDeleteConfirm(false)}>
+      {modals.showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => modals.setShowDeleteConfirm(false)}>
           <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }} onClick={e => e.stopPropagation()}>
             <div className="p-6 text-center"><div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: COLORS.errorLight }}><AlertCircle className="w-8 h-8" style={{ color: COLORS.error }} /></div><h3 className="text-xl font-semibold mb-2" style={{ color: COLORS.textPrimary }}>¿Eliminar?</h3><p className="text-sm" style={{ color: COLORS.textSecondary }}>Esta acción no se puede deshacer.</p></div>
             <div className="px-6 py-4 flex gap-3" style={{ borderTop: `1px solid ${COLORS.border}` }}>
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle }}>Cancelar</button>
-              <button onClick={handleDelete} disabled={isDeleting} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.error, color: '#FFF' }}>{isDeleting ? <Spinner size="sm" className="inline" /> : 'Eliminar'}</button>
+              <button onClick={() => modals.setShowDeleteConfirm(false)} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle }}>Cancelar</button>
+              <button onClick={handleDelete} disabled={mutations.isDeleting} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: COLORS.error, color: '#FFF' }}>{mutations.isDeleting ? <Spinner size="sm" className="inline" /> : 'Eliminar'}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Confirm Service Modal (bypass when employee didn't confirm) */}
-      {showConfirmServiceModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }}
-          onClick={() => setShowConfirmServiceModal(false)}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl overflow-hidden"
-            style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="p-6 text-center">
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                style={{ backgroundColor: COLORS.warningLight }}
-              >
-                <AlertTriangle className="w-8 h-8" style={{ color: COLORS.warning }} />
-              </div>
-              <h3 className="text-xl font-semibold mb-2" style={{ color: COLORS.textPrimary }}>
-                Confirmar Servicio
-              </h3>
-              <p className="text-sm mb-2" style={{ color: COLORS.textSecondary }}>
-                El empleado no ha confirmado el servicio.<br />
-                ¿Estás seguro que fue realizado?
-              </p>
-              <p className="text-xs" style={{ color: COLORS.textMuted }}>
-                Esta acción quedará registrada en el historial.
-              </p>
-            </div>
+      {/* Confirm modals (service + appointment) */}
+      <ConfirmActionModal
+        isOpen={modals.showConfirmServiceModal}
+        title="Confirmar Servicio"
+        description="El empleado no ha confirmado el servicio. ¿Estás seguro que fue realizado?"
+        note="Esta acción quedará registrada en el historial."
+        placeholder="Razón (opcional): Ej: Empleado se fue temprano"
+        confirmLabel="Confirmar Servicio"
+        iconColor={COLORS.warning}
+        iconBg={COLORS.warningLight || '#FEF3C7'}
+        confirmBg={COLORS.warning}
+        loading={mutations.updatingStatus}
+        COLORS={COLORS}
+        onConfirm={confirmServiceFromModal}
+        onClose={() => { modals.setShowConfirmServiceModal(false); modals.setPendingConfirmService(null) }}
+      />
 
-            <div className="px-6 pb-4">
-              <input
-                type="text"
-                id="confirmServiceReason"
-                placeholder="Razón (opcional): Ej: Empleado se fue temprano"
-                className="w-full px-4 py-3 rounded-xl text-sm border transition-colors duration-200"
-                style={{
-                  borderColor: COLORS.border,
-                  backgroundColor: COLORS.surface,
-                  color: COLORS.textPrimary
-                }}
-              />
-            </div>
-
-            <div className="px-6 py-4 flex gap-3" style={{ borderTop: `1px solid ${COLORS.border}` }}>
-              <button
-                onClick={() => setShowConfirmServiceModal(false)}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-colors duration-200"
-                style={{
-                  color: COLORS.textSecondary,
-                  backgroundColor: COLORS.surfaceSubtle
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => {
-                  const reasonInput = document.getElementById('confirmServiceReason') as HTMLInputElement
-                  const reason = reasonInput?.value?.trim()
-                  confirmServiceFromModal(reason || undefined)
-                }}
-                disabled={updatingStatus}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
-                style={{
-                  backgroundColor: COLORS.warning,
-                  color: '#FFF',
-                  opacity: updatingStatus ? 0.5 : 1,
-                  cursor: updatingStatus ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {updatingStatus ? (
-                  <Spinner size="sm" className="inline" />
-                ) : (
-                  'Confirmar Servicio'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Confirm Appointment Modal (bypass when client didn't confirm via WhatsApp) */}
-      {showConfirmAppointmentModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }}
-          onClick={() => setShowConfirmAppointmentModal(false)}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl overflow-hidden"
-            style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="p-6 text-center">
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                style={{ backgroundColor: COLORS.warningLight }}
-              >
-                <AlertTriangle className="w-8 h-8" style={{ color: COLORS.warning }} />
-              </div>
-              <h3 className="text-xl font-semibold mb-2" style={{ color: COLORS.textPrimary }}>
-                Confirmar Cita
-              </h3>
-              <p className="text-sm mb-2" style={{ color: COLORS.textSecondary }}>
-                El cliente no ha confirmado la cita.<br />
-                ¿Estás seguro que el cliente asistirá?
-              </p>
-              <p className="text-xs" style={{ color: COLORS.textMuted }}>
-                Esta acción quedará registrada en el historial.
-              </p>
-            </div>
-
-            <div className="px-6 pb-4">
-              <input
-                type="text"
-                id="confirmAppointmentReason"
-                placeholder="Razón (opcional): Ej: Cliente llamó para confirmar"
-                className="w-full px-4 py-3 rounded-xl text-sm border transition-colors duration-200"
-                style={{
-                  borderColor: COLORS.border,
-                  backgroundColor: COLORS.surface,
-                  color: COLORS.textPrimary
-                }}
-              />
-            </div>
-
-            <div className="px-6 py-4 flex gap-3" style={{ borderTop: `1px solid ${COLORS.border}` }}>
-              <button
-                onClick={() => setShowConfirmAppointmentModal(false)}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-colors duration-200"
-                style={{
-                  color: COLORS.textSecondary,
-                  backgroundColor: COLORS.surfaceSubtle
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => {
-                  const reasonInput = document.getElementById('confirmAppointmentReason') as HTMLInputElement
-                  const reason = reasonInput?.value?.trim()
-                  confirmAppointmentFromModal(reason || undefined)
-                }}
-                disabled={updatingStatus}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200"
-                style={{
-                  backgroundColor: COLORS.success,
-                  color: '#FFF',
-                  opacity: updatingStatus ? 0.5 : 1,
-                  cursor: updatingStatus ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {updatingStatus ? (
-                  <Spinner size="sm" className="inline" />
-                ) : (
-                  'Confirmar Cita'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {showPurgeModal && (
+      <ConfirmActionModal
+        isOpen={modals.showConfirmAppointmentModal}
+        title="Confirmar Cita"
+        description="El cliente no ha confirmado la cita. ¿Estás seguro que el cliente asistirá?"
+        note="Esta acción quedará registrada en el historial."
+        placeholder="Razón (opcional): Ej: Cliente llamó para confirmar"
+        confirmLabel="Confirmar Cita"
+        iconColor={COLORS.warning}
+        iconBg={COLORS.warningLight || '#FEF3C7'}
+        confirmBg={COLORS.success}
+        loading={mutations.updatingStatus}
+        COLORS={COLORS}
+        onConfirm={confirmAppointmentFromModal}
+        onClose={() => { modals.setShowConfirmAppointmentModal(false); modals.setPendingConfirmAppointment(null) }}
+      />
+      {modals.showPurgeModal && (
         <PurgeModal
           organizationId={organizationId}
           initialTab="selection"
-          onClose={() => setShowPurgeModal(false)}
+          onClose={() => modals.setShowPurgeModal(false)}
           onSuccess={() => {
             fetchAppointmentsData()
             setTimeout(() => {
-              setShowPurgeModal(false)
+              modals.setShowPurgeModal(false)
             }, 2000)
           }}
         />

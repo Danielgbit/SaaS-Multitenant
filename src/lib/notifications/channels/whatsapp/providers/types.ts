@@ -6,6 +6,7 @@ export interface WhatsAppSendParams {
   variables: Record<string, string>
   appointmentId?: string
   traceId: string
+  attemptNumber?: number
 }
 
 export interface ParsedWebhook {

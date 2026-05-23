@@ -224,7 +224,7 @@ async function processNotificationBatch(
         idempotencyKey: item.idempotency_key as string,
         scheduledAt: item.scheduled_at as string,
         variables: (item.variables as Record<string, string>) || {},
-        metadata: { traceId },
+        metadata: { traceId, attemptNumber: (item.attempts as number) || 0 },
       })
 
       const now = new Date().toISOString()
@@ -258,14 +258,6 @@ async function processNotificationBatch(
           })
 
           const providerType = channelAdapter.getProviderName()
-          const sentPayload = {
-            channel: item.channel as NotificationChannel,
-            to_address: item.to_address as string,
-            body: (item.rendered_body as string) || '',
-            variables: (item.variables as Record<string, string>) || {},
-            appointment_id: item.appointment_id as string,
-            trace_id: traceId,
-          }
           const normalizedResponse = normalizeSendResponse(providerType, sendResult.rawResponse)
           const correlationId = (item.correlation_id as string) || `notif_${(traceId || crypto.randomUUID()).slice(0, 8)}_${Date.now()}`
 
@@ -290,10 +282,13 @@ async function processNotificationBatch(
             payload: { to_address: item.to_address, body: item.rendered_body, variables: item.variables },
             status: 'sent',
             traceId,
-            requestPayload: sentPayload,
+            requestPayload: sendResult.httpRequest as Record<string, unknown> | undefined,
             responsePayload: normalizedResponse.raw as Record<string, unknown> | undefined,
-            responseStatus: normalizedResponse.statusCode,
+            responseStatus: sendResult.httpStatus,
+            responseHeaders: sendResult.responseHeaders as Record<string, unknown> | undefined,
             normalizedPayload: normalizedResponse as unknown as Record<string, unknown>,
+            durationMs: sendResult.durationMs,
+            attemptNumber: sendResult.attemptNumber,
             correlationId,
           }).catch((err: unknown) => {
             logger.error('logOutboundMessage failed in cron', { error: err, queueItemId: item.id as string })
@@ -343,11 +338,17 @@ async function processNotificationBatch(
               payload: { to_address: item.to_address, body: item.rendered_body, variables: item.variables },
               status: retryable ? 'failed' : 'failed_permanently',
               traceId,
+              requestPayload: sendResult.httpRequest as Record<string, unknown> | undefined,
               responsePayload: sendResult.rawResponse as Record<string, unknown> | undefined,
-              responseStatus: sendResult.rawResponse ? (sendResult.rawResponse as Record<string, unknown>).status as number : undefined,
+              responseStatus: sendResult.httpStatus,
+              responseHeaders: sendResult.responseHeaders as Record<string, unknown> | undefined,
+              durationMs: sendResult.durationMs,
               errorMessage: sendResult.error,
+              errorType: sendResult.errorType,
               retryCount: newAttempts,
+              attemptNumber: newAttempts,
               correlationId,
+              providerName: channelAdapter.getProviderName(),
             }).catch(() => {})
           } catch {}
 
@@ -418,10 +419,17 @@ async function processNotificationBatch(
               payload: { to_address: item.to_address, body: item.rendered_body, variables: item.variables },
               status: 'failed',
               traceId,
+              requestPayload: sendResult.httpRequest as Record<string, unknown> | undefined,
               responsePayload: sendResult.rawResponse as Record<string, unknown> | undefined,
+              responseStatus: sendResult.httpStatus,
+              responseHeaders: sendResult.responseHeaders as Record<string, unknown> | undefined,
+              durationMs: sendResult.durationMs,
               errorMessage: sendResult.error,
+              errorType: sendResult.errorType,
               retryCount: newAttempts,
+              attemptNumber: newAttempts,
               correlationId,
+              providerName: channelAdapter.getProviderName(),
             }).catch(() => {})
           } catch {}
         }
