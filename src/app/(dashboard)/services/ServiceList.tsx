@@ -232,7 +232,7 @@ export function ServiceList({ services, allEmpty, filter = 'all', COLORS }: Serv
 
             <div className="flex items-center gap-1 flex-shrink-0">
               <span
-                className="hidden sm:inline-flex text-[11px] font-semibold px-2.5 py-1 rounded-full mr-2 transition-all duration-200"
+                className="hidden sm:inline-flex text-body-xs font-semibold px-2.5 py-1 rounded-full mr-2 transition-all duration-200"
                 style={{
                   backgroundColor: service.active ? COLORS.successLight : COLORS.surfaceSubtle,
                   color: service.active ? COLORS.success : COLORS.textMuted,

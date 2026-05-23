@@ -289,10 +289,10 @@ export function PaymentModal({
                   }}
                 >
                   <Icon className="w-5 h-5" style={{ color: selectedMethod === code ? COLORS.accentTeal : COLORS.textMuted }} />
-                  <span className="text-[11px] font-semibold leading-tight text-center" style={{ color: selectedMethod === code ? COLORS.accentTeal : COLORS.textSecondary }}>
+                  <span className="text-body-xs font-semibold leading-tight text-center" style={{ color: selectedMethod === code ? COLORS.accentTeal : COLORS.textSecondary }}>
                     {label}
                   </span>
-                  <span className="text-[9px] leading-tight text-center" style={{ color: COLORS.textMuted }}>{desc}</span>
+                  <span className="text-caption leading-tight text-center" style={{ color: COLORS.textMuted }}>{desc}</span>
                 </button>
               ))}
             </div>

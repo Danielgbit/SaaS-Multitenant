@@ -149,7 +149,7 @@ export function EmployeeCard({
         style={{ animationDelay: `${animationDelay}ms` }}
       >
         {!employee.active && (
-          <div className="absolute -top-2 -right-2 flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 shadow-md">
+          <div className="absolute -top-2 -right-2 flex items-center gap-1.5 text-caption font-semibold px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 shadow-md">
             <UserX className="w-3 h-3" />
             Dado de baja
           </div>
@@ -244,7 +244,7 @@ export function EmployeeCard({
                       <span
                         key={day}
                         className={`
-                          w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all duration-200
+                          w-7 h-7 rounded-lg flex items-center justify-center text-caption font-bold transition-all duration-200
                           ${isAvailable 
                             ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' 
                             : 'bg-slate-100 dark:bg-slate-700/30 text-slate-400 dark:text-slate-500'

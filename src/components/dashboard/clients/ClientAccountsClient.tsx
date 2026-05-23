@@ -726,7 +726,7 @@ export function ClientAccountsClient({
                             </h3>
                             {status && (
                               <span
-                                className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium shrink-0"
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-body-xs font-medium shrink-0"
                                 style={{
                                   backgroundColor: (COLORS.isDark ? status.color + '25' : status.bg),
                                   color: status.color,
@@ -767,7 +767,7 @@ export function ClientAccountsClient({
                           >
                             {formatCurrencyCOP(account.balance)}
                           </p>
-                          <p className="text-[10px] md:text-xs" style={{ color: COLORS.textMuted }}>
+                          <p className="text-body-xs" style={{ color: COLORS.textMuted }}>
                             {account.credit_limit > 0
                               ? `Límite: ${formatCurrencyCOP(account.credit_limit)}`
                               : 'Sin límite'}
@@ -783,7 +783,7 @@ export function ClientAccountsClient({
                     {/* Progress bar */}
                     {account.credit_limit > 0 && (
                       <div className="mt-3 md:mt-4">
-                        <div className="flex justify-between text-[10px] md:text-xs mb-1">
+                        <div className="flex justify-between text-body-xs mb-1">
                           <span style={{ color: COLORS.textMuted }}>Crédito usado</span>
                           <span style={{ color: COLORS.textSecondary }}>
                             {formatCurrencyCOP(account.balance)} / {formatCurrencyCOP(account.credit_limit)}

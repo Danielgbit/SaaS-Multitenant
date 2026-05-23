@@ -269,7 +269,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
             Por selección
             {appointmentsList.length > 0 && (
               <span
-                className="px-2 py-0.5 rounded-full text-[11px] font-medium"
+                className="px-2 py-0.5 rounded-full text-label"
                 style={{
                   backgroundColor: activeTab === 'selection' ? COLORS.primary + '15' : COLORS.surfaceSubtle,
                   color: activeTab === 'selection' ? COLORS.primary : COLORS.textMuted,
@@ -421,7 +421,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
 
                           {/* Status badge */}
                           <span
-                            className="px-2.5 py-1 rounded-full text-[11px] font-medium flex-shrink-0"
+                            className="px-2.5 py-1 rounded-full text-label flex-shrink-0"
                             style={{
                               backgroundColor: statusColors.bg,
                               color: statusColors.text,
@@ -541,7 +541,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
                                 </div>
                               </div>
                               <span
-                                className="px-2 py-0.5 rounded text-[11px] font-medium flex-shrink-0 ml-2"
+                                className="px-2 py-0.5 rounded text-label flex-shrink-0 ml-2"
                                 style={{
                                   backgroundColor: statusColors.bg,
                                   color: statusColors.text,

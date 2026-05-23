@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Poppins, Manrope } from 'next/font/google'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { Toaster } from 'sonner'
@@ -20,6 +20,15 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: 'Prügressy - Gestión para negocios de bienestar',
   description: 'Gestión integral para barberías, spas y negocios de bienestar',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#FAFAF9' },
+    { media: '(prefers-color-scheme: dark)', color: '#151b1d' },
+  ],
 }
 
 export default function RootLayout({

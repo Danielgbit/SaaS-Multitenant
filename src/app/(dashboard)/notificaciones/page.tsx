@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { NotificationsShell, MotionSection } from '@/components/dashboard/notifications/NotificationsShell'
 import { QueueHealthCards } from '@/components/dashboard/notifications/QueueHealthCards'
 import { StuckProcessingAlert } from '@/components/dashboard/notifications/StuckProcessingAlert'
 import { EventTimeline } from '@/components/dashboard/notifications/EventTimeline'
@@ -8,7 +9,6 @@ import { DeadLetterBanner } from '@/components/dashboard/notifications/DeadLette
 import { DashboardSearch } from '@/components/dashboard/notifications/DashboardSearch'
 import { SystemStatusStrip } from '@/components/dashboard/notifications/SystemStatusStrip'
 import { Metadata } from 'next'
-import { motion } from 'framer-motion'
 
 export const metadata: Metadata = {
   title: 'Notificaciones | Prügressy',
@@ -99,29 +99,6 @@ async function fetchNotificationData(organizationId: string) {
   }
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.05,
-    },
-  },
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 8 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.18,
-      ease: [0.22, 1, 0.36, 1] as const,
-    },
-  },
-}
-
 export default async function NotificationsPage() {
   const supabase = await createClient()
 
@@ -147,67 +124,45 @@ export default async function NotificationsPage() {
   const data = await fetchNotificationData(orgMember.organization_id)
 
   return (
-    <div className="relative">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full"
-          style={{
-            background: `radial-gradient(ellipse at center, hsl(var(--primary) / 0.08) 0%, transparent 70%)`,
-          }}
+    <NotificationsShell
+      title="Notificaciones"
+      subtitle="Monitor de cola y salud del sistema de notificaciones"
+    >
+      <MotionSection>
+        <SystemStatusStrip
+          queueHealth={data.queueHealth}
+          workerCount={12}
+          lastEventSecondsAgo={data.lastEventTime}
+          isAutoRefreshing
         />
-      </div>
+      </MotionSection>
 
-      <motion.div
-        className="relative space-y-6"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <motion.div variants={itemVariants} className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold" style={{ color: 'hsl(var(--text-primary))' }}>
-              Notificaciones
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Monitor de cola y salud del sistema de notificaciones
-            </p>
-          </div>
-        </motion.div>
+      <MotionSection>
+        <DashboardSearch />
+      </MotionSection>
 
-        <motion.div variants={itemVariants}>
-          <SystemStatusStrip
-            queueHealth={data.queueHealth}
-            workerCount={12}
-            lastEventSecondsAgo={data.lastEventTime}
-            isAutoRefreshing
-          />
-        </motion.div>
+      <MotionSection>
+        <QueueHealthCards queue={data.queue} deadLetters={data.deadLetters} />
+      </MotionSection>
 
-        <motion.div variants={itemVariants}>
-          <DashboardSearch />
-        </motion.div>
+      {data.stuck > 0 && (
+        <MotionSection>
+          <StuckProcessingAlert stuckItems={data.stuckItems} />
+        </MotionSection>
+      )}
 
-        <motion.div variants={itemVariants}>
-          <QueueHealthCards queue={data.queue} deadLetters={data.deadLetters} />
-        </motion.div>
+      {data.deadLetters > 0 && (
+        <MotionSection>
+          <DeadLetterBanner count={data.deadLetters} />
+        </MotionSection>
+      )}
 
-        {data.stuck > 0 && (
-          <motion.div variants={itemVariants}>
-            <StuckProcessingAlert stuckItems={data.stuckItems} />
-          </motion.div>
-        )}
-
-        {data.deadLetters > 0 && (
-          <motion.div variants={itemVariants}>
-            <DeadLetterBanner count={data.deadLetters} />
-          </motion.div>
-        )}
-
-        <motion.div variants={itemVariants} className="grid gap-6 md:grid-cols-2">
+      <MotionSection>
+        <div className="grid gap-6 md:grid-cols-2">
           <QueueChart hourlyStats={data.hourlyStats} />
           <EventTimeline events={data.recentEvents} />
-        </motion.div>
-      </motion.div>
-    </div>
+        </div>
+      </MotionSection>
+    </NotificationsShell>
   )
 }

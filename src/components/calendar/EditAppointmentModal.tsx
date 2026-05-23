@@ -167,7 +167,7 @@ export function EditAppointmentModal({
                           style={{ backgroundColor: COLORS.surfaceHover, color: COLORS.textMuted }}
                           title={br}>
                           {formatTime(s.start_time)}<br />
-                          {br && <span className="text-[10px]" style={{ color: COLORS.warning }}>{br}</span>}
+                          {br && <span className="text-body-xs" style={{ color: COLORS.warning }}>{br}</span>}
                         </div>
                       )
                     }

@@ -179,7 +179,7 @@ export function EmployeesClient({
                 >
                   {option.label}
                   <span className={`
-                    ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold
+                    ml-1 px-1.5 py-0.5 rounded-md text-caption font-bold
                     ${filter === option.value
                       ? 'bg-white/20 text-white'
                       : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'

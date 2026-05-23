@@ -315,7 +315,7 @@ export function NewAppointmentWizard({
                         {isCompleted ? <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" /> : step}
                       </div>
                       <span
-                        className={`hidden sm:block text-[10px] mt-1 transition-all duration-300 ${
+                        className={`hidden sm:block text-caption mt-1 transition-all duration-300 ${
                           isActive || isCompleted ? 'text-white font-medium' : 'text-white/60'
                         }`}
                       >
@@ -908,30 +908,6 @@ export function NewAppointmentWizard({
                               </span>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                              {morSlots.map((s, idx) => {
-                                const isAvailable = s.available
-                                const isSelected = newAppointmentData.time === formatTime(s.start_time)
-                                const blockedReason = (s as any).blockedReason
-                                if (!isAvailable) {
-                                  return (
-                                    <div
-                                      key={s.start_time}
-                                      className="relative rounded-xl text-left px-3 py-2.5 opacity-60 cursor-not-allowed select-none"
-                                      style={{
-                                        backgroundColor: COLORS.surfaceHover,
-                                        border: `1px solid ${COLORS.border}`,
-                                      }}
-                                      title={blockedReason}
-                                    >
-                                      <div className="flex items-baseline gap-1">
-                                        <span className="text-sm font-bold leading-none" style={{ color: COLORS.textMuted }}>
-                                          {formatTime(s.start_time)}
-                                        </span>
-                              <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: COLORS.surfaceHover, color: COLORS.textMuted }}>
-                                Antes de 1 PM
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                               {mornSlots.map((s, idx) => {
                                 const isAvailable = s.available
                                 const isSelected = newAppointmentData.time === formatTime(s.start_time)
@@ -957,7 +933,7 @@ export function NewAppointmentWizard({
                                         </span>
                                       </div>
                                       <div className="flex items-center gap-1 mt-1">
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded font-medium inline-block" style={{ backgroundColor: COLORS.warning + '20', color: COLORS.warning }}>
+                                        <span className="text-label px-1.5 py-0.5 rounded inline-block" style={{ backgroundColor: COLORS.warning + '20', color: COLORS.warning }}>
                                           {blockedReason || 'No disponible'}
                                         </span>
                                       </div>
@@ -998,13 +974,13 @@ export function NewAppointmentWizard({
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-1.5">
-                                      <span className="text-[11px] flex items-center gap-1 font-medium" style={{ color: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }}>
+                                      <span className="text-body-xs flex items-center gap-1 font-medium" style={{ color: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }}>
                                         <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }} />
                                         Disponible
                                       </span>
                                       {selectedService && (
                                         <span
-                                          className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                                          className="text-body-xs px-1.5 py-0.5 rounded-full font-medium"
                                           style={{
                                             backgroundColor: isSelected ? 'rgba(255,255,255,0.15)' : COLORS.primary + '12',
                                             color: isSelected ? 'rgba(255,255,255,0.9)' : COLORS.primary,
@@ -1063,7 +1039,7 @@ export function NewAppointmentWizard({
                                         </span>
                                       </div>
                                       <div className="flex items-center gap-1 mt-1">
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded font-medium inline-block" style={{ backgroundColor: COLORS.warning + '20', color: COLORS.warning }}>
+                                        <span className="text-label px-1.5 py-0.5 rounded inline-block" style={{ backgroundColor: COLORS.warning + '20', color: COLORS.warning }}>
                                           {blockedReason || 'No disponible'}
                                         </span>
                                       </div>
@@ -1104,13 +1080,13 @@ export function NewAppointmentWizard({
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-1.5">
-                                      <span className="text-[11px] flex items-center gap-1 font-medium" style={{ color: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }}>
+                                      <span className="text-body-xs flex items-center gap-1 font-medium" style={{ color: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }}>
                                         <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: isSelected ? 'rgba(255,255,255,0.8)' : COLORS.success }} />
                                         Disponible
                                       </span>
                                       {selectedService && (
                                         <span
-                                          className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                                          className="text-body-xs px-1.5 py-0.5 rounded-full font-medium"
                                           style={{
                                             backgroundColor: isSelected ? 'rgba(255,255,255,0.15)' : COLORS.primary + '12',
                                             color: isSelected ? 'rgba(255,255,255,0.9)' : COLORS.primary,

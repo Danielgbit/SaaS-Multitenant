@@ -95,7 +95,7 @@ export function AppointmentClusterCard({
               {primaryApt.client?.name || 'Cliente'}
             </span>
             <span
-              className="text-[10px] sm:text-xs flex-shrink-0"
+              className="text-body-xs flex-shrink-0"
               style={{ color: COLORS.textMuted }}
             >
               ·
@@ -111,13 +111,13 @@ export function AppointmentClusterCard({
           {/* Right section - Time + Count badge + Chevron */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <span
-              className="text-[10px] sm:text-xs"
+              className="text-body-xs"
               style={{ color: COLORS.textSecondary }}
             >
               {formatTime(primaryApt.start_time)}
             </span>
             <span
-              className="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium flex items-center gap-0.5 sm:gap-1"
+              className="px-1.5 sm:px-2 py-0.5 rounded-full text-body-xs font-medium flex items-center gap-0.5 sm:gap-1"
               style={{
                 backgroundColor: COLORS.isDark ? '#38BDF820' : '#38BDF810',
                 color: COLORS.isDark ? '#38BDF8' : '#0F4C5C',
@@ -172,7 +172,7 @@ export function AppointmentClusterCard({
                     {apt.client?.name || 'Cliente'}
                   </p>
                   <span
-                    className="text-[10px] sm:text-xs ml-1.5 sm:ml-2 flex-shrink-0"
+                    className="text-body-xs ml-1.5 sm:ml-2 flex-shrink-0"
                     style={{ color: COLORS.textSecondary }}
                   >
                     {formatTime(apt.start_time)}
@@ -183,21 +183,21 @@ export function AppointmentClusterCard({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
                     <span
-                      className="text-[10px] sm:text-xs truncate"
+                      className="text-body-xs truncate"
                       style={{ color: COLORS.textSecondary }}
                     >
                       {apt.service?.name || 'Servicio'}
                     </span>
                     <span style={{ color: COLORS.textMuted }}>·</span>
                     <span
-                      className="text-[10px] sm:text-xs truncate"
+                      className="text-body-xs truncate"
                       style={{ color: empColor, fontWeight: 500 }}
                     >
                       {employeeInitials}
                     </span>
                   </div>
                   <span
-                    className="text-[10px] sm:text-xs font-medium ml-1.5 sm:ml-2 flex-shrink-0"
+                    className="text-body-xs font-medium ml-1.5 sm:ml-2 flex-shrink-0"
                     style={{ color: st.color }}
                   >
                     {st.label}
