@@ -278,7 +278,6 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                 backgroundColor: COLORS.surfaceSubtle,
                 borderColor: COLORS.border,
                 color: COLORS.textPrimary,
-                fontFamily: 'Plus Jakarta Sans, sans-serif',
               }}
               onFocus={(e) => { e.currentTarget.style.borderColor = COLORS.borderFocus }}
               onBlur={(e) => { e.currentTarget.style.borderColor = COLORS.border }}
@@ -445,7 +444,7 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                       <td className="px-4 py-3">
                         <span
                           className="text-sm font-medium"
-                          style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                          style={{ color: COLORS.textPrimary }}
                         >
                           {maskAddress(item.toAddress)}
                         </span>

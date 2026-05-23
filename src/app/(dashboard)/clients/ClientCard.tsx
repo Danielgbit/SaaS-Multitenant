@@ -63,19 +63,13 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
             </div>
             <div>
               <h3
-                style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: COLORS.textPrimary,
-                }}
+                style={{ color: COLORS.textPrimary }}
                 className="font-semibold text-base"
               >
                 {client.name}
               </h3>
               <span
-                style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: COLORS.textMuted,
-                }}
+                style={{ color: COLORS.textMuted }}
                 className="text-xs"
               >
                 Cliente desde {new Date(client.created_at).toLocaleDateString('es-ES', {
@@ -88,11 +82,7 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
 
           <span
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-            style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              backgroundColor: COLORS.successLight, 
-              color: COLORS.success 
-            }}
+            style={{ backgroundColor: COLORS.successLight, color: COLORS.success }}
           >
             <CheckCircle2 className="w-3 h-3" />
             Activo
@@ -104,10 +94,7 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
             <div className="flex items-center gap-2">
               <Phone className="w-4 h-4 flex-shrink-0" style={{ color: COLORS.textMuted }} />
               <span
-                style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: COLORS.textSecondary,
-                }}
+                style={{ color: COLORS.textSecondary }}
                 className="text-sm"
               >
                 {client.phone}
@@ -118,10 +105,7 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 flex-shrink-0" style={{ color: COLORS.textMuted }} />
               <span
-                style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: COLORS.textSecondary,
-                }}
+                style={{ color: COLORS.textSecondary }}
                 className="text-sm truncate"
               >
                 {client.email}
@@ -130,10 +114,7 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
           )}
           {!client.phone && !client.email && (
             <span
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textMuted,
-              }}
+              style={{ color: COLORS.textMuted }}
               className="text-sm italic"
             >
               Sin información de contacto
@@ -144,11 +125,7 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
         {client.notes && (
           <div
             className="text-sm rounded-xl p-3 mb-4 line-clamp-2"
-            style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: COLORS.textSecondary,
-              backgroundColor: COLORS.surfaceSubtle,
-            }}
+            style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle }}
           >
             {client.notes}
           </div>
@@ -162,10 +139,7 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
           <Link
             href={`/calendar?client=${client.id}`}
             className="flex items-center gap-1.5 text-xs font-medium transition-colors hover:opacity-80 cursor-pointer"
-            style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: COLORS.primary,
-            }}
+            style={{ color: COLORS.primary }}
             onClick={(e) => e.stopPropagation()}
           >
             <Calendar className="w-3.5 h-3.5" />

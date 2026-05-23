@@ -172,7 +172,6 @@ export function InventoryFormModal({
   }
 
   const inputStyle = (hasError: boolean) => ({
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
     borderRadius: '10px',
     borderColor: hasError ? COLORS.danger : COLORS.border,
     padding: '12px 16px',
@@ -184,7 +183,6 @@ export function InventoryFormModal({
   })
 
   const labelStyle = {
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
     fontSize: '13px',
     fontWeight: 600 as const,
     color: COLORS.textSecondary,
@@ -204,9 +202,8 @@ export function InventoryFormModal({
       </div>
       <div>
         <h3 
-          className="font-semibold"
+          className="font-semibold font-heading"
           style={{ 
-            fontFamily: "'Cormorant Garamond', serif",
             color: COLORS.textPrimary,
             fontSize: '18px'
           }}
@@ -214,7 +211,7 @@ export function InventoryFormModal({
           {title}
         </h3>
         {description && (
-          <p className="text-xs" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <p className="text-xs" style={{ color: COLORS.textMuted }}>
             {description}
           </p>
         )}
@@ -246,8 +243,7 @@ export function InventoryFormModal({
                 style={{ 
                   backgroundColor: '#1E293B', 
                   color: '#FFFFFF',
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  zIndex: 50
+                                zIndex: 50
                 }}
               >
                 {tooltip}
@@ -260,7 +256,7 @@ export function InventoryFormModal({
       {fieldErrors[name as keyof FieldErrors] && touched[name] && (
         <p 
           className="text-xs mt-1.5 flex items-center gap-1"
-          style={{ color: COLORS.danger, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{ color: COLORS.danger }}
         >
           <AlertCircle className="w-3 h-3" />
           {fieldErrors[name as keyof FieldErrors]}
@@ -269,7 +265,7 @@ export function InventoryFormModal({
       {helpText && !fieldErrors[name as keyof FieldErrors] && (
         <p 
           className="text-xs mt-1.5"
-          style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{ color: COLORS.textMuted }}
         >
           {helpText}
         </p>
@@ -326,9 +322,8 @@ export function InventoryFormModal({
             </div>
             <div>
               <h2 
-                className="text-xl font-bold"
+                className="text-xl font-bold font-heading"
                 style={{ 
-                  fontFamily: "'Cormorant Garamond', serif",
                   color: '#FFFFFF' 
                 }}
               >
@@ -337,8 +332,7 @@ export function InventoryFormModal({
               <p 
                 className="text-sm"
                 style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: 'rgba(255,255,255,0.8)' 
+                                color: 'rgba(255,255,255,0.8)' 
                 }}
               >
                 {item ? 'Actualiza la información del producto' : 'Agrega un nuevo producto al inventario'}
@@ -361,8 +355,7 @@ export function InventoryFormModal({
               style={{ 
                 backgroundColor: COLORS.errorLight,
                 color: COLORS.danger,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-              }}
+                          }}
             >
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
               <div>
@@ -581,15 +574,14 @@ export function InventoryFormModal({
               >
                 <span 
                   className="text-sm"
-                  style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ color: COLORS.textSecondary }}
                 >
                   Margen de ganancia:
                 </span>
                 <span 
-                  className="font-bold text-lg"
+                  className="font-bold text-lg font-heading"
                   style={{ 
                     color: parseFloat(formData.price) > parseFloat(formData.cost_price) ? COLORS.success : COLORS.danger,
-                    fontFamily: "'Cormorant Garamond', serif"
                   }}
                 >
                   {parseFloat(formData.price) > parseFloat(formData.cost_price) ? '+' : ''}
@@ -609,8 +601,7 @@ export function InventoryFormModal({
               onClick={onClose}
               className="flex-1 py-3.5 px-4 rounded-xl font-medium transition-all hover:opacity-90 cursor-pointer"
               style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textSecondary,
+                            color: COLORS.textSecondary,
                 border: `1px solid ${COLORS.border}`,
                 backgroundColor: COLORS.surface,
               }}
@@ -622,8 +613,7 @@ export function InventoryFormModal({
               disabled={isSubmitting}
               className="flex-1 py-3.5 px-4 rounded-xl font-medium transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                background: COLORS.primaryGradient,
+                            background: COLORS.primaryGradient,
                 color: '#FFFFFF',
               }}
             >

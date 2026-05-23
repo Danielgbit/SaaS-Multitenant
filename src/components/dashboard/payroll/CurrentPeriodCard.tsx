@@ -77,8 +77,8 @@ export function CurrentPeriodCard({
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <h2
-                  className="text-lg sm:text-xl font-bold"
-                  style={{ color: colors.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
+                  className="text-lg sm:text-xl font-bold font-heading"
+                  style={{ color: colors.textPrimary }}
                 >
                   {label}
                 </h2>

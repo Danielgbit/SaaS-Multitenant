@@ -89,12 +89,9 @@ function InfoTab({ client }: { client: Client }) {
         }}
       >
         <div className="flex items-start justify-between mb-4">
-          <h3 
-            className="text-lg font-semibold"
-            style={{ 
-              fontFamily: "'Cormorant Garamond', serif",
-              color: COLORS.textPrimary,
-            }}
+          <h3
+            className="text-lg font-semibold font-heading"
+            style={{ color: COLORS.textPrimary }}
           >
             Información de contacto
           </h3>
@@ -127,10 +124,10 @@ function InfoTab({ client }: { client: Client }) {
               <User className="w-5 h-5" style={{ color: COLORS.primary }} />
             </div>
             <div>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textMuted, fontSize: '12px' }}>
+              <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>
                 Nombre
               </p>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary, fontWeight: '500' }}>
+              <p style={{ color: COLORS.textPrimary, fontWeight: '500' }}>
                 {client.name}
               </p>
             </div>
@@ -148,10 +145,10 @@ function InfoTab({ client }: { client: Client }) {
                 <Mail className="w-5 h-5" style={{ color: COLORS.primary }} />
               </div>
               <div>
-                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textMuted, fontSize: '12px' }}>
+                <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>
                   Correo electrónico
                 </p>
-                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.primary, fontWeight: '500' }}>
+                <p style={{ color: COLORS.primary, fontWeight: '500' }}>
                   {client.email}
                 </p>
               </div>
@@ -170,10 +167,10 @@ function InfoTab({ client }: { client: Client }) {
                 <Phone className="w-5 h-5" style={{ color: COLORS.primary }} />
               </div>
               <div>
-                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textMuted, fontSize: '12px' }}>
+                <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>
                   Teléfono
                 </p>
-                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.primary, fontWeight: '500' }}>
+                <p style={{ color: COLORS.primary, fontWeight: '500' }}>
                   {client.phone}
                 </p>
               </div>
@@ -181,7 +178,7 @@ function InfoTab({ client }: { client: Client }) {
           )}
 
           {!client.email && !client.phone && (
-            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textMuted, fontStyle: 'italic' }}>
+            <p style={{ color: COLORS.textMuted, fontStyle: 'italic' }}>
               Sin información de contacto
             </p>
           )}
@@ -196,12 +193,9 @@ function InfoTab({ client }: { client: Client }) {
           backdropFilter: 'blur(12px)',
         }}
       >
-        <h3 
-          className="text-lg font-semibold mb-4"
-          style={{ 
-            fontFamily: "'Cormorant Garamond', serif",
-            color: COLORS.textPrimary,
-          }}
+        <h3
+          className="text-lg font-semibold mb-4 font-heading"
+          style={{ color: COLORS.textPrimary }}
         >
           Detalles
         </h3>
@@ -215,10 +209,10 @@ function InfoTab({ client }: { client: Client }) {
               <CalendarCheck2 className="w-5 h-5" style={{ color: COLORS.success }} />
             </div>
             <div>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textMuted, fontSize: '12px' }}>
+              <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>
                 Cliente desde
               </p>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary, fontWeight: '500' }}>
+              <p style={{ color: COLORS.textPrimary, fontWeight: '500' }}>
                 {formatDate(client.created_at)}
               </p>
             </div>
@@ -234,12 +228,9 @@ function InfoTab({ client }: { client: Client }) {
           backdropFilter: 'blur(12px)',
         }}
       >
-        <h3 
-          className="text-lg font-semibold mb-4"
-          style={{ 
-            fontFamily: "'Cormorant Garamond', serif",
-            color: COLORS.textPrimary,
-          }}
+        <h3
+          className="text-lg font-semibold mb-4 font-heading"
+          style={{ color: COLORS.textPrimary }}
         >
           Preferencias de Contacto
         </h3>
@@ -257,20 +248,16 @@ function InfoTab({ client }: { client: Client }) {
                 <MessageCircle className="w-5 h-5" style={{ color: COLORS.success }} />
               </div>
               <div className="flex-1">
-                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary, fontWeight: '500' }}>
+                <p style={{ color: COLORS.textPrimary, fontWeight: '500' }}>
                   WhatsApp activo
                 </p>
-                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary, fontSize: '13px' }}>
+                <p style={{ color: COLORS.textSecondary, fontSize: '13px' }}>
                   {client.phone || 'Sin número'}
                 </p>
               </div>
-              <span 
+              <span
                 className="px-2 py-1 rounded-full text-xs font-medium"
-                style={{ 
-                  backgroundColor: COLORS.success + '20',
-                  color: COLORS.success,
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                }}
+                style={{ backgroundColor: COLORS.success + '20', color: COLORS.success }}
               >
                 Activo
               </span>
@@ -287,10 +274,10 @@ function InfoTab({ client }: { client: Client }) {
                 <BellOff className="w-5 h-5" style={{ color: COLORS.textMuted }} />
               </div>
               <div className="flex-1">
-                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary, fontWeight: '500' }}>
+                <p style={{ color: COLORS.textPrimary, fontWeight: '500' }}>
                   Confirmaciones pausadas
                 </p>
-                <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary, fontSize: '13px' }}>
+                <p style={{ color: COLORS.textSecondary, fontSize: '13px' }}>
                   {getConfirmationMethodLabel(client.confirmation_method)}
                 </p>
               </div>
@@ -308,16 +295,13 @@ function InfoTab({ client }: { client: Client }) {
             backdropFilter: 'blur(12px)',
           }}
         >
-          <h3 
-            className="text-lg font-semibold mb-4"
-            style={{ 
-              fontFamily: "'Cormorant Garamond', serif",
-              color: COLORS.textPrimary,
-            }}
-          >
-            Notas
-          </h3>
-          <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary, lineHeight: '1.6' }}>
+        <h3
+          className="text-lg font-semibold mb-4 font-heading"
+          style={{ color: COLORS.textPrimary }}
+        >
+          Notas
+        </h3>
+        <p style={{ color: COLORS.textSecondary, lineHeight: '1.6' }}>
             {client.notes}
           </p>
         </div>
@@ -388,16 +372,13 @@ function AppointmentsTab({ appointments }: { appointments: AppointmentRow[] }) {
         >
           <Calendar className="w-8 h-8" style={{ color: COLORS.primary }} />
         </div>
-        <h3 
-          className="text-lg font-semibold mb-2"
-          style={{ 
-            fontFamily: "'Cormorant Garamond', serif",
-            color: COLORS.textPrimary,
-          }}
+        <h3
+          className="text-lg font-semibold mb-2 font-heading"
+          style={{ color: COLORS.textPrimary }}
         >
           Sin citas
         </h3>
-        <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary, fontSize: '14px' }}>
+        <p style={{ color: COLORS.textSecondary, fontSize: '14px' }}>
           Este cliente aún no tiene citas registradas
         </p>
       </div>
@@ -431,26 +412,22 @@ function AppointmentsTab({ appointments }: { appointments: AppointmentRow[] }) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className="px-2 py-0.5 rounded-full text-xs font-medium"
-                      style={{ 
-                        backgroundColor: statusStyle.bg,
-                        color: statusStyle.text,
-                        fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      }}
+                  <span
+                    className="px-2 py-0.5 rounded-full text-xs font-medium"
+                    style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}
                     >
                       {getStatusLabel(appointment.status || 'pending')}
                     </span>
                   </div>
-                  <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary, fontWeight: '500' }}>
+                  <p style={{ color: COLORS.textPrimary, fontWeight: '500' }}>
                     {appointment.notes || 'Cita'}
                   </p>
                   <div className="flex items-center gap-3 mt-1">
-                    <span className="flex items-center gap-1" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary, fontSize: '13px' }}>
+                    <span className="flex items-center gap-1" style={{ color: COLORS.textSecondary, fontSize: '13px' }}>
                       <Calendar className="w-3.5 h-3.5" />
                       {formatDate(appointment.start_time)}
                     </span>
-                    <span className="flex items-center gap-1" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary, fontSize: '13px' }}>
+                    <span className="flex items-center gap-1" style={{ color: COLORS.textSecondary, fontSize: '13px' }}>
                       <Clock className="w-3.5 h-3.5" />
                       {formatTime(appointment.start_time)}
                     </span>
@@ -477,18 +454,15 @@ function NotesTab({ client }: { client: Client }) {
         backdropFilter: 'blur(12px)',
       }}
     >
-      <h3 
-        className="text-lg font-semibold mb-4"
-        style={{ 
-          fontFamily: "'Cormorant Garamond', serif",
-          color: COLORS.textPrimary,
-        }}
-      >
-        Notas del cliente
-      </h3>
-      
-      {client.notes ? (
-        <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary, lineHeight: '1.7' }}>
+        <h3
+          className="text-lg font-semibold mb-4 font-heading"
+          style={{ color: COLORS.textPrimary }}
+        >
+          Notas del cliente
+        </h3>
+        
+        {client.notes ? (
+          <p style={{ color: COLORS.textSecondary, lineHeight: '1.7' }}>
           {client.notes}
         </p>
       ) : (
@@ -499,10 +473,10 @@ function NotesTab({ client }: { client: Client }) {
           >
             <FileText className="w-6 h-6" style={{ color: COLORS.textMuted }} />
           </div>
-          <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textMuted, fontSize: '14px' }}>
+          <p style={{ color: COLORS.textMuted, fontSize: '14px' }}>
             Sin notas registradas
           </p>
-          <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textMuted, fontSize: '12px', marginTop: '4px' }}>
+          <p style={{ color: COLORS.textMuted, fontSize: '12px', marginTop: '4px' }}>
             Edita el cliente para añadir notas
           </p>
         </div>
@@ -546,12 +520,9 @@ export function ClientTabs({ client, appointments, organizationId }: ClientTabsP
               {initials}
             </div>
             <div>
-              <h1 
-                className="text-2xl sm:text-3xl font-bold"
-                style={{ 
-                  fontFamily: "'Cormorant Garamond', serif",
-                  color: COLORS.textPrimary,
-                }}
+              <h1
+                className="text-2xl sm:text-3xl font-bold font-heading"
+                style={{ color: COLORS.textPrimary }}
               >
                 {client.name}
               </h1>
@@ -573,7 +544,6 @@ export function ClientTabs({ client, appointments, organizationId }: ClientTabsP
             onClick={() => setEditing(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 hover:scale-[1.02] cursor-pointer"
             style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
               backgroundColor: COLORS.surface,
               color: COLORS.primary,
               border: `1.5px solid ${COLORS.border}`,
@@ -587,7 +557,6 @@ export function ClientTabs({ client, appointments, organizationId }: ClientTabsP
             onClick={() => setDeleting(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 hover:scale-[1.02] cursor-pointer"
             style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
               backgroundColor: COLORS.surface,
               color: COLORS.error,
               border: `1.5px solid ${COLORS.border}`,
@@ -628,7 +597,6 @@ export function ClientTabs({ client, appointments, organizationId }: ClientTabsP
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/30 dark:hover:bg-slate-700/30'
                   }
                 `}
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                 aria-selected={isActive}
                 role="tab"
               >

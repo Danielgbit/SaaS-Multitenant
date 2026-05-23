@@ -58,7 +58,7 @@ export function AppointmentDetailModal({
                 <Calendar className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-white" style={{ fontFamily: 'Cormorant Garamond, serif', fontWeight: 600 }}>
+                <h3 className="text-xl font-semibold text-white font-heading" style={{ fontWeight: 600 }}>
                   Detalles de Cita
                 </h3>
                 <span className="text-xs text-white/60 font-mono">#{appointment.id.slice(0, 8)}</span>
@@ -78,7 +78,7 @@ export function AppointmentDetailModal({
                 {st.icon}
                 <span>{st.label}</span>
               </div>
-              <span className="text-sm font-medium" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: COLORS.textSecondary }}>
+              <span className="text-sm font-medium" style={{ color: COLORS.textSecondary }}>
                 {formatTime(appointment.start_time)}
               </span>
             </div>
@@ -88,13 +88,13 @@ export function AppointmentDetailModal({
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary + '20' }}>
                   <User className="w-5 h-5" style={{ color: COLORS.primary }} />
                 </div>
-                <span className="text-xs uppercase tracking-wider font-medium" style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Cliente</span>
+                <span className="text-xs uppercase tracking-wider font-medium" style={{ color: COLORS.textSecondary }}>Cliente</span>
               </div>
-              <p className="text-lg font-semibold mb-1" style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+              <p className="text-lg font-semibold mb-1" style={{ color: COLORS.textPrimary }}>
                 {appointment.client?.name || 'N/A'}
               </p>
               {appointment.client?.phone && (
-                <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.textSecondary }}>
                   <Phone className="w-4 h-4" />
                   <span>{appointment.client.phone}</span>
                 </div>
@@ -111,9 +111,9 @@ export function AppointmentDetailModal({
                 <div key={i} className="p-4 rounded-xl transition-colors duration-200" style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}>
                   <div className="flex items-center gap-2 mb-2">
                     {item.icon}
-                    <span className="text-xs uppercase tracking-wider font-medium" style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{item.label}</span>
+                    <span className="text-xs uppercase tracking-wider font-medium" style={{ color: COLORS.textSecondary }}>{item.label}</span>
                   </div>
-                  <p className="text-sm font-medium" style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{item.value}</p>
+                  <p className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>{item.value}</p>
                 </div>
               ))}
             </div>
@@ -122,9 +122,9 @@ export function AppointmentDetailModal({
               <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}>
                 <div className="flex items-center gap-2 mb-2">
                   <FileText className="w-4 h-4" style={{ color: COLORS.primary }} />
-                  <span className="text-xs uppercase tracking-wider font-medium" style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Notas</span>
+                  <span className="text-xs uppercase tracking-wider font-medium" style={{ color: COLORS.textSecondary }}>Notas</span>
                 </div>
-                <p className="text-sm" style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{appointment.notes}</p>
+                <p className="text-sm" style={{ color: COLORS.textSecondary }}>{appointment.notes}</p>
               </div>
             )}
           </div>

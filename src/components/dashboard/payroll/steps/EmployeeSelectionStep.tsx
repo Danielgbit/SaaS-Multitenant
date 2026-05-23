@@ -67,13 +67,13 @@ export default function EmployeeSelectionStep({
               <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: COLORS.textMuted }}>Nómina</p>
               <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: COLORS.primary + '15', color: COLORS.primary }}>Paso 2 de 2</span>
             </div>
-            <h1 className="text-2xl font-bold" style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}>{periodLabel}</h1>
+            <h1 className="text-2xl font-bold font-heading" style={{ color: COLORS.textPrimary }}>{periodLabel}</h1>
           </div>
         </div>
 
         <div className="rounded-2xl border overflow-hidden relative" style={{ background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primary}dd 100%)`, borderColor: COLORS.primary + '40' }}>
           <div className="p-6 md:p-8 text-center relative z-10">
-            <h2 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Seleccionar Empleados</h2>
+            <h2 className="text-2xl font-bold text-white mb-1 font-heading">Seleccionar Empleados</h2>
             <p className="text-white/80 text-sm mb-3">{selectedCount} de {totalCount} empleados seleccionados</p>
             {totalCount > 0 && (
               <div className="w-full max-w-xs mx-auto h-2 rounded-full overflow-hidden bg-white/20">

@@ -61,8 +61,7 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
                 Nómina
               </p>
               <h1
-                className="text-3xl font-bold text-white"
-                style={{ fontFamily: 'var(--font-cormorant-garamond)' }}
+                className="text-3xl font-bold text-white font-heading"
               >
                 Payroll
               </h1>
@@ -142,8 +141,8 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
         <section aria-label="Período actual">
           <div className="flex items-center gap-2 mb-4">
             <h2
-              className="text-lg font-semibold"
-              style={{ color: colors.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
+              className="text-lg font-semibold font-heading"
+              style={{ color: colors.textPrimary }}
             >
               Período Actual
             </h2>
@@ -172,8 +171,8 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
       {hasPending && (
         <section aria-label="Períodos pendientes">
           <h2
-            className="text-lg font-semibold mb-4"
-            style={{ color: colors.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
+            className="text-lg font-semibold mb-4 font-heading"
+            style={{ color: colors.textPrimary }}
           >
             Períodos Pendientes
           </h2>
@@ -194,8 +193,8 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
         <section aria-label="Períodos anteriores">
           <div className="flex items-center justify-between mb-4">
             <h2
-              className="text-lg font-semibold"
-              style={{ color: colors.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
+              className="text-lg font-semibold font-heading"
+              style={{ color: colors.textPrimary }}
             >
               Períodos Anteriores
             </h2>

@@ -221,7 +221,7 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
                           >
                             {route.label}
                             {route.badge && (
-                              <span className="text-[9px] font-semibold px-1 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                              <span className="text-label px-1 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
                                 {route.badge}
                               </span>
                             )}

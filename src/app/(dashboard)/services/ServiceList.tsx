@@ -123,8 +123,8 @@ export function ServiceList({ services, allEmpty, filter = 'all', COLORS }: Serv
           <ScissorsIllustration color={COLORS.primary} />
         </div>
         <p
-          className="text-xl font-semibold mb-3"
-          style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+          className="text-xl font-semibold mb-3 font-heading"
+          style={{ color: COLORS.textPrimary }}
         >
           Sin catálogo de servicios
         </p>

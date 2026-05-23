@@ -71,7 +71,7 @@ export function WhatsAppModuleClient({ organizationId }: WhatsAppModuleClientPro
           <div className="flex items-center gap-2">
             <h1
               className="text-xl font-bold"
-              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              style={{ color: COLORS.textPrimary }}
             >
               WhatsApp
             </h1>

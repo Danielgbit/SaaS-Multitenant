@@ -280,7 +280,7 @@ export function NewAppointmentWizard({
 
           <div className="relative">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h3 className="text-lg sm:text-xl font-semibold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+              <h3 className="text-lg sm:text-xl font-semibold font-heading">
                 Nueva Cita
               </h3>
               <button
@@ -353,8 +353,8 @@ export function NewAppointmentWizard({
                     <User className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: COLORS.primary }} />
                   </div>
                   <h4
-                    className="text-lg sm:text-xl font-semibold mb-1"
-                    style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
+                    className="text-lg sm:text-xl font-semibold mb-1 font-heading"
+                    style={{ color: COLORS.textPrimary }}
                   >
                     ¿Para quién?
                   </h4>
@@ -554,8 +554,8 @@ export function NewAppointmentWizard({
                     <Sparkles className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: COLORS.primary }} />
                   </div>
                   <h4
-                    className="text-lg sm:text-xl font-semibold mb-1"
-                    style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
+                    className="text-lg sm:text-xl font-semibold mb-1 font-heading"
+                    style={{ color: COLORS.textPrimary }}
                   >
                     ¿Qué servicio?
                   </h4>
@@ -677,8 +677,8 @@ export function NewAppointmentWizard({
                     <Building2 className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: COLORS.primary }} />
                   </div>
                   <h4
-                    className="text-lg sm:text-xl font-semibold mb-1"
-                    style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
+                    className="text-lg sm:text-xl font-semibold mb-1 font-heading"
+                    style={{ color: COLORS.textPrimary }}
                   >
                     ¿Quién lo hará?
                   </h4>
@@ -785,8 +785,8 @@ export function NewAppointmentWizard({
                     <Calendar className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: COLORS.primary }} />
                   </div>
                   <h4
-                    className="text-lg sm:text-xl font-semibold mb-1"
-                    style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
+                    className="text-lg sm:text-xl font-semibold mb-1 font-heading"
+                    style={{ color: COLORS.textPrimary }}
                   >
                     ¿Cuándo?
                   </h4>
@@ -908,6 +908,30 @@ export function NewAppointmentWizard({
                               </span>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              {morSlots.map((s, idx) => {
+                                const isAvailable = s.available
+                                const isSelected = newAppointmentData.time === formatTime(s.start_time)
+                                const blockedReason = (s as any).blockedReason
+                                if (!isAvailable) {
+                                  return (
+                                    <div
+                                      key={s.start_time}
+                                      className="relative rounded-xl text-left px-3 py-2.5 opacity-60 cursor-not-allowed select-none"
+                                      style={{
+                                        backgroundColor: COLORS.surfaceHover,
+                                        border: `1px solid ${COLORS.border}`,
+                                      }}
+                                      title={blockedReason}
+                                    >
+                                      <div className="flex items-baseline gap-1">
+                                        <span className="text-sm font-bold leading-none" style={{ color: COLORS.textMuted }}>
+                                          {formatTime(s.start_time)}
+                                        </span>
+                              <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: COLORS.surfaceHover, color: COLORS.textMuted }}>
+                                Antes de 1 PM
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                               {mornSlots.map((s, idx) => {
                                 const isAvailable = s.available
                                 const isSelected = newAppointmentData.time === formatTime(s.start_time)
@@ -924,7 +948,7 @@ export function NewAppointmentWizard({
                                       title={blockedReason}
                                     >
                                       <div className="flex items-baseline gap-1">
-                                        <span className="text-sm font-bold leading-none" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: COLORS.textMuted }}>
+                                        <span className="text-sm font-bold leading-none" style={{ color: COLORS.textMuted }}>
                                           {formatTime(s.start_time)}
                                         </span>
                                         <span className="text-xs" style={{ color: COLORS.textMuted }}>→</span>
@@ -963,7 +987,7 @@ export function NewAppointmentWizard({
                                       />
                                     )}
                                     <div className="flex items-baseline gap-1.5">
-                                      <span className="text-base font-bold leading-none" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                                      <span className="text-base font-bold leading-none">
                                         {formatTime(s.start_time)}
                                       </span>
                                       <span className="text-sm" style={{ color: isSelected ? 'rgba(255,255,255,0.7)' : COLORS.textMuted }}>
@@ -1030,7 +1054,7 @@ export function NewAppointmentWizard({
                                       title={blockedReason}
                                     >
                                       <div className="flex items-baseline gap-1">
-                                        <span className="text-sm font-bold leading-none" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: COLORS.textMuted }}>
+                                        <span className="text-sm font-bold leading-none" style={{ color: COLORS.textMuted }}>
                                           {formatTime(s.start_time)}
                                         </span>
                                         <span className="text-xs" style={{ color: COLORS.textMuted }}>→</span>
@@ -1069,7 +1093,7 @@ export function NewAppointmentWizard({
                                       />
                                     )}
                                     <div className="flex items-baseline gap-1.5">
-                                      <span className="text-base font-bold leading-none" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                                      <span className="text-base font-bold leading-none">
                                         {formatTime(s.start_time)}
                                       </span>
                                       <span className="text-sm" style={{ color: isSelected ? 'rgba(255,255,255,0.7)' : COLORS.textMuted }}>

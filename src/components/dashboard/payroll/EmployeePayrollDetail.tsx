@@ -188,8 +188,7 @@ export function EmployeePayrollDetail({
           </div>
           <div>
             <h1
-              className="text-3xl font-bold text-white"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              className="text-3xl font-bold text-white font-heading"
             >
               {employee.name}
             </h1>
@@ -211,8 +210,8 @@ export function EmployeePayrollDetail({
       >
         <div className="flex items-center justify-between mb-4">
           <h2
-            className="text-lg font-semibold"
-            style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+            className="text-lg font-semibold font-heading"
+            style={{ color: COLORS.textPrimary }}
           >
             Período a Consultar
           </h2>
@@ -330,8 +329,8 @@ export function EmployeePayrollDetail({
           >
             <div className="flex items-center justify-between mb-4">
               <h2
-                className="text-lg font-semibold"
-                style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+                className="text-lg font-semibold font-heading"
+                style={{ color: COLORS.textPrimary }}
               >
                 Detalle por Día
               </h2>
@@ -472,8 +471,8 @@ export function EmployeePayrollDetail({
                       style={{ color: debt.is_over_limit ? COLORS.error : COLORS.warning }}
                     />
                     <h2
-                      className="text-lg font-semibold"
-                      style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+                      className="text-lg font-semibold font-heading"
+                      style={{ color: COLORS.textPrimary }}
                     >
                       Préstamos Pendientes
                     </h2>
@@ -594,8 +593,8 @@ export function EmployeePayrollDetail({
           >
             <div className="text-center mb-6">
               <h2
-                className="text-xl font-bold mb-2"
-                style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+                className="text-xl font-bold mb-2 font-heading"
+                style={{ color: COLORS.textPrimary }}
               >
                 Recibo de Pago
               </h2>
@@ -692,8 +691,8 @@ export function EmployeePayrollDetail({
           }}
         >
           <h2
-            className="text-lg font-semibold mb-4"
-            style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+            className="text-lg font-semibold mb-4 font-heading"
+            style={{ color: COLORS.textPrimary }}
           >
             Historial de Recibos
           </h2>

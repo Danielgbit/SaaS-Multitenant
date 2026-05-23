@@ -182,20 +182,14 @@ const COLORS = useThemeColors()
       {/* Header */}
       <div className="text-center pb-4 border-b" style={{ borderColor: COLORS.border }}>
         <h3 
-          className="text-2xl font-light mb-1"
-          style={{ 
-            fontFamily: 'Cormorant Garamond, serif',
-            color: COLORS.textPrimary 
-          }}
+          className="text-2xl font-light mb-1 font-heading"
+          style={{ color: COLORS.textPrimary }}
         >
           Reserva tu cita
         </h3>
         <p 
           className="text-sm"
-          style={{ 
-            fontFamily: 'Plus Jakarta Sans, sans-serif',
-            color: COLORS.textSecondary 
-          }}
+          style={{ color: COLORS.textSecondary }}
         >
           {serviceName} &middot; {serviceDuration} min
         </p>
@@ -205,10 +199,7 @@ const COLORS = useThemeColors()
       <div className="space-y-3">
         <label 
           className="block text-sm font-medium"
-          style={{ 
-            fontFamily: 'Plus Jakarta Sans, sans-serif',
-            color: COLORS.textSecondary 
-          }}
+          style={{ color: COLORS.textSecondary }}
         >
           Cliente
         </label>
@@ -229,10 +220,7 @@ const COLORS = useThemeColors()
         <label
           htmlFor="date-picker"
           className="block text-sm font-medium"
-          style={{ 
-            fontFamily: 'Plus Jakarta Sans, sans-serif',
-            color: COLORS.textSecondary 
-          }}
+          style={{ color: COLORS.textSecondary }}
         >
           Selecciona una fecha
         </label>
@@ -248,7 +236,6 @@ const COLORS = useThemeColors()
             value={selectedDate}
             onChange={handleDateChange}
             style={{
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
               borderRadius: COLORS.radius.md,
               borderColor: COLORS.border,
               backgroundColor: COLORS.surface,
@@ -266,10 +253,7 @@ const COLORS = useThemeColors()
           <Spinner size="sm" className="w-5 h-5" style={{ color: COLORS.primary }} />
           <span 
             className="text-sm"
-            style={{ 
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
-              color: COLORS.textSecondary 
-            }}
+            style={{ color: COLORS.textSecondary }}
           >
             Cargando horarios...
           </span>
@@ -292,10 +276,7 @@ const COLORS = useThemeColors()
           />
           <p 
             className="text-sm"
-            style={{ 
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
-              color: COLORS.error 
-            }}
+            style={{ color: COLORS.error }}
           >
             {error}
           </p>
@@ -319,20 +300,14 @@ const COLORS = useThemeColors()
           <div>
             <p 
               className="text-sm"
-              style={{ 
-                fontFamily: 'Plus Jakarta Sans, sans-serif',
-                color: COLORS.success 
-              }}
+              style={{ color: COLORS.success }}
             >
               ¡Cita reservada correctamente!
             </p>
             <button
               onClick={() => setSuccess(false)}
               className="text-xs underline mt-1 hover:opacity-80 transition-opacity"
-              style={{ 
-                fontFamily: 'Plus Jakarta Sans, sans-serif',
-                color: COLORS.success 
-              }}
+              style={{ color: COLORS.success }}
             >
               Reservar otra
             </button>
@@ -345,10 +320,7 @@ const COLORS = useThemeColors()
         <div className="space-y-3">
           <label 
             className="block text-sm font-medium"
-            style={{ 
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
-              color: COLORS.textSecondary 
-            }}
+            style={{ color: COLORS.textSecondary }}
           >
             Horarios disponibles
           </label>
@@ -371,7 +343,6 @@ const COLORS = useThemeColors()
                   <div
                     key={slot.start_time}
                     style={{
-                      fontFamily: 'Plus Jakarta Sans, sans-serif',
                       borderRadius: COLORS.radius.md,
                       padding: '10px 8px',
                       backgroundColor: '#F1F5F9',
@@ -401,7 +372,6 @@ const COLORS = useThemeColors()
                   disabled={!isAvailable || isBooking}
                   onClick={() => setSelectedSlot(slot.start_time)}
                   style={{
-                    fontFamily: 'Plus Jakarta Sans, sans-serif',
                     borderRadius: COLORS.radius.md,
                     padding: '10px 8px',
                     transition: 'all 0.2s ease',
@@ -442,16 +412,10 @@ const COLORS = useThemeColors()
           style={{ color: COLORS.textSecondary }}
         >
           <Clock className="w-8 h-8 mx-auto mb-3 opacity-50" />
-          <p 
-            className="mb-1"
-            style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-          >
+          <p className="mb-1">
             No hay horarios disponibles para esta fecha.
           </p>
-          <p 
-            className="text-sm"
-            style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', opacity: 0.8 }}
-          >
+          <p className="text-sm" style={{ opacity: 0.8 }}>
             Intenta con otra fecha.
           </p>
         </div>
@@ -464,7 +428,6 @@ const COLORS = useThemeColors()
           disabled={isBooking}
           onClick={handleBook}
           style={{
-            fontFamily: 'Plus Jakarta Sans, sans-serif',
             borderRadius: COLORS.radius.md,
             padding: '14px 24px',
             backgroundColor: COLORS.primary,

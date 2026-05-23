@@ -110,8 +110,7 @@ export function ServicesClient({ services }: ServicesClientProps) {
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Catálogo Comercial</p>
               <h1
-                className="text-3xl font-bold tracking-tight text-white"
-                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                className="text-3xl font-bold tracking-tight text-white font-heading"
               >
                 Servicios
               </h1>
@@ -239,7 +238,6 @@ export function ServicesClient({ services }: ServicesClientProps) {
                 aria-label="Buscar servicios"
                 className="w-full pl-10 pr-10 py-2.5 rounded-xl text-sm border border-transparent bg-transparent placeholder:text-opacity-60 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all"
                 style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   color: COLORS.textPrimary,
                   backgroundColor: COLORS.surface,
                 }}

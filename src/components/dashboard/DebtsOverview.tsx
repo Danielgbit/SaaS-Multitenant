@@ -80,8 +80,7 @@ export function DebtsOverview({ clientAccounts, employeeLoans }: DebtsOverviewPr
                 Resumen de Deudas
               </p>
               <h1
-                className="text-3xl font-bold text-white"
-                style={{ fontFamily: 'var(--font-cormorant-garamond)' }}
+                className="text-3xl font-bold text-white font-heading"
               >
                 Cuentas por Cobrar
               </h1>

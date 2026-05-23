@@ -41,10 +41,7 @@ export default function NewPromoCodePage() {
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-[#E2E8F0] dark:border-slate-700 p-6">
-        <h1
-          className="text-2xl font-semibold text-[#0F172A] dark:text-white mb-6"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
+        <h1 className="text-2xl font-semibold text-[#0F172A] dark:text-white mb-6 font-heading">
           Crear Código Promocional
         </h1>
 

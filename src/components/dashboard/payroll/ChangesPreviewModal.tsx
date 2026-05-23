@@ -77,8 +77,8 @@ export function ChangesPreviewModal({
             </div>
             <div>
               <h3
-                className="text-lg font-bold"
-                style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+                className="text-lg font-bold font-heading"
+                style={{ color: COLORS.textPrimary }}
               >
                 Cambios Pendientes
               </h3>

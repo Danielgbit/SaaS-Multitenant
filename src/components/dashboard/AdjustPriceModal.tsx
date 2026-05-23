@@ -102,8 +102,8 @@ export function AdjustPriceModal({
             </div>
             <h2
               id="adjust-price-title"
-              className="text-xl font-bold"
-              style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}
+              className="text-xl font-bold font-heading"
+              style={{ color: COLORS.textPrimary }}
             >
               Ajustar Precio
             </h2>
@@ -133,7 +133,7 @@ export function AdjustPriceModal({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary }}>
               Nuevo precio
             </label>
             <div className="relative">
@@ -169,7 +169,7 @@ export function AdjustPriceModal({
           )}
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary }}>
               Motivo del ajuste
             </label>
             <textarea

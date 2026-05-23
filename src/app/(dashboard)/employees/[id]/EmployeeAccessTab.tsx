@@ -208,7 +208,7 @@ export function EmployeeAccessTab({
           <KeyRound className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 font-heading">
             Acceso al sistema
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -334,7 +334,7 @@ export function EmployeeAccessTab({
       {showInviteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 font-heading">
               Invitar a {employee.name}
             </h3>
 

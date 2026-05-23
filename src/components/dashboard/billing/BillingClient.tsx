@@ -141,11 +141,8 @@ export function BillingClient({
               <div>
                 <div className="flex items-center gap-3 mb-1">
                   <h2
-                    className="text-xl font-bold"
-                    style={{
-                      color: COLORS.textPrimary,
-                      fontFamily: "'Cormorant Garamond', serif",
-                    }}
+                    className="text-xl font-bold font-heading"
+                    style={{ color: COLORS.textPrimary }}
                   >
                     {subscription.planName}
                   </h2>
@@ -327,11 +324,8 @@ export function BillingClient({
       <div className="space-y-6">
         <div>
           <h2
-            className="text-2xl font-bold mb-1"
-            style={{
-              color: COLORS.textPrimary,
-              fontFamily: "'Cormorant Garamond', serif",
-            }}
+            className="text-2xl font-bold mb-1 font-heading"
+            style={{ color: COLORS.textPrimary }}
           >
             Elige tu plan
           </h2>
@@ -388,11 +382,8 @@ export function BillingClient({
                     </div>
                     <div>
                       <h3
-                        className="text-lg font-bold"
-                        style={{
-                          color: COLORS.textPrimary,
-                          fontFamily: "'Cormorant Garamond', serif",
-                        }}
+                        className="text-lg font-bold font-heading"
+                        style={{ color: COLORS.textPrimary }}
                       >
                         {plan.name}
                       </h3>
@@ -418,10 +409,7 @@ export function BillingClient({
                 <div className="flex items-baseline gap-2 mb-6">
                   <span
                     className="text-3xl font-bold"
-                    style={{
-                      color: COLORS.textPrimary,
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     {formatCurrency(plan.price, plan.currency || 'COP')}
                   </span>
@@ -528,7 +516,6 @@ export function BillingClient({
                   disabled={isCurrentPlan}
                   className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-default"
                   style={{
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
                     backgroundColor: isCurrentPlan
                       ? `${COLORS.primary}10`
                       : COLORS.primary,
@@ -588,11 +575,8 @@ export function BillingClient({
                   </div>
                   <div>
                     <h2
-                      className="text-xl font-bold"
-                      style={{
-                        color: COLORS.textPrimary,
-                        fontFamily: "'Cormorant Garamond', serif",
-                      }}
+                      className="text-xl font-bold font-heading"
+                      style={{ color: COLORS.textPrimary }}
                     >
                       Cancelar suscripción
                     </h2>

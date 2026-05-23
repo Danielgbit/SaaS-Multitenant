@@ -77,22 +77,13 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
                 <Users className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p 
-                  className="text-xs font-semibold uppercase tracking-widest text-white/80"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                >
+                <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
                   Gestión de clientes
                 </p>
-                <h1 
-                  className="text-3xl font-bold tracking-tight text-white"
-                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
-                >
+                <h1 className="text-3xl font-bold tracking-tight text-white font-heading">
                   Clientes
                 </h1>
-                <p 
-                  className="text-sm mt-1 text-white/80"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                >
+                <p className="text-sm mt-1 text-white/80">
                   {clients.length} cliente{clients.length !== 1 ? 's' : ''} registrado{clients.length !== 1 ? 's' : ''}
                 </p>
               </div>
@@ -102,8 +93,7 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
               type="button"
               onClick={() => setIsCreating(true)}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-lg cursor-pointer"
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              style={{
                 backgroundColor: '#FFFFFF',
                 color: COLORS.primary,
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
@@ -135,7 +125,6 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
                 borderRadius: '10px',
                 borderColor: COLORS.border,
                 padding: '12px 44px 12px 44px',
@@ -156,9 +145,8 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
             )}
           </div>
 
-          <div 
+          <div
             style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
               borderRadius: '10px',
               border: `1px solid ${COLORS.border}`,
             }}
@@ -193,12 +181,9 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
 
         {/* Results count */}
         {query && (
-          <p 
+          <p
             className="text-sm"
-            style={{ 
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: COLORS.textSecondary 
-            }}
+            style={{ color: COLORS.textSecondary }}
           >
             {filtered.length === 0 
               ? 'No se encontraron resultados' 
@@ -222,20 +207,14 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
                 style={{ color: COLORS.primary }} 
               />
             </div>
-            <p 
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textPrimary 
-              }}
+            <p
+              style={{ color: COLORS.textPrimary }}
               className="font-semibold text-lg mb-2"
             >
               No hay clientes todavía
             </p>
-            <p 
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textSecondary 
-              }}
+            <p
+              style={{ color: COLORS.textSecondary }}
               className="text-sm mb-6"
             >
               Los clientes se crearán automáticamente cuando reserves una cita.
@@ -243,8 +222,7 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
             <button
               onClick={() => setIsCreating(true)}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.02] cursor-pointer"
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              style={{
                 backgroundColor: COLORS.primary,
                 color: '#FFFFFF'
               }}
@@ -268,20 +246,14 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
                 style={{ color: COLORS.textMuted }} 
               />
             </div>
-            <p 
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textPrimary 
-              }}
+            <p
+              style={{ color: COLORS.textPrimary }}
               className="font-semibold text-lg mb-2"
             >
               Sin resultados
             </p>
-            <p 
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textSecondary 
-              }}
+            <p
+              style={{ color: COLORS.textSecondary }}
               className="text-sm mb-4"
             >
               No encontramos clientes con "{query}"
@@ -289,8 +261,7 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
             <button
               onClick={clearSearch}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              style={{
                 backgroundColor: COLORS.surfaceSubtle,
                 color: COLORS.textSecondary
               }}

@@ -80,8 +80,7 @@ export function PayrollHistory({ periods }: PayrollHistoryProps) {
                 Historial
               </p>
               <h1
-                className="text-3xl font-bold text-white"
-                style={{ fontFamily: 'var(--font-cormorant-garamond)' }}
+                className="text-3xl font-bold text-white font-heading"
               >
                 Períodos Anteriores
               </h1>
@@ -130,8 +129,8 @@ export function PayrollHistory({ periods }: PayrollHistoryProps) {
             >
               <div className="flex items-start justify-between mb-3">
                 <h3
-                  className="text-lg font-semibold"
-                  style={{ color: COLORS.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
+                  className="text-lg font-semibold font-heading"
+                  style={{ color: COLORS.textPrimary }}
                 >
                   {parsePeriod(period.period)}
                 </h3>

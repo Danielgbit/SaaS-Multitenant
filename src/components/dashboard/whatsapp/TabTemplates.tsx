@@ -121,7 +121,7 @@ export function TabTemplates({ organizationId }: TabTemplatesProps) {
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span
                           className="text-sm font-semibold"
-                          style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                          style={{ color: COLORS.textPrimary }}
                         >
                           {template.name}
                         </span>

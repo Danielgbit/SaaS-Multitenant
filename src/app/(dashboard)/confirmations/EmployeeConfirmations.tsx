@@ -111,20 +111,20 @@ export function EmployeeConfirmations({
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.headerTextMuted }}>
+                style={{  color: COLORS.headerTextMuted }}>
                 Gestión de servicios
               </p>
-              <h1 className="text-3xl font-bold tracking-tight mt-1"
-                style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.headerText }}>
+              <h1 className="font-heading text-3xl font-bold tracking-tight mt-1"
+                style={{ color: COLORS.headerText }}>
                 Mis Servicios
               </h1>
-              <p className="text-sm mt-1" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.headerTextMuted }}>
+              <p className="text-sm mt-1" style={{  color: COLORS.headerTextMuted }}>
                 {totalCount} servicio{totalCount !== 1 ? 's' : ''} pendiente{totalCount !== 1 ? 's' : ''} de confirmar
               </p>
             </div>
 
             <button type="button" onClick={() => router.push('/confirmations/walkin')}
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", borderRadius: '10px', backgroundColor: '#FFFFFF', color: COLORS.primary, padding: '14px 28px' }}
+              style={{  borderRadius: '10px', backgroundColor: '#FFFFFF', color: COLORS.primary, padding: '14px 28px' }}
               className="font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer">
               <Sparkles className="w-5 h-5" />
               Nuevo Walk-in
@@ -139,10 +139,10 @@ export function EmployeeConfirmations({
                   <Wallet className="w-5 h-5" style={{ color: COLORS.primary }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                  <p className="font-heading text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
                     ${todayIncome.toLocaleString('es-CO')}
                   </p>
-                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary }}>
                     Por cobrar
                   </p>
                 </div>
@@ -155,10 +155,10 @@ export function EmployeeConfirmations({
                   <Calendar className="w-5 h-5" style={{ color: COLORS.primary }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                  <p className="font-heading text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
                     {scheduledCount}
                   </p>
-                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary }}>
                     Citas
                   </p>
                 </div>
@@ -171,10 +171,10 @@ export function EmployeeConfirmations({
                   <Sparkles className="w-5 h-5" style={{ color: COLORS.warning }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                  <p className="font-heading text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
                     {walkinCount}
                   </p>
-                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary }}>
                     Walk-ins
                   </p>
                 </div>
@@ -192,10 +192,10 @@ export function EmployeeConfirmations({
             <div className="w-24 h-24 mx-auto mb-5 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.successLight }}>
               <CheckCircle className="w-12 h-12" style={{ color: COLORS.success }} />
             </div>
-            <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+            <h3 className="font-heading text-heading-2 font-semibold mb-2" style={{ color: COLORS.textPrimary }}>
               Todo al día
             </h3>
-            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }} className="max-w-sm mx-auto">
+            <p style={{  color: COLORS.textSecondary }} className="max-w-sm mx-auto">
               No tienes servicios pendientes de confirmar. ¡Buen trabajo!
             </p>
           </div>
@@ -237,15 +237,15 @@ export function EmployeeConfirmations({
                           </Badge>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <Clock className="w-3 h-3" style={{ color: COLORS.textMuted }} />
-                            <span className="text-xs" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            <span className="text-xs" style={{ color: COLORS.textMuted }}>
                               {formatTimeAgo(conf.created_at)}
                             </span>
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Total</p>
-                        <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.primary }}>
+                        <p className="text-xs" style={{ color: COLORS.textMuted }}>Total</p>
+                        <p className="font-heading text-2xl font-bold" style={{ color: COLORS.primary }}>
                           ${conf.total_amount.toLocaleString('es-CO')}
                         </p>
                       </div>
@@ -259,11 +259,11 @@ export function EmployeeConfirmations({
                             <User className="w-4 h-4" style={{ color: COLORS.primary }} />
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}>
+                            <p className="font-medium" style={{  color: COLORS.textPrimary }}>
                               {conf.client_name}
                             </p>
                             {conf.client_phone && (
-                              <p className="text-xs flex items-center gap-1 mt-0.5" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              <p className="text-xs flex items-center gap-1 mt-0.5" style={{ color: COLORS.textMuted }}>
                                 <Phone className="w-3 h-3" /> {conf.client_phone}
                               </p>
                             )}
@@ -273,7 +273,7 @@ export function EmployeeConfirmations({
 
                       {/* Services */}
                       <div className="space-y-2 mb-4">
-                        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: COLORS.textMuted }}>
                           Selecciona los servicios realizados:
                         </p>
                         {conf.services.map((service, idx) => {
@@ -295,11 +295,11 @@ export function EmployeeConfirmations({
                               <input type="checkbox" checked={isSelected}
                                 onChange={() => handleServiceToggle(conf.id, service.service_id)} className="sr-only" />
                               <div className="flex-1">
-                                <p className="font-medium text-sm" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}>
+                                <p className="font-medium text-sm" style={{  color: COLORS.textPrimary }}>
                                   {service.service_name}
                                 </p>
                               </div>
-                              <span className="font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.primary }}>
+                              <span className="font-heading font-bold" style={{ color: COLORS.primary }}>
                                 ${service.price.toLocaleString('es-CO')}
                               </span>
                             </label>
@@ -318,7 +318,7 @@ export function EmployeeConfirmations({
                         <button type="button" onClick={() => handleConfirm(conf)} disabled={submitting === conf.id}
                           className="w-full py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer"
                           style={{ 
-                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            
                             backgroundColor: COLORS.primary,
                             color: '#FFFFFF',
                             boxShadow: `0 4px 12px ${COLORS.primary}30`,

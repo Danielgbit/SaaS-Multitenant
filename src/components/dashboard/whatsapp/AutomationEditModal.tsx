@@ -46,7 +46,7 @@ export function AutomationEditModal({ rule, templates, onSave, onClose }: Automa
         >
           <h2
             className="text-lg font-semibold"
-            style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            style={{ color: COLORS.textPrimary }}
           >
             {rule ? 'Editar automatización' : 'Crear automatización'}
           </h2>
@@ -75,7 +75,6 @@ export function AutomationEditModal({ rule, templates, onSave, onClose }: Automa
                 backgroundColor: COLORS.surface,
                 borderColor: COLORS.border,
                 color: COLORS.textPrimary,
-                fontFamily: 'Plus Jakarta Sans, sans-serif',
               }}
               onFocus={(e) => { e.currentTarget.style.borderColor = COLORS.borderFocus }}
               onBlur={(e) => { e.currentTarget.style.borderColor = COLORS.border }}
@@ -107,7 +106,6 @@ export function AutomationEditModal({ rule, templates, onSave, onClose }: Automa
                 backgroundColor: COLORS.surface,
                 borderColor: COLORS.border,
                 color: COLORS.textPrimary,
-                fontFamily: 'Plus Jakarta Sans, sans-serif',
               }}
               onFocus={(e) => { e.currentTarget.style.borderColor = COLORS.borderFocus }}
               onBlur={(e) => { e.currentTarget.style.borderColor = COLORS.border }}

@@ -213,8 +213,7 @@ export function ClientAccountDetailClient({
           </div>
           <div>
             <h1
-              className="text-3xl font-bold text-white"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              className="text-3xl font-bold text-white font-heading"
             >
               {client.name}
             </h1>
@@ -411,8 +410,8 @@ export function ClientAccountDetailClient({
         }}
       >
         <h2
-          className="text-lg font-semibold mb-4"
-          style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+          className="text-lg font-semibold mb-4 font-heading"
+          style={{ color: COLORS.textPrimary }}
         >
           Historial de Transacciones
         </h2>
@@ -529,8 +528,8 @@ export function ClientAccountDetailClient({
             style={{ backgroundColor: COLORS.surface }}
           >
             <h2
-              className="text-xl font-bold mb-4"
-              style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+              className="text-xl font-bold mb-4 font-heading"
+              style={{ color: COLORS.textPrimary }}
             >
               Registrar Venta
             </h2>
@@ -660,8 +659,8 @@ export function ClientAccountDetailClient({
             style={{ backgroundColor: COLORS.surface }}
           >
             <h2
-              className="text-xl font-bold mb-4"
-              style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+              className="text-xl font-bold mb-4 font-heading"
+              style={{ color: COLORS.textPrimary }}
             >
               Registrar Pago
             </h2>

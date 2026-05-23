@@ -161,7 +161,7 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
         >
           <span
             className="text-sm font-semibold"
-            style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            style={{ color: COLORS.textPrimary }}
           >
             Reglas de automatización
           </span>
@@ -208,7 +208,7 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
                         <div className="flex items-center gap-2 mb-0.5">
                           <p
                             className="text-sm font-semibold"
-                            style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                            style={{ color: COLORS.textPrimary }}
                           >
                             {TRIGGER_LABELS[trigger]}
                           </p>

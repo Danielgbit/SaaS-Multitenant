@@ -121,9 +121,7 @@ export function PayrollSettingsClient({
             <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
               Configuración
             </p>
-            <h1
-              className="text-3xl font-bold text-white"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            <h1 className="text-3xl font-bold text-white font-heading"
             >
               Nómina
             </h1>

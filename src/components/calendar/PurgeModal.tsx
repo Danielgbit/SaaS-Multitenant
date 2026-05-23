@@ -234,8 +234,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
                 </div>
                 <div>
                   <h3
-                    className="text-xl font-semibold"
-                    style={{ fontFamily: 'Cormorant Garamond, serif' }}
+                    className="text-xl font-semibold font-heading"
                   >
                     Limpiar citas
                   </h3>
@@ -261,7 +260,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
             onClick={() => setActiveTab('selection')}
             className="relative flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-200"
             style={{
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
               color: activeTab === 'selection' ? COLORS.primary : COLORS.textMuted,
               borderBottom: activeTab === 'selection' ? `2px solid ${COLORS.primary}` : '2px solid transparent',
               marginBottom: '-1px',
@@ -285,7 +283,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
             onClick={() => setActiveTab('days')}
             className="relative flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-200"
             style={{
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
               color: activeTab === 'days' ? COLORS.primary : COLORS.textMuted,
               borderBottom: activeTab === 'days' ? `2px solid ${COLORS.primary}` : '2px solid transparent',
               marginBottom: '-1px',
@@ -314,7 +311,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
                     placeholder="Buscar por nombre de cliente o empleado..."
                     className="w-full pl-10 pr-10 py-3 rounded-xl border-2 text-sm transition-all duration-200 focus:outline-none"
                     style={{
-                      fontFamily: 'Plus Jakarta Sans, sans-serif',
                       borderColor: COLORS.border,
                       backgroundColor: COLORS.surface,
                       color: COLORS.textPrimary,
@@ -344,7 +340,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
                       onClick={() => handleStatusFilterChange(option.value as typeof statusFilter)}
                       className="px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer"
                       style={{
-                        fontFamily: 'Plus Jakarta Sans, sans-serif',
                         backgroundColor: statusFilter === option.value ? COLORS.primary : COLORS.surfaceSubtle,
                         color: statusFilter === option.value ? '#FFF' : COLORS.textSecondary,
                         border: `1px solid ${statusFilter === option.value ? COLORS.primary : 'transparent'}`,
@@ -446,7 +441,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
                 <div>
                   <label
                     className="block text-sm font-medium mb-2"
-                    style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     Eliminar citas anteriores a (días):
                   </label>
@@ -468,7 +463,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
                         placeholder="Ej: 90"
                         className="w-full pl-10 pr-4 py-3 rounded-xl border-2 text-sm transition-all duration-200 focus:outline-none"
                         style={{
-                          fontFamily: 'Plus Jakarta Sans, sans-serif',
                           borderColor: COLORS.border,
                           backgroundColor: COLORS.surface,
                           color: COLORS.textPrimary,
@@ -480,7 +474,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
                       disabled={!purgePreviewDays || previewLoading}
                       className="px-5 py-3 rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-50 cursor-pointer flex items-center gap-2"
                       style={{
-                        fontFamily: 'Plus Jakarta Sans, sans-serif',
                         backgroundColor: COLORS.primary,
                         color: '#FFF',
                         boxShadow: `0 4px 12px ${COLORS.primary}30`,
@@ -586,7 +579,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
               <button
                 onClick={handleSelectAll}
                 className="text-sm font-medium transition-colors duration-200 cursor-pointer hover:opacity-70"
-                style={{ color: COLORS.primary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                style={{ color: COLORS.primary }}
               >
                 {selectedIds.size === appointmentsList.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
               </button>
@@ -594,13 +587,13 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
                 <button
                   onClick={handleClearSelection}
                   className="text-sm transition-colors duration-200 cursor-pointer hover:opacity-70"
-                  style={{ color: COLORS.textMuted, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                  style={{ color: COLORS.textMuted }}
                 >
                   Limpiar selección
                 </button>
               )}
             </div>
-            <span className="text-sm font-medium" style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            <span className="text-sm font-medium" style={{ color: COLORS.textSecondary }}>
               {selectedIds.size} seleccionada{selectedIds.size !== 1 ? 's' : ''}
             </span>
           </div>
@@ -612,7 +605,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
             className="px-5 sm:px-6 py-4 border-t space-y-3 flex-shrink-0"
             style={{ borderColor: COLORS.border }}
           >
-            <p className="text-sm" style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            <p className="text-sm" style={{ color: COLORS.textSecondary }}>
               {activeTab === 'selection' ? (
                 <>Escribe <strong className="font-bold" style={{ color: COLORS.error }}>ELIMINAR</strong> para confirmar la eliminación de {selectedIds.size} cita{selectedIds.size !== 1 ? 's' : ''}:</>
               ) : (
@@ -626,7 +619,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
               placeholder="ELIMINAR"
               className="w-full px-4 py-2.5 rounded-xl border-2 text-sm font-medium tracking-widest text-center transition-all duration-200 focus:outline-none"
               style={{
-                fontFamily: 'Plus Jakarta Sans, sans-serif',
                 borderColor: confirmText === 'ELIMINAR' ? COLORS.success : COLORS.border,
                 backgroundColor: COLORS.surface,
                 color: confirmText === 'ELIMINAR' ? COLORS.success : COLORS.textPrimary,
@@ -645,7 +637,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
             onClick={onClose}
             className="flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
             style={{
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
               backgroundColor: COLORS.surface,
               border: `1px solid ${COLORS.border}`,
               color: COLORS.textSecondary,
@@ -659,7 +650,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
               disabled={selectedIds.size === 0 || confirmText !== 'ELIMINAR' || purging}
               className="flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               style={{
-                fontFamily: 'Plus Jakarta Sans, sans-serif',
                 backgroundColor: confirmText === 'ELIMINAR' && selectedIds.size > 0 ? COLORS.error : COLORS.surface,
                 color: confirmText === 'ELIMINAR' && selectedIds.size > 0 ? '#FFF' : COLORS.textMuted,
                 border: confirmText !== 'ELIMINAR' || selectedIds.size === 0 ? `1px solid ${COLORS.border}` : 'none',
@@ -679,7 +669,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
               disabled={confirmText !== 'ELIMINAR' || purging || !purgePreview}
               className="flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               style={{
-                fontFamily: 'Plus Jakarta Sans, sans-serif',
                 backgroundColor: confirmText === 'ELIMINAR' ? COLORS.error : COLORS.surface,
                 color: confirmText === 'ELIMINAR' ? '#FFF' : COLORS.textMuted,
                 border: confirmText !== 'ELIMINAR' ? `1px solid ${COLORS.border}` : 'none',

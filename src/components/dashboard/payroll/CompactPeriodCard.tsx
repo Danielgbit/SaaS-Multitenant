@@ -59,8 +59,8 @@ export function CompactPeriodCard({ period, isPending }: CompactPeriodCardProps)
           </div>
           <div>
             <h3
-              className="text-sm font-semibold"
-              style={{ color: colors.textPrimary, fontFamily: 'var(--font-cormorant-garamond)' }}
+              className="text-sm font-semibold font-heading"
+              style={{ color: colors.textPrimary }}
             >
               {label}
             </h3>

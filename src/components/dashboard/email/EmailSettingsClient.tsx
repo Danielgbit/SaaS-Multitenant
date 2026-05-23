@@ -207,9 +207,7 @@ export function EmailSettingsClient({ organizationId }: EmailSettingsClientProps
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Automatizaciones</p>
-              <h1 
-                className="text-3xl font-bold tracking-tight text-white"
-                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              <h1 className="text-3xl font-bold tracking-tight text-white font-heading"
               >
                 Email Marketing
               </h1>

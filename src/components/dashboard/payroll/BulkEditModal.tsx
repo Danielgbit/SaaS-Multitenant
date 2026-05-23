@@ -37,7 +37,7 @@ export default function BulkEditModal({
               <Pencil className="w-5 h-5" style={{ color: COLORS.primary }} />
             </div>
             <div>
-              <h3 id="bulk-edit-title" className="text-lg font-bold" style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}>
+              <h3 id="bulk-edit-title" className="text-lg font-bold font-heading" style={{ color: COLORS.textPrimary }}>
                 Cambiar tipo
               </h3>
               <p className="text-sm" style={{ color: COLORS.textMuted }}>

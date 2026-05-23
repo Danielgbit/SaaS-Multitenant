@@ -193,7 +193,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
           <div className="flex items-center gap-2">
             <span
               className="text-sm font-semibold"
-              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              style={{ color: COLORS.textPrimary }}
             >
               Estado del sistema
             </span>
@@ -228,7 +228,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
                 />
                 <span
                   className="text-sm font-medium"
-                  style={{ color: item.color, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                  style={{ color: item.color }}
                 >
                   {item.value}
                 </span>
@@ -282,7 +282,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
             <TrendingUp className="w-4 h-4" style={{ color: COLORS.textSecondary }} />
             <span
               className="text-sm font-medium"
-              style={{ color: COLORS.textSecondary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              style={{ color: COLORS.textSecondary }}
             >
               Tasa de entrega
             </span>
@@ -290,7 +290,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
           <div className="flex items-center gap-2">
             <span
               className="text-2xl font-bold"
-              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              style={{ color: COLORS.textPrimary }}
             >
               {stats?.deliveryRate ?? 0}%
             </span>
@@ -320,7 +320,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
         >
           <span
             className="text-sm font-semibold"
-            style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            style={{ color: COLORS.textPrimary }}
           >
             Mensajes recientes
           </span>

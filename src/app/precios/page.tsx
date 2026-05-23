@@ -36,7 +36,7 @@ export default async function PricingPage() {
       {/* Header */}
       <header className="border-b" style={{ borderColor: '#E8ECEE', backgroundColor: '#FFF' }}>
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-semibold" style={{ color: '#0F4C5C', fontFamily: 'Cormorant Garamond, serif' }}>
+          <Link href="/" className="text-2xl font-semibold font-heading" style={{ color: '#0F4C5C' }}>
             Prügressy
           </Link>
           <nav className="flex items-center gap-6">
@@ -71,7 +71,7 @@ export default async function PricingPage() {
           <span className="inline-block px-4 py-1.5 rounded-full text-xs font-medium bg-[#0F4C5C]/10 text-[#0F4C5C] mb-6">
             🇨🇴 Diseñado para negocios colombianos
           </span>
-          <h1 className="text-4xl md:text-5xl font-semibold mb-4 text-slate-800" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+          <h1 className="text-4xl md:text-5xl font-semibold mb-4 text-slate-800 font-heading">
             Planes para cada etapa de tu negocio
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto">
@@ -274,7 +274,7 @@ export default async function PricingPage() {
       {/* Features */}
       <section className="py-20 px-4" style={{ backgroundColor: '#FFF' }}>
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-semibold text-center mb-12 text-slate-800" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+          <h2 className="text-3xl font-semibold text-center mb-12 text-slate-800 font-heading">
             Todo lo que necesitas para gestionar tu negocio
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -295,7 +295,7 @@ export default async function PricingPage() {
       {/* FAQ */}
       <section className="py-20 px-4" style={{ backgroundColor: '#FAFAF9' }}>
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-semibold text-center mb-12 text-slate-800" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+          <h2 className="text-3xl font-semibold text-center mb-12 text-slate-800 font-heading">
             Preguntas frecuentes
           </h2>
           <div className="space-y-4">
@@ -318,7 +318,7 @@ export default async function PricingPage() {
       {/* CTA */}
       <section className="py-20 px-4" style={{ backgroundColor: '#0F4C5C' }}>
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-semibold text-white mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+          <h2 className="text-3xl font-semibold text-white mb-4 font-heading">
             Empieza tu prueba gratuita hoy
           </h2>
           <p className="text-slate-300 mb-8">

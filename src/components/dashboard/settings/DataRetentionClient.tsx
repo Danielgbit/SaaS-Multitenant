@@ -90,17 +90,14 @@ export function DataRetentionClient({
           </div>
           <div>
             <h3
-              className="text-lg font-semibold"
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                color: COLORS.textPrimary
-              }}
+              className="text-lg font-semibold font-heading"
+              style={{ color: COLORS.textPrimary }}
             >
               Purga Automática
             </h3>
             <p
               className="text-sm mt-1"
-              style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              style={{ color: COLORS.textSecondary }}
             >
               Elimina automáticamente citas antiguas para mantener tu base de datos limpia
             </p>
@@ -115,13 +112,13 @@ export function DataRetentionClient({
           <div>
             <p
               className="font-medium"
-              style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              style={{ color: COLORS.textPrimary }}
             >
               Habilitar purga automática
             </p>
             <p
               className="text-sm"
-              style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              style={{ color: COLORS.textSecondary }}
             >
               Ejecuta diariamente a las 3 AM
             </p>
@@ -146,7 +143,7 @@ export function DataRetentionClient({
         <div>
           <label
             className="block text-sm font-medium mb-3"
-            style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{ color: COLORS.textPrimary }}
           >
             Retener citas por:
           </label>
@@ -159,7 +156,6 @@ export function DataRetentionClient({
                   retentionDays === days ? 'border-current' : 'border-transparent'
                 }`}
                 style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   backgroundColor: retentionDays === days ? COLORS.primary + '15' : COLORS.surfaceSubtle,
                   borderColor: retentionDays === days ? COLORS.primary : COLORS.border,
                   color: retentionDays === days ? COLORS.primary : COLORS.textSecondary,
@@ -179,7 +175,7 @@ export function DataRetentionClient({
           <Info className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: COLORS.primary }} />
           <p
             className="text-sm"
-            style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{ color: COLORS.textSecondary }}
           >
             Las citas completadas, canceladas o no-show se eliminarán después del período seleccionado.
             Las citas facturadas están protegidas y nunca se eliminarán automáticamente.
@@ -191,7 +187,6 @@ export function DataRetentionClient({
           disabled={saving}
           className="w-full py-3 px-4 font-medium rounded-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
           style={{
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
             background: COLORS.primaryGradient,
             color: '#FFFFFF',
           }}
@@ -219,17 +214,14 @@ export function DataRetentionClient({
           </div>
           <div>
             <h3
-              className="text-lg font-semibold"
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                color: COLORS.textPrimary
-              }}
+              className="text-lg font-semibold font-heading"
+              style={{ color: COLORS.textPrimary }}
             >
               Limpiar citas ahora
             </h3>
             <p
               className="text-sm mt-1"
-              style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              style={{ color: COLORS.textSecondary }}
             >
               Elimina manualmente citas seleccionadas o por fecha específica
             </p>
@@ -240,7 +232,6 @@ export function DataRetentionClient({
           onClick={() => setShowPurgeModal(true)}
           className="w-full py-3 px-4 font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
           style={{
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
             backgroundColor: COLORS.surfaceSubtle,
             border: `1px solid ${COLORS.border}`,
             color: COLORS.textPrimary,
@@ -278,7 +269,7 @@ export function DataRetentionClient({
           }}
         >
           {message.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{message.text}</span>
+          <span>{message.text}</span>
         </div>
       )}
     </div>

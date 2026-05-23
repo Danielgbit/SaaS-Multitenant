@@ -127,7 +127,6 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
     border: `1px solid ${hasError ? COLORS.error : COLORS.border}`,
     backgroundColor: COLORS.surface,
     color: COLORS.textPrimary,
-    fontFamily: 'Plus Jakarta Sans, sans-serif',
     fontSize: '14px',
     outline: 'none',
     transition: 'border-color 0.2s',
@@ -155,7 +154,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
           <div>
             <h2
               className="text-lg font-semibold"
-              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              style={{ color: COLORS.textPrimary }}
             >
               {isCreate ? 'Nueva template' : 'Editar template'}
             </h2>
@@ -273,7 +272,6 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
                 backgroundColor: COLORS.surface,
                 borderColor: fieldErrors.body ? COLORS.error : COLORS.border,
                 color: COLORS.textPrimary,
-                fontFamily: 'Plus Jakarta Sans, sans-serif',
               }}
               onFocus={(e) => { e.currentTarget.style.borderColor = COLORS.borderFocus }}
               onBlur={(e) => { e.currentTarget.style.borderColor = fieldErrors.body ? COLORS.error : COLORS.border }}
@@ -298,7 +296,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
             </p>
             <p
               className="text-sm whitespace-pre-wrap"
-              style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+              style={{ color: COLORS.textPrimary }}
             >
               {renderPreview(body) || 'Escribe el cuerpo del mensaje para ver la vista previa...'}
             </p>

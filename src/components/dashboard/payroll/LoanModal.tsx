@@ -145,8 +145,7 @@ export function LoanModal({
               </div>
               <div>
                 <h2
-                  className="text-xl font-semibold text-white"
-                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                  className="text-xl font-semibold text-white font-heading"
                 >
                   {success ? '¡Registrado!' : 'Registrar Préstamo'}
                 </h2>

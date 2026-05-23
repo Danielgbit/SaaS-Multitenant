@@ -201,7 +201,7 @@ export function BookingWizard({
               <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: COLORS.successLight }}>
                 <CheckCircle2 className="w-10 h-10" style={{ color: COLORS.success }} />
               </div>
-              <h1 className="text-2xl font-semibold" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>
+              <h1 className="text-2xl font-semibold font-heading" style={{ color: COLORS.textPrimary }}>
                 ¡Reserva confirmada!
               </h1>
               <p className="mt-2" style={{ color: COLORS.textSecondary }}>
@@ -258,7 +258,7 @@ export function BookingWizard({
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold mb-2" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>
+          <h1 className="text-3xl font-semibold mb-2 font-heading" style={{ color: COLORS.textPrimary }}>
             {organization.name}
           </h1>
           <p style={{ color: COLORS.textSecondary }}>
@@ -453,7 +453,7 @@ export function BookingWizard({
                         <div>
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-400" />
-                            <span className="text-sm font-semibold tracking-wide uppercase" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>Mañana</span>
+                            <span className="text-sm font-semibold tracking-wide uppercase font-heading" style={{ color: COLORS.textPrimary }}>Mañana</span>
                             <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: COLORS.surfaceSubtle, color: COLORS.textMuted }}>Antes de 1 PM</span>
                           </div>
                           <div className="grid grid-cols-2 gap-3">
@@ -481,9 +481,8 @@ export function BookingWizard({
                                     onClick={() => isAvailable && setSelectedSlot(slot.start_time)}
                                   >
                                     <div className="flex items-center justify-between mb-2">
-                                      <span className="text-lg font-bold" style={{ 
+                                      <span className="text-lg font-bold font-heading" style={{ 
                                         color: isAvailable ? COLORS.textPrimary : COLORS.textMuted,
-                                        fontFamily: 'Cormorant Garamond, serif'
                                       }}>
                                         {startTime} → {endTime}
                                       </span>
@@ -526,7 +525,7 @@ export function BookingWizard({
                         <div>
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400" />
-                            <span className="text-sm font-semibold tracking-wide uppercase" style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}>Tarde</span>
+                            <span className="text-sm font-semibold tracking-wide uppercase font-heading" style={{ color: COLORS.textPrimary }}>Tarde</span>
                             <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: COLORS.surfaceSubtle, color: COLORS.textMuted }}>Desde 1 PM</span>
                           </div>
                           <div className="grid grid-cols-2 gap-3">
@@ -556,7 +555,6 @@ export function BookingWizard({
                                     <div className="flex items-center justify-between mb-2">
                                       <span className="text-lg font-bold" style={{
                                         color: isAvailable ? COLORS.textPrimary : COLORS.textMuted,
-                                        fontFamily: 'var(--font-dm-sans), sans-serif',
                                         fontWeight: 600
                                       }}>
                                         {startTime} → {endTime}

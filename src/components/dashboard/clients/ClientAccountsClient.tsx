@@ -256,9 +256,7 @@ export function ClientAccountsClient({
               <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
                 Gestión de Cartera
               </p>
-              <h1
-                className="text-3xl font-bold text-white"
-                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              <h1 className="text-3xl font-bold text-white font-heading"
               >
                 Cuentas por Cobrar
               </h1>
@@ -610,8 +608,8 @@ export function ClientAccountsClient({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2
-            className="text-xl font-semibold"
-            style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}
+            className="text-xl font-semibold font-heading"
+            style={{ color: COLORS.textPrimary }}
           >
             Clientes con Cuenta
           </h2>

@@ -103,8 +103,8 @@ export function MarkCompletedModal({
             </div>
             <h2
               id="mark-completed-title"
-              className="text-xl font-bold"
-              style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}
+              className="text-xl font-bold font-heading"
+              style={{ color: COLORS.textPrimary }}
             >
               Confirmar Servicio
             </h2>
@@ -142,7 +142,7 @@ export function MarkCompletedModal({
           </div>
 
           <div className="space-y-3">
-            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary }}>
               Ajuste por extras (opcional)
             </label>
             <div className="flex items-center gap-3">
@@ -180,7 +180,7 @@ export function MarkCompletedModal({
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-center" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <p className="text-xs text-center" style={{ color: COLORS.textSecondary }}>
               decoration, extras, etc.
             </p>
           </div>
@@ -198,7 +198,7 @@ export function MarkCompletedModal({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary }}>
               Notas para el asistente (opcional)
             </label>
             <textarea

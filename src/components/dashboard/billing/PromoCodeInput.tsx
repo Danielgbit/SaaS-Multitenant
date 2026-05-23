@@ -88,7 +88,7 @@ export function PromoCodeInput() {
         <div>
           <h3
             className="font-semibold"
-            style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{ color: COLORS.textPrimary }}
           >
             ¿Tienes un código de prueba?
           </h3>
@@ -121,10 +121,7 @@ export function PromoCodeInput() {
               onBlur={() => setIsFocused(false)}
               placeholder="Ej: PRUEBA30"
               className="w-full px-4 py-3.5 text-sm font-mono uppercase tracking-wider bg-transparent"
-              style={{
-                color: COLORS.textPrimary,
-                fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-              }}
+              style={{ color: COLORS.textPrimary }}
               aria-label="Código promocional"
             />
             {validating && (
@@ -195,21 +192,17 @@ export function PromoCodeInput() {
                   <CheckCircle2 className="w-5 h-5" style={{ color: COLORS.success }} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold" style={{ color: COLORS.success, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-sm font-semibold" style={{ color: COLORS.success }}>
                     Código válido
                   </p>
-                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary }}>
                     Listo para aplicar
                   </p>
                 </div>
               </div>
               <div
-                className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider"
-                style={{
-                  backgroundColor: `${COLORS.success}15`,
-                  color: COLORS.success,
-                  fontFamily: "'JetBrains Mono', monospace",
-                }}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider font-mono"
+                style={{ backgroundColor: `${COLORS.success}15`, color: COLORS.success }}
               >
                 {code}
               </div>
@@ -232,10 +225,10 @@ export function PromoCodeInput() {
                 <span style={{ color: COLORS.amber }}>{getTypeIcon(preview.type)}</span>
               </div>
               <div>
-                <p className="text-sm font-medium" style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <p className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
                   {preview.name}
                 </p>
-                <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <p className="text-xs" style={{ color: COLORS.textSecondary }}>
                   {getTypeLabel(preview.type, preview.value)}
                 </p>
               </div>
@@ -313,7 +306,6 @@ function ApplyButton() {
       style={{
         backgroundColor: pending ? COLORS.primaryLight : COLORS.primary,
         color: '#FFFFFF',
-        fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}
     >
       {pending ? (

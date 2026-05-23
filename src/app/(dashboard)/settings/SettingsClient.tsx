@@ -144,14 +144,14 @@ export default function SettingsClient({
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Administración</p>
               <h1 
-                className="text-3xl font-bold tracking-tight text-white"
-                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                className="text-3xl font-bold tracking-tight text-white font-heading"
+                style={{}}
               >
                 Configuración
               </h1>
             </div>
           </div>
-          <p className="text-sm text-white/80" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <p className="text-sm text-white/80" style={{}}>
             Administra la configuración de tu negocio
           </p>
         </div>
@@ -167,7 +167,7 @@ export default function SettingsClient({
           }}
         >
           {message.type === 'success' ? <Check className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{message.text}</span>
+          <span style={{}}>{message.text}</span>
         </div>
       )}
 
@@ -226,9 +226,8 @@ export default function SettingsClient({
             >
               <div>
                 <h3 
-                  className="text-lg font-semibold mb-1"
+                  className="text-lg font-semibold mb-1 font-heading"
                   style={{ 
-                    fontFamily: "'Cormorant Garamond', serif",
                     color: COLORS.textPrimary 
                   }}
                 >
@@ -236,7 +235,7 @@ export default function SettingsClient({
                 </h3>
                 <p 
                   className="text-sm"
-                  style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ color: COLORS.textSecondary }}
                 >
                   Ajusta cómo funcionan las reservas online
                 </p>
@@ -246,7 +245,7 @@ export default function SettingsClient({
                 <div>
                   <label 
                     className="block text-sm font-medium mb-2"
-                    style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     Intervalo de cita (minutos)
                   </label>
@@ -268,7 +267,7 @@ export default function SettingsClient({
                 <div>
                   <label 
                     className="block text-sm font-medium mb-2"
-                    style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     Tiempo entre citas (minutos)
                   </label>
@@ -290,7 +289,7 @@ export default function SettingsClient({
                 <div>
                   <label 
                     className="block text-sm font-medium mb-2"
-                    style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     Reservas con máximo (días)
                   </label>
@@ -311,7 +310,7 @@ export default function SettingsClient({
                 <div>
                   <label 
                     className="block text-sm font-medium mb-2"
-                    style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     Anticipación mínima (horas)
                   </label>
@@ -333,7 +332,7 @@ export default function SettingsClient({
                 <div>
                   <label
                     className="block text-sm font-medium mb-2"
-                    style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     Hora apertura spa
                   </label>
@@ -352,7 +351,7 @@ export default function SettingsClient({
                 <div>
                   <label
                     className="block text-sm font-medium mb-2"
-                    style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     Hora cierre spa
                   </label>
@@ -376,13 +375,13 @@ export default function SettingsClient({
                 <div>
                   <p
                     className="font-medium"
-                    style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     Reservas online
                   </p>
                   <p 
                     className="text-sm"
-                    style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    style={{ color: COLORS.textSecondary }}
                   >
                     Permite a clientes reservar desde la web
                   </p>
@@ -409,7 +408,6 @@ export default function SettingsClient({
                 disabled={saving}
                 className="w-full py-3 px-4 font-medium rounded-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   background: COLORS.primaryGradient,
                   color: '#FFFFFF',
                 }}
@@ -432,9 +430,8 @@ export default function SettingsClient({
             >
               <div>
                 <h3 
-                  className="text-lg font-semibold mb-1"
+                  className="text-lg font-semibold mb-1 font-heading"
                   style={{ 
-                    fontFamily: "'Cormorant Garamond', serif",
                     color: COLORS.textPrimary 
                   }}
                 >
@@ -442,7 +439,7 @@ export default function SettingsClient({
                 </h3>
                 <p 
                   className="text-sm"
-                  style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ color: COLORS.textSecondary }}
                 >
                   Datos públicos de tu negocio
                 </p>
@@ -452,7 +449,7 @@ export default function SettingsClient({
                 <div>
                   <label 
                     className="block text-sm font-medium mb-2"
-                    style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     Nombre de la empresa
                   </label>
@@ -471,7 +468,7 @@ export default function SettingsClient({
                 <div>
                   <label 
                     className="block text-sm font-medium mb-2"
-                    style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    style={{ color: COLORS.textPrimary }}
                   >
                     Slug (URL pública)
                   </label>
@@ -506,7 +503,7 @@ export default function SettingsClient({
               >
                 <p 
                   className="text-sm"
-                  style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ color: COLORS.textSecondary }}
                 >
                   <strong style={{ color: COLORS.textPrimary }}>URL de reservas:</strong>{' '}
                   <a 
@@ -524,7 +521,6 @@ export default function SettingsClient({
                 disabled={saving}
                 className="w-full py-3 px-4 font-medium rounded-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   background: COLORS.primaryGradient,
                   color: '#FFFFFF',
                 }}
@@ -547,9 +543,8 @@ export default function SettingsClient({
             >
               <div>
                 <h3 
-                  className="text-lg font-semibold mb-1"
+                  className="text-lg font-semibold mb-1 font-heading"
                   style={{ 
-                    fontFamily: "'Cormorant Garamond', serif",
                     color: COLORS.textPrimary 
                   }}
                 >
@@ -557,7 +552,7 @@ export default function SettingsClient({
                 </h3>
                 <p 
                   className="text-sm"
-                  style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ color: COLORS.textSecondary }}
                 >
                   Configura la zona horaria para las citas
                 </p>
@@ -566,7 +561,7 @@ export default function SettingsClient({
               <div>
                 <label 
                   className="block text-sm font-medium mb-2"
-                  style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ color: COLORS.textPrimary }}
                 >
                   Zona horaria
                 </label>
@@ -590,7 +585,6 @@ export default function SettingsClient({
                 disabled={saving}
                 className="w-full py-3 px-4 font-medium rounded-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   background: COLORS.primaryGradient,
                   color: '#FFFFFF',
                 }}
@@ -613,9 +607,8 @@ export default function SettingsClient({
             >
               <div>
                 <h3 
-                  className="text-lg font-semibold mb-1"
+                  className="text-lg font-semibold mb-1 font-heading"
                   style={{ 
-                    fontFamily: "'Cormorant Garamond', serif",
                     color: COLORS.textPrimary 
                   }}
                 >
@@ -623,7 +616,7 @@ export default function SettingsClient({
                 </h3>
                 <p 
                   className="text-sm"
-                  style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ color: COLORS.textSecondary }}
                 >
                   Configura cómo recibes actualizaciones
                 </p>
@@ -649,13 +642,13 @@ export default function SettingsClient({
                     <div>
                       <p 
                         className="font-medium"
-                        style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        style={{ color: COLORS.textPrimary }}
                       >
                         WhatsApp
                       </p>
                       <p 
                         className="text-sm"
-                        style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        style={{ color: COLORS.textSecondary }}
                       >
                         Configura recordatorios por WhatsApp
                       </p>
@@ -681,13 +674,13 @@ export default function SettingsClient({
                     <div>
                       <p 
                         className="font-medium"
-                        style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        style={{ color: COLORS.textPrimary }}
                       >
                         Email
                       </p>
                       <p 
                         className="text-sm"
-                        style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        style={{ color: COLORS.textSecondary }}
                       >
                         Configura recordatorios por email
                       </p>

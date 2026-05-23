@@ -32,22 +32,13 @@ export function BillingPageWrapper({
               <CreditCard className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p
-                className="text-xs font-semibold uppercase tracking-widest text-white/80"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
                 Gestión de suscripción
               </p>
-              <h1
-                className="text-3xl font-bold tracking-tight text-white"
-                style={{ fontFamily: "'Cormorant Garamond', serif" }}
-              >
+              <h1 className="text-3xl font-bold tracking-tight text-white font-heading">
                 Facturación
               </h1>
-              <p
-                className="text-sm mt-1 text-white/80"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
+              <p className="text-sm mt-1 text-white/80">
                 {subscription
                   ? `Plan ${subscription.planName}`
                   : 'Sin suscripción activa'}
@@ -65,7 +56,6 @@ export function BillingPageWrapper({
                 backgroundColor: '#FFFFFF',
                 color: COLORS.primary,
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
               }}
             >
               Configurar pago

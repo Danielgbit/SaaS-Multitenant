@@ -46,7 +46,7 @@ export default function PeriodStepSelect({
               <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: COLORS.textMuted }}>Nómina</p>
               <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: COLORS.primary + '15', color: COLORS.primary }}>Paso 1 de 2</span>
             </div>
-            <h1 className="text-2xl font-bold" style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}>Crear Período</h1>
+            <h1 className="text-2xl font-bold font-heading" style={{ color: COLORS.textPrimary }}>Crear Período</h1>
           </div>
         </div>
 
@@ -56,7 +56,7 @@ export default function PeriodStepSelect({
             <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-transform duration-300" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
               <Calendar className="w-7 h-7 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{periodLabel}</h2>
+            <h2 className="text-3xl font-bold text-white mb-2 font-heading">{periodLabel}</h2>
             <p className="text-white/70 text-sm">¿Cómo quieres crear este período?</p>
             {periodExists && (
               <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm">
@@ -70,7 +70,7 @@ export default function PeriodStepSelect({
         <div className="p-6 rounded-2xl border transition-all duration-200" style={{ backgroundColor: COLORS.surfaceGlass || COLORS.surface, borderColor: COLORS.border, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="w-5 h-5" style={{ color: COLORS.primary }} />
-            <h3 className="text-lg font-semibold" style={{ color: COLORS.textPrimary, fontFamily: "'Cormorant Garamond', serif" }}>Seleccionar Período</h3>
+            <h3 className="text-lg font-semibold font-heading" style={{ color: COLORS.textPrimary }}>Seleccionar Período</h3>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -111,7 +111,7 @@ export default function PeriodStepSelect({
                 <p className="text-xs" style={{ color: COLORS.textMuted }}>{employeesCount} empleados activos disponibles</p>
               </div>
             </div>
-            <p className="text-lg font-bold" style={{ color: COLORS.primary, fontFamily: "'Cormorant Garamond', serif" }}>{periodLabel}</p>
+            <p className="text-lg font-bold font-heading" style={{ color: COLORS.primary }}>{periodLabel}</p>
           </div>
           {periodExists && (
             <div className="mt-4 p-4 rounded-xl flex items-center gap-3 animate-pulse" style={{ backgroundColor: COLORS.error + '15' }}>

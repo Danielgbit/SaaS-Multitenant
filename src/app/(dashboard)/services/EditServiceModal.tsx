@@ -202,8 +202,7 @@ export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
               <div>
                 <h2
                   id="edit-service-title"
-                  className="text-xl font-semibold text-white"
-                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                  className="text-xl font-semibold text-white font-heading"
                 >
                   Editar Servicio
                 </h2>
@@ -264,7 +263,6 @@ export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
                   onChange={(e) => setName(e.target.value)}
                   className={`w-full pl-12 pr-4 min-h-[48px] rounded-xl border text-base transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                   style={{
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
                     borderRadius: '10px',
                     borderColor: COLORS.border,
                     color: COLORS.textPrimary,
@@ -302,8 +300,7 @@ export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
                     autoComplete="off"
                     className="w-full pl-12 pr-4 min-h-[48px] rounded-xl border text-base transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
                     style={{
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      borderRadius: '10px',
+                        borderRadius: '10px',
                       borderColor: durationDisplay ? COLORS.success : COLORS.border,
                       color: COLORS.textPrimary,
                       backgroundColor: COLORS.surface,
@@ -349,8 +346,7 @@ export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
                     autoComplete="off"
                     className="w-full pl-12 pr-4 min-h-[48px] rounded-xl border text-base transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
                     style={{
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      borderRadius: '10px',
+                        borderRadius: '10px',
                       borderColor: priceDisplay ? COLORS.success : COLORS.border,
                       color: COLORS.textPrimary,
                       backgroundColor: COLORS.surface,

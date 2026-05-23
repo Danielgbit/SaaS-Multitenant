@@ -54,7 +54,7 @@ export function AlertBanner({ type, message, dismissible, onDismiss }: AlertBann
       <Icon className="w-5 h-5 shrink-0" style={{ color: config.iconColor }} />
       <span
         className="flex-1 text-sm font-medium"
-        style={{ color: COLORS.textPrimary, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+        style={{ color: COLORS.textPrimary }}
       >
         {message}
       </span>

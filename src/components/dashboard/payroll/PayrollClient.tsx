@@ -229,9 +229,7 @@ export function PayrollClient({
               <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
                 Gestión de Personal
               </p>
-              <h1
-                className="text-3xl font-bold text-white"
-                style={{ fontFamily: 'Cormorant Garamond, serif' }}
+              <h1 className="text-3xl font-bold text-white font-heading"
               >
                 Nómina
               </h1>
@@ -266,8 +264,8 @@ export function PayrollClient({
       >
         <div className="flex items-center justify-between mb-4">
           <h2
-            className="text-lg font-semibold"
-            style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
+            className="text-lg font-semibold font-heading"
+            style={{ color: COLORS.textPrimary }}
           >
             Período de Nómina
           </h2>
@@ -591,8 +589,8 @@ export function PayrollClient({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2
-              className="text-xl font-semibold"
-              style={{ color: COLORS.textPrimary, fontFamily: 'Cormorant Garamond, serif' }}
+              className="text-xl font-semibold font-heading"
+              style={{ color: COLORS.textPrimary }}
             >
               Detalle por Empleado
             </h2>

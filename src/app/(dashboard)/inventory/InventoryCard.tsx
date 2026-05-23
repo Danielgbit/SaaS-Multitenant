@@ -65,35 +65,25 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0 pr-2">
-            <h3 
-              className="font-semibold text-lg truncate leading-tight"
-              style={{ 
-                fontFamily: "'Cormorant Garamond', serif",
-                color: COLORS.textPrimary 
-              }}
+            <h3
+              className="font-semibold text-lg truncate leading-tight font-heading"
+              style={{ color: COLORS.textPrimary }}
             >
               {item.name}
             </h3>
             {item.sku && (
-              <p 
-                className="text-xs mt-1 font-mono"
-                style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: COLORS.textMuted 
-                }}
+              <p
+                className="text-xs mt-1"
+                style={{ color: COLORS.textMuted }}
               >
                 SKU: {item.sku}
               </p>
             )}
           </div>
 
-          <div 
+          <div
             className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium shrink-0"
-            style={{ 
-              backgroundColor: status.bg,
-              color: status.color,
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-            }}
+            style={{ backgroundColor: status.bg, color: status.color }}
           >
             {StatusIcon && <StatusIcon className="w-3 h-3" />}
             {status.label}
@@ -101,13 +91,9 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
         </div>
 
         {item.category && (
-          <div 
+          <div
             className="text-xs font-medium inline-block px-2.5 py-1 rounded-lg"
-            style={{ 
-              backgroundColor: COLORS.surfaceSubtle,
-              color: COLORS.textSecondary,
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-            }}
+            style={{ backgroundColor: COLORS.surfaceSubtle, color: COLORS.textSecondary }}
           >
             {item.category}
           </div>
@@ -118,31 +104,22 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
       <div className="px-5 py-4">
         <div className="flex items-end justify-between">
           <div className="flex-1">
-            <p 
+            <p
               className="text-xs font-medium uppercase tracking-wide"
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textMuted 
-              }}
+              style={{ color: COLORS.textMuted }}
             >
               Stock actual
             </p>
             <div className="flex items-baseline gap-2 mt-1">
-              <p 
-                className="text-3xl font-bold"
-                style={{ 
-                  fontFamily: "'Cormorant Garamond', serif",
-                  color: isCriticalStock ? COLORS.danger : isLowStock ? COLORS.warning : COLORS.textPrimary 
-                }}
+              <p
+                className="text-3xl font-bold font-heading"
+                style={{ color: isCriticalStock ? COLORS.danger : isLowStock ? COLORS.warning : COLORS.textPrimary }}
               >
                 {item.quantity}
               </p>
-              <span 
+              <span
                 className="text-sm font-medium"
-                style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  color: COLORS.textSecondary 
-                }}
+                style={{ color: COLORS.textSecondary }}
               >
                 {item.unit}
               </span>
@@ -160,28 +137,22 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
               />
             </div>
             {isLowStock && (
-              <p className="text-xs mt-1" style={{ color: COLORS.warning, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <p className="text-xs mt-1" style={{ color: COLORS.warning }}>
                 Mín: {item.min_quantity} {item.unit}
               </p>
             )}
           </div>
 
           <div className="text-right">
-            <p 
+            <p
               className="text-xs font-medium uppercase tracking-wide"
-              style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.textMuted 
-              }}
+              style={{ color: COLORS.textMuted }}
             >
               Precio
             </p>
-            <p 
-              className="text-2xl font-bold"
-              style={{ 
-                fontFamily: "'Cormorant Garamond', serif",
-                color: COLORS.primary 
-              }}
+            <p
+              className="text-2xl font-bold font-heading"
+              style={{ color: COLORS.primary }}
             >
               {item.price ? `$${item.price.toLocaleString('es-CO')}` : '-'}
             </p>
@@ -192,25 +163,18 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
                 ) : (
                   <TrendingDown className="w-3 h-3" style={{ color: COLORS.danger }} />
                 )}
-                <span 
+                <span
                   className="text-xs font-medium"
-                  style={{ 
-                    color: marginPercent > 0 ? COLORS.success : COLORS.danger,
-                    fontFamily: "'Plus Jakarta Sans', sans-serif" 
-                  }}
+                  style={{ color: marginPercent > 0 ? COLORS.success : COLORS.danger }}
                 >
                   {marginPercent > 0 ? '+' : ''}{marginPercent}%
                 </span>
               </div>
             )}
             {item.cost_price && (
-              <p 
+              <p
                 className="text-xs"
-                style={{ 
-                  color: COLORS.textMuted, 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  textDecoration: 'line-through'
-                }}
+                style={{ color: COLORS.textMuted, textDecoration: 'line-through' }}
               >
                 Costo: ${item.cost_price.toLocaleString('es-CO')}
               </p>
@@ -218,17 +182,14 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
           </div>
         </div>
 
-        {item.description && (
-          <p 
-            className="text-sm mt-4 line-clamp-2 leading-relaxed"
-            style={{ 
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: COLORS.textSecondary 
-            }}
-          >
-            {item.description}
-          </p>
-        )}
+          {item.description && (
+            <p
+              className="text-sm mt-4 line-clamp-2 leading-relaxed"
+              style={{ color: COLORS.textSecondary }}
+            >
+              {item.description}
+            </p>
+          )}
       </div>
 
       {/* Actions */}
@@ -244,11 +205,7 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
           type="button"
           onClick={() => onEdit(item)}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
-          style={{ 
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
-            color: COLORS.textSecondary,
-            backgroundColor: COLORS.surfaceSubtle
-          }}
+          style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle }}
         >
           <Pencil className="w-4 h-4" />
           Editar
@@ -258,11 +215,7 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
           onClick={handleDelete}
           disabled={isDeleting}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer disabled:opacity-50"
-          style={{ 
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
-            color: COLORS.danger,
-            backgroundColor: COLORS.dangerLight
-          }}
+          style={{ color: COLORS.danger, backgroundColor: COLORS.dangerLight }}
         >
           <Trash2 className="w-4 h-4" />
           {isDeleting ? 'Eliminando...' : 'Eliminar'}

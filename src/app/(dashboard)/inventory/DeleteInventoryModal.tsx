@@ -124,9 +124,8 @@ export function DeleteInventoryModal({
             </div>
 
             <h2 
-              className="text-xl font-bold text-center"
+              className="text-xl font-bold text-center font-heading"
               style={{ 
-                fontFamily: "'Cormorant Garamond', serif",
                 color: '#FFFFFF' 
               }}
             >
@@ -136,7 +135,7 @@ export function DeleteInventoryModal({
             <p 
               className="text-sm text-center mt-2"
               style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+
                 color: 'rgba(255,255,255,0.8)' 
               }}
             >
@@ -165,9 +164,8 @@ export function DeleteInventoryModal({
               </div>
               <div className="flex-1 min-w-0">
                 <p 
-                  className="font-semibold truncate"
+                  className="font-semibold truncate font-heading"
                   style={{ 
-                    fontFamily: "'Cormorant Garamond', serif",
                     color: COLORS.textPrimary 
                   }}
                 >
@@ -177,8 +175,7 @@ export function DeleteInventoryModal({
                   <p 
                     className="text-xs"
                     style={{ 
-                      color: COLORS.textMuted,
-                      fontFamily: "'Plus Jakarta Sans', sans-serif" 
+                      color: COLORS.textMuted
                     }}
                   >
                     SKU: {item.sku}
@@ -195,7 +192,7 @@ export function DeleteInventoryModal({
             style={{ 
               backgroundColor: COLORS.dangerLight,
               color: COLORS.danger,
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
+
             }}
           >
             {error}
@@ -211,7 +208,6 @@ export function DeleteInventoryModal({
                 onClick={onClose}
                 className="flex-1 py-3 px-4 rounded-xl font-medium transition-all hover:opacity-90 cursor-pointer"
                 style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   color: COLORS.textSecondary,
                   border: `1px solid ${COLORS.border}`,
                   backgroundColor: COLORS.surface,
@@ -225,7 +221,6 @@ export function DeleteInventoryModal({
                 disabled={isDeleting}
                 className="flex-1 py-3 px-4 rounded-xl font-medium transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   backgroundColor: COLORS.danger,
                   color: '#FFFFFF',
                 }}
@@ -253,7 +248,7 @@ export function DeleteInventoryModal({
               }}
               className="w-full py-3 px-4 rounded-xl font-medium transition-all hover:opacity-90 cursor-pointer"
               style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+
                 background: COLORS.primaryGradient,
                 color: '#FFFFFF',
               }}

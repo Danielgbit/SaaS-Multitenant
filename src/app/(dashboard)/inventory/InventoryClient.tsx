@@ -96,10 +96,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Gestión de inventario</p>
-              <h1 
-                className="text-3xl font-bold tracking-tight text-white"
-                style={{ fontFamily: "'Cormorant Garamond', serif" }}
-              >
+              <h1 className="text-3xl font-bold tracking-tight text-white font-heading">
                 Inventario
               </h1>
               <p className="text-sm mt-1 text-white/80">
@@ -155,7 +152,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
                 borderRadius: '10px',
                 borderColor: COLORS.border,
                 padding: '12px 40px 12px 44px',
@@ -172,7 +168,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
               type="button"
               onClick={() => handleFilterChange('all')}
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
                 borderRadius: '10px',
                 padding: '10px 16px',
                 backgroundColor: filter === 'all' ? COLORS.primary : 'transparent',
@@ -198,7 +193,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
               type="button"
               onClick={() => handleFilterChange('lowStock')}
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
                 borderRadius: '10px',
                 padding: '10px 16px',
                 backgroundColor: filter === 'lowStock' ? COLORS.warning : 'transparent',
@@ -226,7 +220,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
               type="button"
               onClick={() => handleFilterChange('criticalStock')}
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
                 borderRadius: '10px',
                 padding: '10px 16px',
                 backgroundColor: filter === 'criticalStock' ? COLORS.danger : 'transparent',
@@ -255,7 +248,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
                 type="button"
                 onClick={() => setIsCategoryOpen(!isCategoryOpen)}
                 style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   borderRadius: '10px',
                   padding: '10px 16px',
                   backgroundColor: filter === 'category' ? COLORS.primary : 'transparent',
@@ -327,7 +319,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
       </div>
 
       {query && (
-        <p className="text-sm mb-4" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <p className="text-sm mb-4" style={{ color: COLORS.textSecondary }}>
           {filtered.length} resultado{filtered.length !== 1 ? 's' : ''} para "{query}"
         </p>
       )}
@@ -352,9 +344,8 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
             <Package className="w-10 h-10" style={{ color: COLORS.primary }} />
           </div>
           <h3 
-            className="text-lg font-semibold mb-2"
+            className="text-lg font-semibold mb-2 font-heading"
             style={{ 
-              fontFamily: "'Cormorant Garamond', serif",
               color: COLORS.textPrimary 
             }}
           >
@@ -362,7 +353,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
           </h3>
           <p 
             style={{ 
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
               color: COLORS.textSecondary 
             }}
             className="text-sm mb-6 max-w-sm mx-auto"
@@ -374,7 +364,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
             onClick={() => setIsCreating(true)}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:shadow-lg cursor-pointer"
             style={{ 
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
               background: COLORS.primaryGradient,
               color: '#FFFFFF',
             }}
@@ -397,9 +386,8 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
             style={{ color: COLORS.textMuted }} 
           />
           <h3 
-            className="text-lg font-semibold mb-2"
+            className="text-lg font-semibold mb-2 font-heading"
             style={{ 
-              fontFamily: "'Cormorant Garamond', serif",
               color: COLORS.textPrimary 
             }}
           >
@@ -407,7 +395,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
           </h3>
           <p 
             style={{ 
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
               color: COLORS.textSecondary 
             }}
             className="text-sm mb-4"
@@ -421,7 +408,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
                 onClick={() => setQuery('')}
                 className="px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
                 style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   color: COLORS.primary,
                   border: `1px solid ${COLORS.primary}`
                 }}
@@ -434,7 +420,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
               onClick={() => handleFilterChange('all')}
               className="px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
               style={{ 
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
                 background: COLORS.primaryGradient,
                 color: '#FFFFFF',
               }}

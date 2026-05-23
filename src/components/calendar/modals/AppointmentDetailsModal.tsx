@@ -65,7 +65,7 @@ export function AppointmentDetailsModal({
           className="px-6 py-4" 
           style={{ backgroundColor: COLORS.primary, color: '#FFF' }}
         >
-          <h3 className="text-xl font-semibold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+          <h3 className="text-xl font-semibold font-heading">
             Detalles
           </h3>
         </div>

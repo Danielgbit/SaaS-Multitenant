@@ -74,20 +74,14 @@ export function DeleteClientModal({
           </div>
           
           <h2 
-            style={{ 
-              fontFamily: "'Cormorant Garamond', serif",
-              color: COLORS.textPrimary,
-            }}
-            className="text-xl font-semibold mb-2"
+            style={{ color: COLORS.textPrimary }}
+            className="text-xl font-semibold mb-2 font-heading"
           >
             Eliminar cliente
           </h2>
           
           <p 
-            style={{ 
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              color: COLORS.textSecondary,
-            }}
+            style={{ color: COLORS.textSecondary }}
             className="text-sm"
           >
             ¿Estás seguro de que deseas eliminar a <strong>{client.name}</strong>? 
@@ -105,12 +99,7 @@ export function DeleteClientModal({
           {state.error && (
             <div 
               className="p-3 rounded-lg mb-4 text-sm text-center"
-              style={{ 
-                backgroundColor: '#FEF2F2',
-                border: `1px solid #FECACA`,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: COLORS.error,
-              }}
+              style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', color: COLORS.error }}
             >
               {state.error}
             </div>
@@ -122,7 +111,6 @@ export function DeleteClientModal({
               type="button"
               onClick={onClose}
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
                 borderRadius: COLORS.radius.md,
                 padding: '12px 20px',
               }}
@@ -134,7 +122,6 @@ export function DeleteClientModal({
               type="submit"
               disabled={isSubmitting}
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
                 borderRadius: COLORS.radius.md,
                 padding: '12px 20px',
                 backgroundColor: COLORS.error,

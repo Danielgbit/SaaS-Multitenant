@@ -217,7 +217,7 @@ export function ConfirmationsPanel({
                 </span>
               )}
             </div>
-            <h2 className="text-lg font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+            <h2 className="text-lg font-bold font-heading" style={{ color: COLORS.textPrimary }}>
               Confirmaciones
             </h2>
           </div>

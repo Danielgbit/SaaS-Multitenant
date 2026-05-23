@@ -162,10 +162,10 @@ export function PaymentModal({
                 <CheckCircle2 className="w-10 h-10" style={{ color: COLORS.success }} />
               </motion.div>
             </motion.div>
-            <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+            <h2 className="text-heading-2 mb-2" style={{ color: COLORS.textPrimary }}>
               Cobro Exitoso
             </h2>
-            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }} className="text-center">
+            <p className="text-center" style={{ color: COLORS.textSecondary }}>
               {formatCurrencyCOP(finalPrice)} cobrados a {clientName}
             </p>
           </motion.div>
@@ -207,7 +207,7 @@ export function PaymentModal({
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primaryLight }}>
               <DollarSign className="w-5 h-5 text-white" />
             </div>
-            <h2 id="payment-modal-title" className="text-xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+            <h2 id="payment-modal-title" className="text-heading-2" style={{ color: COLORS.textPrimary }}>
               Cobrar Servicio
             </h2>
           </div>
@@ -246,7 +246,7 @@ export function PaymentModal({
             </div>
             {services.length > 0 && (
               <div className="pt-2 border-t" style={{ borderColor: COLORS.border }}>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <p className="text-label mb-2" style={{ color: COLORS.textMuted }}>
                   Servicios
                 </p>
                 <div className="space-y-1.5">
@@ -260,10 +260,10 @@ export function PaymentModal({
               </div>
             )}
             <div className="flex justify-between items-center pt-3 border-t" style={{ borderColor: COLORS.border }}>
-              <span className="text-lg font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+              <span className="font-heading text-lg font-bold" style={{ color: COLORS.textPrimary }}>
                 Total {adjustment !== 0 && <span className="text-sm font-normal" style={{ color: COLORS.textMuted }}>({adjustment > 0 ? '+' : ''}{formatCurrencyCOP(adjustment)})</span>}
               </span>
-              <span className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.success }}>
+              <span className="font-heading text-2xl font-bold" style={{ color: COLORS.success }}>
                 {formatCurrencyCOP(finalPrice)}
               </span>
             </div>
@@ -271,7 +271,7 @@ export function PaymentModal({
 
           {/* Payment Methods */}
           <div className="space-y-3">
-            <label className="block text-sm font-semibold" style={{ color: COLORS.textPrimary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <label className="block text-sm font-semibold" style={{ color: COLORS.textPrimary }}>
               Método de pago
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
@@ -366,7 +366,7 @@ export function PaymentModal({
 
           {/* Notes */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <label className="block text-sm font-medium" style={{ color: COLORS.textSecondary }}>
               Nota interna (opcional)
             </label>
             <textarea

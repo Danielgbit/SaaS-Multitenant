@@ -58,8 +58,7 @@ export function AdminNav({ userEmail }: AdminNavProps) {
           <div className="flex items-center gap-8">
             <Link
               href="/admin"
-              className="text-xl font-semibold text-[#0F172A] dark:text-white"
-              style={{ fontFamily: 'var(--font-display)' }}
+              className="text-xl font-semibold text-[#0F172A] dark:text-white font-heading"
             >
               Prügressy Admin
             </Link>

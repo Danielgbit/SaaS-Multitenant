@@ -87,7 +87,6 @@ function FloatingInput({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           style={{
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
             padding: Icon ? '20px 44px 8px 44px' : '20px 44px 8px 16px',
             color: COLORS.textPrimary,
             backgroundColor: 'transparent',
@@ -99,7 +98,6 @@ function FloatingInput({
           htmlFor={name}
           className="absolute left-4 transition-all duration-200 pointer-events-none"
           style={{
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
             color: error 
               ? COLORS.error 
               : isFocused 
@@ -130,7 +128,6 @@ function FloatingInput({
         <p 
           className="flex items-center gap-1 mt-1.5"
           style={{ 
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
             color: COLORS.error,
             fontSize: '12px',
           }}
@@ -144,7 +141,6 @@ function FloatingInput({
         <p 
           className="flex items-center gap-1 mt-1.5"
           style={{ 
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
             color: COLORS.textMuted,
             fontSize: '12px',
           }}
@@ -207,7 +203,6 @@ function FloatingTextarea({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           style={{
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
             padding: '28px 44px 8px 16px',
             color: COLORS.textPrimary,
             backgroundColor: 'transparent',
@@ -220,7 +215,6 @@ function FloatingTextarea({
           htmlFor={name}
           className="absolute left-4 transition-all duration-200 pointer-events-none"
           style={{
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
             color: error 
               ? COLORS.error 
               : isFocused 
@@ -239,7 +233,6 @@ function FloatingTextarea({
           <div 
             className="absolute right-4 bottom-3"
             style={{ 
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
               fontSize: '11px',
               color: value.length > maxLength * 0.9 ? COLORS.error : COLORS.textMuted,
             }}
@@ -253,7 +246,6 @@ function FloatingTextarea({
         <p 
           className="flex items-center gap-1 mt-1.5"
           style={{ 
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
             color: COLORS.error,
             fontSize: '12px',
           }}
@@ -294,13 +286,13 @@ function ConfirmationTooltip({ COLORS }: {   COLORS: ReturnType<typeof useThemeC
           <div className="space-y-3">
             <p 
               className="text-sm font-medium"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}
+               style={{ color: COLORS.textPrimary }}
             >
               💡 Recuerda preguntar al cliente:
             </p>
             <p 
               className="text-xs"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}
+               style={{ color: COLORS.textSecondary }}
             >
               "¿Desea recibir confirmaciones de sus citas por WhatsApp?"
             </p>
@@ -309,26 +301,26 @@ function ConfirmationTooltip({ COLORS }: {   COLORS: ReturnType<typeof useThemeC
             
             <p 
               className="text-xs font-medium"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}
+               style={{ color: COLORS.textPrimary }}
             >
               Si dice NO, selecciona:
             </p>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span style={{ fontSize: '14px' }}>📞</span>
-                <span className="text-xs" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}>
+                <span className="text-xs" style={{ color: COLORS.textSecondary }}>
                   "Ya lo llamé" → Confirmado por llamada
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span style={{ fontSize: '14px' }}>👤</span>
-                <span className="text-xs" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}>
+                <span className="text-xs" style={{ color: COLORS.textSecondary }}>
                   "Confirmó aquí" → En persona
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span style={{ fontSize: '14px' }}>⏸️</span>
-                <span className="text-xs" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }}>
+                <span className="text-xs" style={{ color: COLORS.textSecondary }}>
                   "No desea" → Sin confirmación
                 </span>
               </div>
@@ -381,7 +373,6 @@ function ConfirmationToggle({
           <span 
             className="text-sm font-medium"
             style={{ 
-              fontFamily: "'Plus Jakarta Sans', sans-serif", 
               color: COLORS.textPrimary 
             }}
           >
@@ -392,7 +383,6 @@ function ConfirmationToggle({
         <p 
           className="text-xs mt-0.5"
           style={{ 
-            fontFamily: "'Plus Jakarta Sans', sans-serif", 
             color: COLORS.textSecondary 
           }}
         >
@@ -443,7 +433,6 @@ function MethodSelector({
       <p 
         className="text-sm font-medium"
         style={{ 
-          fontFamily: "'Plus Jakarta Sans', sans-serif", 
           color: COLORS.textPrimary 
         }}
       >
@@ -478,8 +467,7 @@ function MethodSelector({
               <p 
                 className="text-sm font-medium"
                 style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif", 
-                  color: COLORS.textPrimary 
+                      color: COLORS.textPrimary 
                 }}
               >
                 {label}
@@ -487,8 +475,7 @@ function MethodSelector({
               <p 
                 className="text-xs"
                 style={{ 
-                  fontFamily: "'Plus Jakarta Sans', sans-serif", 
-                  color: COLORS.textMuted 
+                      color: COLORS.textMuted 
                 }}
               >
                 {description}
@@ -721,16 +708,14 @@ export function EditClientModal({
               <div>
                 <h2 
                   style={{ 
-                    fontFamily: "'Cormorant Garamond', serif",
                     color: '#FFFFFF',
                   }}
-                  className="text-2xl font-semibold"
+                  className="text-2xl font-semibold font-heading"
                 >
                   {isNewClient ? 'Nuevo Cliente' : 'Editar Cliente'}
                 </h2>
                 <p 
                   style={{ 
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
                     color: 'rgba(255,255,255,0.8)',
                     fontSize: '13px'
                   }}
@@ -766,7 +751,7 @@ export function EditClientModal({
               }}
             >
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px' }}>
+              <span style={{ fontSize: '14px' }}>
                 {formErrors._form}
               </span>
             </div>
@@ -863,7 +848,6 @@ export function EditClientModal({
               onClick={handleClose}
               disabled={isLoading}
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
                 borderRadius: COLORS.radius.md,
                 padding: '14px 20px',
                 color: COLORS.textSecondary,
@@ -883,7 +867,6 @@ export function EditClientModal({
               type="submit"
               disabled={isLoading}
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
                 borderRadius: COLORS.radius.md,
                 padding: '14px 24px',
                 backgroundColor: COLORS.primary,

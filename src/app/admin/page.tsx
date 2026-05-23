@@ -26,10 +26,7 @@ export default async function AdminPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1
-          className="text-3xl font-semibold text-[#0F172A] dark:text-white"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
+        <h1 className="text-3xl font-semibold text-[#0F172A] dark:text-white font-heading">
           Panel de Administración
         </h1>
         <p className="text-[#475569] dark:text-slate-400 mt-2">

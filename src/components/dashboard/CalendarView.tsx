@@ -334,7 +334,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   }
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: '0 4px 24px rgba(15,76,92,0.08)', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: '0 4px 24px rgba(15,76,92,0.08)' }}>
       {/* Header with gradient */}
       <div className="px-6 md:px-8 py-5 md:py-6 flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden" style={{ 
         background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
@@ -348,7 +348,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
             <Calendar className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-semibold capitalize text-white" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{formatMonthYear()}</h2>
+            <h2 className="text-2xl font-semibold capitalize text-white font-heading">{formatMonthYear()}</h2>
             <p className="text-sm mt-1 text-white/80">{getWeekRange()}</p>
           </div>
         </div>
@@ -437,10 +437,9 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
               {date.toLocaleDateString('es-ES', { weekday: 'short' })}
             </p>
             <div 
-              className={`inline-flex items-center justify-center mt-1 w-8 h-8 md:w-9 md:h-9 rounded-full transition-all duration-200`}
+              className={`inline-flex items-center justify-center mt-1 w-8 h-8 md:w-9 md:h-9 rounded-full transition-all duration-200 font-heading`}
               style={{ 
                 color: isToday(date) ? COLORS.primary : COLORS.textPrimary, 
-                fontFamily: 'Cormorant Garamond, serif',
                 backgroundColor: isToday(date) ? `${COLORS.primary}20` : 'transparent',
                 boxShadow: isToday(date) ? `0 0 0 2px ${COLORS.surface}, 0 0 0 4px ${COLORS.primary}` : 'none'
               }}

@@ -76,7 +76,7 @@ export function EmployeeServicesTab({
           <Scissors className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 font-heading">
             Servicios disponibles
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">

@@ -133,21 +133,21 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
       <div className="px-8 pt-8 pb-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: COLORS.textMuted }}>
               Recepción
             </span>
             <span className="text-xs" style={{ color: COLORS.border }}>/</span>
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: COLORS.primary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: COLORS.primary }}>
               Confirmaciones
             </span>
           </div>
 
           <div className="flex items-end justify-between gap-6">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+              <h1 className="font-heading text-4xl font-bold tracking-tight" style={{ color: COLORS.textPrimary }}>
                 Pagos por Cobrar
               </h1>
-              <p className="mt-1 text-sm" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <p className="mt-1 text-sm" style={{ color: COLORS.textSecondary }}>
                 {pendingCount === 0
                   ? 'No hay pagos pendientes'
                   : `${pendingCount} pago${pendingCount !== 1 ? 's' : ''} pendiente${pendingCount !== 1 ? 's' : ''}`
@@ -169,10 +169,10 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs font-medium uppercase tracking-wider" style={{ color: COLORS.textMuted }}>
                     Ingreso hoy
                   </p>
-                  <p className="text-3xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                  <p className="font-heading text-3xl font-bold" style={{ color: COLORS.textPrimary }}>
                     {formatCurrencyCOP(todayIncome)}
                   </p>
                 </div>
@@ -186,10 +186,10 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                   <Clock className="w-5 h-5" style={{ color: COLORS.warning }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                  <p className="font-heading text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
                     {pendingCount}
                   </p>
-                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary }}>
                     Pendientes
                   </p>
                 </div>
@@ -203,10 +203,10 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                   <CheckCircle className="w-5 h-5" style={{ color: COLORS.success }} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                  <p className="font-heading text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
                     {completedCount}
                   </p>
-                  <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-xs" style={{ color: COLORS.textSecondary }}>
                     Completados
                   </p>
                 </div>
@@ -221,10 +221,10 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                     <XCircle className="w-5 h-5" style={{ color: COLORS.error }} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                    <p className="font-heading text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
                       {noShowCount}
                     </p>
-                    <p className="text-xs" style={{ color: COLORS.textSecondary, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <p className="text-xs" style={{ color: COLORS.textSecondary }}>
                       No asisten
                     </p>
                   </div>
@@ -245,7 +245,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                 onClick={() => setFilter(opt.value)}
                 className="px-5 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer"
                 style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  
                   backgroundColor: filter === opt.value ? COLORS.primary : 'transparent',
                   color: filter === opt.value ? '#FFFFFF' : COLORS.textSecondary,
                   boxShadow: filter === opt.value ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
@@ -279,10 +279,10 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                   <Receipt className="w-10 h-10 text-white" />
                 )}
               </div>
-              <h3 className="text-xl font-semibold mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+              <h3 className="font-heading text-heading-2 font-semibold mb-2" style={{ color: COLORS.textPrimary }}>
                 {filter === 'pending' ? 'Sin pagos pendientes' : filter === 'completed' ? 'Sin completados hoy' : 'Sin confirmaciones'}
               </h3>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textSecondary }} className="max-w-sm mx-auto">
+              <p style={{  color: COLORS.textSecondary }} className="max-w-sm mx-auto">
                 {filter === 'pending'
                   ? 'Los pagos pendientes aparecerán aquí cuando los empleados marquen servicios como completados.'
                   : filter === 'completed'
@@ -337,7 +337,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-bold truncate" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: COLORS.textPrimary }}>
+                            <h3 className="font-bold truncate" style={{  color: COLORS.textPrimary }}>
                               {conf.client_name || 'Cliente'}
                             </h3>
                             <Badge variant={conf.confirmation_type === 'walkin' ? 'warning' : 'primary'} size="sm">
@@ -364,13 +364,13 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
 
                       {/* Amount + Status */}
                       <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                        <p className="text-2xl font-bold" style={{ fontFamily: "'Cormorant Garamond', serif", color: COLORS.textPrimary }}>
+                        <p className="font-heading text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
                           {formatCurrencyCOP(conf.total_amount)}
                         </p>
                         <div className="flex items-center gap-2">
                           {isPending && urgency.label !== 'Reciente' && (
                             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${urgency.pulse ? 'animate-pulse' : ''}`}
-                              style={{ backgroundColor: urgency.bg, color: urgency.color, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              style={{ backgroundColor: urgency.bg, color: urgency.color }}>
                               <Clock className="w-3 h-3" />
                               {urgency.label}
                             </span>
@@ -390,7 +390,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                       {/* Services */}
                       {conf.services?.length > 0 && (
                         <div className="mb-4">
-                          <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: COLORS.textMuted, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: COLORS.textMuted }}>
                             Servicios
                           </p>
                           <div className="space-y-1.5">

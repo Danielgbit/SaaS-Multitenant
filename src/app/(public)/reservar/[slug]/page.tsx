@@ -60,7 +60,7 @@ export default async function PublicBookingPage({ params }: Props) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FAFAF9' }}>
         <div className="text-center px-6">
-          <h1 className="text-2xl font-semibold mb-2" style={{ color: '#1A2B32', fontFamily: 'Cormorant Garamond, serif' }}>
+          <h1 className="text-2xl font-semibold mb-2 font-heading" style={{ color: '#1A2B32' }}>
             {organization.name}
           </h1>
           <p style={{ color: '#5A6B70' }}>

@@ -99,8 +99,7 @@ export default async function EmployeeDetailPage({ params }: Props) {
               </div>
               <div>
                 <h1 
-                  className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100"
-                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                  className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 font-heading"
                 >
                   {employee.name}
                 </h1>
