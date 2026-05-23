@@ -67,7 +67,7 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
 
   return (
     <motion.aside 
-      className="hidden md:flex flex-col z-30 flex-shrink-0 border-r bg-white/80 dark:bg-white/[0.04] backdrop-blur-xl border-r border-white/20 dark:border-white/10"
+      className="hidden md:flex flex-col z-30 flex-shrink-0 border-r bg-white/80 dark:bg-white/[0.04] backdrop-blur-xl border-r border-white/20 dark:border-white/[0.12]"
       initial={{ width: isCollapsed ? 72 : 260 }}
       animate={{ width: isCollapsed ? 72 : 260 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -101,14 +101,14 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
                 Trabajando en
               </span>
               <span
-                className="font-display text-lg font-bold tracking-tight whitespace-nowrap overflow-hidden text-slate-900 dark:text-slate-100 truncate"
+                className="font-heading text-lg font-bold tracking-tight whitespace-nowrap overflow-hidden text-slate-900 dark:text-slate-100 truncate"
               >
                 {organizationName}
               </span>
             </div>
           ) : (
             <span
-              className="font-display text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300 text-slate-900 dark:text-slate-100"
+              className="font-heading text-xl font-bold tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300 text-slate-900 dark:text-slate-100"
               style={{
                 opacity: isCollapsed ? 0 : 1,
               }}
@@ -139,7 +139,7 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
           {Object.entries(groupedRoutes).map(([group, routes]) => (
             <div key={group} className="space-y-1">
               {!isCollapsed && (
-                <div className="text-[10px] font-semibold uppercase tracking-wider px-3 py-2 text-slate-400 dark:text-slate-500">
+                <div className="text-sidebar-label px-3 py-2 text-slate-400 dark:text-slate-500">
                   {group}
                 </div>
               )}
@@ -158,7 +158,7 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
                         ${isActive 
                           ? '' 
-                          : 'hover:bg-[#0F4C5C]/5 dark:hover:bg-white/[0.04]'
+                          : 'hover:bg-[#0F4C5C]/5 dark:hover:bg-white/[0.08]'
                         }
                       `}
                       style={{ 
@@ -194,13 +194,12 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
                         style={{ 
                           opacity: isCollapsed ? 0 : 1,
                           width: isCollapsed ? '0' : 'auto',
-                          fontFamily: "'Plus Jakarta Sans', sans-serif",
                           color: isActive ? COLORS.accentTeal : undefined,
                         }}
                       >
                         {route.label}
                         {route.badge && (
-                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                          <span className="text-label px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
                             {route.badge}
                           </span>
                         )}
@@ -219,7 +218,6 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
                           <Icon className="w-4 h-4" style={{ color: COLORS.accentTeal }} aria-hidden="true" />
                           <span 
                             className="text-sm font-medium flex items-center gap-2"
-                            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                           >
                             {route.label}
                             {route.badge && (
@@ -252,12 +250,12 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
           <div className="mb-3 transition-all duration-300 animate-scaleIn">
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-[#0F4C5C] to-[#115E59] dark:from-[#38BDF8] dark:to-[#2DD4BF]">
-                <span className="text-white font-semibold text-xs uppercase" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <span className="text-white font-semibold text-xs uppercase">
                   {role.charAt(0)}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                <p className="text-sidebar-label text-slate-400 dark:text-slate-500">
                   Rol
                 </p>
                 <p className="text-sm font-semibold capitalize truncate" style={{ color: COLORS.accentTeal }}>
@@ -280,7 +278,7 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
           aria-label={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
         >
           {!isCollapsed && (
-            <span className="text-sm font-medium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <span className="text-sm font-medium">
               Colapsar
             </span>
           )}

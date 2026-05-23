@@ -5,7 +5,7 @@ import { TrendingUp, TrendingDown } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from './Card'
 import { Skeleton } from './Skeleton'
-import { motion, useMotionValue, useTransform } from 'framer-motion'
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 
 interface MetricCardProps {
   title: string
@@ -31,31 +31,20 @@ function CountUpNumber({ value, isCurrency = false }: { value: number; isCurrenc
   const prevValueRef = useRef<number>(0)
 
   useEffect(() => {
-    // Only animate on first load or when value actually changes
-    if (value !== prevValueRef.current) {
-      const numValue = typeof value === 'number' ? value : parseFloat(value) || 0
-      motionValue.set(0)
-      motionValue.set(numValue)
+    const numValue = typeof value === 'number' ? value : parseFloat(value) || 0
+    
+    if (numValue !== prevValueRef.current) {
       prevValueRef.current = numValue
+      motionValue.set(0)
+      const controls = animate(motionValue, numValue, {
+        duration: 0.4,
+        ease: 'easeOut',
+      })
+      return controls.stop
     }
   }, [value, motionValue])
 
   return <motion.span>{displayValue}</motion.span>
-}
-
-interface MetricCardProps {
-  title: string
-  value: number | string
-  prefix?: string
-  suffix?: string
-  icon?: ReactNode
-  iconColor?: string
-  change?: number
-  trendLabel?: string
-  loading?: boolean
-  onClick?: () => void
-  footer?: ReactNode
-  className?: string
 }
 
 export function MetricCard({
@@ -101,14 +90,14 @@ export function MetricCard({
         onKeyDown={onClick ? (e) => { if (e.key === 'Enter') onClick() } : undefined}
       >
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium" style={{ color: COLORS.textSecondary }}>
+          <span className="text-metric-label" style={{ color: COLORS.textSecondary }}>
             {title}
           </span>
           {icon && (
             <div
               className="p-2.5 rounded-xl transition-transform duration-200 group-hover:scale-110"
               style={{
-                background: `radial-gradient(circle at center, ${COLORS.accentTealSubtle}, transparent)`,
+                background: `radial-gradient(circle at center, ${COLORS.isDark ? COLORS.accentTealLight : COLORS.accentTealSubtle}, transparent)`,
               }}
             >
               <span style={{ color: resolvedIconColor }}>{icon}</span>
@@ -118,11 +107,11 @@ export function MetricCard({
 
         <div className="flex items-end gap-2 mb-1 relative">
           {prefix && (
-            <span className="text-xl font-semibold" style={{ color: COLORS.textSecondary }}>
+            <span className="text-metric-label" style={{ color: COLORS.textSecondary }}>
               {prefix}
             </span>
           )}
-          <span className="text-3xl font-bold" style={{ color: COLORS.textPrimary }}>
+          <span className="text-metric" style={{ color: COLORS.textPrimary }}>
             {isNumeric ? <CountUpNumber value={value as number} /> : formattedValue}
           </span>
           {suffix && (
@@ -152,13 +141,13 @@ export function MetricCard({
               <TrendingDown className="w-4 h-4" style={{ color: COLORS.error }} />
             )}
             <span
-              className="text-sm font-semibold"
+              className="text-metric-change"
               style={{ color: isPositive ? COLORS.success : COLORS.error }}
             >
               {isPositive ? '+' : ''}{change}%
             </span>
             {trendLabel && (
-              <span className="text-xs" style={{ color: COLORS.textMuted }}>
+              <span className="text-body-xs" style={{ color: COLORS.textMuted }}>
                 {trendLabel}
               </span>
             )}

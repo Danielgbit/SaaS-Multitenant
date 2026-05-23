@@ -80,10 +80,10 @@ export function PaymentModal({
   }, [isOpen])
 
   function getTimerUrgency(m: number) {
-    if (m < 5) return { color: '#16A34A', bg: '#D1FAE5', label: 'Reciente', pct: 0 }
-    if (m < 15) return { color: '#D97706', bg: '#FEF3C7', label: 'Pendiente', pct: 0.33 }
-    if (m < 30) return { color: '#F97316', bg: '#FFEDD5', label: 'Atención', pct: 0.66 }
-    return { color: '#DC2626', bg: '#FEE2E2', label: 'Urgente', pct: 1 }
+    if (m < 5) return { color: COLORS.success, bg: COLORS.successLight, label: 'Reciente', pct: 0 }
+    if (m < 15) return { color: COLORS.warning, bg: COLORS.warningLight, label: 'Pendiente', pct: 0.33 }
+    if (m < 30) return { color: '#F97316', bg: COLORS.amberLight, label: 'Atención', pct: 0.66 }
+    return { color: COLORS.error, bg: COLORS.errorLight, label: 'Urgente', pct: 1 }
   }
 
   const timer = getTimerUrgency(timeElapsed)
@@ -202,7 +202,7 @@ export function PaymentModal({
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: COLORS.border, backgroundColor: COLORS.isDark ? '#1E293B' : '#FAFAF9' }}>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200/60 dark:border-slate-700/60" style={{ backgroundColor: COLORS.isDark ? '#1E293B' : '#F8FAFC' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primaryLight }}>
               <DollarSign className="w-5 h-5 text-white" />

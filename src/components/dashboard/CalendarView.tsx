@@ -459,14 +459,14 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
           return (
             <div 
               key={i} 
-              className={`${i !== 6 && i !== 0 ? 'md:border-r' : ''} p-4 md:p-4 transition-colors duration-200`}
+              className={`${i !== 6 && i !== 0 ? 'md:border-r' : ''} p-2 md:p-4 transition-colors duration-200`}
               style={{ 
                 borderColor: COLORS.border, 
                 backgroundColor: isToday(date) ? `${COLORS.primary}05` : COLORS.surface 
               }}
             >
               {/* Mobile: Day header */}
-              <div className="md:hidden mb-3 flex items-center justify-between">
+              <div className="md:hidden mb-2 flex items-center justify-between">
                 <span className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
                   {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}
                 </span>
@@ -478,7 +478,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
               </div>
               
               {dayAppts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full py-10">
+                <div className="flex flex-col items-center justify-center h-full py-4 sm:py-10">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: COLORS.borderLight }}>
                     <Calendar className="w-5 h-5" style={{ color: COLORS.textMuted }} />
                   </div>

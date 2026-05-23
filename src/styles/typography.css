@@ -1,0 +1,160 @@
+/* ========================================
+   Typography System — Prügressy SaaS
+   Fonts: Poppins (headings) + Manrope (body)
+   Framework: Tailwind v4 + CSS custom properties
+   DO NOT use @apply in this file
+   ======================================== */
+
+/* === HEADINGS (Poppins 600, 700) === */
+
+.text-display {
+  font-family: var(--font-heading);
+  font-size: clamp(1.875rem, 3vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: var(--tracking-heading);
+  line-height: var(--leading-display);
+}
+
+.text-heading-1 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-heading-sm);
+  line-height: var(--leading-heading);
+}
+
+.text-heading-2 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-heading-sm);
+  line-height: var(--leading-heading);
+}
+
+.text-heading-3 {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: var(--leading-compact);
+}
+
+/* === BODY (Manrope) === */
+
+.text-body {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: var(--leading-body);
+  letter-spacing: var(--tracking-body);
+}
+
+.text-body-sm {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-body);
+}
+
+.text-body-xs {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  line-height: var(--leading-compact);
+  letter-spacing: var(--tracking-body);
+}
+
+/* === UI LABELS === */
+
+.text-label {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.text-caption {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* === METRICS / KPI === */
+
+.text-metric {
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: var(--tracking-heading);
+  line-height: var(--leading-display);
+}
+
+.text-metric-label {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.text-metric-change {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* === BUTTONS === */
+
+.text-btn {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-body);
+}
+
+.text-btn-sm {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* === TABLES === */
+
+.text-table-header {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.text-table-cell {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+}
+
+/* === SIDEBAR === */
+
+.text-sidebar-nav {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.text-sidebar-label {
+  font-family: var(--font-sans);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+/* === TRACKING UTILITIES === */
+
+.tracking-heading {
+  letter-spacing: var(--tracking-heading);
+}
+
+.tracking-label {
+  letter-spacing: var(--tracking-label);
+}
+
+.tracking-caps {
+  letter-spacing: var(--tracking-caps);
+}

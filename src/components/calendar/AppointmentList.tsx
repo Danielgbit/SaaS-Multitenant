@@ -54,9 +54,22 @@ export function AppointmentList({
     />
   )
 
+  const [collapsed, setCollapsed] = React.useState(true)
+
   return (
-    <div className="space-y-3">
+    <div className={`space-y-1 md:space-y-3 ${collapsed ? 'max-h-[200px] overflow-y-auto overscroll-contain' : ''} md:max-h-none md:overflow-visible`}>
       {renderAppointments(renderCard, renderCluster)}
+      {collapsed && appointments.length > 3 && (
+        <div className="md:hidden text-center pt-1">
+          <button
+            onClick={() => setCollapsed(false)}
+            className="text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            style={{ color: COLORS.primary }}
+          >
+            +{appointments.length - 3} más
+          </button>
+        </div>
+      )}
     </div>
   )
 }

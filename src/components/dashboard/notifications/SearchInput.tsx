@@ -74,7 +74,7 @@ export function SearchInput({
         value={value}
         onChange={handleChange}
         placeholder={placeholder}
-        className="w-full rounded-lg border bg-background pl-10 pr-10 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+        className="w-full rounded-xl border bg-background/70 backdrop-blur-[6px] pl-10 pr-10 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         style={{ borderColor: 'hsl(var(--border))' }}
       />
       {value && (

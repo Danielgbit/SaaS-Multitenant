@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ChevronDown, ChevronRight, Copy, Check, Search, Filter, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronDown, ChevronRight, Copy, Check, Search, X, Inbox } from 'lucide-react'
 
 interface Event {
   id: string
@@ -37,21 +38,6 @@ function eventSeverity(eventType: string): 'success' | 'warning' | 'error' | 'in
   return map[eventType] || 'neutral'
 }
 
-function eventColor(eventType: string): string {
-  const map: Record<string, string> = {
-    DELIVERED: 'border-green-200 bg-green-50',
-    READ: 'border-green-200 bg-green-50',
-    SENT: 'border-blue-200 bg-blue-50',
-    QUEUED: 'border-gray-200 bg-gray-50',
-    PROCESSING: 'border-amber-200 bg-amber-50',
-    FAILED: 'border-red-200 bg-red-50',
-    DEAD_LETTERED: 'border-purple-200 bg-purple-50',
-    REPLIED: 'border-blue-200 bg-blue-50',
-    CANCELLED: 'border-gray-200 bg-gray-50',
-  }
-  return map[eventType] || 'border-border bg-muted'
-}
-
 function formatRelativeTime(dateStr: string) {
   const date = new Date(dateStr)
   const now = new Date()
@@ -76,30 +62,73 @@ function formatLatency(ms?: number): string | null {
   return `${Math.floor(ms / 60000)}min`
 }
 
-function latencyColor(ms?: number): string {
-  if (ms === undefined || ms === null) return ''
-  if (ms < 10) return 'text-green-600 bg-green-50 border-green-200'
-  if (ms < 1000) return 'text-amber-600 bg-amber-50 border-amber-200'
-  return 'text-red-600 bg-red-50 border-red-200'
+function getEventColor(eventType: string) {
+  const map: Record<string, string> = {
+    DELIVERED: 'hsl(var(--success))',
+    READ: 'hsl(var(--success))',
+    SENT: 'hsl(var(--info))',
+    QUEUED: 'hsl(var(--text-muted))',
+    PROCESSING: 'hsl(var(--warning))',
+    FAILED: 'hsl(var(--error))',
+    DEAD_LETTERED: 'hsl(var(--error))',
+    REPLIED: 'hsl(var(--info))',
+    CANCELLED: 'hsl(var(--text-muted))',
+  }
+  return map[eventType] || 'hsl(var(--text-muted))'
 }
 
-function severityBadge(severity: 'success' | 'warning' | 'error' | 'info' | 'neutral') {
-  const map: Record<string, { bg: string; text: string; border: string }> = {
-    success: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-    warning: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-    error: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-    info: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-    neutral: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' },
+function getEventBgColor(eventType: string) {
+  const map: Record<string, string> = {
+    DELIVERED: 'hsl(var(--success) / 0.08)',
+    READ: 'hsl(var(--success) / 0.08)',
+    SENT: 'hsl(var(--info) / 0.08)',
+    QUEUED: 'hsl(var(--muted) / 0.3)',
+    PROCESSING: 'hsl(var(--warning) / 0.08)',
+    FAILED: 'hsl(var(--error) / 0.08)',
+    DEAD_LETTERED: 'hsl(var(--error) / 0.08)',
+    REPLIED: 'hsl(var(--info) / 0.08)',
+    CANCELLED: 'hsl(var(--muted) / 0.3)',
   }
-  const s = map[severity]
-  return `${s.bg} ${s.text} ${s.border}`
+  return map[eventType] || 'hsl(var(--muted) / 0.3)'
+}
+
+function getEventBorderColor(eventType: string) {
+  const map: Record<string, string> = {
+    DELIVERED: 'hsl(var(--success) / 0.2)',
+    READ: 'hsl(var(--success) / 0.2)',
+    SENT: 'hsl(var(--info) / 0.2)',
+    QUEUED: 'hsl(var(--border))',
+    PROCESSING: 'hsl(var(--warning) / 0.2)',
+    FAILED: 'hsl(var(--error) / 0.2)',
+    DEAD_LETTERED: 'hsl(var(--error) / 0.2)',
+    REPLIED: 'hsl(var(--info) / 0.2)',
+    CANCELLED: 'hsl(var(--border))',
+  }
+  return map[eventType] || 'hsl(var(--border))'
+}
+
+function getLatencyColor(ms?: number) {
+  if (ms === undefined || ms === null) return 'text-muted-foreground'
+  if (ms < 10) return 'text-green-600'
+  if (ms < 1000) return 'text-amber-600'
+  return 'text-red-600'
+}
+
+function getSeverityStyle(severity: 'success' | 'warning' | 'error' | 'info' | 'neutral') {
+  const map: Record<string, { bg: string; text: string; border: string }> = {
+    success: { bg: 'hsl(var(--success) / 0.08)', text: 'text-green-700', border: 'hsl(var(--success) / 0.2)' },
+    warning: { bg: 'hsl(var(--warning) / 0.08)', text: 'text-amber-700', border: 'hsl(var(--warning) / 0.2)' },
+    error: { bg: 'hsl(var(--error) / 0.08)', text: 'text-red-700', border: 'hsl(var(--error) / 0.2)' },
+    info: { bg: 'hsl(var(--info) / 0.08)', text: 'text-blue-700', border: 'hsl(var(--info) / 0.2)' },
+    neutral: { bg: 'hsl(var(--muted) / 0.3)', text: 'text-gray-600', border: 'hsl(var(--border))' },
+  }
+  return map[severity]
 }
 
 export function EventTimeline({ events }: EventTimelineProps) {
   const [expandedTraces, setExpandedTraces] = useState<Set<string>>(new Set())
   const [filterTypes, setFilterTypes] = useState<Set<string>>(new Set(EVENT_TYPES))
   const [traceSearch, setTraceSearch] = useState('')
-  const [collapsed, setCollapsed] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const filteredEvents = useMemo(() => {
@@ -168,192 +197,296 @@ export function EventTimeline({ events }: EventTimelineProps) {
     })
   }
 
-  const anyExpanded = expandedTraces.size > 0
   const allExpanded = expandedTraces.size === sortedTraces.length
 
   return (
-    <div className="rounded-lg border p-4" style={{ borderColor: 'hsl(var(--border))' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold">Timeline de Eventos</h3>
-        <span className="text-xs text-muted-foreground">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-xl border bg-background/70 backdrop-blur-[6px] p-4"
+      style={{ borderColor: 'hsl(var(--border))' }}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold text-sm" style={{ color: 'hsl(var(--text-primary))' }}>
+          Timeline de Eventos
+        </h3>
+        <span className="text-xs font-mono" style={{ color: 'hsl(var(--text-muted))' }}>
           {filteredEvents.length} eventos
         </span>
       </div>
 
-      {/* Filters bar */}
-      <div className="mb-3 space-y-2">
+      <div className="space-y-3">
         <div className="flex flex-wrap gap-1.5">
-          {EVENT_TYPES.map((type) => (
-            <button
-              key={type}
-              onClick={() => toggleFilter(type)}
-              className={`rounded px-2 py-0.5 text-xs font-medium transition-colors border ${
-                filterTypes.has(type)
-                  ? `${severityBadge(eventSeverity(type))} border`
-                  : 'text-muted-foreground border-border bg-transparent opacity-50'
-              }`}
-            >
-              {type}
-              {!filterTypes.has(type) && <X className="inline w-2.5 h-2.5 ml-1" />}
-            </button>
-          ))}
+          {EVENT_TYPES.map((type) => {
+            const severity = eventSeverity(type)
+            const style = getSeverityStyle(severity)
+            const isActive = filterTypes.has(type)
+
+            return (
+              <motion.button
+                key={type}
+                onClick={() => toggleFilter(type)}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.1 }}
+                className={`rounded-lg px-2 py-1 text-[10px] font-mono uppercase tracking-wider transition-all border ${
+                  isActive
+                    ? 'opacity-100'
+                    : 'opacity-40 hover:opacity-70'
+                }`}
+                style={{
+                  backgroundColor: isActive ? style.bg : 'transparent',
+                  color: isActive ? style.text : 'hsl(var(--text-muted))',
+                  borderColor: isActive ? style.border : 'hsl(var(--border))',
+                }}
+              >
+                <span className="flex items-center gap-1">
+                  {type}
+                  {!isActive && <X className="w-2 h-2" />}
+                </span>
+              </motion.button>
+            )
+          })}
         </div>
+
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: 'hsl(var(--text-muted))' }} />
             <input
               type="text"
               value={traceSearch}
               onChange={(e) => setTraceSearch(e.target.value)}
               placeholder="Filtrar por trace ID..."
-              className="w-full rounded border bg-background pl-8 pr-3 py-1.5 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary transition-colors"
+              className="w-full rounded-lg border bg-background/70 backdrop-blur-[6px] pl-8 pr-3 py-1.5 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary transition-colors"
               style={{ borderColor: 'hsl(var(--border))' }}
             />
             {traceSearch && (
-              <button onClick={() => setTraceSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2">
-                <X className="w-3 h-3 text-muted-foreground" />
+              <button
+                onClick={() => setTraceSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded"
+              >
+                <X className="w-3 h-3" style={{ color: 'hsl(var(--text-muted))' }} />
               </button>
             )}
           </div>
           <button
             onClick={toggleExpandAll}
-            className="rounded border px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted transition-colors shrink-0"
-            style={{ borderColor: 'hsl(var(--border))' }}
+            className="rounded-lg border px-2.5 py-1.5 text-xs transition-colors hover:bg-muted/50"
+            style={{ borderColor: 'hsl(var(--border))', color: 'hsl(var(--text-secondary))' }}
           >
-            {allExpanded ? 'Collapse all' : 'Expand all'}
+            {allExpanded ? 'Collapse' : 'Expand'}
           </button>
         </div>
       </div>
 
-      {/* Events */}
       {filteredEvents.length === 0 ? (
-        <div className="text-center py-6 text-sm text-muted-foreground">
-          No hay eventos que coincidan con los filtros
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <Inbox className="w-8 h-8 mb-3" style={{ color: 'hsl(var(--text-muted))' }} />
+          <p className="text-sm" style={{ color: 'hsl(var(--text-secondary))' }}>
+            No hay eventos que coincidan con los filtros
+          </p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {sortedTraces.slice(0, 20).map(([traceId, traceEvents]) => {
-            const lastEventType = traceEvents[traceEvents.length - 1].event_type
-            const severity = eventSeverity(lastEventType)
-            const sevStyle = severityBadge(severity)
-            const isExpanded = expandedTraces.has(traceId) || expandedTraces.size === 0
+        <div className="space-y-2 mt-4">
+          <AnimatePresence initial={false}>
+            {sortedTraces.slice(0, 20).map(([traceId, traceEvents], index) => {
+              const lastEventType = traceEvents[traceEvents.length - 1].event_type
+              const severity = eventSeverity(lastEventType)
+              const style = getSeverityStyle(severity)
+              const isExpanded = expandedTraces.has(traceId) || expandedTraces.size === 0
 
-            return (
-              <div key={traceId} className="rounded border" style={{ borderColor: 'hsl(var(--border))' }}>
-                {/* Trace header */}
-                <button
-                  onClick={() => toggleTrace(traceId)}
-                  className="flex w-full items-center justify-between px-3 py-2 hover:bg-muted/50 transition-colors"
+              return (
+                <motion.div
+                  key={traceId}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ delay: index * 0.03, duration: 0.12 }}
+                  className="rounded-lg border overflow-hidden"
+                  style={{ borderColor: 'hsl(var(--border))' }}
                 >
-                  <div className="flex items-center gap-2 min-w-0">
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    )}
-                    <span className="font-mono text-xs truncate max-w-[120px]">{traceId.slice(0, 12)}...</span>
-                    <span className={`rounded px-1.5 py-0.5 text-xs font-medium border ${sevStyle}`}>
-                      {lastEventType}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      ({traceEvents.length} eventos)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleCopy(traceId, `trace-${traceId}`)
-                      }}
-                      className="rounded p-1 hover:bg-muted transition-colors"
-                      title="Copiar trace ID"
-                    >
-                      {copiedId === `trace-${traceId}` ? (
-                        <Check className="w-3.5 h-3.5 text-green-600" />
+                  <button
+                    onClick={() => toggleTrace(traceId)}
+                    className="flex w-full items-center justify-between px-3 py-2.5 hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4 shrink-0" style={{ color: 'hsl(var(--text-muted))' }} />
                       ) : (
-                        <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 shrink-0" style={{ color: 'hsl(var(--text-muted))' }} />
                       )}
-                    </button>
-                    <span className="text-xs text-muted-foreground">
-                      {formatRelativeTime(traceEvents[traceEvents.length - 1].created_at)}
-                    </span>
-                  </div>
-                </button>
-
-                {/* Trace events */}
-                {isExpanded && (
-                  <div className="border-t" style={{ borderColor: 'hsl(var(--border))' }} role="region">
-                    <div className="relative">
-                      <div className="absolute left-[26px] top-2 bottom-2 w-0.5" style={{ backgroundColor: 'hsl(var(--border))' }} />
-                      {traceEvents.map((event, idx) => {
-                        const colorClass = eventColor(event.event_type)
-                        const nextEvent = idx < traceEvents.length - 1 ? traceEvents[idx + 1] : null
-                        const latencyMs = nextEvent && event.created_at
-                          ? new Date(nextEvent.created_at).getTime() - new Date(event.created_at).getTime()
-                          : undefined
-
-                        return (
-                          <div key={event.id} className="relative flex items-start gap-3 px-3 py-2">
-                            <div className={`relative z-10 shrink-0 w-3 h-3 rounded-full mt-1.5 border-2 ${
-                              event.event_type === 'DELIVERED' || event.event_type === 'READ'
-                                ? 'bg-green-400 border-green-600'
-                                : event.event_type === 'FAILED' || event.event_type === 'DEAD_LETTERED'
-                                ? 'bg-red-400 border-red-600'
-                                : event.event_type === 'PROCESSING'
-                                ? 'bg-amber-400 border-amber-600'
-                                : 'bg-blue-400 border-blue-600'
-                            }`} />
-                            <div className={`flex-1 rounded border px-3 py-1.5 ${colorClass}`}>
-                              <div className="flex items-center justify-between gap-2 flex-wrap">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium">{event.event_type}</span>
-                                  {event.latency_ms !== undefined && event.latency_ms !== null && (
-                                    <span className={`rounded px-1 py-0.5 text-[10px] font-mono border ${latencyColor(event.latency_ms)}`}>
-                                      {formatLatency(event.latency_ms)}
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <span>{formatTime(event.created_at)}</span>
-                                  {latencyMs !== undefined && latencyMs !== null && (
-                                    <span className={`font-mono text-[10px] ${latencyColor(latencyMs)}`}>
-                                      +{formatLatency(latencyMs)}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              {event.metadata && Object.keys(event.metadata).length > 0 && (
-                                <details className="mt-1 group">
-                                  <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground list-none flex items-center gap-1">
-                                    <span className="group-open:hidden">Ver metadata</span>
-                                    <span className="hidden group-open:inline">Ocultar</span>
-                                  </summary>
-                                  <pre className="mt-1 p-2 rounded text-xs whitespace-pre-wrap font-mono overflow-x-auto max-h-32" style={{ backgroundColor: 'hsl(var(--muted))' }}>
-                                    {JSON.stringify(event.metadata, null, 2)}
-                                  </pre>
-                                </details>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
+                      <span className="font-mono text-xs truncate max-w-[140px]" style={{ color: 'hsl(var(--text-secondary))' }}>
+                        {traceId.slice(0, 12)}...
+                      </span>
+                      <span
+                        className="rounded px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider border"
+                        style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}
+                      >
+                        {lastEventType}
+                      </span>
+                      <span className="text-xs" style={{ color: 'hsl(var(--text-muted))' }}>
+                        ({traceEvents.length})
+                      </span>
                     </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleCopy(traceId, `trace-${traceId}`)
+                        }}
+                        className="rounded p-1 hover:bg-muted/50 transition-colors"
+                        title="Copiar trace ID"
+                      >
+                        {copiedId === `trace-${traceId}` ? (
+                          <Check className="w-3.5 h-3.5 text-green-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" style={{ color: 'hsl(var(--text-muted))' }} />
+                        )}
+                      </button>
+                      <span className="text-xs font-mono" style={{ color: 'hsl(var(--text-muted))' }}>
+                        {formatRelativeTime(traceEvents[traceEvents.length - 1].created_at)}
+                      </span>
+                    </div>
+                  </button>
 
-          {/* Events without trace */}
+                  <AnimatePresence initial={false}>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                        className="border-t overflow-hidden"
+                        style={{ borderColor: 'hsl(var(--border))' }}
+                      >
+                        <div className="relative py-2">
+                          <svg className="absolute left-[25px] top-2 bottom-2 w-0.5" style={{ overflow: 'visible' }}>
+                            <line
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="100%"
+                              stroke="hsl(var(--border))"
+                              strokeWidth="1.5"
+                              strokeOpacity="0.4"
+                            />
+                          </svg>
+                          {traceEvents.map((event, idx) => {
+                            const dotColor = getEventColor(event.event_type)
+                            const bgColor = getEventBgColor(event.event_type)
+                            const borderColor = getEventBorderColor(event.event_type)
+                            const nextEvent = idx < traceEvents.length - 1 ? traceEvents[idx + 1] : null
+                            const latencyMs = nextEvent
+                              ? new Date(nextEvent.created_at).getTime() - new Date(event.created_at).getTime()
+                              : undefined
+
+                            return (
+                              <motion.div
+                                key={event.id}
+                                initial={{ opacity: 0, x: -4 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.02, duration: 0.12 }}
+                                className="relative flex items-start gap-3 px-3 py-1.5"
+                              >
+                                <div
+                                  className="relative z-10 shrink-0 w-2.5 h-2.5 rounded-full mt-2 border-2"
+                                  style={{
+                                    backgroundColor: dotColor,
+                                    borderColor: dotColor,
+                                    boxShadow: (event.event_type === 'FAILED' || event.event_type === 'DEAD_LETTERED')
+                                      ? `0 0 8px ${dotColor}40`
+                                      : 'none',
+                                  }}
+                                />
+                                <div
+                                  className="flex-1 rounded-lg border px-3 py-2"
+                                  style={{ backgroundColor: bgColor, borderColor }}
+                                >
+                                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-mono font-medium uppercase tracking-wider" style={{ color: 'hsl(var(--text-primary))' }}>
+                                        {event.event_type}
+                                      </span>
+                                      {event.latency_ms !== undefined && event.latency_ms !== null && (
+                                        <span
+                                          className="rounded px-1 py-0.5 text-[10px] font-mono border"
+                                          style={{
+                                            color: getLatencyColor(event.latency_ms),
+                                            backgroundColor: 'hsl(var(--background) / 0.5)',
+                                            borderColor: 'hsl(var(--border))',
+                                          }}
+                                        >
+                                          {formatLatency(event.latency_ms)}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs font-mono">
+                                      <span style={{ color: 'hsl(var(--text-muted))' }}>
+                                        {formatTime(event.created_at)}
+                                      </span>
+                                      {latencyMs !== undefined && latencyMs !== null && (
+                                        <span className={getLatencyColor(latencyMs)}>
+                                          +{formatLatency(latencyMs)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {event.metadata && Object.keys(event.metadata).length > 0 && (
+                                    <details className="mt-2 group">
+                                      <summary className="text-xs cursor-pointer hover:text-foreground list-none flex items-center gap-1" style={{ color: 'hsl(var(--text-muted))' }}>
+                                        <span className="group-open:hidden">Ver metadata</span>
+                                        <span className="hidden group-open:inline">Ocultar</span>
+                                      </summary>
+                                      <pre
+                                        className="mt-2 p-2 rounded-lg text-xs whitespace-pre-wrap font-mono overflow-x-auto max-h-40"
+                                        style={{
+                                          backgroundColor: 'hsl(var(--muted) / 0.3)',
+                                          color: 'hsl(var(--text-secondary))',
+                                        }}
+                                      >
+                                        {JSON.stringify(event.metadata, null, 2)}
+                                      </pre>
+                                    </details>
+                                  )}
+                                </div>
+                              </motion.div>
+                            )
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+
           {eventsByTrace.noTrace.slice(0, 5).map((event) => (
-            <div key={event.id} className="rounded px-3 py-2 text-sm" style={{ backgroundColor: 'hsl(var(--muted) / 0.5)' }}>
+            <motion.div
+              key={event.id}
+              initial={{ opacity: 0, x: -4 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.12 }}
+              className="rounded-lg px-3 py-2 text-sm"
+              style={{ backgroundColor: 'hsl(var(--muted) / 0.3)' }}
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs text-muted-foreground">{formatTime(event.created_at)}</span>
-                  <span className="font-medium">{event.event_type}</span>
+                  <span className="font-mono text-xs" style={{ color: 'hsl(var(--text-muted))' }}>
+                    {formatTime(event.created_at)}
+                  </span>
+                  <span className="font-mono text-xs font-medium uppercase tracking-wider" style={{ color: 'hsl(var(--text-primary))' }}>
+                    {event.event_type}
+                  </span>
                   {event.latency_ms !== undefined && event.latency_ms !== null && (
-                    <span className={`rounded px-1 py-0.5 text-[10px] font-mono border ${latencyColor(event.latency_ms)}`}>
+                    <span
+                      className="rounded px-1 py-0.5 text-[10px] font-mono border"
+                      style={{
+                        color: getLatencyColor(event.latency_ms),
+                        backgroundColor: 'hsl(var(--background) / 0.5)',
+                        borderColor: 'hsl(var(--border))',
+                      }}
+                    >
                       {formatLatency(event.latency_ms)}
                     </span>
                   )}
@@ -361,25 +494,24 @@ export function EventTimeline({ events }: EventTimelineProps) {
                 {event.queue_item_id && (
                   <button
                     onClick={() => handleCopy(event.queue_item_id!, `qi-${event.id}`)}
-                    className="rounded p-1 hover:bg-muted transition-colors"
+                    className="rounded p-1 hover:bg-muted/50 transition-colors"
                   >
                     {copiedId === `qi-${event.id}` ? (
                       <Check className="w-3 h-3 text-green-600" />
                     ) : (
-                      <Copy className="w-3 h-3 text-muted-foreground" />
+                      <Copy className="w-3 h-3" style={{ color: 'hsl(var(--text-muted))' }} />
                     )}
                   </button>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}
 
-      {/* Footer */}
-      <div className="mt-3 text-xs text-muted-foreground">
-        Mostrando {Math.min(sortedTraces.length, 20)} trazas de {sortedTraces.length} · {filteredEvents.length - eventsByTrace.noTrace.length} eventos con trace · {eventsByTrace.noTrace.length} sin trace
+      <div className="mt-3 pt-3 border-t text-xs font-mono" style={{ borderColor: 'hsl(var(--border))', color: 'hsl(var(--text-muted))' }}>
+        Mostrando {Math.min(sortedTraces.length, 20)} de {sortedTraces.length} trazas
       </div>
-    </div>
+    </motion.div>
   )
 }

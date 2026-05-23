@@ -1,25 +1,19 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, Cormorant_Garamond, DM_Sans } from 'next/font/google'
+import { Poppins, Manrope } from 'next/font/google'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { Toaster } from 'sonner'
 import './globals.css'
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const poppins = Poppins({
   subsets: ['latin'],
-  variable: '--font-plus-jakarta-sans',
+  variable: '--font-heading',
   display: 'swap',
+  weight: ['600', '700'],
 })
 
-const cormorantGaramond = Cormorant_Garamond({
-  weight: ['400', '500', '600', '700'],
+const manrope = Manrope({
   subsets: ['latin'],
-  variable: '--font-cormorant-garamond',
-  display: 'swap',
-})
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  variable: '--font-dm-sans',
+  variable: '--font-sans',
   display: 'swap',
 })
 
@@ -36,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body
-        className={`${plusJakartaSans.variable} ${cormorantGaramond.variable} ${dmSans.variable} font-display min-h-screen flex flex-col`}
+        className={`${poppins.variable} ${manrope.variable} font-sans antialiased min-h-screen flex flex-col`}
       >
         <ThemeProvider
           attribute="class"
@@ -51,7 +45,7 @@ export default function RootLayout({
             closeButton
             toastOptions={{
               style: {
-                fontFamily: 'var(--font-plus-jakarta-sans)',
+                fontFamily: 'var(--font-sans)',
               },
             }}
           />

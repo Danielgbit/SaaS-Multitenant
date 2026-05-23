@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { AlertCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 interface DeadLetterBannerProps {
   count: number
@@ -9,24 +10,43 @@ interface DeadLetterBannerProps {
 
 export function DeadLetterBanner({ count }: DeadLetterBannerProps) {
   return (
-    <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-xl border border-l-4 p-4 shadow-sm"
+      style={{
+        borderColor: 'hsl(var(--border))',
+        borderLeftColor: 'hsl(var(--warning))',
+        backgroundColor: 'hsl(var(--warning) / 0.05)',
+        boxShadow: '0 1px 2px hsl(var(--warning) / 0.1)',
+      }}
+    >
       <div className="flex items-center gap-3">
-        <AlertCircle className="h-5 w-5 text-purple-600" />
+        <AlertCircle className="h-5 w-5 shrink-0" style={{ color: 'hsl(var(--warning))' }} />
         <div className="flex-1">
-          <p className="font-medium text-purple-900">
-            {count} notificación(es) en dead letter
-          </p>
-          <p className="text-sm text-purple-700">
-            Revisar y decidir si reintentar o descartar.
-          </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <p className="font-semibold text-sm" style={{ color: 'hsl(var(--warning))' }}>
+                {count} notificación(es) en dead letter
+              </p>
+              <p className="text-sm mt-0.5" style={{ color: 'hsl(var(--text-secondary))' }}>
+                Revisar y decidir si reintentar o descartar.
+              </p>
+            </div>
+          </div>
         </div>
         <Link
           href="/notificaciones/dead-letter"
-          className="rounded bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+          className="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          style={{
+            backgroundColor: 'hsl(var(--warning) / 0.1)',
+            color: 'hsl(var(--warning))',
+          }}
         >
           Gestionar
         </Link>
       </div>
-    </div>
+    </motion.div>
   )
 }
