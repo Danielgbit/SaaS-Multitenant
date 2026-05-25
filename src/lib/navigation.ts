@@ -171,16 +171,14 @@ export function filterRoutesByRole(routes: RouteDefinition[], role: string | nul
   })
 }
 
-export function groupRoutesByGroup(routes: RouteDefinition[]): Record<string, RouteDefinition[]> {
-  const grouped: Record<string, RouteDefinition[]> = {}
-
+export function groupRoutesByGroup<T extends RouteDefinition>(routes: T[]): Record<string, T[]> {
+  const grouped: Record<string, T[]> = {}
   for (const route of routes) {
     if (!grouped[route.group]) {
       grouped[route.group] = []
     }
     grouped[route.group].push(route)
   }
-
   return grouped
 }
 

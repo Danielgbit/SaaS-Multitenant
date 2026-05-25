@@ -9,6 +9,10 @@ import { getRoleLabel } from '@/lib/rbac'
 import { motion } from 'framer-motion'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
+interface RouteWithActive extends RouteDefinition {
+  active?: boolean
+}
+
 interface CollapsibleSidebarProps {
   role: string | null
   organizationName?: string | null
@@ -21,18 +25,13 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
   const pathname = usePathname()
   const [hoveredRoute, setHoveredRoute] = useState<string | null>(null)
   const [tooltipVisible, setTooltipVisible] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const isEmpleado = role === 'empleado'
 
   const filteredRoutes = filterRoutesByRole(dashboardRoutes, role)
 
-  const routesWithActive: RouteDefinition[] = filteredRoutes.map(route => ({
+  const routesWithActive: RouteWithActive[] = filteredRoutes.map(route => ({
     ...route,
     active: isRouteActive(pathname, route),
   }))
@@ -152,9 +151,9 @@ export function CollapsibleSidebar({ role, organizationName, isCollapsed, onTogg
                   {group}
                 </div>
               )}
-              {routes.map((route: typeof filteredRoutes[0]) => {
+              {routes.map((route) => {
                 const Icon = route.icon
-                const isActive = route.active
+                const isActive = route.active ?? false
                 const isHovered = hoveredRoute === route.href
                 
                 return (

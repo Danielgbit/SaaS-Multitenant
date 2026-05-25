@@ -10,6 +10,10 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import { dashboardRoutes, filterRoutesByRole, groupRoutesByGroup, isRouteActive, type RouteDefinition } from '@/lib/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 
+interface RouteWithActive extends RouteDefinition {
+  active?: boolean
+}
+
 interface MobileNavProps {
   isOpen: boolean
   onClose: () => void
@@ -34,7 +38,7 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
   const [secondarySheetOpen, setSecondarySheetOpen] = useState(false)
 
   const filteredRoutes = filterRoutesByRole(dashboardRoutes, role)
-  const routesWithActive: RouteDefinition[] = filteredRoutes.map(route => ({
+  const routesWithActive: RouteWithActive[] = filteredRoutes.map(route => ({
     ...route,
     active: isRouteActive(pathname, route),
   }))
@@ -176,9 +180,9 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
                     >
                       {group}
                     </div>
-                    {routes.map((route) => {
+                    {routes.map((route: RouteWithActive) => {
                       const Icon = route.icon
-                      const isActive = route.active
+                      const isActive = route.active ?? false
                       
                       return (
                         <Link
