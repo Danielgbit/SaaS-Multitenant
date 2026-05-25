@@ -1,7 +1,9 @@
 'use client'
 
-import { useServerAction } from '@/lib/use-server-action'
+import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData } from '@tanstack/react-query'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { dashboardKeys } from '@/lib/query-keys'
 import { getOverviewStats } from '@/actions/analytics/getOverviewStats'
 import { getAppointmentsTrend } from '@/actions/analytics/getAppointmentsTrend'
 import { getTopServices } from '@/actions/analytics/getTopServices'
@@ -35,33 +37,35 @@ function ErrorState({ error }: { error: Error }) {
   )
 }
 
-export function OverviewStatsGrid({ orgId, period }: { orgId: string; period: Period }) {
-  const { data, loading, error } = useServerAction(
-    () => getOverviewStats(orgId, period),
-    [orgId, period]
-  )
+function OverviewStatsGrid({ orgId, period }: { orgId: string; period: Period }) {
+  const { data, isLoading, error, isPlaceholderData } = useQuery({
+    queryKey: dashboardKeys.overview(orgId, period),
+    queryFn: () => getOverviewStats(orgId, period),
+    select: (result) => result.success ? result.data : null,
+    placeholderData: keepPreviousData,
+    staleTime: 60 * 1000,
+    meta: { errorMessage: 'No se pudieron cargar las estadísticas' },
+  })
 
-  if (loading && !data) return <StatsGridSkeleton />
+  if (isLoading && !data) return <StatsGridSkeleton />
   if (error) return <ErrorState error={error} />
-  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
-  if (!data?.data) return null
+  if (!data) return null
 
-  const result = data.data
   const statsCards = [
-    { title: 'Citas', value: result.appointments, change: result.appointmentsChange },
-    { title: 'Ingresos', value: result.revenue, change: result.revenueChange },
-    { title: 'Nuevos Clientes', value: result.clients, change: result.clientsChange },
-    { title: 'Ticket Promedio', value: result.avgTicket, change: result.appointmentsChange },
-    { title: 'Finalizadas', value: result.completionRate, suffix: '%', change: result.completionRateChange },
+    { title: 'Citas', value: data.appointments, change: data.appointmentsChange },
+    { title: 'Ingresos', value: data.revenue, change: data.revenueChange },
+    { title: 'Nuevos Clientes', value: data.clients, change: data.clientsChange },
+    { title: 'Ticket Promedio', value: data.avgTicket, change: data.appointmentsChange },
+    { title: 'Finalizadas', value: data.completionRate, suffix: '%', change: data.completionRateChange },
   ]
 
-  const total = result.appointments
-  const completed = result.completionRate && total
-    ? Math.round((result.completionRate / 100) * total) : 0
+  const total = data.appointments
+  const completed = data.completionRate && total
+    ? Math.round((data.completionRate / 100) * total) : 0
   const cancelled = total > 0 ? Math.round(((total - completed) / total) * 100) : 0
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4" style={{ opacity: isPlaceholderData ? 0.6 : 1, transition: 'opacity 200ms' }}>
       {statsCards.map(s => (
         <MetricCard key={s.title} {...s} value={s.value} trendLabel="vs período anterior" />
       ))}
@@ -70,102 +74,130 @@ export function OverviewStatsGrid({ orgId, period }: { orgId: string; period: Pe
   )
 }
 
-export function TrendChartSection({ orgId, period }: { orgId: string; period: Period }) {
+function TrendChartSection({ orgId, period }: { orgId: string; period: Period }) {
   const days = period === 'year' ? 90 : period === 'month' ? 30 : period === 'week' ? 14 : 7
-  const { data, loading, error } = useServerAction(
-    () => getAppointmentsTrend(orgId, days),
-    [orgId, days]
-  )
+  const { data, isLoading, error, isPlaceholderData } = useQuery({
+    queryKey: dashboardKeys.trend(orgId, days),
+    queryFn: () => getAppointmentsTrend(orgId, days),
+    select: (result) => result.success ? result.data : null,
+    placeholderData: keepPreviousData,
+    staleTime: 2 * 60 * 1000,
+    meta: { errorMessage: 'No se pudo cargar la tendencia' },
+  })
 
-  if (loading && !data) return <ChartSectionSkeleton />
+  if (isLoading && !data) return <ChartSectionSkeleton />
   if (error) return <ErrorState error={error} />
-  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
-  if (!data?.data) return null
+  if (!data) return null
 
-  return <TrendChart data={data.data} />
+  return <TrendChart data={data} />
 }
 
-export function RecentActivitySection({ orgId }: { orgId: string }) {
-  const { data, loading, error } = useServerAction(
-    () => getRecentActivity(orgId, 8),
-    [orgId]
-  )
+function RecentActivitySection({ orgId }: { orgId: string }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: dashboardKeys.recentActivity(orgId, 8),
+    queryFn: () => getRecentActivity(orgId, 8),
+    select: (result) => result.success ? result.data : null,
+    staleTime: 30 * 1000,
+    meta: { errorMessage: 'No se pudo cargar la actividad reciente' },
+  })
 
-  if (loading && !data) return <SidebarSectionSkeleton height="h-36" />
+  if (isLoading) return <SidebarSectionSkeleton height="h-36" />
   if (error) return <ErrorState error={error} />
-  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
-  if (!data?.data) return null
+  if (!data) return null
 
-  return <RecentActivity activities={data.data} />
+  return <RecentActivity activities={data} />
 }
 
-export function UpcomingSection({ orgId }: { orgId: string }) {
-  const { data, loading, error } = useServerAction(
-    () => getUpcomingAppointments(orgId, 5),
-    [orgId]
-  )
+function UpcomingSection({ orgId }: { orgId: string }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: dashboardKeys.upcoming(orgId, 5),
+    queryFn: () => getUpcomingAppointments(orgId, 5),
+    select: (result) => result.success ? result.data : null,
+    staleTime: 30 * 1000,
+    meta: { errorMessage: 'No se pudieron cargar las próximas citas' },
+  })
 
-  if (loading && !data) return <SidebarSectionSkeleton />
+  if (isLoading) return <SidebarSectionSkeleton />
   if (error) return <ErrorState error={error} />
-  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
-  if (!data?.data) return null
+  if (!data) return null
 
-  return <UpcomingAppointments appointments={data.data} />
+  return <UpcomingAppointments appointments={data} />
 }
 
-export function EmployeePerformanceSection({ orgId, period }: { orgId: string; period: Period }) {
-  const { data, loading, error } = useServerAction(
-    () => getEmployeePerformance(orgId, period),
-    [orgId, period]
-  )
+function EmployeePerformanceSection({ orgId, period }: { orgId: string; period: Period }) {
+  const { data, isLoading, error, isPlaceholderData } = useQuery({
+    queryKey: dashboardKeys.employeePerformance(orgId, period),
+    queryFn: () => getEmployeePerformance(orgId, period),
+    select: (result) => result.success ? result.data : null,
+    placeholderData: keepPreviousData,
+    staleTime: 2 * 60 * 1000,
+    meta: { errorMessage: 'No se pudo cargar el rendimiento' },
+  })
 
-  if (loading && !data) return <SidebarSectionSkeleton />
+  if (isLoading && !data) return <SidebarSectionSkeleton />
   if (error) return <ErrorState error={error} />
-  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
-  if (!data?.data) return null
+  if (!data) return null
 
-  return <EmployeePerformance employees={data.data} />
+  return <EmployeePerformance employees={data} />
 }
 
-export function PayrollSummarySection({ orgId }: { orgId: string }) {
-  const { data, loading, error } = useServerAction(
-    () => getPayrollSummary(orgId),
-    [orgId]
-  )
+function PayrollSummarySection({ orgId }: { orgId: string }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: dashboardKeys.payrollSummary(orgId),
+    queryFn: () => getPayrollSummary(orgId),
+    select: (result) => result.success ? result.data : null,
+    staleTime: 5 * 60 * 1000,
+    meta: { errorMessage: 'No se pudo cargar el resumen de nómina' },
+  })
 
-  if (loading && !data) return <SidebarSectionSkeleton height="h-32" />
+  if (isLoading) return <SidebarSectionSkeleton height="h-32" />
   if (error) return <ErrorState error={error} />
-  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
-  if (!data?.data) return null
+  if (!data) return null
 
-  return <PayrollSummaryWidget summary={data.data} />
+  return <PayrollSummaryWidget summary={data} />
 }
 
-export function AlertsSection({ orgId }: { orgId: string }) {
-  const { data, loading, error } = useServerAction(
-    () => getSystemAlerts(orgId),
-    [orgId]
-  )
+function AlertsSection({ orgId }: { orgId: string }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: dashboardKeys.alerts(orgId),
+    queryFn: () => getSystemAlerts(orgId),
+    select: (result) => result.success ? result.data : null,
+    staleTime: 60 * 1000,
+    meta: { errorMessage: 'No se pudieron cargar las alertas' },
+  })
 
-  if (loading && !data) return <SidebarSectionSkeleton />
+  if (isLoading) return <SidebarSectionSkeleton />
   if (error) return <ErrorState error={error} />
-  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
-  if (!data?.data) return null
+  if (!data) return null
 
-  return <AlertsPanel alerts={data.data} />
+  return <AlertsPanel alerts={data} />
 }
 
-export function TopServicesSection({ orgId, period }: { orgId: string; period: Period }) {
+function TopServicesSection({ orgId, period }: { orgId: string; period: Period }) {
   const days = period === 'year' ? 365 : period === 'month' ? 30 : 7
-  const { data, loading, error } = useServerAction(
-    () => getTopServices(orgId, 5, days),
-    [orgId, days]
-  )
+  const { data, isLoading, error, isPlaceholderData } = useQuery({
+    queryKey: dashboardKeys.topServices(orgId, 5, days),
+    queryFn: () => getTopServices(orgId, 5, days),
+    select: (result) => result.success ? result.data : null,
+    placeholderData: keepPreviousData,
+    staleTime: 2 * 60 * 1000,
+    meta: { errorMessage: 'No se pudieron cargar los servicios populares' },
+  })
 
-  if (loading && !data) return <TableSkeleton rows={3} />
+  if (isLoading && !data) return <TableSkeleton rows={3} />
   if (error) return <ErrorState error={error} />
-  if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
-  if (!data?.data) return null
+  if (!data) return null
 
-  return <TopServicesList services={data.data} />
+  return <TopServicesList services={data} />
+}
+
+export {
+  OverviewStatsGrid,
+  TrendChartSection,
+  RecentActivitySection,
+  UpcomingSection,
+  EmployeePerformanceSection,
+  PayrollSummarySection,
+  AlertsSection,
+  TopServicesSection,
 }
