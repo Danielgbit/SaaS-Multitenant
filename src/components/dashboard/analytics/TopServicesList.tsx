@@ -17,7 +17,7 @@ export function TopServicesList({ services }: TopServicesListProps) {
 
   if (!services || services.length === 0) {
     return (
-      <Card variant="surface" className="p-6">
+      <Card variant="surface" className="p-4 md:p-6">
         <EmptyState
           icon={<Scissors className="w-8 h-8" style={{ color: COLORS.primary }} />}
           title="No hay datos disponibles"
@@ -28,7 +28,7 @@ export function TopServicesList({ services }: TopServicesListProps) {
   }
 
   return (
-    <Card variant="surface" className="p-6">
+    <Card variant="surface" className="p-4 md:p-6">
       <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 font-serif" style={{ color: COLORS.textPrimary }}>
         <Sparkles className="w-5 h-5" style={{ color: COLORS.primary }} />
         Servicios Populares

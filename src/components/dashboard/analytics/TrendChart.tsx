@@ -49,7 +49,7 @@ export function TrendChart({ data }: TrendChartProps) {
 
   if (!data || data.length === 0) {
     return (
-      <Card variant="surface" className="p-6" style={{ height: '340px' }}>
+      <Card variant="surface" className="p-4 md:p-6" style={{ height: '340px' }}>
         <EmptyState
           icon={<Calendar className="w-8 h-8" style={{ color: COLORS.primary }} />}
           title="No hay datos disponibles"
@@ -60,7 +60,7 @@ export function TrendChart({ data }: TrendChartProps) {
   }
 
   return (
-    <Card variant="surface" className="p-6">
+    <Card variant="surface" className="p-4 md:p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold flex items-center gap-2 font-serif" style={{ color: COLORS.textPrimary }}>
           <TrendingUp className="w-5 h-5" style={{ color: COLORS.accentTeal }} />

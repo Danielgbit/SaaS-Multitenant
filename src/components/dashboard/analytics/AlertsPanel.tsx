@@ -39,7 +39,7 @@ export function AlertsPanel({ alerts }: AlertsPanelProps) {
   if (visibleAlerts.length === 0) return null
 
   return (
-    <Card variant="surface" className="p-6">
+    <Card variant="surface" className="p-4 md:p-6">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
           <Bell className="w-5 h-5" style={{ color: COLORS.primary }} />
