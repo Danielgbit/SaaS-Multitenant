@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { Calendar, Scissors, User, ChevronRight } from 'lucide-react'
+import { Calendar, Scissors, User, ChevronRight, CheckCircle2, Phone, MessageCircle, CalendarDays } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Badge } from '@/components/ui/Badge'
+import { QuickActionsMenu } from '@/components/dashboard/quick-actions/QuickActionsMenu'
 import type { UpcomingAppointment, UpcomingAppointmentsProps } from '@/types/analytics'
 
 export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps) {
@@ -30,6 +31,12 @@ export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps
       case 'confirmed': return 'Confirmada'
       case 'pending': return 'Pendiente'
       default: return status
+    }
+  }
+
+  const handleConfirm = (apt: UpcomingAppointment) => {
+    if (typeof window !== 'undefined') {
+      window.location.href = `/confirmations?appointment=${apt.id}`
     }
   }
 
@@ -63,7 +70,7 @@ export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps
             <Link
               key={apt.id}
               href={`/calendar`}
-              className="flex items-center gap-3 p-3 rounded-xl transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
+              className="group flex items-center gap-3 p-3 rounded-xl transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
               style={{ backgroundColor: COLORS.surfaceSubtle }}
             >
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
@@ -93,6 +100,15 @@ export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps
               <Badge variant={getStatusBadgeVariant(apt.status)} size="sm">
                 {getStatusLabel(apt.status)}
               </Badge>
+
+              <QuickActionsMenu
+                actions={[
+                  { label: 'Confirmar', icon: <CheckCircle2 className="w-4 h-4" />, variant: 'success', onClick: () => handleConfirm(apt) },
+                  { label: 'Llamar', icon: <Phone className="w-4 h-4" />, variant: 'default', href: `tel:${apt.client_phone}` },
+                  { label: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" />, variant: 'warning', href: `https://wa.me/${apt.client_phone?.replace(/[^0-9]/g, '')}?text=Hola ${apt.client_name}, te recuerdo tu cita` },
+                  { label: 'Reagendar', icon: <CalendarDays className="w-4 h-4" />, variant: 'default', href: `/calendar?reschedule=${apt.id}` },
+                ]}
+              />
             </Link>
           ))}
         </div>
