@@ -33,7 +33,7 @@ export function StaffUtilization({ data }: StaffUtilizationProps) {
   const overallColor = getUtilizationColor(data.overallUtilization)
 
   return (
-    <Card variant="surface" className="p-4 md:p-5">
+    <Card variant="surface" hover="lift" className="p-4 md:p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div
@@ -94,17 +94,17 @@ export function StaffUtilization({ data }: StaffUtilizationProps) {
           <Link
             key={signal.id}
             href={signal.actionHref || '/calendar'}
-            className="flex items-center justify-between p-2.5 rounded-lg transition-colors hover:opacity-80"
-            style={{ backgroundColor: COLORS.errorLight }}
+            className="flex items-center justify-between p-2.5 rounded-lg border-l-4 transition-all hover:opacity-90"
+            style={{ borderLeftColor: COLORS.error, backgroundColor: COLORS.errorLight }}
           >
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4" style={{ color: COLORS.error }} />
+              <AlertTriangle className="w-4 h-4 shrink-0" style={{ color: COLORS.error }} />
               <span className="text-sm font-medium" style={{ color: COLORS.error }}>
                 {signal.title}
               </span>
             </div>
             {signal.actionLabel && (
-              <span className="text-xs font-medium" style={{ color: COLORS.error }}>
+              <span className="text-xs font-medium ml-2" style={{ color: COLORS.error }}>
                 {signal.actionLabel}
                 <ArrowRight className="w-3 h-3 ml-1 inline" />
               </span>
@@ -116,17 +116,17 @@ export function StaffUtilization({ data }: StaffUtilizationProps) {
           <Link
             key={signal.id}
             href={signal.actionHref || '/booking'}
-            className="flex items-center justify-between p-2.5 rounded-lg transition-colors hover:opacity-80"
-            style={{ backgroundColor: COLORS.infoLight }}
+            className="flex items-center justify-between p-2.5 rounded-lg border-l-4 transition-all hover:opacity-90"
+            style={{ borderLeftColor: COLORS.info, backgroundColor: COLORS.infoLight }}
           >
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4" style={{ color: COLORS.info }} />
+              <Users className="w-4 h-4 shrink-0" style={{ color: COLORS.info }} />
               <span className="text-sm font-medium" style={{ color: COLORS.info }}>
                 {signal.title}
               </span>
             </div>
             {signal.actionLabel && (
-              <span className="text-xs font-medium" style={{ color: COLORS.info }}>
+              <span className="text-xs font-medium ml-2" style={{ color: COLORS.info }}>
                 {signal.actionLabel}
                 <ArrowRight className="w-3 h-3 ml-1 inline" />
               </span>

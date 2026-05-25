@@ -1,26 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTheme } from 'next-themes'
 import Link from 'next/link'
-import {
-  DollarSign,
-  Users,
-  TrendingUp,
-  Clock,
-  ChevronRight,
-  Plus,
-  Settings,
-  AlertTriangle,
-  Wallet,
-  Receipt,
-  ChevronDown,
-  TrendingDown,
-  ArrowUpDown
-} from 'lucide-react'
+import { DollarSign, ChevronRight, Plus, ArrowUpDown, Users, TrendingUp, AlertTriangle, Wallet, Clock, Receipt, ChevronDown, TrendingDown } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { LoanModal } from './LoanModal'
 import { PeriodSelector } from './PeriodSelector'
+import { PayrollHeader } from './PayrollHeader'
+import { PayrollStatsOverview } from './PayrollStatsOverview'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
@@ -210,49 +197,9 @@ export function PayrollClient({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div
-        className="relative overflow-hidden rounded-2xl p-6 md:p-8"
-        style={{
-          background: COLORS.primaryGradient,
-        }}
-      >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-
-        <div className="relative flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Wallet className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
-                Gestión de Personal
-              </p>
-              <h1 className="text-3xl font-bold text-white font-heading"
-              >
-                Nómina
-              </h1>
-              <p className="text-sm mt-1 text-white/80">
-                {settings?.payroll_type
-                  ? `Pago ${periodLabels[settings.payroll_type]}`
-                  : 'Resumen consolidado de nómina'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Link
-              href="/payroll/settings"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium backdrop-blur-sm transition-all duration-200 hover:bg-white/10"
-              style={{ color: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.1)' }}
-            >
-              <Settings className="w-4 h-4" />
-              Configurar
-            </Link>
-          </div>
-        </div>
-      </div>
+      <PayrollHeader
+        payrollTypeLabel={settings?.payroll_type ? `Pago ${periodLabels[settings.payroll_type]}` : 'Resumen consolidado de nómina'}
+      />
 
       {/* Period Selector */}
       <div
@@ -305,88 +252,13 @@ export function PayrollClient({
         />
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div
-          className="p-5 rounded-2xl border"
-          style={{
-            backgroundColor: COLORS.surfaceGlass,
-            borderColor: COLORS.border,
-          }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.primary + '15' }}>
-              <Users className="w-4 h-4" style={{ color: COLORS.primary }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Empleados
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
-            {employees.length}
-          </p>
-        </div>
-
-        <div
-          className="p-5 rounded-2xl border"
-          style={{
-            backgroundColor: COLORS.surfaceGlass,
-            borderColor: COLORS.border,
-          }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.success + '15' }}>
-              <TrendingUp className="w-4 h-4" style={{ color: COLORS.success }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Total Comisiones
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.success }}>
-            {loading ? '...' : formatCurrencyCOP(totals.commission)}
-          </p>
-        </div>
-
-        <div
-          className="p-5 rounded-2xl border"
-          style={{
-            backgroundColor: COLORS.surfaceGlass,
-            borderColor: COLORS.border,
-          }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.warning + '15' }}>
-              <AlertTriangle className="w-4 h-4" style={{ color: COLORS.warning }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Total Préstamos
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.warning }}>
-            {loading ? '...' : formatCurrencyCOP(totals.debt)}
-          </p>
-        </div>
-
-        <div
-          className="p-5 rounded-2xl border"
-          style={{
-            backgroundColor: COLORS.surfaceGlass,
-            borderColor: COLORS.border,
-          }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: COLORS.success + '15' }}>
-              <Wallet className="w-4 h-4" style={{ color: COLORS.success }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Neto Total a Pagar
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.success }}>
-            {loading ? '...' : formatCurrencyCOP(totals.net)}
-          </p>
-        </div>
-      </div>
+      <PayrollStatsOverview
+        employeeCount={employees.length}
+        totalCommissions={totals.commission}
+        totalDebt={totals.debt}
+        totalNet={totals.net}
+        loading={loading}
+      />
 
       {/* Table View */}
       {viewMode === 'table' && (

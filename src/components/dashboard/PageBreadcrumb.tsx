@@ -64,7 +64,7 @@ export function PageBreadcrumb() {
           return (
             <div key={item.segment} className="flex items-center gap-1">
               {index > 0 && (
-                <ChevronRight className="w-4 h-4" style={{ color: COLORS.textMuted, opacity: 0.5 }} />
+                <ChevronRight className="w-4 h-4" style={{ color: COLORS.textMuted }} />
               )}
               <span
                 className="text-sm cursor-pointer transition-colors"
@@ -72,8 +72,8 @@ export function PageBreadcrumb() {
                   color: isLast ? COLORS.textSecondary : COLORS.textMuted,
                   fontWeight: isLast ? 500 : 400
                 }}
-                onMouseEnter={e => { if (!isLast) e.currentTarget.style.color = COLORS.textSecondary }}
-                onMouseLeave={e => { if (!isLast) e.currentTarget.style.color = COLORS.textMuted }}
+                onMouseEnter={e => { if (!isLast) { e.currentTarget.style.color = COLORS.textSecondary; e.currentTarget.style.backgroundColor = COLORS.surfaceHover } }}
+                onMouseLeave={e => { if (!isLast) { e.currentTarget.style.color = COLORS.textMuted; e.currentTarget.style.backgroundColor = 'transparent' } }}
               >
                 {item.label}
               </span>

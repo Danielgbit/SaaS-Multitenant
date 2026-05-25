@@ -6,6 +6,8 @@ import { TrendingDown, AlertTriangle, CheckCircle2, Info, X, ChevronLeft, Chevro
 import { useQuery } from '@tanstack/react-query'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { getInsights } from '@/actions/analytics/getInsights'
+import { getTodayPulse } from '@/actions/analytics/getTodayPulse'
+import { getStaffUtilization } from '@/actions/analytics/getStaffUtilization'
 import { dashboardKeys } from '@/lib/query-keys'
 import { deriveOperationalSignals } from '@/lib/operational-intelligence'
 import type { Period, TodayPulse, StaffUtilizationSummary } from '@/types/analytics'
@@ -23,10 +25,35 @@ const iconMap = {
 }
 
 const colorMap = {
-  critical: { text: '#DC2626', bg: '#FEE2E2', border: '#FECACA' },
-  warning: { text: '#D97706', bg: '#FEF3C7', border: '#FDE68A' },
-  success: { text: '#059669', bg: '#D1FAE5', border: '#A7F3D0' },
-  info: { text: '#2563EB', bg: '#DBEAFE', border: '#BFDBFE' },
+  critical: (COLORS: ReturnType<typeof useThemeColors>) => ({
+    text: COLORS.error,
+    bg: COLORS.errorLight,
+    border: COLORS.error,
+  }),
+  warning: (COLORS: ReturnType<typeof useThemeColors>) => ({
+    text: COLORS.warning,
+    bg: COLORS.warningLight,
+    border: COLORS.warning,
+  }),
+  success: (COLORS: ReturnType<typeof useThemeColors>) => ({
+    text: COLORS.success,
+    bg: COLORS.successLight,
+    border: COLORS.success,
+  }),
+  info: (COLORS: ReturnType<typeof useThemeColors>) => ({
+    text: COLORS.info,
+    bg: COLORS.infoLight,
+    border: COLORS.info,
+  }),
+}
+
+type InsightItemType = {
+  id: string
+  type: 'critical' | 'warning' | 'success' | 'info'
+  title: string
+  description: string
+  metric?: string
+  action?: { label?: string; href?: string }
 }
 
 export function InsightsBanner({ orgId, period }: InsightsBannerProps) {
@@ -44,12 +71,16 @@ export function InsightsBanner({ orgId, period }: InsightsBannerProps) {
 
   const { data: pulseData } = useQuery({
     queryKey: dashboardKeys.pulse(orgId),
+    queryFn: () => getTodayPulse(orgId),
+    select: (result) => result.success ? result.data : undefined,
     staleTime: 30_000,
     enabled: orgId !== 'empleado',
   })
 
   const { data: staffData } = useQuery({
     queryKey: dashboardKeys.staffUtilization(orgId),
+    queryFn: () => getStaffUtilization(orgId),
+    select: (result) => result.success ? result.data : undefined,
     staleTime: 30_000,
     enabled: orgId !== 'empleado',
   })
@@ -62,7 +93,7 @@ export function InsightsBanner({ orgId, period }: InsightsBannerProps) {
     [pulseData, staffData]
   )
 
-  const operationalItems = useMemo(() => {
+  const operationalItems: InsightItemType[] = useMemo(() => {
     return bannerSignals.map(signal => ({
       id: signal.id,
       type: signal.severity,
@@ -74,50 +105,50 @@ export function InsightsBanner({ orgId, period }: InsightsBannerProps) {
   }, [bannerSignals])
 
   const insights = insightsData || []
-  const allItems = useMemo(() => [...operationalItems, ...insights], [operationalItems, insights])
+  const allItems: InsightItemType[] = useMemo(() => [...operationalItems, ...insights], [operationalItems, insights])
 
   const current = allItems[currentIndex]
   if (insightsLoading || allItems.length === 0) return null
 
+  const variantColors = colorMap[current.type](COLORS)
   const Icon = iconMap[current.type]
-  const colors = colorMap[current.type]
 
   const total = allItems.length
   const hasMultiple = total > 1
 
   return (
     <div
-      className="relative rounded-xl border p-4 flex items-start gap-3"
+      className="relative rounded-xl border p-4 flex items-start gap-3 animate-fade-in"
       style={{
-        backgroundColor: colors.bg,
-        borderColor: colors.border,
+        backgroundColor: variantColors.bg,
+        borderColor: variantColors.border + '40',
       }}
     >
       <div
-        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-        style={{ backgroundColor: colors.text + '20' }}
+        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform hover:scale-105"
+        style={{ backgroundColor: variantColors.text + '20' }}
       >
-        <Icon className="w-4 h-4" style={{ color: colors.text }} />
+        <Icon className="w-4 h-4" style={{ color: variantColors.text }} />
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          <p className="text-sm font-semibold" style={{ color: colors.text }}>
+          <p className="text-sm font-semibold" style={{ color: variantColors.text }}>
             {current.title}
           </p>
           {current.metric && (
             <span
               className="text-xs font-bold px-2 py-0.5 rounded-full"
               style={{
-                backgroundColor: colors.text + '20',
-                color: colors.text,
+                backgroundColor: variantColors.text + '20',
+                color: variantColors.text,
               }}
             >
               {current.metric}
             </span>
           )}
         </div>
-        <p className="text-xs" style={{ color: colors.text + 'CC' }}>
+        <p className="text-xs" style={{ color: variantColors.text + 'CC' }}>
           {current.description}
         </p>
 
@@ -126,13 +157,13 @@ export function InsightsBanner({ orgId, period }: InsightsBannerProps) {
             <Link
               href={current.action.href || '#'}
               className="text-xs font-medium underline underline-offset-2 hover:no-underline"
-              style={{ color: colors.text }}
+              style={{ color: variantColors.text }}
             >
               {current.action.label}
             </Link>
           )}
           {hasMultiple && (
-            <span className="text-xs" style={{ color: colors.text + '99' }}>
+            <span className="text-xs" style={{ color: variantColors.text + '99' }}>
               {currentIndex + 1} / {total}
             </span>
           )}
@@ -148,7 +179,7 @@ export function InsightsBanner({ orgId, period }: InsightsBannerProps) {
               type="button"
               aria-label="Anterior"
             >
-              <ChevronLeft className="w-3 h-3" style={{ color: colors.text }} />
+              <ChevronLeft className="w-3 h-3" style={{ color: variantColors.text }} />
             </button>
             <button
               onClick={() => setCurrentIndex(i => (i + 1) % total)}
@@ -156,7 +187,7 @@ export function InsightsBanner({ orgId, period }: InsightsBannerProps) {
               type="button"
               aria-label="Siguiente"
             >
-              <ChevronRight className="w-3 h-3" style={{ color: colors.text }} />
+              <ChevronRight className="w-3 h-3" style={{ color: variantColors.text }} />
             </button>
           </>
         )}
@@ -171,7 +202,7 @@ export function InsightsBanner({ orgId, period }: InsightsBannerProps) {
           type="button"
           aria-label="Descartar"
         >
-          <X className="w-3 h-3" style={{ color: colors.text }} />
+          <X className="w-3 h-3" style={{ color: variantColors.text }} />
         </button>
       </div>
     </div>

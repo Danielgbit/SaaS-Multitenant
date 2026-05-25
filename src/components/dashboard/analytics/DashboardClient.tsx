@@ -153,7 +153,7 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
       <OverviewStatsGrid orgId={organizationId} period={period} />
 
       {/* Main Content Grid - 2 columns on tablet, 2 on desktop */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
         {/* Left Column - TodayPulse + Chart */}
         <div className="space-y-6">

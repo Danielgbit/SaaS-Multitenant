@@ -21,7 +21,7 @@ interface HeaderProps {
   onConfirmationsToggle?: () => void
 }
 
-export function Header({ 
+export function Header ({ 
   organizationConnected, 
   organizationName, 
   role, 
@@ -79,16 +79,15 @@ export function Header({
 
   return (
     <header 
-      className={`sticky top-4 z-20 mx-4 md:mx-6 lg:mx-8 rounded-2xl border transition-all duration-200 ${
-        scrolled 
-          ? 'bg-white/90 dark:bg-slate-900/90 shadow-xl shadow-slate-900/10 dark:shadow-black/30 backdrop-blur-xl' 
-          : 'bg-white/85 dark:bg-slate-950/70 shadow-lg shadow-slate-900/8 dark:shadow-black/20 backdrop-blur-lg'
-      }`}
-      style={{ borderColor: COLORS.border }}
+      className="sticky top-4 z-20 mx-4 md:mx-6 lg:mx-8 rounded-2xl border transition-all duration-200"
+      style={{ 
+        borderColor: COLORS.border,
+        backgroundColor: scrolled ? COLORS.surfaceGlass : COLORS.glass,
+        boxShadow: scrolled ? COLORS.shadow.lg : COLORS.shadow.md,
+      }}
     >
       <div className="h-14 px-4 md:px-6 lg:px-8 flex items-center justify-between">
         
-        {/* Brand Zone */}
         <div className="flex items-center gap-2 min-w-0 md:min-w-[200px]">
           <Link 
             href="/dashboard"
@@ -113,8 +112,8 @@ export function Header({
                   <div
                     className="w-1.5 h-1.5 rounded-full"
                     style={{ 
-                      backgroundColor: organizationConnected ? COLORS.success : COLORS.amber,
-                      boxShadow: `0 0 0 2px ${organizationConnected ? COLORS.success + '33' : COLORS.amber + '33'}`
+                      backgroundColor: organizationConnected ? COLORS.success : COLORS.warning,
+                      boxShadow: `0 0 0 2px ${organizationConnected ? COLORS.success + '33' : COLORS.warning + '33'}`
                     }}
                     aria-hidden="true"
                   />
@@ -124,18 +123,15 @@ export function Header({
           </Link>
         </div>
 
-        {/* Breadcrumb Zone */}
         <div className="flex-1 flex items-center justify-center">
           <PageBreadcrumb />
         </div>
 
-        {/* Action Zone */}
         <div className="flex items-center gap-1 md:gap-1.5 flex-shrink-0">
-          {/* CTA: Nuevo turno */}
           {role !== 'empleado' && (
             <button
               onClick={handleNewAppointment}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-sm font-medium hover:brightness-105 hover:shadow-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2"
               style={{ 
                 background: COLORS.primaryGradient,
                 boxShadow: `0 2px 8px ${COLORS.primary}25`
@@ -146,16 +142,10 @@ export function Header({
             </button>
           )}
 
-          {/* Theme toggle */}
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-2 rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            style={{ 
-              color: COLORS.textMuted,
-              backgroundColor: 'transparent'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover; e.currentTarget.style.color = COLORS.textSecondary }}
-            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = COLORS.textMuted }}
+            className="p-2 rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 hover:opacity-80"
+            style={{ color: COLORS.textMuted }}
             aria-label={mounted ? (theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro') : 'Cambiar modo'}
             suppressHydrationWarning
           >
@@ -170,7 +160,6 @@ export function Header({
             )}
           </button>
 
-          {/* Notifications */}
           <div className="hidden md:block">
             <NotificationCenter
               userId={userId || ''}
@@ -179,7 +168,6 @@ export function Header({
             />
           </div>
 
-          {/* Profile dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
@@ -221,16 +209,19 @@ export function Header({
                       <p className="text-xs mt-0.5" style={{ color: COLORS.textMuted }}>
                         {organizationName || 'Organización'}
                       </p>
+                      {userEmail && (
+                        <p className="text-xs mt-0.5 truncate" style={{ color: COLORS.textMuted }}>
+                          {userEmail}
+                        </p>
+                      )}
                     </div>
                   )}
                   
                   <Link
                     href="/settings"
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
                     style={{ color: COLORS.textSecondary }}
                     onClick={() => setProfileDropdownOpen(false)}
-                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover; e.currentTarget.style.color = COLORS.textPrimary }}
-                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = COLORS.textSecondary }}
                   >
                     <Settings className="w-4 h-4" />
                     Configuración

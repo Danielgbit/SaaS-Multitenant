@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { X, MoreHorizontal, LogOut, LayoutDashboard, CalendarDays, CheckCircle, Bell } from 'lucide-react'
+import { X, MoreHorizontal, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getRoleLabel } from '@/lib/rbac'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { dashboardRoutes, filterRoutesByRole, groupRoutesByGroup, type RouteDefinition } from '@/lib/navigation'
+import { dashboardRoutes, filterRoutesByRole, groupRoutesByGroup, isRouteActive, type RouteDefinition } from '@/lib/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface MobileNavProps {
@@ -17,12 +17,15 @@ interface MobileNavProps {
   organizationName?: string | null
 }
 
-const PRIMARY_ROUTES = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Inicio' },
-  { href: '/calendar', icon: CalendarDays, label: 'Agenda' },
-  { href: '/confirmations', icon: CheckCircle, label: 'Confirmar' },
-  { href: '/notificaciones', icon: Bell, label: 'Alertas' },
-]
+const PRIMARY_ROUTE_KEYS = ['/dashboard', '/calendar', '/confirmations', '/notificaciones']
+
+const PRIMARY_ROUTES = PRIMARY_ROUTE_KEYS.map(href => {
+  const route = dashboardRoutes.find(r => r.href === href)
+  if (!route) {
+    throw new Error(`PRIMARY_ROUTE: missing route for href=${href}`)
+  }
+  return { href, label: route.label, icon: route.icon }
+})
 
 export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNavProps) {
   const COLORS = useThemeColors()
@@ -33,14 +36,7 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
   const filteredRoutes = filterRoutesByRole(dashboardRoutes, role)
   const routesWithActive: RouteDefinition[] = filteredRoutes.map(route => ({
     ...route,
-    active:
-      route.href === '/dashboard'
-        ? pathname === '/dashboard' || pathname === '/'
-        : route.href === '/notificaciones'
-          ? pathname === '/notificaciones' || pathname.startsWith('/notificaciones/dead-letter') || pathname.startsWith('/notificaciones/validacion') || pathname.startsWith('/notificaciones/messages')
-          : route.href === '/payroll'
-            ? pathname.startsWith('/payroll') && !pathname.startsWith('/payroll/mi')
-            : pathname.startsWith(route.href),
+    active: isRouteActive(pathname, route),
   }))
   const groupedRoutes = groupRoutesByGroup(routesWithActive)
 
@@ -65,7 +61,6 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
     onClose()
   }
 
-  // Close primary nav when opening secondary
   useEffect(() => {
     if (secondarySheetOpen) {
       onClose()
@@ -74,9 +69,12 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
 
   return (
     <>
-      {/* Bottom Navigation */}
       <motion.nav
-        className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-white/20 dark:border-white/10 safe-area-bottom"
+        className="fixed bottom-0 left-0 right-0 z-40 md:hidden backdrop-blur-xl border-t safe-area-bottom"
+        style={{ 
+          backgroundColor: COLORS.surfaceGlass,
+          borderColor: COLORS.border
+        }}
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         exit={{ y: 100 }}
@@ -89,11 +87,19 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
               <Link
                 key={href}
                 href={href}
-                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? 'text-[#0F4C5C] dark:text-[#38BDF8] bg-[#0F4C5C]/5 dark:bg-[#38BDF8]/10'
-                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
+                aria-current={isActive ? 'page' : undefined}
+                className={`
+                  flex flex-col items-center gap-1 px-3 py-2 rounded-xl
+                  transition-all duration-200
+                  ${isActive
+                    ? ''
+                    : 'hover:opacity-80'
+                  }
+                `}
+                style={{
+                  color: isActive ? COLORS.primary : COLORS.textMuted,
+                  backgroundColor: isActive ? COLORS.primarySubtle : 'transparent',
+                }}
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''}`} />
                 <span className="text-caption font-medium">{label}</span>
@@ -103,7 +109,9 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
           
           <button
             onClick={handleMoreClick}
-            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl hover:opacity-80 transition-all duration-200"
+            style={{ color: COLORS.textMuted }}
+            aria-label="Más opciones"
           >
             <MoreHorizontal className="w-5 h-5" />
             <span className="text-caption font-medium">Más</span>
@@ -111,12 +119,12 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
         </div>
       </motion.nav>
 
-      {/* Secondary Sheet */}
       <AnimatePresence>
         {secondarySheetOpen && (
           <>
             <motion.div
-              className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-50 backdrop-blur-sm md:hidden"
+              style={{ backgroundColor: COLORS.overlay }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -124,43 +132,48 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
             />
             
             <motion.div
-              className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white dark:bg-slate-900 rounded-t-3xl border-t border-white/20 dark:border-white/10 max-h-[85dvh] overflow-hidden"
+              className="fixed bottom-0 left-0 right-0 z-50 md:hidden rounded-t-3xl border-t max-h-[85dvh] overflow-hidden"
+              style={{ 
+                backgroundColor: COLORS.surface,
+                borderColor: COLORS.border
+              }}
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             >
-              {/* Handle */}
-              <div className="flex items-center justify-center py-4 border-b border-slate-200/60 dark:border-slate-700/60">
-                <div className="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+              <div className="flex items-center justify-center py-4" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
+                <div className="w-12 h-1.5 rounded-full" style={{ backgroundColor: COLORS.border }} />
               </div>
               
-              {/* Header */}
               <div className="flex items-center justify-between px-6 py-4">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  <p className="text-sm font-semibold" style={{ color: COLORS.textPrimary }}>
                     {organizationName || 'Prügressy'}
                   </p>
                   {role && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-xs mt-0.5" style={{ color: COLORS.textMuted }}>
                       {getRoleLabel(role)}
                     </p>
                   )}
                 </div>
                 <button
                   onClick={() => setSecondarySheetOpen(false)}
-                  className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="p-2.5 rounded-xl hover:opacity-80 transition-colors"
+                  style={{ color: COLORS.textMuted }}
                   aria-label="Cerrar"
                 >
-                  <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
               
-              {/* Navigation */}
               <nav className="flex-1 overflow-y-auto py-4 px-4 space-y-4" style={{ maxHeight: 'calc(85dvh - 180px)' }}>
                 {Object.entries(groupedRoutes).map(([group, routes]) => (
                   <div key={group} className="space-y-1">
-                    <div className="text-sidebar-label font-semibold px-3 py-2 text-slate-400 dark:text-slate-500">
+                    <div 
+                      className="text-sidebar-label font-semibold px-3 py-2"
+                      style={{ color: COLORS.textMuted }}
+                    >
                       {group}
                     </div>
                     {routes.map((route) => {
@@ -172,20 +185,32 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
                           key={route.href}
                           href={route.href}
                           onClick={() => setSecondarySheetOpen(false)}
+                          aria-current={isActive ? 'page' : undefined}
+                          aria-label={route.label}
                           className={`
                             group flex items-center gap-3 px-3 py-3 rounded-xl min-h-[48px]
                             transition-all duration-200 font-medium text-sm
                             ${isActive 
-                              ? 'bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 text-[#0F4C5C] dark:text-[#38BDF8]' 
-                              : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
+                              ? '' 
+                              : 'hover:opacity-80'
                             }
                           `}
+                          style={{
+                            color: isActive ? COLORS.primary : COLORS.textSecondary,
+                            backgroundColor: isActive ? COLORS.primarySubtle : 'transparent',
+                          }}
                         >
                           <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''}`} />
                           <span className="flex items-center gap-2 flex-1">
                             {route.label}
                             {route.badge && (
-                              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                              <span 
+                                className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider"
+                                style={{ 
+                                  backgroundColor: COLORS.warningLight,
+                                  color: COLORS.warning
+                                }}
+                              >
                                 {route.badge}
                               </span>
                             )}
@@ -197,11 +222,11 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
                 ))}
               </nav>
               
-              {/* Footer */}
-              <div className="p-4 border-t border-slate-200/60 dark:border-slate-700/60">
+              <div className="p-4" style={{ borderTop: `1px solid ${COLORS.border}` }}>
                 <button
                   onClick={handleSignOut}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl hover:opacity-80 transition-colors font-medium"
+                  style={{ color: COLORS.danger }}
                 >
                   <LogOut className="w-5 h-5" />
                   Cerrar sesión

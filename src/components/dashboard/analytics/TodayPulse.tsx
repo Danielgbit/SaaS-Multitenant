@@ -52,7 +52,7 @@ export function TodayPulse({ data, dataUpdatedAt }: TodayPulseProps) {
       : COLORS.error
 
   return (
-    <Card variant="surface" className="p-4 md:p-5">
+    <Card variant="surface" hover="lift" className="p-4 md:p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div
@@ -76,7 +76,7 @@ export function TodayPulse({ data, dataUpdatedAt }: TodayPulseProps) {
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
           <p className="text-xs mb-1" style={{ color: COLORS.textMuted }}>Ingresos</p>
-          <p className="text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
+          <p className="text-2xl font-bold font-heading" style={{ color: COLORS.textPrimary }}>
             {formatCurrencyCOP(data.revenue)}
           </p>
           <div className="flex items-center gap-1 mt-1">

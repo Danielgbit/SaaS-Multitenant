@@ -315,50 +315,37 @@ function getRecipientAddress(
   }
 }
 
-export async function dispatchConfirmationRequest(
-  appointmentId: string,
-  appointmentData?: AppointmentData,
-  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
+type DispatchTrigger =
+  | 'confirmation_requested'
+  | 'appointment_created'
+  | 'appointment_reminder'
+  | 'appointment_cancelled'
+  | 'appointment_completed'
+  | 'appointment_no_show'
+
+type DispatchParams = [appointmentId: string, appointmentData?: AppointmentData, links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }]
+
+async function dispatchAppointmentNotification(
+  trigger: DispatchTrigger,
+  ...[appointmentId, appointmentData, links]: DispatchParams
 ): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('confirmation_requested', appointmentId, appointmentData, links)
+  return NotificationOrchestrator(trigger, appointmentId, appointmentData, links)
 }
 
-export async function dispatchAppointmentCreated(
-  appointmentId: string,
-  appointmentData?: AppointmentData,
-  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
-): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('appointment_created', appointmentId, appointmentData, links)
-}
+export const dispatchConfirmationRequest: (...args: DispatchParams) => Promise<OrchestratorResult> =
+  (...args) => dispatchAppointmentNotification('confirmation_requested', ...args)
 
-export async function dispatchAppointmentReminder(
-  appointmentId: string,
-  appointmentData?: AppointmentData,
-  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
-): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('appointment_reminder', appointmentId, appointmentData, links)
-}
+export const dispatchAppointmentCreated: (...args: DispatchParams) => Promise<OrchestratorResult> =
+  (...args) => dispatchAppointmentNotification('appointment_created', ...args)
 
-export async function dispatchAppointmentCancelled(
-  appointmentId: string,
-  appointmentData?: AppointmentData,
-  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
-): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('appointment_cancelled', appointmentId, appointmentData, links)
-}
+export const dispatchAppointmentReminder: (...args: DispatchParams) => Promise<OrchestratorResult> =
+  (...args) => dispatchAppointmentNotification('appointment_reminder', ...args)
 
-export async function dispatchAppointmentCompleted(
-  appointmentId: string,
-  appointmentData?: AppointmentData,
-  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
-): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('appointment_completed', appointmentId, appointmentData, links)
-}
+export const dispatchAppointmentCancelled: (...args: DispatchParams) => Promise<OrchestratorResult> =
+  (...args) => dispatchAppointmentNotification('appointment_cancelled', ...args)
 
-export async function dispatchAppointmentNoShow(
-  appointmentId: string,
-  appointmentData?: AppointmentData,
-  links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
-): Promise<OrchestratorResult> {
-  return NotificationOrchestrator('appointment_no_show', appointmentId, appointmentData, links)
-}
+export const dispatchAppointmentCompleted: (...args: DispatchParams) => Promise<OrchestratorResult> =
+  (...args) => dispatchAppointmentNotification('appointment_completed', ...args)
+
+export const dispatchAppointmentNoShow: (...args: DispatchParams) => Promise<OrchestratorResult> =
+  (...args) => dispatchAppointmentNotification('appointment_no_show', ...args)

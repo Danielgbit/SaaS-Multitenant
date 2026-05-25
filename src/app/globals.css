@@ -63,6 +63,18 @@
     animation: shake 0.4s ease-in-out;
   }
   
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-in,
+    .animate-fade-in-up,
+    .animate-shake,
+    .animate-scale-in-95,
+    .animate-menu-enter {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+  
   @keyframes fadeIn {
     from {
       opacity: 0;

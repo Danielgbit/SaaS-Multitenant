@@ -1,23 +1,8 @@
 import type { LucideIcon } from 'lucide-react'
 import {
-  LayoutDashboard,
-  CalendarDays,
-  CheckCircle,
-  Bell,
-  ShieldCheck,
-  FileSearch,
-  Users,
-  Receipt,
-  WalletCards,
-  UserCircle,
-  Wallet,
-  Scissors,
-  Clock,
-  Package,
-  MessageSquare,
-  Mail,
-  CreditCard,
-  Settings,
+  LayoutDashboard, CalendarDays, CheckCircle, Bell, ShieldCheck,
+  FileSearch, Users, Receipt, WalletCards, UserCircle, Wallet,
+  Scissors, Clock, Package, MessageSquare, Mail, CreditCard, Settings,
 } from 'lucide-react'
 
 export interface RouteDefinition {
@@ -29,7 +14,7 @@ export interface RouteDefinition {
   hideForEmpleado?: boolean
   showOnlyForEmpleado?: boolean
   badge?: string
-  active?: boolean
+  activeMatch?: string[]
 }
 
 export const dashboardRoutes: RouteDefinition[] = [
@@ -38,6 +23,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     label: 'Dashboard',
     icon: LayoutDashboard,
     group: 'Operaciones',
+    activeMatch: ['/dashboard', '/'],
   },
   {
     href: '/calendar',
@@ -56,6 +42,12 @@ export const dashboardRoutes: RouteDefinition[] = [
     label: 'Notificaciones',
     icon: Bell,
     group: 'Operaciones',
+    activeMatch: [
+      '/notificaciones',
+      '/notificaciones/messages',
+      '/notificaciones/dead-letter',
+      '/notificaciones/validacion',
+    ],
   },
   {
     href: '/notificaciones/validacion',
@@ -181,13 +173,33 @@ export function filterRoutesByRole(routes: RouteDefinition[], role: string | nul
 
 export function groupRoutesByGroup(routes: RouteDefinition[]): Record<string, RouteDefinition[]> {
   const grouped: Record<string, RouteDefinition[]> = {}
-  
+
   for (const route of routes) {
     if (!grouped[route.group]) {
       grouped[route.group] = []
     }
     grouped[route.group].push(route)
   }
-  
+
   return grouped
+}
+
+export function routeKey(href: string): string {
+  return href.replace(/^\/+/, '')
+}
+
+export function matchesPath(pathname: string, href: string): boolean {
+  const cleanPath = pathname.split('?')[0].replace(/\/$/, '') || '/'
+  const cleanHref = href.replace(/\/$/, '') || '/'
+
+  if (cleanHref === '/dashboard') {
+    return cleanPath === '/' || cleanPath === '/dashboard'
+  }
+
+  return cleanPath === cleanHref || cleanPath.startsWith(`${cleanHref}/`)
+}
+
+export function isRouteActive(pathname: string, route: RouteDefinition): boolean {
+  const matchList = route.activeMatch ?? [route.href]
+  return matchList.some(href => matchesPath(pathname, href))
 }
