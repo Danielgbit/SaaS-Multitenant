@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Trophy, User } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from '@/components/ui/Card'
@@ -36,7 +37,11 @@ export function EmployeePerformance({ employees }: EmployeePerformanceProps) {
             const isTop = index === 0
             
             return (
-              <div key={emp.employee_id} className="relative">
+              <Link
+                  key={emp.employee_id}
+                  href={`/employees/${emp.employee_id}`}
+                  className="relative block p-2 rounded-xl transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                >
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     {isTop && <Badge variant="gold" size="sm">Top</Badge>}
@@ -64,7 +69,7 @@ export function EmployeePerformance({ employees }: EmployeePerformanceProps) {
                     }}
                   />
                 </div>
-              </div>
+              </Link>
             )
           })}
         </div>

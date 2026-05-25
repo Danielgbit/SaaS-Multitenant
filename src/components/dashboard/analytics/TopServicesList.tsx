@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Scissors, Sparkles } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from '@/components/ui/Card'
@@ -38,10 +39,11 @@ export function TopServicesList({ services }: TopServicesListProps) {
           const isTop = index === 0
 
           return (
-            <div
-              key={service.serviceId}
-              className="group p-3 rounded-xl transition-colors hover:bg-white/50 dark:hover:bg-white/5"
-            >
+              <Link
+                  key={service.serviceId}
+                  href={`/services`}
+                  className="group block p-3 rounded-xl transition-colors hover:bg-white/50 dark:hover:bg-white/5"
+                >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                   <span
@@ -78,7 +80,7 @@ export function TopServicesList({ services }: TopServicesListProps) {
                   {service.percentage}%
                 </span>
               </div>
-            </div>
+              </Link>
           )
         })}
       </div>

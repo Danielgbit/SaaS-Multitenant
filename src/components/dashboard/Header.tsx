@@ -89,7 +89,7 @@ export function Header({
       <div className="h-14 px-4 md:px-6 lg:px-8 flex items-center justify-between">
         
         {/* Brand Zone */}
-        <div className="flex items-center gap-2 min-w-[200px]">
+        <div className="flex items-center gap-2 min-w-0 md:min-w-[200px]">
           <Link 
             href="/dashboard"
             className="flex items-center gap-2 group"
@@ -103,7 +103,7 @@ export function Header({
             {organizationName && role !== 'empleado' && (
               <>
                 <span className="hidden xl:block" style={{ color: COLORS.textMuted }}>·</span>
-                <div className="hidden xl:flex items-center gap-1.5">
+                <div className="hidden lg:flex items-center gap-1.5">
                   <span 
                     className="text-sm font-medium max-w-[100px] truncate"
                     style={{ color: COLORS.primary }}
@@ -130,7 +130,7 @@ export function Header({
         </div>
 
         {/* Action Zone */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1 md:gap-1.5 flex-shrink-0">
           {/* CTA: Nuevo turno */}
           {role !== 'empleado' && (
             <button
@@ -183,7 +183,7 @@ export function Header({
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="flex items-center gap-2 p-1 pr-2 rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="flex items-center gap-1.5 md:gap-2 p-1 pr-1.5 md:pr-2 rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               style={{
                 backgroundColor: profileDropdownOpen || pathname.startsWith('/settings') ? COLORS.primarySubtle : 'transparent'
               }}
