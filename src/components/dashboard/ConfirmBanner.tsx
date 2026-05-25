@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { playServiceReadySound } from '@/lib/sound/notification'
 import { toast } from 'sonner'
 import { captureError } from '@/lib/error-logger'
-import { realtimeManager } from '@/lib/realtime-manager'
+import { realtimeManager } from '@/lib/realtime'
 
 interface PendingConfirmation {
   id: string
@@ -126,7 +126,7 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
   useEffect(() => {
     fetchPending()
     realtimeManager.init(organizationId)
-    const unsub = realtimeManager.onAppointmentsChange(fetchPending)
+    const unsub = realtimeManager.on('appointments', () => { fetchPending() })
     return () => { unsub() }
   }, [fetchPending, organizationId])
 

@@ -8,7 +8,7 @@ import { AdjustPriceModal } from './AdjustPriceModal'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { realtimeManager } from '@/lib/realtime-manager'
+import { realtimeManager } from '@/lib/realtime'
 import type { PendingConfirmationWithDetails } from '@/types/confirmations'
 
 interface ConfirmationsPanelProps {
@@ -173,8 +173,8 @@ export function ConfirmationsPanel({
 
   useEffect(() => {
     if (!isOpen) return
-    const unsubAppointments = realtimeManager.onAppointmentsChange(fetchPending)
-    const unsubNotifications = realtimeManager.onNotificationsInsert(fetchPending)
+    const unsubAppointments = realtimeManager.on('appointments', () => { fetchPending() })
+    const unsubNotifications = realtimeManager.on('notifications', () => { fetchPending() })
     return () => {
       unsubAppointments()
       unsubNotifications()

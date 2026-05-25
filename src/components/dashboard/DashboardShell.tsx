@@ -12,6 +12,7 @@ import { PaymentQueueProvider, usePaymentQueue } from '@/components/providers/Pa
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { useAppointmentModal } from '@/components/providers/AppointmentModalProvider'
 import { SidebarSectionSkeleton } from './analytics/DashboardSkeletons'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 const ConfirmationsPanel = dynamic(
   () => import('./ConfirmationsPanel').then(m => ({ default: m.ConfirmationsPanel })),
@@ -31,6 +32,7 @@ const AdjustPriceModal = dynamic(
 interface DashboardShellProps {
   children: React.ReactNode
   userId?: string | null
+  userEmail?: string | null
   role: string | null
   organizationId: string | null
   organizationName?: string | null
@@ -39,10 +41,12 @@ interface DashboardShellProps {
 function DashboardShellContent({ 
   children, 
   userId, 
+  userEmail,
   role, 
   organizationId, 
   organizationName 
 }: DashboardShellProps) {
+  const COLORS = useThemeColors()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [confirmationsPanelOpen, setConfirmationsPanelOpen] = useState(false)
@@ -93,7 +97,7 @@ function DashboardShellContent({
 
   return (
     <>
-      <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#0F172A] font-sans antialiased selection:bg-[#0F4C5C]/20 dark:selection:bg-[#38BDF8]/30">
+      <div className="flex h-screen font-sans antialiased" style={{ backgroundColor: COLORS.surface, color: COLORS.textPrimary }}>
 
         <CollapsibleSidebar
           role={role}
@@ -116,6 +120,7 @@ function DashboardShellContent({
               organizationName={organizationName}
               role={role}
               userId={userId}
+              userEmail={userEmail}
               onConfirmationsToggle={() => setConfirmationsPanelOpen(!confirmationsPanelOpen)}
             />
 

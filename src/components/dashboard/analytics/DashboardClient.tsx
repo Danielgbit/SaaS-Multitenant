@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Calendar, CheckCircle2, DollarSign, TrendingUp } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { useRealtimeInvalidation } from '@/hooks/useRealtimeInvalidation'
 import { ChartErrorBoundary, ChartSkeleton } from '@/components/ui/ChartErrorBoundary'
 import { PeriodSelector } from './PeriodSelector'
 import {
@@ -28,6 +29,8 @@ interface DashboardClientProps {
 export function DashboardClient({ organizationId, role, employeeName }: DashboardClientProps) {
   const COLORS = useThemeColors()
   const [period, setPeriod] = useState<Period>('month')
+
+  useRealtimeInvalidation(organizationId)
 
   if (role === 'empleado') {
     return (

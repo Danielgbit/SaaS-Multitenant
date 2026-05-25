@@ -50,6 +50,7 @@ export default async function DashboardLayout({
         <OrganizationProvider organizationId={organizationId} role={role}>
           <DashboardShell
             userId={user.id}
+            userEmail={user.email}
             role={role}
             organizationId={organizationId}
             organizationName={organizationName}

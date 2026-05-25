@@ -1,0 +1,18 @@
+export const ROUTE_MAP: Record<string, { label: string }> = {
+  dashboard: { label: 'Inicio' },
+  calendar: { label: 'Agenda' },
+  confirmations: { label: 'Confirmaciones' },
+  notificaciones: { label: 'Notificaciones' },
+  employees: { label: 'Equipo' },
+  payroll: { label: 'Nómina' },
+  clients: { label: 'Clientes' },
+  services: { label: 'Servicios' },
+  inventory: { label: 'Inventario' },
+  horarios: { label: 'Horarios' },
+  whatsapp: { label: 'WhatsApp' },
+  email: { label: 'Email' },
+  billing: { label: 'Facturación' },
+  settings: { label: 'Ajustes' },
+  debts: { label: 'Deudas' },
+  'mi-schedule': { label: 'Mi Horario' },
+}
