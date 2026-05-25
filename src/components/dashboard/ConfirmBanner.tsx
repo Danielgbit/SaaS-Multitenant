@@ -50,7 +50,7 @@ function TimeBadge({ completedAt }: { completedAt: string | null }) {
   return (
     <span
       className={`
-        inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium
+        inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-caption font-medium
         ${urgency.level === 'critical' ? 'animate-pulse' : ''}
       `}
       style={{
@@ -163,14 +163,14 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
                   pending.map((p) => (
                     <span
                       key={p.id}
-                      className="inline-flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-300"
+                      className="inline-flex items-center gap-1 text-body-xs text-amber-700 dark:text-amber-300"
                     >
                       <span className="font-medium">{p.clients?.[0]?.name || 'Cliente'}</span>
                       <TimeBadge completedAt={p.completed_at} />
                     </span>
                   ))
                 ) : (
-                  <span className="text-[10px] text-amber-600 dark:text-amber-400">
+                  <span className="text-body-xs text-amber-600 dark:text-amber-400">
                     {pending.slice(0, 2).map((p) => p.clients?.[0]?.name || 'Cliente').join(', ')}...
                   </span>
                 )}

@@ -141,7 +141,7 @@ export function TemplateEditorModal({ mode, template, organizationId, onSave, on
       }}
     >
       <div
-        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border shadow-xl"
+        className="w-full max-w-2xl max-h-[90dvh] overflow-y-auto rounded-2xl border shadow-xl"
         style={{
           backgroundColor: COLORS.surface,
           borderColor: COLORS.border,

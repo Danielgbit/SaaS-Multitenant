@@ -55,7 +55,7 @@ export default function BulkEditModal({
             <label className="block text-sm font-medium mb-3" style={{ color: COLORS.textSecondary }}>
               ¿Qué quieres cambiar?
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {(['contract_type', 'payment_type'] as const).map((f) => (
                 <button
                   key={f}

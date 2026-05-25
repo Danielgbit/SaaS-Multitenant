@@ -120,7 +120,7 @@ export function PasswordInput({
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
             {STRENGTH_RULES.map((rule, index) => {
               const passed = rule.test(password)
               return (

@@ -217,7 +217,7 @@ export function PaymentModal({
           </button>
         </div>
 
-        <div className="px-6 py-6 space-y-5 max-h-[70vh] overflow-y-auto">
+        <div className="px-6 py-6 space-y-5 max-h-[70dvh] overflow-y-auto">
           {/* Timer Urgency */}
           {completedAt && timeElapsed > 0 && (
             <div className="rounded-xl p-4" style={{ backgroundColor: timer.bg }}>

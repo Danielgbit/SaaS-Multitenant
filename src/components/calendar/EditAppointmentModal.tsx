@@ -66,7 +66,7 @@ export function EditAppointmentModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-md rounded-2xl overflow-hidden max-h-[90dvh] overflow-y-auto"
         style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }}
         onClick={e => e.stopPropagation()}
       >

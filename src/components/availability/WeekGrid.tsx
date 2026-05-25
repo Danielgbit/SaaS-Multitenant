@@ -79,7 +79,7 @@ export function WeekGrid({ availability, onEdit, onAdd, onDelete, deletingId }: 
                   </div>
 
                   {slot.break_start && slot.break_end && (
-                    <div className="mt-1.5 flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-md truncate max-w-full">
+                    <div className="mt-1.5 flex items-center gap-1 text-caption text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-md truncate max-w-full">
                       <Coffee className="w-3 h-3 flex-shrink-0" />
                       <span className="truncate">{slot.break_reason || 'Descanso'}</span>
                     </div>
@@ -111,7 +111,7 @@ export function WeekGrid({ availability, onEdit, onAdd, onDelete, deletingId }: 
               ) : (
                 <div className="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
                   <Plus className="w-5 h-5" />
-                  <span className="text-[11px] font-medium hidden sm:inline">Agregar</span>
+                  <span className="text-body-xs font-medium hidden sm:inline">Agregar</span>
                 </div>
               )}
             </div>

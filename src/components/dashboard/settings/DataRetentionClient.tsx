@@ -262,7 +262,7 @@ export function DataRetentionClient({
       {/* Message Toast */}
       {message && (
         <div
-          className="fixed top-4 right-4 p-4 rounded-xl flex items-center gap-3 animate-in slide-in-from-top-2 z-50"
+          className="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm p-4 rounded-xl flex items-center gap-3 animate-in slide-in-from-top-2 z-50"
           style={{
             backgroundColor: message.type === 'success' ? COLORS.successLight : COLORS.errorLight,
             color: message.type === 'success' ? COLORS.success : COLORS.error,

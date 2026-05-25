@@ -369,7 +369,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                         </p>
                         <div className="flex items-center gap-2">
                           {isPending && urgency.label !== 'Reciente' && (
-                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${urgency.pulse ? 'animate-pulse' : ''}`}
+                            <span className={`text-label font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${urgency.pulse ? 'animate-pulse' : ''}`}
                               style={{ backgroundColor: urgency.bg, color: urgency.color }}>
                               <Clock className="w-3 h-3" />
                               {urgency.label}
@@ -390,7 +390,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                       {/* Services */}
                       {conf.services?.length > 0 && (
                         <div className="mb-4">
-                          <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: COLORS.textMuted }}>
+                          <p className="text-sidebar-label font-semibold mb-2" style={{ color: COLORS.textMuted }}>
                             Servicios
                           </p>
                           <div className="space-y-1.5">

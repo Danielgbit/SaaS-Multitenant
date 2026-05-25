@@ -54,11 +54,11 @@ export function ProgressStepTooltip({ whenUsed, restrictions }: ProgressStepTool
         >
           <div className="space-y-1.5">
             <div>
-              <span className="text-[10px] font-semibold uppercase tracking-wide opacity-70">Cuándo</span>
+              <span className="text-sidebar-label font-semibold opacity-70">Cuándo</span>
               <p className="text-xs leading-relaxed">{whenUsed}</p>
             </div>
             <div className="pt-1 border-t border-white/10">
-              <span className="text-[10px] font-semibold uppercase tracking-wide opacity-70">Restricciones</span>
+              <span className="text-sidebar-label font-semibold opacity-70">Restricciones</span>
               <p className="text-xs leading-relaxed">{restrictions}</p>
             </div>
           </div>

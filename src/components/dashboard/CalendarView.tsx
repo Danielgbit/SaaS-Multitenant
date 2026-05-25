@@ -348,7 +348,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
             <Calendar className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-semibold capitalize text-white font-heading">{formatMonthYear()}</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold capitalize text-white font-heading">{formatMonthYear()}</h2>
             <p className="text-sm mt-1 text-white/80">{getWeekRange()}</p>
           </div>
         </div>

@@ -28,7 +28,8 @@
   --leading-normal: 1.5;
   --leading-compact: 1.4;
 
-  --breakpoint-xs: 480px;
+  --space-section: clamp(2rem, 4vw, 4rem);
+  --space-block: clamp(1rem, 2vw, 2rem);
 }
 
 @layer base {

@@ -39,24 +39,24 @@ export default async function PricingPage() {
           <Link href="/" className="text-2xl font-semibold font-heading" style={{ color: '#0F4C5C' }}>
             Prügressy
           </Link>
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-3 sm:gap-6">
             <Link 
               href="/precios"
-              className="text-sm font-medium"
+              className="text-xs sm:text-sm font-medium"
               style={{ color: '#0F4C5C' }}
             >
               Precios
             </Link>
             <Link 
               href="/login"
-              className="text-sm font-medium"
+              className="text-xs sm:text-sm font-medium"
               style={{ color: '#5A6B70' }}
             >
               Iniciar sesión
             </Link>
             <Link 
               href="/register"
-              className="px-4 py-2 rounded-lg text-sm font-medium"
+              className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium"
               style={{ backgroundColor: '#0F4C5C', color: '#FFF' }}
             >
               Empezar gratis

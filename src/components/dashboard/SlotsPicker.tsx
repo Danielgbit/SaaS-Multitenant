@@ -357,7 +357,7 @@ const COLORS = useThemeColors()
                     <Clock className="w-4 h-4 inline-block mr-1.5" />
                     {time}
                     {blockedReason && (
-                      <div className="text-[10px] mt-0.5 opacity-80 not-italic" style={{ textDecoration: 'none' }}>
+                      <div className="text-body-xs mt-0.5 opacity-80 not-italic" style={{ textDecoration: 'none' }}>
                         {blockedReason}
                       </div>
                     )}

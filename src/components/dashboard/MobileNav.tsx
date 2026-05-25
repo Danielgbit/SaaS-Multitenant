@@ -96,7 +96,7 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
                 }`}
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''}`} />
-                <span className="text-[10px] font-medium">{label}</span>
+                <span className="text-caption font-medium">{label}</span>
               </Link>
             )
           })}
@@ -106,7 +106,7 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
             className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
           >
             <MoreHorizontal className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Más</span>
+            <span className="text-caption font-medium">Más</span>
           </button>
         </div>
       </motion.nav>
@@ -124,7 +124,7 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
             />
             
             <motion.div
-              className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white dark:bg-slate-900 rounded-t-3xl border-t border-white/20 dark:border-white/10 max-h-[85vh] overflow-hidden"
+              className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white dark:bg-slate-900 rounded-t-3xl border-t border-white/20 dark:border-white/10 max-h-[85dvh] overflow-hidden"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
@@ -157,10 +157,10 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
               </div>
               
               {/* Navigation */}
-              <nav className="flex-1 overflow-y-auto py-4 px-4 space-y-4" style={{ maxHeight: 'calc(85vh - 180px)' }}>
+              <nav className="flex-1 overflow-y-auto py-4 px-4 space-y-4" style={{ maxHeight: 'calc(85dvh - 180px)' }}>
                 {Object.entries(groupedRoutes).map(([group, routes]) => (
                   <div key={group} className="space-y-1">
-                    <div className="text-[10px] font-semibold uppercase tracking-wider px-3 py-2 text-slate-400 dark:text-slate-500">
+                    <div className="text-sidebar-label font-semibold px-3 py-2 text-slate-400 dark:text-slate-500">
                       {group}
                     </div>
                     {routes.map((route) => {

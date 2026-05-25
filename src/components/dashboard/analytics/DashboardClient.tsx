@@ -48,7 +48,7 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Bienvenido</p>
-                <h1 className="text-3xl font-bold text-white font-serif">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white font-serif">
                   Hola, {employeeName || 'Empleado'}
                 </h1>
                 <p className="text-sm mt-1 text-white/80">
@@ -132,7 +132,7 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Panel de Control</p>
-                <h1 className="text-3xl font-bold text-white font-serif">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white font-serif">
                   Bienvenido de nuevo
                 </h1>
                 <p className="text-sm mt-1 text-white/80">

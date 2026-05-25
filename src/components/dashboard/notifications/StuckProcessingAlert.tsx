@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertTriangle } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { Spinner } from '@/components/ui'
 
 interface StuckProcessingAlertProps {
   stuckItems: Array<{
@@ -96,12 +97,7 @@ export function StuckProcessingAlert({ stuckItems }: StuckProcessingAlertProps) 
                   }}
                 >
                   {isRequeuing === item.id ? (
-                    <motion.span
-                      animate={{ rotate: 360 }}
-                      transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                    >
-                      ↻
-                    </motion.span>
+                    <Spinner size="sm" className="text-white" />
                   ) : (
                     'Requeue'
                   )}

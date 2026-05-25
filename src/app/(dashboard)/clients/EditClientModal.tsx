@@ -276,7 +276,7 @@ function ConfirmationTooltip({ COLORS }: {   COLORS: ReturnType<typeof useThemeC
       
       {isOpen && (
         <div 
-          className="absolute left-0 top-full mt-2 p-4 rounded-xl z-50 min-w-[280px]"
+          className="absolute left-0 top-full mt-2 p-4 rounded-xl z-50 min-w-[280px] max-w-[calc(100vw-2rem)]"
           style={{
             backgroundColor: COLORS.surface,
             border: `1px solid ${COLORS.border}`,
@@ -681,7 +681,7 @@ export function EditClientModal({
           transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           width: '100%',
           maxWidth: '480px',
-          maxHeight: '90vh',
+          maxHeight: '90dvh',
           overflow: 'hidden',
         }}
       >
@@ -739,7 +739,7 @@ export function EditClientModal({
           ref={formRef}
           onSubmit={handleSubmit}
           className="p-6 space-y-5 overflow-y-auto"
-          style={{ maxHeight: 'calc(90vh - 200px)' }}
+          style={{ maxHeight: 'calc(90dvh - 200px)' }}
         >
           {formErrors._form && (
             <div 

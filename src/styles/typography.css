@@ -145,6 +145,34 @@
   text-transform: uppercase;
 }
 
+/* === HERO / FLUID === */
+
+.text-hero {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: var(--tracking-heading);
+  line-height: var(--leading-display);
+}
+
+/* === FLUID SPACING === */
+
+.section-gap {
+  gap: var(--space-section);
+}
+
+.section-padding {
+  padding: var(--space-section);
+}
+
+.block-gap {
+  gap: var(--space-block);
+}
+
+.block-padding {
+  padding: var(--space-block);
+}
+
 /* === TRACKING UTILITIES === */
 
 .tracking-heading {

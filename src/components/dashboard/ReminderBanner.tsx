@@ -132,7 +132,7 @@ function ReminderCard({
               {reminder.title}
             </span>
             {urgency === 'urgent' && (
-              <span className="px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-200 text-[10px] font-medium">
+              <span className="px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-200 text-caption font-medium">
                 Urgente
               </span>
             )}

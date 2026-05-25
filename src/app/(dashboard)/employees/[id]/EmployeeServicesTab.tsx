@@ -165,7 +165,7 @@ export function EmployeeServicesTab({
                     <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">
                       Personalizar para este empleado
                     </p>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs text-slate-600 dark:text-slate-400">Duración (min)</label>
                         <input

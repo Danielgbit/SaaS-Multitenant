@@ -209,7 +209,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
       }}
     >
       <div
-        className="w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+        className="w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col max-h-[90dvh] animate-in zoom-in-95 duration-200"
         style={{
           backgroundColor: COLORS.surface,
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',

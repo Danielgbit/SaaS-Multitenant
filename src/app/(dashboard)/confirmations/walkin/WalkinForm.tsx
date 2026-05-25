@@ -128,7 +128,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
 
   if (isSuccessStep) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[60dvh]">
         <div className="text-center animate-scaleIn">
           <div 
             className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center"
@@ -229,7 +229,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
 
       {/* Floating Preview - Always visible */}
       <div 
-        className="fixed bottom-6 right-6 z-40 animate-slideUp"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 animate-slideUp safe-bottom"
         style={{
           backgroundColor: COLORS.surfaceGlass,
           borderRadius: '16px',

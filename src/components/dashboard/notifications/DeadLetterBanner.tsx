@@ -22,23 +22,24 @@ export function DeadLetterBanner({ count }: DeadLetterBannerProps) {
         boxShadow: '0 1px 2px hsl(var(--warning) / 0.1)',
       }}
     >
-      <div className="flex items-center gap-3">
-        <AlertCircle className="h-5 w-5 shrink-0" style={{ color: 'hsl(var(--warning))' }} />
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <div>
-              <p className="font-semibold text-sm" style={{ color: 'hsl(var(--warning))' }}>
-                {count} notificación(es) en dead letter
-              </p>
-              <p className="text-sm mt-0.5" style={{ color: 'hsl(var(--text-secondary))' }}>
-                Revisar y decidir si reintentar o descartar.
-              </p>
-            </div>
+      <div className="flex items-center gap-4">
+        <AlertCircle className="h-6 w-6 shrink-0" style={{ color: 'hsl(var(--warning))' }} />
+        <div className="flex items-center gap-4 flex-1">
+          <div className="font-mono text-3xl font-bold tracking-tight" style={{ color: 'hsl(var(--warning))' }}>
+            {count}
+          </div>
+          <div>
+            <p className="font-semibold text-sm" style={{ color: 'hsl(var(--foreground))' }}>
+              notificación(es) en dead letter
+            </p>
+            <p className="text-sm mt-0.5" style={{ color: 'hsl(var(--text-secondary))' }}>
+              Revisar y decidir si reintentar o descartar.
+            </p>
           </div>
         </div>
         <Link
           href="/notificaciones/dead-letter"
-          className="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          className="rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:opacity-80 shrink-0"
           style={{
             backgroundColor: 'hsl(var(--warning) / 0.1)',
             color: 'hsl(var(--warning))',

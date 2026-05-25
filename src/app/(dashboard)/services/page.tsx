@@ -32,7 +32,7 @@ export default async function ServicesPage() {
 
   if (orgError || !orgMember?.organization_id) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
+      <div className="flex flex-col items-center justify-center min-h-[50dvh] text-center px-4">
         <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 font-serif mb-2">
           Organización no encontrada
         </h2>

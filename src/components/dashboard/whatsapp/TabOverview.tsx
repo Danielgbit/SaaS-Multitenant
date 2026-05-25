@@ -214,7 +214,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0" style={{ borderColor: COLORS.border }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0" style={{ borderColor: COLORS.border }}>
           {statusItems.map((item) => (
             <div key={item.label} className="px-4 py-3">
               <div className="flex items-center gap-1.5 mb-1">
@@ -238,7 +238,7 @@ export function TabOverview({ organizationId }: TabOverviewProps) {
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {loading ? (
           <>
             <Card variant="surface" className="p-5"><Skeleton variant="metric" /></Card>

@@ -419,7 +419,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                           {hasBreaks && (
                             <button
                               onClick={(e) => { e.stopPropagation(); openEditForm(employee) }}
-                              className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#38BDF8]/15 text-[#38BDF8] hover:bg-[#38BDF8]/25 ml-2 transition-all duration-200 cursor-pointer"
+                              className="text-body-xs font-semibold px-2 py-0.5 rounded-full bg-[#38BDF8]/15 text-[#38BDF8] hover:bg-[#38BDF8]/25 ml-2 transition-all duration-200 cursor-pointer"
                             >
                               Editar
                             </button>
@@ -480,7 +480,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <span className="text-sm font-semibold text-white w-12">{day?.short}</span>
-                                    <span className="text-[10px] text-slate-500 bg-slate-600/30 px-1.5 py-0.5 rounded whitespace-nowrap">Cada semana</span>
+                                    <span className="text-caption text-slate-500 bg-slate-600/30 px-1.5 py-0.5 rounded whitespace-nowrap">Cada semana</span>
                                     <span className="text-xs text-slate-400 hidden sm:inline">{av.start_time.slice(0, 5)}-{av.end_time.slice(0, 5)}</span>
                                   </div>
 

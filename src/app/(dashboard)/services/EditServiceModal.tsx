@@ -176,7 +176,7 @@ export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
 
       {/* Dialog Panel */}
       <div
-        className="relative z-10 w-full max-w-lg mx-4 max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative z-10 w-full max-w-lg mx-4 max-h-[90dvh] overflow-hidden animate-in zoom-in-95 duration-200"
         style={{
           backgroundColor: COLORS.surface,
           borderRadius: '16px',
@@ -221,7 +221,7 @@ export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 80px)' }}>
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5 overflow-y-auto" style={{ maxHeight: 'calc(90dvh - 80px)' }}>
           {/* Error Banner */}
           {error && (
             <div

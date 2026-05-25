@@ -235,7 +235,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                             <h4 className="text-sm font-semibold text-amber-300 leading-tight">
                               Horario Excepcional
                             </h4>
-                            <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                            <p className="text-body-xs text-slate-500 mt-0.5 leading-tight">
                               Cambio de horario para un día específico
                             </p>
                           </div>
@@ -339,7 +339,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
 
                           {overrideForms[`quick:${employee.id}`]?.date && !showDatePicker && (
                             <div className="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-amber-500/10">
-                              <span className="text-[11px] text-slate-400">
+                              <span className="text-body-xs text-slate-400">
                                 → {new Date(overrideForms[`quick:${employee.id}`]!.date + 'T00:00:00').toLocaleDateString('es-ES', {
                                   day: 'numeric',
                                   month: 'long',
@@ -349,7 +349,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                               <button
                                 type="button"
                                 onClick={() => setShowDatePicker(true)}
-                                className="text-[11px] font-medium text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                                className="text-body-xs font-medium text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
                               >
                                 Otra fecha
                               </button>
@@ -391,7 +391,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                           <div className="flex flex-col sm:flex-row sm:items-end gap-3">
                             <div className="flex items-center gap-2 flex-1">
                               <div className="flex-1">
-                                <label className="block text-[10px] font-medium text-slate-400 mb-1 uppercase tracking-wider">Desde</label>
+                                <label className="block text-sidebar-label font-medium text-slate-400 mb-1">Desde</label>
                                 <input
                                   type="time"
                                   required
@@ -417,7 +417,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                                 />
                               </div>
                               <div className="flex-1">
-                                <label className="block text-[10px] font-medium text-slate-400 mb-1 uppercase tracking-wider">Hasta</label>
+                                <label className="block text-sidebar-label font-medium text-slate-400 mb-1">Hasta</label>
                                 <input
                                   type="time"
                                   required
@@ -440,7 +440,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
 
                             <div className="flex items-center gap-2">
                               <div className="flex-1 sm:flex-none sm:w-28">
-                                <label className="block text-[10px] font-medium text-slate-400 mb-1 uppercase tracking-wider">Motivo</label>
+                                <label className="block text-sidebar-label font-medium text-slate-400 mb-1">Motivo</label>
                                 <input
                                   type="text"
                                   placeholder="Cambio horario"

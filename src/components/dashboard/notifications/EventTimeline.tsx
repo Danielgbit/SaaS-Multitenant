@@ -217,7 +217,15 @@ export function EventTimeline({ events }: EventTimelineProps) {
       </div>
 
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-1.5">
+        <motion.div
+          className="flex flex-wrap gap-1.5"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.03 } },
+          }}
+          initial="hidden"
+          animate="visible"
+        >
           {EVENT_TYPES.map((type) => {
             const severity = eventSeverity(type)
             const style = getSeverityStyle(severity)
@@ -228,7 +236,11 @@ export function EventTimeline({ events }: EventTimelineProps) {
                 key={type}
                 onClick={() => toggleFilter(type)}
                 whileTap={{ scale: 0.98 }}
-                transition={{ duration: 0.1 }}
+                variants={{
+                  hidden: { opacity: 0, scale: 0.9 },
+                  visible: { opacity: 1, scale: 1 },
+                }}
+                transition={{ duration: 0.12 }}
                 className={`rounded-lg px-2 py-1 text-[10px] font-mono uppercase tracking-wider transition-all border ${
                   isActive
                     ? 'opacity-100'
@@ -247,7 +259,7 @@ export function EventTimeline({ events }: EventTimelineProps) {
               </motion.button>
             )
           })}
-        </div>
+        </motion.div>
 
         <div className="flex items-center gap-2">
           <div className="relative flex-1">

@@ -127,13 +127,13 @@ export function CurrentPeriodCard({
                     />
                   </div>
                   <span
-                    className="text-[10px] sm:text-xs font-medium text-center leading-tight"
+                    className="text-body-xs font-medium text-center leading-tight"
                     style={{ color: isActive ? colors.textPrimary : colors.textMuted }}
                   >
                     {step.label}
                   </span>
                   <span
-                    className="text-[9px] sm:text-[10px] font-medium text-center leading-tight -mt-1"
+                    className="text-body-xs font-medium text-center leading-tight -mt-1"
                     style={{
                       color: isCurrent
                         ? colors.textSecondary

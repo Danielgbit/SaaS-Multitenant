@@ -163,7 +163,7 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
               Tipo de Jornada
             </div>
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => {
@@ -430,7 +430,7 @@ export function EmployeePayrollTab({ employee, organizationId }: EmployeePayroll
             Límite de Deuda
           </div>
         </label>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label
               className="block text-xs font-medium mb-1"

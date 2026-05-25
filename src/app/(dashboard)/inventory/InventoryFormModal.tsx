@@ -280,7 +280,7 @@ export function InventoryFormModal({
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-2xl max-h-[90dvh] overflow-y-auto"
         style={{ 
           backgroundColor: COLORS.surface,
           borderRadius: '16px',
@@ -373,7 +373,7 @@ export function InventoryFormModal({
               description="Datos generales del producto"
             />
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {renderField(
                 'name',
                 'Nombre del producto *',
@@ -472,7 +472,7 @@ export function InventoryFormModal({
               description="Gestiona el stock de tu producto"
             />
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {renderField(
                 'quantity',
                 'Cantidad en stock',
@@ -515,7 +515,7 @@ export function InventoryFormModal({
               description="Configura el precio de venta y costo"
             />
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {renderField(
                 'price',
                 'Precio de venta',

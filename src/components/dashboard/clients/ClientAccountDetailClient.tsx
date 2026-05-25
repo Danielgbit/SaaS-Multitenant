@@ -524,7 +524,7 @@ export function ClientAccountDetailClient({
             onClick={() => setShowSaleModal(false)}
           />
           <div
-            className="relative w-full max-w-lg max-h-[80vh] rounded-2xl p-6 overflow-y-auto"
+            className="relative w-full max-w-lg max-h-[80dvh] rounded-2xl p-6 overflow-y-auto"
             style={{ backgroundColor: COLORS.surface }}
           >
             <h2

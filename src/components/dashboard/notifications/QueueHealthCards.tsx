@@ -134,7 +134,7 @@ export function QueueHealthCards({ queue, deadLetters }: QueueHealthCardsProps) 
                   className="w-1.5 h-1.5 rounded-full"
                   style={{ backgroundColor: color }}
                 />
-                <span className="text-[11px] font-mono text-muted-foreground">
+                <span className="text-caption font-mono text-muted-foreground">
                   {value} activos
                 </span>
               </div>

@@ -101,7 +101,7 @@ export function AppointmentDetailModal({
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
                 { icon: <Calendar className="w-4 h-4" style={{ color: COLORS.primary }} />, label: 'Fecha', value: new Date(appointment.start_time).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) },
                 { icon: <Clock className="w-4 h-4" style={{ color: COLORS.primary }} />, label: 'Hora', value: formatTime(appointment.start_time) },

@@ -248,7 +248,7 @@ export function InviteEmployeeModal({ isOpen, employee, organizationName, onClos
         aria-hidden="true"
       />
 
-        <div className="relative z-10 bg-white dark:bg-[#1E293B] rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-700/60 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+        <div className="relative z-10 bg-white dark:bg-[#1E293B] rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-700/60 max-h-[90dvh] overflow-y-auto animate-in zoom-in-95 duration-200">
         <div className="sticky top-0 z-10 flex items-center justify-between px-5 sm:px-6 py-4 border-b border-slate-100 dark:border-slate-800/40 bg-white dark:bg-[#1E293B]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center text-[#0F4C5C] dark:text-[#38BDF8]">

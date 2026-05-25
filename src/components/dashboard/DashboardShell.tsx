@@ -7,6 +7,7 @@ import { MobileNav } from '@/components/dashboard/MobileNav'
 import { ConfirmationsPanel } from '@/components/dashboard/ConfirmationsPanel'
 import { ConfirmBanner } from '@/components/dashboard/ConfirmBanner'
 import { ReminderBanner } from '@/components/dashboard/ReminderBanner'
+import { PageContainer } from '@/components/ui'
 import { PaymentModal } from '@/components/dashboard/PaymentModal'
 import { PaymentQueueProvider, usePaymentQueue } from '@/components/providers/PaymentQueueProvider'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
@@ -94,7 +95,7 @@ function DashboardShellContent({
         />
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-          <div className="w-full max-w-[1280px] mx-auto px-6 md:px-8 lg:px-10">
+          <PageContainer>
             <Header
               organizationConnected={!!organizationId}
               organizationName={organizationName}
@@ -116,7 +117,7 @@ function DashboardShellContent({
                 onOpenAppointment={openAppointment}
               />
             )}
-          </div>
+          </PageContainer>
 
           <ConfirmationsPanel
             organizationId={organizationId || ''}
@@ -125,9 +126,9 @@ function DashboardShellContent({
           />
 
           <main className="flex-1 overflow-y-auto w-full scroll-smooth pb-20 md:pb-0">
-            <div className="w-full max-w-[1280px] mx-auto p-6 md:p-8 lg:p-10">
+            <PageContainer className="p-6 md:p-8 lg:p-10">
               {children}
-            </div>
+            </PageContainer>
           </main>
 
         </div>
