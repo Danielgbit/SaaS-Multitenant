@@ -92,118 +92,58 @@ export async function getOverviewStats(
   const { start, end } = getDateRange(period)
   const { start: prevStart, end: prevEnd } = getPreviousDateRange(period)
 
-  // Current period stats
-  const [{ data: currentStats }, { data: prevStats }] = await Promise.all([
+  // Use daily_analytics table (precomputed) instead of fetching all appointments
+  const [{ data: currentDaily }, { data: prevDaily }] = await Promise.all([
     supabase
-      .from('appointments')
-      .select('status, start_time, client_id, created_at')
+      .from('daily_analytics')
+      .select('appointments_count, appointments_completed, revenue_cents, new_clients')
       .eq('organization_id', organizationId)
-      .gte('start_time', start.toISOString())
-      .lte('start_time', end.toISOString()),
+      .gte('date', start.toISOString().split('T')[0])
+      .lte('date', end.toISOString().split('T')[0]),
     
     supabase
-      .from('appointments')
-      .select('status, start_time, client_id, created_at')
+      .from('daily_analytics')
+      .select('appointments_count, appointments_completed, revenue_cents, new_clients')
       .eq('organization_id', organizationId)
-      .gte('start_time', prevStart.toISOString())
-      .lte('start_time', prevEnd.toISOString())
+      .gte('date', prevStart.toISOString().split('T')[0])
+      .lte('date', prevEnd.toISOString().split('T')[0])
   ])
 
-  // Get revenue from appointments with services
-  const [{ data: revenueData }, { data: prevRevenueData }] = await Promise.all([
-    supabase
-      .from('appointments')
-      .select(`
-        id,
-        status,
-        start_time,
-        appointment_services!inner(
-          service_id,
-          services!inner(price)
-        )
-      `)
-      .eq('organization_id', organizationId)
-      .eq('status', 'completed')
-      .gte('start_time', start.toISOString())
-      .lte('start_time', end.toISOString()),
-    
-    supabase
-      .from('appointments')
-      .select(`
-        id,
-        status,
-        start_time,
-        appointment_services!inner(
-          service_id,
-          services!inner(price)
-        )
-      `)
-      .eq('organization_id', organizationId)
-      .eq('status', 'completed')
-      .gte('start_time', prevStart.toISOString())
-      .lte('start_time', prevEnd.toISOString())
-  ])
-
-  // Calculate current revenue
-  const currentRevenue = revenueData?.reduce((sum: number, apt: any) => {
-    const services = apt.appointment_services as Array<{ services: { price: number } }>
-    const aptRevenue = services?.reduce((s, svc) => s + (svc.services?.price || 0), 0) || 0
-    return sum + aptRevenue
-  }, 0) || 0
-
-  // Calculate previous revenue
-  const prevRevenue = prevRevenueData?.reduce((sum: number, apt: any) => {
-    const services = apt.appointment_services as Array<{ services: { price: number } }>
-    const aptRevenue = services?.reduce((s, svc) => s + (svc.services?.price || 0), 0) || 0
-    return sum + aptRevenue
-  }, 0) || 0
-
-  // Calculate unique new clients in current period
-  const currentClientsSet = new Set(
-    (currentStats || [])
-      .filter(a => new Date(a.created_at!) >= start)
-      .map(a => a.client_id)
-  )
-
-  const prevClientsSet = new Set(
-    (prevStats || [])
-      .filter(a => new Date(a.created_at!) >= prevStart)
-      .map(a => a.client_id)
-  )
-
-  // Calculate stats
-  const appointments = currentStats?.length || 0
-  const prevAppointments = prevStats?.length || 0
+  // Aggregate daily data
+  const appointments = (currentDaily || []).reduce((sum, d) => sum + (d.appointments_count || 0), 0)
+  const prevAppointments = (prevDaily || []).reduce((sum, d) => sum + (d.appointments_count || 0), 0)
   const appointmentsChange = prevAppointments > 0 
     ? Math.round(((appointments - prevAppointments) / prevAppointments) * 100) 
     : 0
-
+  
+  const revenue = Math.round((currentDaily || []).reduce((sum, d) => sum + (d.revenue_cents || 0), 0) / 100)
+  const prevRevenue = Math.round((prevDaily || []).reduce((sum, d) => sum + (d.revenue_cents || 0), 0) / 100)
   const revenueChange = prevRevenue > 0 
-    ? Math.round(((currentRevenue - prevRevenue) / prevRevenue) * 100) 
+    ? Math.round(((revenue - prevRevenue) / prevRevenue) * 100) 
     : 0
-
-  const clients = currentClientsSet.size
-  const prevClients = prevClientsSet.size
+  
+  const clients = (currentDaily || []).reduce((sum, d) => sum + (d.new_clients || 0), 0)
+  const prevClients = (prevDaily || []).reduce((sum, d) => sum + (d.new_clients || 0), 0)
   const clientsChange = prevClients > 0 
     ? Math.round(((clients - prevClients) / prevClients) * 100) 
     : 0
-
-  const completed = currentStats?.filter(a => a.status === 'completed').length || 0
-  const prevCompleted = prevStats?.filter(a => a.status === 'completed').length || 0
+  
+  const completed = (currentDaily || []).reduce((sum, d) => sum + (d.appointments_completed || 0), 0)
+  const prevCompleted = (prevDaily || []).reduce((sum, d) => sum + (d.appointments_completed || 0), 0)
   const completionRate = appointments > 0 ? Math.round((completed / appointments) * 100) : 0
   const prevCompletionRate = prevAppointments > 0 ? Math.round((prevCompleted / prevAppointments) * 100) : 0
   const completionRateChange = prevCompletionRate > 0 
     ? Math.round(completionRate - prevCompletionRate) 
     : 0
 
-  const avgTicket = completed > 0 ? Math.round(currentRevenue / completed) : 0
+  const avgTicket = completed > 0 ? Math.round(revenue / completed) : 0
 
   const result = {
     success: true,
     data: {
       appointments,
       appointmentsChange,
-      revenue: currentRevenue,
+      revenue,
       revenueChange,
       clients,
       clientsChange,
@@ -214,7 +154,7 @@ export async function getOverviewStats(
   }
 
   console.timeEnd(label)
-  console.log(`${label} → rows: ${currentStats?.length ?? 0} + ${revenueData?.length ?? 0}`)
+  console.log(`${label} → days: ${(currentDaily || []).length}, queries: 2 (using daily_analytics)`)
 
   return result
 }
