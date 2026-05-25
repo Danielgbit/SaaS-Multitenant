@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
+import { useTheme } from 'next-themes'
 import { CollapsibleSidebar } from '@/components/dashboard/CollapsibleSidebar'
 import { Header } from '@/components/dashboard/Header'
 import { MobileNav } from '@/components/dashboard/MobileNav'
@@ -11,6 +12,7 @@ import { PageContainer } from '@/components/ui'
 import { PaymentQueueProvider, usePaymentQueue } from '@/components/providers/PaymentQueueProvider'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { useAppointmentModal } from '@/components/providers/AppointmentModalProvider'
+import { CommandPalette } from '@/components/dashboard/command-palette/CommandPalette'
 import { SidebarSectionSkeleton } from './analytics/DashboardSkeletons'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
@@ -50,6 +52,7 @@ function DashboardShellContent({
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [confirmationsPanelOpen, setConfirmationsPanelOpen] = useState(false)
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const { openAppointment } = useAppointmentModal()
   const {
     currentNotification,
@@ -62,6 +65,17 @@ function DashboardShellContent({
   } = usePaymentQueue()
 
   useKeyboardShortcuts()
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setCommandPaletteOpen((prev) => !prev)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   useEffect(() => {
     const saved = localStorage.getItem('sidebarCollapsed')
@@ -174,6 +188,12 @@ function DashboardShellContent({
           onConfirm={async () => ({ success: true })}
         />
       )}
+
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        role={role}
+      />
     </>
   )
 }
