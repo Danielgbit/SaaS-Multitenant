@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Activity, CheckCircle2, XCircle, UserPlus, Clock } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from '@/components/ui/Card'
@@ -21,6 +22,15 @@ export function RecentActivity({ activities }: RecentActivityProps) {
       case 'appointment_created':
       default:
         return { icon: <Clock className="w-4 h-4" />, color: COLORS.warning, bg: COLORS.warningLight }
+    }
+  }
+
+  const getActivityLink = (activity: ActivityItem) => {
+    switch (activity.type) {
+      case 'client_registered':
+        return '/clients'
+      default:
+        return '/calendar'
     }
   }
 
@@ -57,9 +67,10 @@ export function RecentActivity({ activities }: RecentActivityProps) {
           {activities.map((activity) => {
             const style = getActivityIcon(activity.type)
             return (
-              <div
+              <Link
                 key={activity.id}
-                className="flex items-start gap-3 p-2 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
+                href={getActivityLink(activity)}
+                className="flex items-start gap-3 p-2 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
@@ -78,7 +89,7 @@ export function RecentActivity({ activities }: RecentActivityProps) {
                 <span className="text-xs shrink-0" style={{ color: COLORS.textMuted }}>
                   {formatTime(activity.timestamp)}
                 </span>
-              </div>
+              </Link>
             )
           })}
         </div>
