@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { useTheme } from 'next-themes'
 
 export interface ThemeColors {
@@ -51,17 +51,45 @@ export interface ThemeColors {
   isDark: boolean
 }
 
+const RADIUS = {
+  sm: '6px',
+  md: '10px',
+  lg: '16px',
+  xl: '24px',
+  button: '12px',
+  card: '20px',
+  modal: '28px',
+} as const
+
+const TRANSITION = 'all 200ms ease' as const
+
+const DARK_SHADOWS = {
+  sm: '0 1px 2px rgba(0,0,0,0.05)',
+  md: '0 4px 6px rgba(0,0,0,0.1)',
+  lg: '0 10px 15px rgba(0,0,0,0.1)',
+  xl: '0 20px 25px rgba(0,0,0,0.15)',
+  tealSm: '0 2px 8px rgba(0,0,0,0.2)',
+  tealMd: '0 4px 24px rgba(0,0,0,0.3)',
+  tealLg: '0 8px 40px rgba(0,0,0,0.4)',
+  tealXl: '0 16px 64px rgba(0,0,0,0.5)',
+} as const
+
+const LIGHT_SHADOWS = {
+  sm: '0 1px 2px rgba(0,0,0,0.05)',
+  md: '0 4px 6px rgba(0,0,0,0.1)',
+  lg: '0 10px 15px rgba(0,0,0,0.1)',
+  xl: '0 20px 25px rgba(0,0,0,0.15)',
+  tealSm: '0 2px 8px rgba(15,76,92,0.04)',
+  tealMd: '0 4px 24px rgba(15,76,92,0.06)',
+  tealLg: '0 8px 40px rgba(15,76,92,0.10)',
+  tealXl: '0 16px 64px rgba(15,76,92,0.14)',
+} as const
+
 export function useThemeColors(): ThemeColors {
   const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const isDark = resolvedTheme === 'dark'
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const isDark = mounted ? resolvedTheme === 'dark' : false
-
-  return {
+  return useMemo(() => ({
     primary: isDark ? '#38BDF8' : '#0F4C5C',
     primaryLight: isDark ? '#2DD4BF' : '#14B8A6',
     primaryGradient: isDark
@@ -103,34 +131,17 @@ export function useThemeColors(): ThemeColors {
     infoLight: isDark ? '#0C4A6E' : '#E0F2FE',
     overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.4)',
     glass: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-    radius: {
-      sm: '6px',
-      md: '10px',
-      lg: '16px',
-      xl: '24px',
-      button: '12px',
-      card: '20px',
-      modal: '28px',
-    },
-    shadow: {
-      sm: '0 1px 2px rgba(0,0,0,0.05)',
-      md: '0 4px 6px rgba(0,0,0,0.1)',
-      lg: '0 10px 15px rgba(0,0,0,0.1)',
-      xl: '0 20px 25px rgba(0,0,0,0.15)',
-      tealSm: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 8px rgba(15,76,92,0.04)',
-      tealMd: isDark ? '0 4px 24px rgba(0,0,0,0.3)' : '0 4px 24px rgba(15,76,92,0.06)',
-      tealLg: isDark ? '0 8px 40px rgba(0,0,0,0.4)' : '0 8px 40px rgba(15,76,92,0.10)',
-      tealXl: isDark ? '0 16px 64px rgba(0,0,0,0.5)' : '0 16px 64px rgba(15,76,92,0.14)',
-    },
+    radius: RADIUS,
+    shadow: isDark ? DARK_SHADOWS : LIGHT_SHADOWS,
     shadowInput: isDark
       ? '0 1px 2px rgba(0,0,0,0.3)'
       : '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)',
-    transition: 'all 200ms ease',
+    transition: TRANSITION,
     headerBg: isDark ? '#1E293B' : '#FAFAF9',
     headerText: isDark ? '#F1F5F9' : '#0F172A',
     headerTextMuted: isDark ? '#94A3B8' : '#475569',
     whatsapp: isDark ? '#25D366' : '#0F4C5C',
     whatsappLight: isDark ? '#25D36615' : '#0F4C5C10',
     isDark,
-  }
+  }), [isDark])
 }

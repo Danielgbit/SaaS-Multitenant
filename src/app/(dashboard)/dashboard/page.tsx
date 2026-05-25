@@ -1,7 +1,9 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardClient } from '@/components/dashboard/analytics/DashboardClient'
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import DashboardLoading from './loading'
 
 export const metadata: Metadata = {
   title: 'Dashboard | Prügressy',
@@ -9,7 +11,7 @@ export const metadata: Metadata = {
   robots: 'noindex, nofollow',
 }
 
-export default async function DashboardPage() {
+async function DashboardContent() {
   const supabase = await createClient()
 
   const {
@@ -34,22 +36,25 @@ export default async function DashboardPage() {
   let organizationName: string | null = null
 
   if (organizationId) {
-    const { data: org } = await supabase
+    const orgPromise = supabase
       .from('organizations')
       .select('name')
       .eq('id', organizationId)
       .single()
-    organizationName = org?.name ?? null
-  }
 
-  if (role === 'empleado') {
-    const { data: employee } = await (supabase as any)
-      .from('employees')
-      .select('name')
-      .eq('user_id', user.id)
-      .eq('organization_id', organizationId)
-      .single()
-    employeeName = employee?.name
+    const employeePromise = role === 'empleado'
+      ? (supabase as any)
+          .from('employees')
+          .select('name')
+          .eq('user_id', user.id)
+          .eq('organization_id', organizationId)
+          .single()
+      : null
+
+    const [orgResult, employeeResult] = await Promise.all([orgPromise, employeePromise])
+
+    organizationName = orgResult.data?.name ?? null
+    employeeName = employeeResult?.data?.name ?? null
   }
 
   if (!organizationId) {
@@ -61,4 +66,12 @@ export default async function DashboardPage() {
   }
 
   return <DashboardClient organizationId={organizationId} role={role} organizationName={organizationName} employeeName={employeeName} />
+}
+
+export default async function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <DashboardContent />
+    </Suspense>
+  )
 }

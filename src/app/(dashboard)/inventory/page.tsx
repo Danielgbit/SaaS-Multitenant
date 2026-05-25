@@ -31,8 +31,10 @@ export default async function InventoryPage() {
     redirect('/calendar')
   }
 
-  const items = await getInventoryItems(orgMember.organization_id)
-  const categories = await getInventoryCategories(orgMember.organization_id)
+  const [items, categories] = await Promise.all([
+    getInventoryItems(orgMember.organization_id),
+    getInventoryCategories(orgMember.organization_id),
+  ])
 
   return (
     <InventoryClient

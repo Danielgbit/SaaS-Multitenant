@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { BookingWizard } from '@/components/public/BookingWizard'
 
+export const revalidate = 60
+
 interface Props {
   params: Promise<{ slug: string }>
 }

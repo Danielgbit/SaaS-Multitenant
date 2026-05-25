@@ -1,35 +1,36 @@
-const SKELETON_ROWS = Array.from({ length: 6 })
+const TABLE_ROWS = Array.from({ length: 5 })
 
-export default function ClientsLoading() {
+export default function PayrollHistoryLoading() {
   return (
     <div className="animate-pulse space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700/50 rounded-md mb-2" />
-          <div className="h-8 w-36 bg-slate-200 dark:bg-slate-700/50 rounded-lg" />
+          <div className="h-8 w-44 bg-slate-200 dark:bg-slate-700/50 rounded-lg" />
         </div>
-        <div className="h-10 w-40 bg-slate-200 dark:bg-slate-700/50 rounded-xl" />
+        <div className="h-10 w-36 bg-slate-200 dark:bg-slate-700/50 rounded-xl" />
       </div>
 
-      {/* Search + filters */}
+      {/* Filters */}
       <div className="flex gap-3">
-        <div className="h-10 flex-1 bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50" />
-        <div className="h-10 w-32 bg-slate-200 dark:bg-slate-700/50 rounded-xl" />
-        <div className="h-10 w-32 bg-slate-200 dark:bg-slate-700/50 rounded-xl" />
+        <div className="h-10 w-48 bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/50" />
+        <div className="h-10 w-36 bg-slate-200 dark:bg-slate-700/50 rounded-xl" />
+        <div className="h-10 w-36 bg-slate-200 dark:bg-slate-700/50 rounded-xl" />
       </div>
 
-      {/* Client list */}
+      {/* Table */}
       <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden">
+        <div className="h-12 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700/50" />
         <div className="divide-y divide-slate-100 dark:divide-slate-700/40">
-          {SKELETON_ROWS.map((_, i) => (
+          {TABLE_ROWS.map((_, i) => (
             <div key={i} className="flex items-center gap-4 px-6 py-4">
-              <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700/50 shrink-0" />
               <div className="flex-1 space-y-2">
                 <div className="h-4 w-1/3 bg-slate-200 dark:bg-slate-700/50 rounded" />
-                <div className="h-3 w-1/4 bg-slate-100 dark:bg-slate-700/30 rounded" />
+                <div className="h-3 w-1/5 bg-slate-100 dark:bg-slate-700/30 rounded" />
               </div>
               <div className="h-6 w-20 bg-slate-100 dark:bg-slate-700/30 rounded-full" />
+              <div className="h-6 w-16 bg-slate-100 dark:bg-slate-700/30 rounded-full" />
               <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700/30" />
             </div>
           ))}

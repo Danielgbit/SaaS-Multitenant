@@ -4,6 +4,9 @@ import { formatCurrency } from '@/lib/billing/utils'
 import Link from 'next/link'
 import { CheckCircle2, Calendar, Users, MessageSquare, BarChart3, Zap, HeadphonesIcon, Star, Shield, Sparkles, ArrowRight } from 'lucide-react'
 
+export const dynamic = 'force-static'
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: 'Planes y Precios - Prügressy | Software de Citas para Profesionales Colombia',
   description: 'Planes desde $39.900 COP/mes. Software de gestión de citas para barberías, spas y profesionales en Colombia. 30 días de prueba gratis.',

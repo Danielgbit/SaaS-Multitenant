@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 
@@ -73,6 +73,12 @@ export function PaymentQueueProvider({ children }: { children: ReactNode }) {
     }
   }, [queue])
 
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [])
+
   const showNotificationToast = useCallback((notification: QueuedNotification) => {
     toast.success(
       `Servicio completado por ${notification.employeeName}`,
@@ -97,17 +103,14 @@ export function PaymentQueueProvider({ children }: { children: ReactNode }) {
     setQueue(prev => {
       const exists = prev.some(n => n.id === notification.id)
       if (exists) return prev
-
-      const updated = [...prev, notification]
-
-      if (!currentNotification && !isModalOpen && prev.length === 0) {
-        setTimeout(() => {
-          showNotificationToast(notification)
-        }, 500)
-      }
-
-      return updated
+      return [...prev, notification]
     })
+
+    if (!currentNotification && !isModalOpen) {
+      setTimeout(() => {
+        showNotificationToast(notification)
+      }, 500)
+    }
   }, [currentNotification, isModalOpen, showNotificationToast])
 
   const removeFromQueue = useCallback((id: string) => {
@@ -156,21 +159,22 @@ export function PaymentQueueProvider({ children }: { children: ReactNode }) {
     })
   }, [currentNotification, isModalOpen, showNotificationToast])
 
+  const contextValue = useMemo(() => ({
+    queue,
+    currentNotification,
+    isModalOpen,
+    addToQueue,
+    removeFromQueue,
+    processNext,
+    openModal,
+    closeModal,
+    markAsPaid,
+    queueCount: queue.length + (currentNotification ? 1 : 0),
+  }), [queue, currentNotification, isModalOpen, addToQueue, removeFromQueue,
+      processNext, openModal, closeModal, markAsPaid])
+
   return (
-    <PaymentQueueContext.Provider
-      value={{
-        queue,
-        currentNotification,
-        isModalOpen,
-        addToQueue,
-        removeFromQueue,
-        processNext,
-        openModal,
-        closeModal,
-        markAsPaid,
-        queueCount: queue.length + (currentNotification ? 1 : 0),
-      }}
-    >
+    <PaymentQueueContext.Provider value={contextValue}>
       {children}
     </PaymentQueueContext.Provider>
   )

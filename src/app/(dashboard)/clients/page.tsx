@@ -1,15 +1,17 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getClients } from '@/services/clients/getClients'
 import { ClientsClient } from './ClientsClient'
 import type { Metadata } from 'next'
+import ClientsLoading from './loading'
 
 export const metadata: Metadata = {
   title: 'Clientes — SaaS',
   description: 'Gestiona los clientes de tu organización.',
 }
 
-export default async function ClientsPage() {
+async function ClientsContent() {
   const supabase = await createClient()
 
   // 1. Verificar autenticación
@@ -37,4 +39,12 @@ export default async function ClientsPage() {
   const clients = await getClients(orgMember.organization_id)
 
   return <ClientsClient clients={clients} organizationId={orgMember.organization_id} />
+}
+
+export default async function ClientsPage() {
+  return (
+    <Suspense fallback={<ClientsLoading />}>
+      <ClientsContent />
+    </Suspense>
+  )
 }

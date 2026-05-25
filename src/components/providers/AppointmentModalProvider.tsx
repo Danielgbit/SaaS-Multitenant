@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 
 interface AppointmentModalContextType {
   selectedAppointmentId: string | null
@@ -19,13 +19,13 @@ export const AppointmentModalContext = createContext<AppointmentModalContextType
 export function AppointmentModalProvider({ children }: { children: ReactNode }) {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null)
 
-  const openAppointment = (id: string) => {
+  const openAppointment = useCallback((id: string) => {
     setSelectedAppointmentId(id)
-  }
+  }, [])
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setSelectedAppointmentId(null)
-  }
+  }, [])
 
   return (
     <AppointmentModalContext.Provider value={{ selectedAppointmentId, setSelectedAppointmentId, openAppointment, closeModal }}>

@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getEmployees } from '@/services/employees/getEmployees'
@@ -6,13 +7,14 @@ import { getEmployeeServicesForOrganization } from '@/services/employees/getEmpl
 import { getPendingInvitations } from '@/actions/invitations/getInvitations'
 import { EmployeesClient } from './EmployeesClient'
 import type { Metadata } from 'next'
+import EmployeesLoading from './loading'
 
 export const metadata: Metadata = {
   title: 'Empleados — SaaS',
   description: 'Gestiona los empleados de tu organización.',
 }
 
-export default async function EmployeesPage() {
+async function EmployeesContent() {
   const supabase = await createClient()
 
   // 1. Verificar autenticación
@@ -83,4 +85,12 @@ export default async function EmployeesPage() {
     organizationName={organizationName}
     userRole={orgMember.role}
   />
+}
+
+export default async function EmployeesPage() {
+  return (
+    <Suspense fallback={<EmployeesLoading />}>
+      <EmployeesContent />
+    </Suspense>
+  )
 }
