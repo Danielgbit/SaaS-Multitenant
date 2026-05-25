@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area } from 'recharts'
-import type { TrendChartProps } from './types'
+import type { TrendChartProps } from '@/types/analytics'
 
 interface CustomTooltipProps {
   active?: boolean
@@ -43,18 +43,9 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   )
 }
 
-export function TrendChart({ data, loading }: TrendChartProps) {
+export function TrendChart({ data }: TrendChartProps) {
   const COLORS = useThemeColors()
   const gradientId = useId()
-
-  if (loading) {
-    return (
-      <Card variant="surface" className="p-6">
-        <Skeleton variant="text" width="w-48" height="h-6" className="mb-4" />
-        <Skeleton variant="rectangular" height="h-48" />
-      </Card>
-    )
-  }
 
   if (!data || data.length === 0) {
     return (

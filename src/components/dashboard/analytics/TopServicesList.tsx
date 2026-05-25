@@ -6,32 +6,13 @@ import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Badge } from '@/components/ui/Badge'
-import type { TopServicesListProps } from './types'
+import type { TopServicesListProps } from '@/types/analytics'
 
-export function TopServicesList({ services, loading }: TopServicesListProps) {
+export function TopServicesList({ services }: TopServicesListProps) {
   const COLORS = useThemeColors()
   const maxPercentage = services && services.length > 0
     ? Math.max(...services.map(s => s.percentage))
     : 1
-
-  if (loading) {
-    return (
-      <Card variant="surface" className="p-6">
-        <Skeleton variant="text" width="w-32" height="h-6" className="mb-4" />
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="flex items-center gap-3">
-              <Skeleton variant="rectangular" width="w-8" height="h-8" />
-              <div className="flex-1">
-                <Skeleton variant="text" width="w-24" className="mb-1" />
-                <Skeleton variant="text" width="w-16" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-    )
-  }
 
   if (!services || services.length === 0) {
     return (

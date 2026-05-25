@@ -16,7 +16,7 @@ import {
   AlertsSection,
   TopServicesSection,
 } from './DashboardSections'
-import type { Period } from './types'
+import type { Period } from '@/types/analytics'
 
 interface DashboardClientProps {
   organizationId: string

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Calendar, ChevronDown } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import type { Period } from './types'
+import type { Period } from '@/types/analytics'
 
 interface PeriodSelectorProps {
   value: Period

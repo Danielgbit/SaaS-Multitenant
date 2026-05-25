@@ -19,7 +19,7 @@ import { PayrollSummaryWidget } from './PayrollSummaryWidget'
 import { AlertsPanel } from './AlertsPanel'
 import { TopServicesList } from './TopServicesList'
 import { StatsGridSkeleton, ChartSectionSkeleton, SidebarSectionSkeleton, TableSkeleton } from './DashboardSkeletons'
-import type { Period } from './types'
+import type { Period } from '@/types/analytics'
 
 function ErrorState({ error }: { error: Error }) {
   const COLORS = useThemeColors()
@@ -63,9 +63,9 @@ export function OverviewStatsGrid({ orgId, period }: { orgId: string; period: Pe
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
       {statsCards.map(s => (
-        <StatsCard key={s.title} {...s} value={s.value} loading={false} />
+        <StatsCard key={s.title} {...s} value={s.value} />
       ))}
-      <StatsCard title="Canceladas" value={cancelled} suffix="%" loading={false} />
+      <StatsCard title="Canceladas" value={cancelled} suffix="%" />
     </div>
   )
 }
@@ -82,7 +82,7 @@ export function TrendChartSection({ orgId, period }: { orgId: string; period: Pe
   if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
   if (!data?.data) return null
 
-  return <TrendChart data={data.data} loading={false} />
+  return <TrendChart data={data.data} />
 }
 
 export function RecentActivitySection({ orgId }: { orgId: string }) {
@@ -96,7 +96,7 @@ export function RecentActivitySection({ orgId }: { orgId: string }) {
   if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
   if (!data?.data) return null
 
-  return <RecentActivity activities={data.data} loading={false} />
+  return <RecentActivity activities={data.data} />
 }
 
 export function UpcomingSection({ orgId }: { orgId: string }) {
@@ -110,7 +110,7 @@ export function UpcomingSection({ orgId }: { orgId: string }) {
   if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
   if (!data?.data) return null
 
-  return <UpcomingAppointments appointments={data.data} loading={false} />
+  return <UpcomingAppointments appointments={data.data} />
 }
 
 export function EmployeePerformanceSection({ orgId, period }: { orgId: string; period: Period }) {
@@ -124,7 +124,7 @@ export function EmployeePerformanceSection({ orgId, period }: { orgId: string; p
   if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
   if (!data?.data) return null
 
-  return <EmployeePerformance employees={data.data} loading={false} />
+  return <EmployeePerformance employees={data.data} />
 }
 
 export function PayrollSummarySection({ orgId }: { orgId: string }) {
@@ -138,7 +138,7 @@ export function PayrollSummarySection({ orgId }: { orgId: string }) {
   if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
   if (!data?.data) return null
 
-  return <PayrollSummaryWidget summary={data.data} loading={false} />
+  return <PayrollSummaryWidget summary={data.data} />
 }
 
 export function AlertsSection({ orgId }: { orgId: string }) {
@@ -152,7 +152,7 @@ export function AlertsSection({ orgId }: { orgId: string }) {
   if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
   if (!data?.data) return null
 
-  return <AlertsPanel alerts={data.data} loading={false} />
+  return <AlertsPanel alerts={data.data} />
 }
 
 export function TopServicesSection({ orgId, period }: { orgId: string; period: Period }) {
@@ -167,5 +167,5 @@ export function TopServicesSection({ orgId, period }: { orgId: string; period: P
   if (data?.success === false) return <ErrorState error={new Error(data.error || 'Error al cargar')} />
   if (!data?.data) return null
 
-  return <TopServicesList services={data.data} loading={false} />
+  return <TopServicesList services={data.data} />
 }

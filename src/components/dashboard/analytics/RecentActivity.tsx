@@ -5,21 +5,9 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
+import type { ActivityItem, RecentActivityProps } from '@/types/analytics'
 
-interface ActivityItem {
-  id: string
-  type: 'appointment_created' | 'appointment_completed' | 'appointment_cancelled' | 'client_registered'
-  title: string
-  description: string
-  timestamp: string
-}
-
-interface RecentActivityProps {
-  activities: ActivityItem[]
-  loading: boolean
-}
-
-export function RecentActivity({ activities, loading }: RecentActivityProps) {
+export function RecentActivity({ activities }: RecentActivityProps) {
   const COLORS = useThemeColors()
 
   const getActivityIcon = (type: ActivityItem['type']) => {
@@ -48,30 +36,6 @@ export function RecentActivity({ activities, loading }: RecentActivityProps) {
     if (diffHours < 24) return `Hace ${diffHours}h`
     if (diffDays < 7) return `Hace ${diffDays}d`
     return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
-  }
-
-  if (loading) {
-    return (
-      <Card variant="surface" className="p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
-            <Activity className="w-5 h-5" style={{ color: COLORS.primary }} />
-          </div>
-          <h3 className="font-semibold" style={{ color: COLORS.textPrimary }}>Actividad Reciente</h3>
-        </div>
-        <div className="space-y-3">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="flex items-start gap-3">
-              <Skeleton variant="circular" width="w-8" height="h-8" />
-              <div className="flex-1">
-                <Skeleton variant="text" width="w-32" className="mb-2" />
-                <Skeleton variant="text" width="w-24" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-    )
   }
 
   return (

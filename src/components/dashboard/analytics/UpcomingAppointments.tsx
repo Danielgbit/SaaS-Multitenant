@@ -7,23 +7,9 @@ import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Badge } from '@/components/ui/Badge'
+import type { UpcomingAppointment, UpcomingAppointmentsProps } from '@/types/analytics'
 
-interface UpcomingAppointment {
-  id: string
-  start_time: string
-  status: string
-  client_name: string
-  client_phone: string | null
-  service_name: string | null
-  employee_name: string | null
-}
-
-interface UpcomingAppointmentsProps {
-  appointments: UpcomingAppointment[]
-  loading: boolean
-}
-
-export function UpcomingAppointments({ appointments, loading }: UpcomingAppointmentsProps) {
+export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps) {
   const COLORS = useThemeColors()
 
   const formatTime = (dateStr: string) => {
@@ -45,30 +31,6 @@ export function UpcomingAppointments({ appointments, loading }: UpcomingAppointm
       case 'pending': return 'Pendiente'
       default: return status
     }
-  }
-
-  if (loading) {
-    return (
-      <Card variant="surface" className="p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
-            <Calendar className="w-5 h-5" style={{ color: COLORS.primary }} />
-          </div>
-          <h3 className="font-semibold" style={{ color: COLORS.textPrimary }}>Próximas Citas</h3>
-        </div>
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="flex items-center gap-3">
-              <Skeleton variant="rectangular" width="w-12" height="h-12" />
-              <div className="flex-1">
-                <Skeleton variant="text" width="w-24" className="mb-2" />
-                <Skeleton variant="text" width="w-16" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-    )
   }
 
   return (

@@ -6,47 +6,11 @@ import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Badge } from '@/components/ui/Badge'
+import type { EmployeeData, EmployeePerformanceProps } from '@/types/analytics'
 
-interface EmployeeData {
-  employee_id: string
-  employee_name: string
-  appointments: number
-  revenue: number
-  completed: number
-}
-
-interface EmployeePerformanceProps {
-  employees: EmployeeData[]
-  loading: boolean
-}
-
-export function EmployeePerformance({ employees, loading }: EmployeePerformanceProps) {
+export function EmployeePerformance({ employees }: EmployeePerformanceProps) {
   const COLORS = useThemeColors()
   const maxRevenue = Math.max(...employees.map(e => e.revenue), 1)
-
-  if (loading) {
-    return (
-      <Card variant="surface" className="p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
-            <Trophy className="w-5 h-5" style={{ color: COLORS.primary }} />
-          </div>
-          <h3 className="font-semibold" style={{ color: COLORS.textPrimary }}>Rendimiento Staff</h3>
-        </div>
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="space-y-2">
-              <div className="flex items-center gap-3">
-                <Skeleton variant="circular" width="w-8" height="h-8" />
-                <Skeleton variant="text" width="w-24" />
-              </div>
-              <Skeleton variant="rectangular" height="h-2" />
-            </div>
-          ))}
-        </div>
-      </Card>
-    )
-  }
 
   return (
     <Card variant="surface" className="p-6">

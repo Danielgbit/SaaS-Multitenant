@@ -6,24 +6,9 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Badge } from '@/components/ui/Badge'
+import type { Alert, AlertsPanelProps } from '@/types/analytics'
 
-interface Alert {
-  id: string
-  type: 'whatsapp_failed' | 'unconfirmed_appointment' | 'info'
-  severity: 'warning' | 'info' | 'success'
-  title: string
-  description: string
-  link?: string
-  linkLabel?: string
-  count: number
-}
-
-interface AlertsPanelProps {
-  alerts: Alert[]
-  loading: boolean
-}
-
-export function AlertsPanel({ alerts, loading }: AlertsPanelProps) {
+export function AlertsPanel({ alerts }: AlertsPanelProps) {
   const COLORS = useThemeColors()
 
   const getAlertIcon = (alert: Alert) => {
@@ -46,30 +31,6 @@ export function AlertsPanel({ alerts, loading }: AlertsPanelProps) {
       case 'info': return 'info'
       default: return 'neutral'
     }
-  }
-
-  if (loading) {
-    return (
-      <Card variant="surface" className="p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primarySubtle }}>
-            <Bell className="w-5 h-5" style={{ color: COLORS.primary }} />
-          </div>
-          <h3 className="font-semibold" style={{ color: COLORS.textPrimary }}>Alertas</h3>
-        </div>
-        <div className="space-y-3">
-          {[1, 2].map(i => (
-            <div key={i} className="flex items-center gap-3">
-              <Skeleton variant="circular" width="w-8" height="h-8" />
-              <div className="flex-1">
-                <Skeleton variant="text" width="w-32" className="mb-1" />
-                <Skeleton variant="text" width="w-24" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-    )
   }
 
   return (

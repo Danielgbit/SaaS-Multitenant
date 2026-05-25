@@ -2,39 +2,13 @@
 
 import Link from 'next/link'
 import { Receipt, Users, TrendingUp, AlertCircle, ArrowRight } from 'lucide-react'
-import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from '@/components/ui/Card'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
+import type { PayrollSummary, PayrollSummaryWidgetProps } from '@/types/analytics'
 
-interface PayrollSummary {
-  employeeCount: number
-  employeesWithCommission: number
-  pendingCommissionsTotal: number
-  pendingLoansTotal: number
-}
-
-interface PayrollSummaryWidgetProps {
-  summary: PayrollSummary | undefined
-  loading: boolean
-}
-
-export function PayrollSummaryWidget({ summary, loading }: PayrollSummaryWidgetProps) {
+export function PayrollSummaryWidget({ summary }: PayrollSummaryWidgetProps) {
   const COLORS = useThemeColors()
-
-  if (loading) {
-    return (
-      <Card variant="surface" className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Receipt className="w-5 h-5" style={{ color: COLORS.textMuted }} />
-          <h3 className="font-semibold" style={{ color: COLORS.textPrimary }}>Nómina</h3>
-        </div>
-        <div className="flex justify-center py-8">
-          <Spinner size="md" style={{ color: COLORS.textMuted }} />
-        </div>
-      </Card>
-    )
-  }
 
   return (
     <Card variant="surface" className="p-0 overflow-hidden">
