@@ -63,7 +63,7 @@ function getPreviousDateRange(period: Period): DateRange {
 
 export async function getOverviewStats(
   organizationId: string,
-  period: Period = 'month'
+  period: Period
 ): Promise<{
   success: boolean
   data?: {
@@ -79,10 +79,13 @@ export async function getOverviewStats(
   }
   error?: string
 }> {
+  const label = `[analytics] getOverviewStats(${period})`
+  console.time(label)
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
+    console.timeEnd(label)
     return { success: false, error: 'No autorizado' }
   }
 
@@ -195,7 +198,7 @@ export async function getOverviewStats(
 
   const avgTicket = completed > 0 ? Math.round(currentRevenue / completed) : 0
 
-  return {
+  const result = {
     success: true,
     data: {
       appointments,
@@ -206,7 +209,12 @@ export async function getOverviewStats(
       clientsChange,
       completionRate,
       completionRateChange,
-      avgTicket
-    }
+      avgTicket,
+    },
   }
+
+  console.timeEnd(label)
+  console.log(`${label} → rows: ${currentStats?.length ?? 0} + ${revenueData?.length ?? 0}`)
+
+  return result
 }

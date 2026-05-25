@@ -21,10 +21,13 @@ export async function getSystemAlerts(
   data?: Alert[]
   error?: string
 }> {
+  const label = '[analytics] getSystemAlerts'
+  console.time(label)
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
+    console.timeEnd(label)
     return { success: false, error: 'No autorizado' }
   }
 
@@ -96,3 +99,5 @@ export async function getSystemAlerts(
     data: alerts
   }
 }
+
+

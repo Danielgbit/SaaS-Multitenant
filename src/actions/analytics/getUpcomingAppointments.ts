@@ -20,10 +20,13 @@ export async function getUpcomingAppointments(
   }>
   error?: string
 }> {
+  const label = '[analytics] getUpcomingAppointments'
+  console.time(label)
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
+    console.timeEnd(label)
     return { success: false, error: 'No autorizado' }
   }
 
@@ -92,3 +95,5 @@ export async function getUpcomingAppointments(
     data: appointments
   }
 }
+
+

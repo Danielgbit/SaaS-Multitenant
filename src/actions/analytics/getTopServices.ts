@@ -25,14 +25,21 @@ export async function getTopServices(
   }>
   error?: string
 }> {
+  const label = `[analytics] getTopServices(${days}d)`
+  console.time(label)
   const parsed = TopServicesSchema.safeParse({ organizationId, limit, days })
   if (!parsed.success) {
+    console.timeEnd(label)
     return { success: false, error: 'Parámetros inválidos' }
   }
 
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    console.timeEnd(label)
+    return { success: false, error: 'No autorizado' }
+  }
   if (!user) {
     return { success: false, error: 'No autorizado' }
   }
@@ -90,6 +97,9 @@ export async function getTopServices(
     }))
     .sort((a, b) => b.count - a.count)
     .slice(0, limit)
+
+  console.timeEnd(label)
+  console.log(`${label} → services: ${topServices.length}`)
 
   return { success: true, data: topServices }
 }

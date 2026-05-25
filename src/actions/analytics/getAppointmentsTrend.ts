@@ -24,8 +24,11 @@ export async function getAppointmentsTrend(
   }>
   error?: string
 }> {
+  const label = `[analytics] getAppointmentsTrend(${days}d)`
+  console.time(label)
   const parsed = TrendSchema.safeParse({ organizationId, days })
   if (!parsed.success) {
+    console.timeEnd(label)
     return { success: false, error: 'Parámetros inválidos' }
   }
 
@@ -33,6 +36,7 @@ export async function getAppointmentsTrend(
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
+    console.timeEnd(label)
     return { success: false, error: 'No autorizado' }
   }
 
@@ -102,6 +106,9 @@ export async function getAppointmentsTrend(
       revenue: data.revenue
     }
   })
+
+  console.timeEnd(label)
+  console.log(`${label} → rows: ${appointments?.length ?? 0}`)
 
   return { success: true, data: trendData }
 }

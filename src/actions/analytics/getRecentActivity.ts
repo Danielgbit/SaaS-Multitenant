@@ -20,10 +20,13 @@ export async function getRecentActivity(
   data?: Activity[]
   error?: string
 }> {
+  const label = '[analytics] getRecentActivity'
+  console.time(label)
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
+    console.timeEnd(label)
     return { success: false, error: 'No autorizado' }
   }
 
@@ -123,3 +126,5 @@ export async function getRecentActivity(
     data: activities.slice(0, limit)
   }
 }
+
+
