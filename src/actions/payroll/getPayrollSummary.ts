@@ -21,10 +21,13 @@ export async function getPayrollSummary(
   data?: PayrollSummary
   error?: string
 }> {
+  const label = `[payroll] getPayrollSummary`
+  console.time(label)
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
+    console.timeEnd(label)
     return { success: false, error: 'No autorizado' }
   }
 
@@ -70,6 +73,7 @@ export async function getPayrollSummary(
 
   const employeeIds = employees.map((e: any) => e.id)
 
+  // Batch fetch all appointments with their services
   const { data: appointments } = await (supabase as any)
     .from('appointments')
     .select(`
@@ -88,32 +92,57 @@ export async function getPayrollSummary(
     .gte('start_time', startDate)
     .lte('start_time', endDate)
 
+  // Collect all unique service_ids and (employee_id, service_id) pairs for batch lookup
+  const allServiceIds = new Set<string>()
+  const empServiceKeys = new Set<string>()
+  
+  for (const apt of appointments || []) {
+    for (const as of apt.appointment_services || []) {
+      allServiceIds.add(as.service_id)
+      empServiceKeys.add(`${apt.employee_id}:${as.service_id}`)
+    }
+  }
+
+  // Batch fetch all services in ONE query
+  const { data: allServices } = await (supabase as any)
+    .from('services')
+    .select('id, price, has_commission')
+    .in('id', [...allServiceIds])
+
+  const serviceMap = new Map(
+    (allServices || []).map((s: any) => [s.id, s])
+  )
+
+  // Batch fetch all employee_services in ONE query
+  const employeeServicePairs = Array.from(empServiceKeys).map(key => {
+    const [employee_id, service_id] = key.split(':')
+    return { employee_id, service_id }
+  })
+
+  const { data: allEmpServices } = await (supabase as any)
+    .from('employee_services')
+    .select('employee_id, service_id, price_override, commission_rate')
+    .in('employee_id', employeeIds)
+    .in('service_id', [...allServiceIds])
+
+  const empServiceMap = new Map(
+    (allEmpServices || []).map((es: any) => [`${es.employee_id}:${es.service_id}`, es])
+  )
+
+  // Now compute commissions with O(1) lookups instead of N+1 queries
   let totalCommission = 0
 
   for (const apt of appointments || []) {
     const employee = employees.find((e: any) => e.id === apt.employee_id)
     if (!employee) continue
 
-    const serviceIds = (apt.appointment_services || []).map((as: any) => as.service_id)
-    if (serviceIds.length === 0) continue
+    for (const as of apt.appointment_services || []) {
+      const service = serviceMap.get(as.service_id)
+      if (!service || !(service as any).has_commission) continue
 
-    const { data: services } = await (supabase as any)
-      .from('services')
-      .select('id, price, has_commission')
-      .in('id', serviceIds)
-
-    for (const service of services || []) {
-      if (!service.has_commission) continue
-
-      const { data: empService } = await (supabase as any)
-        .from('employee_services')
-        .select('price_override, commission_rate')
-        .eq('employee_id', apt.employee_id)
-        .eq('service_id', service.id)
-        .single()
-
-      const price = empService?.price_override || service.price
-      const rate = empService?.commission_rate || employee.default_commission_rate
+      const empService = empServiceMap.get(`${apt.employee_id}:${as.service_id}`)
+      const price = (empService as any)?.price_override || (service as any).price
+      const rate = (empService as any)?.commission_rate || employee.default_commission_rate
       totalCommission += price * (rate / 100)
     }
   }
@@ -136,6 +165,9 @@ export async function getPayrollSummary(
     .in('employee_id', employeeIds)
     .order('created_at', { ascending: false })
     .limit(5)
+
+  console.timeEnd(label)
+  console.log(`${label} → appointments: ${(appointments || []).length}, services: ${allServiceIds.size}, queries: 5 (batched)`)
 
   return {
     success: true,

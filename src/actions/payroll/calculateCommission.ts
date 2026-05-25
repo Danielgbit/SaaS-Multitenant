@@ -25,10 +25,13 @@ export async function calculateCommission(
   data?: CommissionWithDayGroups
   error?: string
 }> {
+  const label = `[payroll] calculateCommission`
+  console.time(label)
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
+    console.timeEnd(label)
     return { success: false, error: 'No autorizado' }
   }
 
@@ -41,6 +44,7 @@ export async function calculateCommission(
     .single()
 
   if (!employee) {
+    console.timeEnd(label)
     return { success: false, error: 'Empleado no encontrado' }
   }
 
@@ -66,6 +70,36 @@ export async function calculateCommission(
     .lte('start_time', endDate.toISOString())
     .order('start_time', { ascending: true })
 
+  // Collect all unique service_ids for batch lookup
+  const allServiceIds = new Set<string>()
+  for (const apt of appointments || []) {
+    for (const as of apt.appointment_services || []) {
+      allServiceIds.add(as.service_id)
+    }
+  }
+
+  // Batch fetch all services in ONE query
+  const { data: allServices } = await (supabase as any)
+    .from('services')
+    .select('id, name, price, has_commission')
+    .in('id', [...allServiceIds])
+
+  const serviceMap = new Map(
+    (allServices || []).map((s: any) => [s.id, s])
+  )
+
+  // Batch fetch all employee_services for this employee in ONE query
+  const { data: allEmpServices } = await (supabase as any)
+    .from('employee_services')
+    .select('service_id, commission_rate, price_override')
+    .eq('employee_id', employeeId)
+    .in('service_id', [...allServiceIds])
+
+  const empServiceMap = new Map(
+    (allEmpServices || []).map((es: any) => [es.service_id, es])
+  )
+
+  // Now compute commissions with O(1) lookups instead of N+1 queries
   const breakdown: CommissionBreakdown[] = []
   let totalServices = 0
   let totalCommissionable = 0
@@ -74,35 +108,19 @@ export async function calculateCommission(
   for (const apt of appointments || []) {
     if (!apt.is_commissionable) continue
 
-    const serviceIds = (apt.appointment_services || []).map(
-      (as: any) => as.service_id
-    )
+    for (const as of apt.appointment_services || []) {
+      const service = serviceMap.get(as.service_id)
+      if (!service || !(service as any).has_commission) continue
 
-    if (serviceIds.length === 0) continue
-
-    const { data: services } = await (supabase as any)
-      .from('services')
-      .select('id, name, price, has_commission')
-      .in('id', serviceIds)
-
-    for (const service of services || []) {
-      if (!service.has_commission) continue
-
-      const { data: employeeService } = await (supabase as any)
-        .from('employee_services')
-        .select('commission_rate, price_override')
-        .eq('employee_id', employeeId)
-        .eq('service_id', service.id)
-        .single()
-
-      const price = employeeService?.price_override || service.price
-      const rate = employeeService?.commission_rate || employee.default_commission_rate
+      const empService = empServiceMap.get(as.service_id)
+      const price = (empService as any)?.price_override || (service as any).price
+      const rate = (empService as any)?.commission_rate || employee.default_commission_rate
       const commission = Number((price * (rate / 100)).toFixed(2))
 
       breakdown.push({
         appointment_id: apt.id,
         date: apt.start_time,
-        service_name: service.name,
+        service_name: (service as any).name,
         service_price: price,
         commission_rate: rate,
         commission_amount: commission,
@@ -141,6 +159,9 @@ export async function calculateCommission(
   const dayGroups = Array.from(dayGroupsMap.values()).sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   )
+
+  console.timeEnd(label)
+  console.log(`${label} → appointments: ${(appointments || []).length}, services: ${allServiceIds.size}, queries: 4 (batched)`)
 
   return {
     success: true,
