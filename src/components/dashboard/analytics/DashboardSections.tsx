@@ -10,7 +10,7 @@ import { getRecentActivity } from '@/actions/analytics/getRecentActivity'
 import { getEmployeePerformance } from '@/actions/analytics/getEmployeePerformance'
 import { getSystemAlerts } from '@/actions/analytics/getSystemAlerts'
 import { getPayrollSummary } from '@/actions/payroll/getPayrollSummary'
-import { StatsCard } from './StatsCard'
+import { MetricCard } from '@/components/ui/MetricCard'
 import { TrendChart } from './TrendChart'
 import { RecentActivity } from './RecentActivity'
 import { UpcomingAppointments } from './UpcomingAppointments'
@@ -63,9 +63,9 @@ export function OverviewStatsGrid({ orgId, period }: { orgId: string; period: Pe
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
       {statsCards.map(s => (
-        <StatsCard key={s.title} {...s} value={s.value} />
+        <MetricCard key={s.title} {...s} value={s.value} trendLabel="vs período anterior" />
       ))}
-      <StatsCard title="Canceladas" value={cancelled} suffix="%" />
+      <MetricCard title="Canceladas" value={cancelled} suffix="%" trendLabel="vs período anterior" />
     </div>
   )
 }

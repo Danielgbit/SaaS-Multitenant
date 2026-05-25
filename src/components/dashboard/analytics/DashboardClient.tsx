@@ -115,8 +115,7 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
   return (
     <div className="space-y-6">
       {/* Header with gradient - Admin/Owner/Staff */}
-      {role !== 'empleado' && (
-        <div
+      <div
           className="relative overflow-hidden rounded-2xl p-6 md:p-8"
           style={{
             background: `linear-gradient(135deg, ${COLORS.gradientFrom} 0%, ${COLORS.gradientTo} 100%)`,
@@ -143,7 +142,6 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
             <PeriodSelector value={period} onChange={setPeriod} />
           </div>
         </div>
-      )}
 
       {/* KPI Cards Grid */}
       <OverviewStatsGrid orgId={organizationId} period={period} />
