@@ -78,6 +78,56 @@ export interface Alert {
   count: number
 }
 
+// ── TodayPulse (Operational Dashboard F1.5) ──
+
+export interface TodayPulse {
+  revenue: number
+  revenueChange: number
+  completedToday: number
+  totalBookedMinutes: number
+  availableMinutes: number
+  capacityPercentToday: number
+  pendingConfirmations: number
+  noShowsToday: number
+  noShowImpact: number
+  period: 'today'
+}
+
+export function emptyTodayPulse(): TodayPulse {
+  return {
+    revenue: 0,
+    revenueChange: 0,
+    completedToday: 0,
+    totalBookedMinutes: 0,
+    availableMinutes: 0,
+    capacityPercentToday: 0,
+    pendingConfirmations: 0,
+    noShowsToday: 0,
+    noShowImpact: 0,
+    period: 'today',
+  }
+}
+
+// ── StaffUtilization (Operational Dashboard F1.5) ──
+
+export interface StaffUtilization {
+  employee_id: string
+  employee_name: string
+  availableMinutes: number
+  bookedMinutes: number
+  utilizationPercent: number
+  isUnderutilized: boolean
+  isOverloaded: boolean
+  revenue: number
+}
+
+export interface StaffUtilizationSummary {
+  overallUtilization: number
+  underutilizedCount: number
+  overloadedCount: number
+  staff: StaffUtilization[]
+}
+
 // ── Component Props ──
 
 export interface StatsCardProps {

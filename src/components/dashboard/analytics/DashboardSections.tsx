@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { keepPreviousData } from '@tanstack/react-query'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { dashboardKeys } from '@/lib/query-keys'
+import { flags } from '@/lib/flags'
 import { getOverviewStats } from '@/actions/analytics/getOverviewStats'
 import { getAppointmentsTrend } from '@/actions/analytics/getAppointmentsTrend'
 import { getTopServices } from '@/actions/analytics/getTopServices'
@@ -12,6 +13,8 @@ import { getRecentActivity } from '@/actions/analytics/getRecentActivity'
 import { getEmployeePerformance } from '@/actions/analytics/getEmployeePerformance'
 import { getSystemAlerts } from '@/actions/analytics/getSystemAlerts'
 import { getPayrollSummary } from '@/actions/payroll/getPayrollSummary'
+import { getTodayPulse } from '@/actions/analytics/getTodayPulse'
+import { getStaffUtilization } from '@/actions/analytics/getStaffUtilization'
 import { MetricCard } from '@/components/ui/MetricCard'
 import { TrendChart } from './TrendChart'
 import { RecentActivity } from './RecentActivity'
@@ -20,7 +23,9 @@ import { EmployeePerformance } from './EmployeePerformance'
 import { PayrollSummaryWidget } from './PayrollSummaryWidget'
 import { AlertsPanel } from './AlertsPanel'
 import { TopServicesList } from './TopServicesList'
-import { StatsGridSkeleton, ChartSectionSkeleton, SidebarSectionSkeleton, TableSkeleton } from './DashboardSkeletons'
+import { TodayPulse } from './TodayPulse'
+import { StaffUtilization } from './StaffUtilization'
+import { StatsGridSkeleton, ChartSectionSkeleton, SidebarSectionSkeleton, TableSkeleton, TodayPulseSkeleton, StaffUtilizationSkeleton } from './DashboardSkeletons'
 import type { Period } from '@/types/analytics'
 
 function ErrorState({ error }: { error: Error }) {
@@ -191,6 +196,39 @@ function TopServicesSection({ orgId, period }: { orgId: string; period: Period }
   return <TopServicesList services={data} />
 }
 
+function TodayPulseSection({ orgId }: { orgId: string }) {
+  const { data, isLoading, error, dataUpdatedAt } = useQuery({
+    queryKey: dashboardKeys.pulse(orgId),
+    queryFn: () => getTodayPulse(orgId),
+    select: (result) => result.success ? result.data : null,
+    staleTime: 10 * 1000,
+    refetchInterval: 30 * 1000,
+    meta: { errorMessage: 'No se pudo cargar el resumen de hoy' },
+  })
+
+  if (isLoading) return <TodayPulseSkeleton />
+  if (error) return <ErrorState error={error} />
+  if (!data) return null
+
+  return <TodayPulse data={data} dataUpdatedAt={dataUpdatedAt} />
+}
+
+function StaffUtilizationSection({ orgId }: { orgId: string }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: dashboardKeys.staffUtilization(orgId),
+    queryFn: () => getStaffUtilization(orgId),
+    select: (result) => result.success ? result.data : null,
+    staleTime: 30 * 1000,
+    meta: { errorMessage: 'No se pudo cargar la ocupación del equipo' },
+  })
+
+  if (isLoading) return <StaffUtilizationSkeleton />
+  if (error) return <ErrorState error={error} />
+  if (!data) return null
+
+  return <StaffUtilization data={data} />
+}
+
 export {
   OverviewStatsGrid,
   TrendChartSection,
@@ -200,4 +238,6 @@ export {
   PayrollSummarySection,
   AlertsSection,
   TopServicesSection,
+  TodayPulseSection,
+  StaffUtilizationSection,
 }

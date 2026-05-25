@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Calendar, CheckCircle2, DollarSign, TrendingUp } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { useRealtimeInvalidation } from '@/hooks/useRealtimeInvalidation'
+import { flags } from '@/lib/flags'
 import { ChartErrorBoundary, ChartSkeleton } from '@/components/ui/ChartErrorBoundary'
 import { InsightsBanner } from './InsightsBanner'
 import { PeriodSelector } from './PeriodSelector'
@@ -17,6 +18,8 @@ import {
   PayrollSummarySection,
   AlertsSection,
   TopServicesSection,
+  TodayPulseSection,
+  StaffUtilizationSection,
 } from './DashboardSections'
 import type { Period } from '@/types/analytics'
 
@@ -154,20 +157,28 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
 
       {/* Main Content Grid - 2 columns on tablet, 2 on desktop */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        
-        {/* Left Column - Chart + Activity */}
+
+        {/* Left Column - TodayPulse + Chart + Activity */}
         <div className="space-y-6">
+          {flags.showNewDashboardWidgets ? (
+            <TodayPulseSection orgId={organizationId} />
+          ) : (
+            <PayrollSummarySection orgId={organizationId} />
+          )}
           <ChartErrorBoundary chartName="Evolución de Citas" fallback={<ChartSkeleton />}>
             <TrendChartSection orgId={organizationId} period={period} />
           </ChartErrorBoundary>
-          <RecentActivitySection orgId={organizationId} />
+          {!flags.showNewDashboardWidgets && <RecentActivitySection orgId={organizationId} />}
         </div>
 
         {/* Right Column - Widgets */}
         <div className="space-y-6">
           <UpcomingSection orgId={organizationId} />
-          <EmployeePerformanceSection orgId={organizationId} period={period} />
-          <PayrollSummarySection orgId={organizationId} />
+          {flags.showStaffUtilization ? (
+            <StaffUtilizationSection orgId={organizationId} />
+          ) : (
+            <EmployeePerformanceSection orgId={organizationId} period={period} />
+          )}
           <AlertsSection orgId={organizationId} />
         </div>
       </div>

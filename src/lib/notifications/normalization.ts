@@ -1,16 +1,10 @@
 import type { NotificationProviderType } from '@/types/notifications'
+import { truncatePayload as truncate } from './redact-secrets'
 
 const MAX_PAYLOAD_SIZE = 256 * 1024
 
 function truncatePayload(payload: unknown): unknown {
-  if (payload === null || payload === undefined) return payload
-  const str = JSON.stringify(payload)
-  if (str.length <= MAX_PAYLOAD_SIZE) return payload
-  return {
-    __truncated: true,
-    original_size: str.length,
-    preview: JSON.parse(str.slice(0, MAX_PAYLOAD_SIZE)),
-  }
+  return truncate(payload, MAX_PAYLOAD_SIZE)
 }
 
 export interface NormalizedProviderResponse {

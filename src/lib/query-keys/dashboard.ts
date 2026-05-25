@@ -26,4 +26,10 @@ export const dashboardKeys = {
 
   alerts: (orgId: string) =>
     [...dashboardKeys.all, 'alerts', orgId] as const,
+
+  pulse: (orgId: string) =>
+    [...dashboardKeys.all, 'pulse', orgId] as const,
+
+  staffUtilization: (orgId: string) =>
+    [...dashboardKeys.all, 'staff-utilization', orgId] as const,
 } as const

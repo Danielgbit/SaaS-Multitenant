@@ -1,7 +1,7 @@
 'use client'
 
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { TrendingUp, Calendar } from 'lucide-react'
+import { TrendingUp, Calendar, BarChart3, Users } from 'lucide-react'
 
 function SkeletonBlock({ className = '' }: { className?: string }) {
   const COLORS = useThemeColors()
@@ -100,6 +100,89 @@ export function TableSkeleton({ rows = 4 }: { rows?: number }) {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+export function TodayPulseSkeleton() {
+  const COLORS = useThemeColors()
+
+  return (
+    <div
+      className="p-4 md:p-5 rounded-2xl border"
+      style={{
+        backgroundColor: COLORS.surface,
+        borderColor: COLORS.border,
+      }}
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <BarChart3 className="w-5 h-5" style={{ color: COLORS.primary }} />
+        <SkeletonBlock className="w-40 h-5" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="space-y-2">
+          <SkeletonBlock className="w-16 h-3" />
+          <SkeletonBlock className="w-28 h-7" />
+          <SkeletonBlock className="w-14 h-3" />
+        </div>
+        <div className="space-y-2">
+          <SkeletonBlock className="w-16 h-3" />
+          <SkeletonBlock className="w-20 h-7" />
+          <SkeletonBlock className="w-24 h-3" />
+        </div>
+      </div>
+
+      <SkeletonBlock className="w-full h-px mb-4" />
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <SkeletonBlock className="w-32 h-3" />
+          <SkeletonBlock className="w-12 h-3" />
+        </div>
+        <div className="flex items-center justify-between">
+          <SkeletonBlock className="w-24 h-3" />
+          <SkeletonBlock className="w-16 h-3" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function StaffUtilizationSkeleton() {
+  const COLORS = useThemeColors()
+
+  return (
+    <div
+      className="p-4 md:p-5 rounded-2xl border"
+      style={{
+        backgroundColor: COLORS.surface,
+        borderColor: COLORS.border,
+      }}
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <Users className="w-5 h-5" style={{ color: COLORS.primary }} />
+        <SkeletonBlock className="w-40 h-5" />
+      </div>
+
+      <div className="space-y-3 mb-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <SkeletonBlock className="w-24 h-4" />
+            <div className="flex-1">
+              <SkeletonBlock className="w-full h-3 rounded-full" />
+            </div>
+            <SkeletonBlock className="w-12 h-4" />
+          </div>
+        ))}
+      </div>
+
+      <SkeletonBlock className="w-full h-px mb-4" />
+
+      <div className="flex items-center justify-between">
+        <SkeletonBlock className="w-32 h-4" />
+        <SkeletonBlock className="w-24 h-4" />
+      </div>
     </div>
   )
 }
