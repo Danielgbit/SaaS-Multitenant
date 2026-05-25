@@ -6,6 +6,7 @@ import { Calendar, CheckCircle2, DollarSign, TrendingUp } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { useRealtimeInvalidation } from '@/hooks/useRealtimeInvalidation'
 import { ChartErrorBoundary, ChartSkeleton } from '@/components/ui/ChartErrorBoundary'
+import { InsightsBanner } from './InsightsBanner'
 import { PeriodSelector } from './PeriodSelector'
 import {
   OverviewStatsGrid,
@@ -145,6 +146,8 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
             <PeriodSelector value={period} onChange={setPeriod} />
           </div>
         </div>
+
+      <InsightsBanner orgId={organizationId} period={period} />
 
       {/* KPI Cards Grid */}
       <OverviewStatsGrid orgId={organizationId} period={period} />
