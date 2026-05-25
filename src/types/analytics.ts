@@ -116,8 +116,6 @@ export interface StaffUtilization {
   availableMinutes: number
   bookedMinutes: number
   utilizationPercent: number
-  isUnderutilized: boolean
-  isOverloaded: boolean
   revenue: number
 }
 

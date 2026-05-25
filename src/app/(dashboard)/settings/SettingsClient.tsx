@@ -1,70 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import { Settings, Building2, Clock, Bell, Check, AlertCircle, Database } from 'lucide-react'
+import { Bell, Settings, Check, AlertCircle } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { updateBookingSettings } from '@/actions/settings/updateBookingSettings'
 import { updateOrganization } from '@/actions/settings/updateOrganization'
 import { DataRetentionClient } from '@/components/dashboard/settings/DataRetentionClient'
-
-const TIMEZONES = [
-  { value: 'UTC', label: 'UTC' },
-  { value: 'Europe/Madrid', label: 'España (Madrid)' },
-  { value: 'Europe/London', label: 'Reino Unido (Londres)' },
-  { value: 'America/New_York', label: 'EE.UU. (Nueva York)' },
-  { value: 'America/Los_Angeles', label: 'EE.UU. (Los Ángeles)' },
-  { value: 'America/Mexico_City', label: 'México' },
-  { value: 'America/Bogota', label: 'Colombia' },
-  { value: 'America/Buenos_Aires', label: 'Argentina' },
-  { value: 'America/Sao_Paulo', label: 'Brasil' },
-]
-
-const TABS = [
-  { id: 'general', label: 'General', icon: Settings },
-  { id: 'organization', label: 'Organización', icon: Building2 },
-  { id: 'schedule', label: 'Horario', icon: Clock },
-  { id: 'notifications', label: 'Notificaciones', icon: Bell },
-  { id: 'data-retention', label: 'Retención', icon: Database },
-]
-
-interface BookingSettings {
-  slot_interval: number
-  buffer_minutes: number
-  max_days_ahead: number
-  min_notice_hours: number
-  timezone: string
-  online_booking_enabled: boolean
-  spa_opening_time: string
-  spa_closing_time: string
-  auto_retention_days: number
-  auto_purge_enabled: boolean
-}
-
-interface Organization {
-  name: string
-  slug: string
-}
-
-const defaultBookingSettings: Required<BookingSettings> = {
-  slot_interval: 30,
-  buffer_minutes: 0,
-  max_days_ahead: 60,
-  min_notice_hours: 24,
-  timezone: 'Europe/Madrid',
-  online_booking_enabled: true,
-  spa_opening_time: '09:00',
-  spa_closing_time: '20:00',
-  auto_retention_days: 90,
-  auto_purge_enabled: false,
-}
+import { TIMEZONES, TABS, defaultBookingSettings } from './settingsConstants'
+import type { BookingSettings, OrganizationSettings } from './settingsConstants'
+import { SettingsHeader } from './SettingsHeader'
 
 export default function SettingsClient({ 
   organization, 
   organizationId,
   initialBookingSettings 
 }: { 
-  organization: Organization | null
+  organization: OrganizationSettings | null
   organizationId: string
   initialBookingSettings?: BookingSettings | null
 }) {
@@ -128,34 +80,7 @@ export default function SettingsClient({
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Header con gradiente */}
-      <div 
-        className="relative overflow-hidden rounded-2xl p-6 md:p-8 mb-8"
-        style={{ background: COLORS.primaryGradient }}
-      >
-        <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-        
-        <div className="relative">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Settings className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/80">Administración</p>
-              <h1 
-                className="text-3xl font-bold tracking-tight text-white font-heading"
-                style={{}}
-              >
-                Configuración
-              </h1>
-            </div>
-          </div>
-          <p className="text-sm text-white/80" style={{}}>
-            Administra la configuración de tu negocio
-          </p>
-        </div>
-      </div>
+      <SettingsHeader />
 
       {/* Message */}
       {message && (

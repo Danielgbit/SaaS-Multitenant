@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, DollarSign, TrendingUp, CheckCircle2, CreditCard, AlertTriangle, ShoppingCart, Clock, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
+import { ArrowLeft, ShoppingCart, DollarSign, CheckCircle2, AlertTriangle, Clock, ChevronUp, ChevronDown } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import type { ClientAccountTransactionWithDetails, InventoryItemWithStock } from '@/types/clientAccounts'
+import { AccountSummaryCards } from './AccountSummaryCards'
+import { SaleModal } from './SaleModal'
+import { PaymentModal } from './PaymentModal'
 
 interface ClientAccountDetailClientProps {
   client: {
@@ -41,15 +44,6 @@ export function ClientAccountDetailClient({
   const [mounted, setMounted] = useState(false)
   const [showSaleModal, setShowSaleModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [selectedProducts, setSelectedProducts] = useState<{
-    productId: string
-    quantity: number
-    price: number
-  }[]>([])
-  const [paymentAmount, setPaymentAmount] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState('cash')
-  const [paymentReference, setPaymentReference] = useState('')
-  const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expandedTransaction, setExpandedTransaction] = useState<string | null>(null)
@@ -65,117 +59,6 @@ export function ClientAccountDetailClient({
       </div>
     )
   }
-
-  const handleRecordSale = async () => {
-    setLoading(true)
-    setError(null)
-
-    try {
-      const { recordSale } = await import('@/actions/clientAccounts/recordTransaction')
-      
-      const result = await recordSale(organizationId, {
-        client_id: client.id,
-        products: selectedProducts.map(p => ({
-          inventory_item_id: p.productId,
-          quantity: p.quantity,
-          unit_price: p.price,
-        })),
-        payment_method: 'credit',
-        notes: 'Venta a crédito',
-      })
-
-      if (result.success) {
-        setSuccess(true)
-        setShowSaleModal(false)
-        setSelectedProducts([])
-        setTimeout(() => setSuccess(false), 3000)
-      } else {
-        setError(result.error || 'Error al registrar venta')
-      }
-    } catch (err) {
-      setError('Error al registrar venta')
-    }
-
-    setLoading(false)
-  }
-
-  const handleRecordPayment = async () => {
-    setLoading(true)
-    setError(null)
-
-    const amount = parseFloat(paymentAmount)
-    if (isNaN(amount) || amount <= 0) {
-      setError('Monto inválido')
-      setLoading(false)
-      return
-    }
-
-    try {
-      const { recordPayment } = await import('@/actions/clientAccounts/recordTransaction')
-      
-      const result = await recordPayment(organizationId, {
-        client_id: client.id,
-        amount,
-        payment_method: paymentMethod,
-        payment_reference: paymentReference || undefined,
-      })
-
-      if (result.success) {
-        setSuccess(true)
-        setShowPaymentModal(false)
-        setPaymentAmount('')
-        setPaymentReference('')
-        setTimeout(() => setSuccess(false), 3000)
-      } else {
-        setError(result.error || 'Error al registrar pago')
-      }
-    } catch (err) {
-      setError('Error al registrar pago')
-    }
-
-    setLoading(false)
-  }
-
-  const addProductToSale = (product: InventoryItemWithStock) => {
-    const existing = selectedProducts.find(p => p.productId === product.id)
-    if (existing) {
-      setSelectedProducts(
-        selectedProducts.map(p =>
-          p.productId === product.id ? { ...p, quantity: p.quantity + 1 } : p
-        )
-      )
-    } else {
-      setSelectedProducts([
-        ...selectedProducts,
-        {
-          productId: product.id,
-          quantity: 1,
-          price: product.price || 0,
-        },
-      ])
-    }
-  }
-
-  const removeProductFromSale = (productId: string) => {
-    setSelectedProducts(selectedProducts.filter(p => p.productId !== productId))
-  }
-
-  const updateProductQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeProductFromSale(productId)
-    } else {
-      setSelectedProducts(
-        selectedProducts.map(p =>
-          p.productId === productId ? { ...p, quantity } : p
-        )
-      )
-    }
-  }
-
-  const totalSale = selectedProducts.reduce(
-    (sum, p) => sum + p.price * p.quantity,
-    0
-  )
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -224,140 +107,14 @@ export function ClientAccountDetailClient({
         </div>
       </div>
 
-      {/* Account Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div
-          className="p-5 rounded-2xl border"
-          style={{
-            backgroundColor: COLORS.surfaceGlass,
-            borderColor: account.is_over_limit ? COLORS.error : COLORS.border,
-          }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div
-              className="p-2 rounded-lg"
-              style={{ backgroundColor: COLORS.error + '15' }}
-            >
-              <DollarSign className="w-4 h-4" style={{ color: COLORS.error }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Saldo Pendiente
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.error }}>
-            {formatCurrencyCOP(account.balance)}
-          </p>
-        </div>
-
-        <div
-          className="p-5 rounded-2xl border"
-          style={{
-            backgroundColor: COLORS.surfaceGlass,
-            borderColor: COLORS.border,
-          }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div
-              className="p-2 rounded-lg"
-              style={{ backgroundColor: COLORS.success + '15' }}
-            >
-              <TrendingUp className="w-4 h-4" style={{ color: COLORS.success }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Total Comprado
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.success }}>
-            {formatCurrencyCOP(account.total_purchased)}
-          </p>
-        </div>
-
-        <div
-          className="p-5 rounded-2xl border"
-          style={{
-            backgroundColor: COLORS.surfaceGlass,
-            borderColor: COLORS.border,
-          }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div
-              className="p-2 rounded-lg"
-              style={{ backgroundColor: COLORS.primary + '15' }}
-            >
-              <CheckCircle2 className="w-4 h-4" style={{ color: COLORS.primary }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Total Pagado
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.primary }}>
-            {formatCurrencyCOP(account.total_paid)}
-          </p>
-        </div>
-
-        <div
-          className="p-5 rounded-2xl border"
-          style={{
-            backgroundColor: COLORS.surfaceGlass,
-            borderColor: COLORS.border,
-          }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div
-              className="p-2 rounded-lg"
-              style={{ backgroundColor: COLORS.warning + '15' }}
-            >
-              <CreditCard className="w-4 h-4" style={{ color: COLORS.warning }} />
-            </div>
-            <span className="text-xs font-medium" style={{ color: COLORS.textMuted }}>
-              Límite Crédito
-            </span>
-          </div>
-          <p className="text-2xl font-bold" style={{ color: COLORS.warning }}>
-            {account.credit_limit > 0 ? formatCurrencyCOP(account.credit_limit) : 'Sin límite'}
-          </p>
-        </div>
-      </div>
-
-      {/* Credit Progress */}
-      {account.credit_limit > 0 && (
-        <div
-          className="p-6 rounded-2xl border"
-          style={{
-            backgroundColor: COLORS.surfaceGlass,
-            borderColor: COLORS.border,
-          }}
-        >
-          <div className="flex justify-between text-sm mb-2">
-            <span style={{ color: COLORS.textSecondary }}>Crédito usado</span>
-            <span style={{ color: COLORS.textPrimary }}>
-              {formatCurrencyCOP(account.balance)} / {formatCurrencyCOP(account.credit_limit)}
-            </span>
-          </div>
-          <div
-            className="h-3 rounded-full overflow-hidden"
-            style={{ backgroundColor: COLORS.surfaceSubtle }}
-          >
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${Math.min((account.balance / account.credit_limit) * 100, 100)}%`,
-                backgroundColor: account.is_over_limit
-                  ? COLORS.error
-                  : account.is_at_warning_threshold
-                  ? COLORS.warning
-                  : COLORS.success,
-              }}
-            />
-          </div>
-          {account.is_over_limit && (
-            <p className="text-sm mt-2" style={{ color: COLORS.error }}>
-              <AlertTriangle className="w-4 h-4 inline mr-1" />
-              Cliente ha excedido el límite de crédito
-            </p>
-          )}
-        </div>
-      )}
+      <AccountSummaryCards
+        balance={account.balance}
+        totalPurchased={account.total_purchased}
+        totalPaid={account.total_paid}
+        creditLimit={account.credit_limit}
+        isOverLimit={account.is_over_limit}
+        isAtWarningThreshold={account.is_at_warning_threshold}
+      />
 
       {/* Action Buttons */}
       <div className="flex gap-4">
@@ -516,224 +273,50 @@ export function ClientAccountDetailClient({
         )}
       </div>
 
-      {/* Sale Modal */}
       {showSaleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setShowSaleModal(false)}
-          />
-          <div
-            className="relative w-full max-w-lg max-h-[80dvh] rounded-2xl p-6 overflow-y-auto"
-            style={{ backgroundColor: COLORS.surface }}
-          >
-            <h2
-              className="text-xl font-bold mb-4 font-heading"
-              style={{ color: COLORS.textPrimary }}
-            >
-              Registrar Venta
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textSecondary }}>
-                  Productos
-                </label>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {products.map((product) => (
-                    <button
-                      key={product.id}
-                      onClick={() => addProductToSale(product)}
-                      className="w-full flex items-center justify-between p-3 rounded-xl border transition-colors"
-                      style={{ borderColor: COLORS.border, backgroundColor: COLORS.surfaceSubtle }}
-                    >
-                      <div className="text-left">
-                        <p className="font-medium" style={{ color: COLORS.textPrimary }}>
-                          {product.name}
-                        </p>
-                        <p className="text-xs" style={{ color: COLORS.textMuted }}>
-                          Stock: {product.quantity} • {formatCurrencyCOP(product.price || 0)}
-                        </p>
-                      </div>
-                      <Plus className="w-5 h-5" style={{ color: COLORS.primary }} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {selectedProducts.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textSecondary }}>
-                    Productos seleccionados
-                  </label>
-                  <div className="space-y-2">
-                    {selectedProducts.map((sp) => {
-                      const product = products.find(p => p.id === sp.productId)
-                      return (
-                        <div
-                          key={sp.productId}
-                          className="flex items-center justify-between p-3 rounded-xl"
-                          style={{ backgroundColor: COLORS.surfaceSubtle }}
-                        >
-                          <div>
-                            <p className="font-medium" style={{ color: COLORS.textPrimary }}>
-                              {product?.name}
-                            </p>
-                            <p className="text-xs" style={{ color: COLORS.textMuted }}>
-                              {formatCurrencyCOP(sp.price)} c/u
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => updateProductQuantity(sp.productId, sp.quantity - 1)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center"
-                              style={{ backgroundColor: COLORS.border }}
-                            >
-                              -
-                            </button>
-                            <span style={{ color: COLORS.textPrimary }}>{sp.quantity}</span>
-                            <button
-                              onClick={() => updateProductQuantity(sp.productId, sp.quantity + 1)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center"
-                              style={{ backgroundColor: COLORS.border }}
-                            >
-                              +
-                            </button>
-                            <button
-                              onClick={() => removeProductFromSale(sp.productId)}
-                              className="p-2"
-                              style={{ color: COLORS.error }}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                  <div className="mt-4 pt-4 border-t" style={{ borderColor: COLORS.border }}>
-                    <div className="flex justify-between">
-                      <span className="font-bold" style={{ color: COLORS.textPrimary }}>
-                        Total
-                      </span>
-                      <span className="font-bold" style={{ color: COLORS.error }}>
-                        {formatCurrencyCOP(totalSale)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowSaleModal(false)}
-                className="flex-1 py-3 rounded-xl font-medium transition-colors"
-                style={{ backgroundColor: COLORS.surfaceSubtle, color: COLORS.textSecondary }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleRecordSale}
-                disabled={loading || selectedProducts.length === 0}
-                className="flex-1 py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                style={{ backgroundColor: COLORS.primary }}
-              >
-                {loading ? <Spinner size="sm" className="w-5 h-5" /> : null}
-                {loading ? 'Registrando...' : 'Registrar Venta'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <SaleModal
+          products={products}
+          onRecord={async (selected) => {
+            const { recordSale } = await import('@/actions/clientAccounts/recordTransaction')
+            const result = await recordSale(organizationId, {
+              client_id: client.id,
+              products: selected.map(p => ({ inventory_item_id: p.productId, quantity: p.quantity, unit_price: p.price })),
+              payment_method: 'credit',
+              notes: 'Venta a crédito',
+            })
+            if (result.success) {
+              setSuccess(true)
+              setShowSaleModal(false)
+              setTimeout(() => setSuccess(false), 3000)
+            } else {
+              setError(result.error || 'Error al registrar venta')
+            }
+          }}
+          onClose={() => setShowSaleModal(false)}
+        />
       )}
 
-      {/* Payment Modal */}
       {showPaymentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setShowPaymentModal(false)}
-          />
-          <div
-            className="relative w-full max-w-md rounded-2xl p-6"
-            style={{ backgroundColor: COLORS.surface }}
-          >
-            <h2
-              className="text-xl font-bold mb-4 font-heading"
-              style={{ color: COLORS.textPrimary }}
-            >
-              Registrar Pago
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: COLORS.textSecondary }}>
-                  Monto (máximo: {formatCurrencyCOP(account.balance)})
-                </label>
-                <input
-                  type="number"
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border text-lg font-bold"
-                  style={{ borderColor: COLORS.border, color: COLORS.textPrimary }}
-                  placeholder="0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: COLORS.textSecondary }}>
-                  Método de pago
-                </label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border"
-                  style={{ borderColor: COLORS.border, color: COLORS.textPrimary }}
-                >
-                  <option value="cash">Efectivo</option>
-                  <option value="bancolombia">Transferencia Bancolombia</option>
-                  <option value="nequi">Nequi</option>
-                  <option value="daviplata">Daviplata</option>
-                  <option value="debit_card">Tarjeta Débito</option>
-                  <option value="credit_card">Tarjeta Crédito</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: COLORS.textSecondary }}>
-                  Referencia (opcional)
-                </label>
-                <input
-                  type="text"
-                  value={paymentReference}
-                  onChange={(e) => setPaymentReference(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border"
-                  style={{ borderColor: COLORS.border, color: COLORS.textPrimary }}
-                  placeholder="Últimos 4 dígitos, ID transacción, etc."
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowPaymentModal(false)}
-                className="flex-1 py-3 rounded-xl font-medium transition-colors"
-                style={{ backgroundColor: COLORS.surfaceSubtle, color: COLORS.textSecondary }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleRecordPayment}
-                disabled={loading || !paymentAmount}
-                className="flex-1 py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                style={{ backgroundColor: COLORS.success }}
-              >
-                {loading ? <Spinner size="sm" className="w-5 h-5" /> : null}
-                {loading ? 'Registrando...' : 'Registrar Pago'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <PaymentModal
+          balance={account.balance}
+          onRecord={async (amount, method, reference) => {
+            const { recordPayment } = await import('@/actions/clientAccounts/recordTransaction')
+            const result = await recordPayment(organizationId, {
+              client_id: client.id,
+              amount,
+              payment_method: method,
+              payment_reference: reference || undefined,
+            })
+            if (result.success) {
+              setSuccess(true)
+              setShowPaymentModal(false)
+              setTimeout(() => setSuccess(false), 3000)
+            } else {
+              setError(result.error || 'Error al registrar pago')
+            }
+          }}
+          onClose={() => setShowPaymentModal(false)}
+        />
       )}
     </div>
   )

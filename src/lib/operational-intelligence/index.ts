@@ -1,0 +1,7 @@
+export { deriveOperationalSignals } from './deriveOperationalSignals'
+export { aggregateSignals } from './aggregate'
+export { detectOverloadedStaff } from './detectors/overloadedStaff'
+export { detectUnderutilizedStaff } from './detectors/underutilizedStaff'
+export { detectPendingConfirmations } from './detectors/pendingConfirmations'
+export type { OperationalSignal, DerivedSignals, DetectorId, SignalSeverity } from './types'
+export { THRESHOLDS, PRIORITIES } from './thresholds'

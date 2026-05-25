@@ -1,10 +1,12 @@
 'use client'
 
+import { useMemo } from 'react'
 import Link from 'next/link'
 import { Users, AlertTriangle, ArrowRight } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from '@/components/ui/Card'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
+import { deriveOperationalSignals } from '@/lib/operational-intelligence'
 import type { StaffUtilizationSummary as StaffUtilizationSummaryType } from '@/types/analytics'
 
 interface StaffUtilizationProps {
@@ -13,6 +15,14 @@ interface StaffUtilizationProps {
 
 export function StaffUtilization({ data }: StaffUtilizationProps) {
   const COLORS = useThemeColors()
+
+  const { contextualSignals } = useMemo(
+    () => deriveOperationalSignals(undefined, data),
+    [data]
+  )
+
+  const overloadedSignals = contextualSignals.filter(s => s.detector === 'overloaded-staff')
+  const underutilizedSignals = contextualSignals.filter(s => s.detector === 'underutilized-staff')
 
   const getUtilizationColor = (percent: number) => {
     if (percent > 90) return COLORS.error
@@ -79,31 +89,71 @@ export function StaffUtilization({ data }: StaffUtilizationProps) {
         />
       )}
 
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm" style={{ color: COLORS.textSecondary }}>
-            Ocupación general:{' '}
-            <span className="font-semibold" style={{ color: overallColor }}>
-              {data.overallUtilization}%
-            </span>
-          </p>
-          {data.underutilizedCount > 0 && (
-            <div className="flex items-center gap-1 mt-1">
-              <AlertTriangle className="w-3 h-3" style={{ color: COLORS.warning }} />
-              <span className="text-xs" style={{ color: COLORS.warning }}>
-                {data.underutilizedCount} empleado{data.underutilizedCount > 1 ? 's' : ''} subutilizado{data.underutilizedCount > 1 ? 's' : ''}
+      <div className="space-y-2">
+        {overloadedSignals.map(signal => (
+          <Link
+            key={signal.id}
+            href={signal.actionHref || '/calendar'}
+            className="flex items-center justify-between p-2.5 rounded-lg transition-colors hover:opacity-80"
+            style={{ backgroundColor: COLORS.errorLight }}
+          >
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" style={{ color: COLORS.error }} />
+              <span className="text-sm font-medium" style={{ color: COLORS.error }}>
+                {signal.title}
               </span>
             </div>
-          )}
-          {data.overloadedCount > 0 && (
-            <div className="flex items-center gap-1 mt-1">
-              <AlertTriangle className="w-3 h-3" style={{ color: COLORS.error }} />
+            {signal.actionLabel && (
+              <span className="text-xs font-medium" style={{ color: COLORS.error }}>
+                {signal.actionLabel}
+                <ArrowRight className="w-3 h-3 ml-1 inline" />
+              </span>
+            )}
+          </Link>
+        ))}
+
+        {underutilizedSignals.map(signal => (
+          <Link
+            key={signal.id}
+            href={signal.actionHref || '/booking'}
+            className="flex items-center justify-between p-2.5 rounded-lg transition-colors hover:opacity-80"
+            style={{ backgroundColor: COLORS.infoLight }}
+          >
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" style={{ color: COLORS.info }} />
+              <span className="text-sm font-medium" style={{ color: COLORS.info }}>
+                {signal.title}
+              </span>
+            </div>
+            {signal.actionLabel && (
+              <span className="text-xs font-medium" style={{ color: COLORS.info }}>
+                {signal.actionLabel}
+                <ArrowRight className="w-3 h-3 ml-1 inline" />
+              </span>
+            )}
+          </Link>
+        ))}
+
+        {(data.underutilizedCount > 0 || data.overloadedCount > 0) && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-sm" style={{ color: COLORS.textSecondary }}>
+              Ocupación general:{' '}
+              <span className="font-semibold" style={{ color: overallColor }}>
+                {data.overallUtilization}%
+              </span>
+            </p>
+            {data.underutilizedCount > 0 && (
+              <span className="text-xs" style={{ color: COLORS.warning }}>
+                {data.underutilizedCount} subutilizado{data.underutilizedCount > 1 ? 's' : ''}
+              </span>
+            )}
+            {data.overloadedCount > 0 && (
               <span className="text-xs" style={{ color: COLORS.error }}>
                 {data.overloadedCount} sobrecargado{data.overloadedCount > 1 ? 's' : ''}
               </span>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </Card>
   )

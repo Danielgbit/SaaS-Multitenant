@@ -2,7 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { startOfToday } from 'date-fns'
-import type { StaffUtilizationSummary, StaffUtilization } from '@/types/analytics'
+import type { StaffUtilizationSummary } from '@/types/analytics'
+import { THRESHOLDS } from '@/lib/operational-intelligence'
 
 function calculateAvailableMinutes(
   availability: Array<{ start_time: string; end_time: string; break_start?: string | null; break_end?: string | null }>
@@ -115,7 +116,14 @@ export async function getStaffUtilization(
 
   const employeesData = employeesResult.data || []
 
-  const staffUtilizationMap = new Map<string, StaffUtilization>()
+  const staffUtilizationMap = new Map<string, {
+      employee_id: string
+      employee_name: string
+      availableMinutes: number
+      bookedMinutes: number
+      utilizationPercent: number
+      revenue: number
+    }>()
 
   for (const emp of employeesData) {
     const empId = emp.id as string
@@ -152,8 +160,6 @@ export async function getStaffUtilization(
       availableMinutes,
       bookedMinutes,
       utilizationPercent,
-      isUnderutilized: utilizationPercent > 0 && utilizationPercent < 40,
-      isOverloaded: utilizationPercent > 90,
       revenue: 0,
     })
   }
@@ -169,8 +175,8 @@ export async function getStaffUtilization(
 
   const result: StaffUtilizationSummary = {
     overallUtilization,
-    underutilizedCount: staff.filter(s => s.isUnderutilized).length,
-    overloadedCount: staff.filter(s => s.isOverloaded).length,
+    underutilizedCount: staff.filter(s => s.utilizationPercent > 0 && s.utilizationPercent <= THRESHOLDS.UNDERUTILIZATION_PERCENT).length,
+    overloadedCount: staff.filter(s => s.utilizationPercent >= THRESHOLDS.OVERLOAD_PERCENT).length,
     staff,
   }
 

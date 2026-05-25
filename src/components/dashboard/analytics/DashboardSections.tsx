@@ -9,18 +9,12 @@ import { getOverviewStats } from '@/actions/analytics/getOverviewStats'
 import { getAppointmentsTrend } from '@/actions/analytics/getAppointmentsTrend'
 import { getTopServices } from '@/actions/analytics/getTopServices'
 import { getUpcomingAppointments } from '@/actions/analytics/getUpcomingAppointments'
-import { getRecentActivity } from '@/actions/analytics/getRecentActivity'
-import { getEmployeePerformance } from '@/actions/analytics/getEmployeePerformance'
 import { getSystemAlerts } from '@/actions/analytics/getSystemAlerts'
-import { getPayrollSummary } from '@/actions/payroll/getPayrollSummary'
 import { getTodayPulse } from '@/actions/analytics/getTodayPulse'
 import { getStaffUtilization } from '@/actions/analytics/getStaffUtilization'
 import { MetricCard } from '@/components/ui/MetricCard'
 import { TrendChart } from './TrendChart'
-import { RecentActivity } from './RecentActivity'
 import { UpcomingAppointments } from './UpcomingAppointments'
-import { EmployeePerformance } from './EmployeePerformance'
-import { PayrollSummaryWidget } from './PayrollSummaryWidget'
 import { AlertsPanel } from './AlertsPanel'
 import { TopServicesList } from './TopServicesList'
 import { TodayPulse } from './TodayPulse'
@@ -97,22 +91,6 @@ function TrendChartSection({ orgId, period }: { orgId: string; period: Period })
   return <TrendChart data={data} />
 }
 
-function RecentActivitySection({ orgId }: { orgId: string }) {
-  const { data, isLoading, error } = useQuery({
-    queryKey: dashboardKeys.recentActivity(orgId, 8),
-    queryFn: () => getRecentActivity(orgId, 8),
-    select: (result) => result.success ? result.data : null,
-    staleTime: 30 * 1000,
-    meta: { errorMessage: 'No se pudo cargar la actividad reciente' },
-  })
-
-  if (isLoading) return <SidebarSectionSkeleton height="h-36" />
-  if (error) return <ErrorState error={error} />
-  if (!data) return null
-
-  return <RecentActivity activities={data} />
-}
-
 function UpcomingSection({ orgId }: { orgId: string }) {
   const { data, isLoading, error } = useQuery({
     queryKey: dashboardKeys.upcoming(orgId, 5),
@@ -127,39 +105,6 @@ function UpcomingSection({ orgId }: { orgId: string }) {
   if (!data) return null
 
   return <UpcomingAppointments appointments={data} />
-}
-
-function EmployeePerformanceSection({ orgId, period }: { orgId: string; period: Period }) {
-  const { data, isLoading, error, isPlaceholderData } = useQuery({
-    queryKey: dashboardKeys.employeePerformance(orgId, period),
-    queryFn: () => getEmployeePerformance(orgId, period),
-    select: (result) => result.success ? result.data : null,
-    placeholderData: keepPreviousData,
-    staleTime: 2 * 60 * 1000,
-    meta: { errorMessage: 'No se pudo cargar el rendimiento' },
-  })
-
-  if (isLoading && !data) return <SidebarSectionSkeleton />
-  if (error) return <ErrorState error={error} />
-  if (!data) return null
-
-  return <EmployeePerformance employees={data} />
-}
-
-function PayrollSummarySection({ orgId }: { orgId: string }) {
-  const { data, isLoading, error } = useQuery({
-    queryKey: dashboardKeys.payrollSummary(orgId),
-    queryFn: () => getPayrollSummary(orgId),
-    select: (result) => result.success ? result.data : null,
-    staleTime: 5 * 60 * 1000,
-    meta: { errorMessage: 'No se pudo cargar el resumen de nómina' },
-  })
-
-  if (isLoading) return <SidebarSectionSkeleton height="h-32" />
-  if (error) return <ErrorState error={error} />
-  if (!data) return null
-
-  return <PayrollSummaryWidget summary={data} />
 }
 
 function AlertsSection({ orgId }: { orgId: string }) {
@@ -232,10 +177,7 @@ function StaffUtilizationSection({ orgId }: { orgId: string }) {
 export {
   OverviewStatsGrid,
   TrendChartSection,
-  RecentActivitySection,
   UpcomingSection,
-  EmployeePerformanceSection,
-  PayrollSummarySection,
   AlertsSection,
   TopServicesSection,
   TodayPulseSection,

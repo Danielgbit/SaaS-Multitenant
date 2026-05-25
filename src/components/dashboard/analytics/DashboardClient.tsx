@@ -12,10 +12,7 @@ import { PeriodSelector } from './PeriodSelector'
 import {
   OverviewStatsGrid,
   TrendChartSection,
-  RecentActivitySection,
   UpcomingSection,
-  EmployeePerformanceSection,
-  PayrollSummarySection,
   AlertsSection,
   TopServicesSection,
   TodayPulseSection,
@@ -158,27 +155,18 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
       {/* Main Content Grid - 2 columns on tablet, 2 on desktop */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
 
-        {/* Left Column - TodayPulse + Chart + Activity */}
+        {/* Left Column - TodayPulse + Chart */}
         <div className="space-y-6">
-          {flags.showNewDashboardWidgets ? (
-            <TodayPulseSection orgId={organizationId} />
-          ) : (
-            <PayrollSummarySection orgId={organizationId} />
-          )}
+          <TodayPulseSection orgId={organizationId} />
           <ChartErrorBoundary chartName="Evolución de Citas" fallback={<ChartSkeleton />}>
             <TrendChartSection orgId={organizationId} period={period} />
           </ChartErrorBoundary>
-          {!flags.showNewDashboardWidgets && <RecentActivitySection orgId={organizationId} />}
         </div>
 
         {/* Right Column - Widgets */}
         <div className="space-y-6">
           <UpcomingSection orgId={organizationId} />
-          {flags.showStaffUtilization ? (
-            <StaffUtilizationSection orgId={organizationId} />
-          ) : (
-            <EmployeePerformanceSection orgId={organizationId} period={period} />
-          )}
+          <StaffUtilizationSection orgId={organizationId} />
           <AlertsSection orgId={organizationId} />
         </div>
       </div>

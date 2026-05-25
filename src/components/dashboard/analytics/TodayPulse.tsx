@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { differenceInSeconds } from 'date-fns'
 import { BarChart3, TrendingUp, TrendingDown, AlertCircle, ArrowRight, RefreshCw } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from '@/components/ui/Card'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
+import { deriveOperationalSignals } from '@/lib/operational-intelligence'
 import type { TodayPulse as TodayPulseType } from '@/types/analytics'
 
 interface TodayPulseProps {
@@ -26,6 +27,13 @@ export function TodayPulse({ data, dataUpdatedAt }: TodayPulseProps) {
     const interval = setInterval(update, 1000)
     return () => clearInterval(interval)
   }, [dataUpdatedAt])
+
+  const { bannerSignals } = useMemo(
+    () => deriveOperationalSignals(data, undefined),
+    [data]
+  )
+
+  const pendingSignal = bannerSignals.find(s => s.detector === 'pending-confirmations')
 
   const formatSeconds = (secs: number) => {
     if (secs < 60) return `${secs}s`
@@ -103,7 +111,31 @@ export function TodayPulse({ data, dataUpdatedAt }: TodayPulseProps) {
       />
 
       <div className="space-y-3">
-        {data.pendingConfirmations > 0 && (
+        {pendingSignal ? (
+          <Link
+            href={pendingSignal.actionHref || '/confirmations'}
+            className="flex items-center justify-between p-3 rounded-lg transition-colors hover:opacity-80"
+            style={{ backgroundColor: COLORS.warningLight }}
+          >
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" style={{ color: COLORS.warning }} />
+              <div>
+                <p className="text-sm font-medium" style={{ color: COLORS.warning }}>
+                  {pendingSignal.title}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: COLORS.textSecondary }}>
+                  {pendingSignal.description}
+                </p>
+              </div>
+            </div>
+            {pendingSignal.actionLabel && (
+              <span className="text-xs font-medium" style={{ color: COLORS.warning }}>
+                {pendingSignal.actionLabel}
+                <ArrowRight className="w-3 h-3 ml-1 inline" />
+              </span>
+            )}
+          </Link>
+        ) : data.pendingConfirmations > 0 ? (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4" style={{ color: COLORS.warning }} />
@@ -120,7 +152,7 @@ export function TodayPulse({ data, dataUpdatedAt }: TodayPulseProps) {
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
-        )}
+        ) : null}
 
         {data.noShowsToday > 0 && (
           <div className="flex items-center justify-between">

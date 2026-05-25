@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { TrendingDown, AlertTriangle, CheckCircle2, Info, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { getInsights } from '@/actions/analytics/getInsights'
 import { dashboardKeys } from '@/lib/query-keys'
-import type { Period } from '@/types/analytics'
+import { deriveOperationalSignals } from '@/lib/operational-intelligence'
+import type { Period, TodayPulse, StaffUtilizationSummary } from '@/types/analytics'
 
 interface InsightsBannerProps {
   orgId: string
@@ -33,7 +34,7 @@ export function InsightsBanner({ orgId, period }: InsightsBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
 
-  const { data, isLoading } = useQuery({
+  const { data: insightsData, isLoading: insightsLoading } = useQuery({
     queryKey: [...dashboardKeys.all, 'insights', orgId, period],
     queryFn: () => getInsights(orgId, period),
     select: (result) => result.success ? result.data?.filter(i => !dismissedIds.has(i.id)) : [],
@@ -41,16 +42,47 @@ export function InsightsBanner({ orgId, period }: InsightsBannerProps) {
     enabled: orgId !== 'empleado',
   })
 
-  const insights = data || []
-  if (isLoading || insights.length === 0) return null
+  const { data: pulseData } = useQuery({
+    queryKey: dashboardKeys.pulse(orgId),
+    staleTime: 30_000,
+    enabled: orgId !== 'empleado',
+  })
 
-  const current = insights[currentIndex]
-  if (!current) return null
+  const { data: staffData } = useQuery({
+    queryKey: dashboardKeys.staffUtilization(orgId),
+    staleTime: 30_000,
+    enabled: orgId !== 'empleado',
+  })
+
+  const { bannerSignals } = useMemo(
+    () => deriveOperationalSignals(
+      pulseData as TodayPulse | undefined,
+      staffData as StaffUtilizationSummary | undefined
+    ),
+    [pulseData, staffData]
+  )
+
+  const operationalItems = useMemo(() => {
+    return bannerSignals.map(signal => ({
+      id: signal.id,
+      type: signal.severity,
+      title: signal.title,
+      description: signal.description,
+      metric: signal.metric ? `${signal.metric.current}${signal.metric.unit}` : undefined,
+      action: signal.actionHref ? { label: signal.actionLabel, href: signal.actionHref } : undefined,
+    }))
+  }, [bannerSignals])
+
+  const insights = insightsData || []
+  const allItems = useMemo(() => [...operationalItems, ...insights], [operationalItems, insights])
+
+  const current = allItems[currentIndex]
+  if (insightsLoading || allItems.length === 0) return null
 
   const Icon = iconMap[current.type]
   const colors = colorMap[current.type]
 
-  const total = insights.length
+  const total = allItems.length
   const hasMultiple = total > 1
 
   return (
@@ -131,7 +163,7 @@ export function InsightsBanner({ orgId, period }: InsightsBannerProps) {
         <button
           onClick={() => {
             setDismissedIds(prev => new Set(prev).add(current.id))
-            if (currentIndex >= insights.length - 1) {
+            if (currentIndex >= allItems.length - 1) {
               setCurrentIndex(0)
             }
           }}

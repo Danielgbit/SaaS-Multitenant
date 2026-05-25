@@ -38,9 +38,6 @@ function invalidateOnAppointmentChange(orgId: string, queryClient: QueryClient, 
   queryClient.invalidateQueries({ queryKey: dashboardKeys.trend(orgId, 999) })
   queryClient.invalidateQueries({ queryKey: dashboardKeys.topServices(orgId, 999, 999) })
   queryClient.invalidateQueries({ queryKey: dashboardKeys.upcoming(orgId) })
-  queryClient.invalidateQueries({ queryKey: dashboardKeys.recentActivity(orgId) })
-  queryClient.invalidateQueries({ queryKey: dashboardKeys.employeePerformance(orgId, '_' as any) })
-  queryClient.invalidateQueries({ queryKey: dashboardKeys.payrollSummary(orgId) })
   queryClient.invalidateQueries({ queryKey: notificationKeys.confirmations(orgId) })
 
   if (isToday) {
