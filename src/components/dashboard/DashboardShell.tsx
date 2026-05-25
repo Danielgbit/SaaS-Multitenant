@@ -1,17 +1,32 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { CollapsibleSidebar } from '@/components/dashboard/CollapsibleSidebar'
 import { Header } from '@/components/dashboard/Header'
 import { MobileNav } from '@/components/dashboard/MobileNav'
-import { ConfirmationsPanel } from '@/components/dashboard/ConfirmationsPanel'
 import { ConfirmBanner } from '@/components/dashboard/ConfirmBanner'
 import { ReminderBanner } from '@/components/dashboard/ReminderBanner'
 import { PageContainer } from '@/components/ui'
-import { PaymentModal } from '@/components/dashboard/PaymentModal'
 import { PaymentQueueProvider, usePaymentQueue } from '@/components/providers/PaymentQueueProvider'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { useAppointmentModal } from '@/components/providers/AppointmentModalProvider'
+import { SidebarSectionSkeleton } from './analytics/DashboardSkeletons'
+
+const ConfirmationsPanel = dynamic(
+  () => import('./ConfirmationsPanel').then(m => ({ default: m.ConfirmationsPanel })),
+  { loading: () => <SidebarSectionSkeleton />, ssr: false }
+)
+
+const PaymentModal = dynamic(
+  () => import('./PaymentModal').then(m => ({ default: m.PaymentModal })),
+  { loading: () => <SidebarSectionSkeleton />, ssr: false }
+)
+
+const AdjustPriceModal = dynamic(
+  () => import('./AdjustPriceModal').then(m => ({ default: m.AdjustPriceModal })),
+  { loading: () => <SidebarSectionSkeleton />, ssr: false }
+)
 
 interface DashboardShellProps {
   children: React.ReactNode
