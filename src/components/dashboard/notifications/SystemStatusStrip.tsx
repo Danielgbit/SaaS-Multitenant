@@ -26,7 +26,7 @@ const statusConfig = {
 
 export function SystemStatusStrip({
   queueHealth = 'healthy',
-  workerCount = 0,
+  workerCount,
   lastEventSecondsAgo = 0,
   isAutoRefreshing = false,
 }: SystemStatusStripProps) {
@@ -55,9 +55,12 @@ export function SystemStatusStrip({
         <span>{status.label}</span>
       </div>
 
-      <span className="text-border">│</span>
-
-      <span>{workerCount} workers</span>
+      {workerCount !== undefined && workerCount > 0 && (
+        <>
+          <span className="text-border">│</span>
+          <span>{workerCount} workers</span>
+        </>
+      )}
 
       <span className="text-border">│</span>
 

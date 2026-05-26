@@ -43,6 +43,36 @@ export function QueueChart({ hourlyStats }: QueueChartProps) {
     count: item.count,
   }))
 
+  const hasData = data.length > 0 && data.some((d) => d.count > 0)
+
+  if (!hasData) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+        className="rounded-xl border bg-background/70 backdrop-blur-[6px] p-4"
+        style={{
+          borderColor: 'hsl(var(--border))',
+        }}
+      >
+        <h3 className="mb-4 font-semibold text-sm" style={{ color: 'hsl(var(--text-primary))' }}>
+          Eventos por Hora (últimas 24h)
+        </h3>
+        <div className="h-[200px] flex items-center justify-center">
+          <div className="text-center space-y-2">
+            <p className="text-sm font-medium" style={{ color: 'hsl(var(--text-secondary))' }}>
+              Sin datos
+            </p>
+            <p className="text-xs" style={{ color: 'hsl(var(--text-muted))' }}>
+              No hay eventos en las últimas 24 horas
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}

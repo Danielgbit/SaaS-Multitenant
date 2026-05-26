@@ -35,73 +35,8 @@ import { PAYROLL_STATUS_CONFIG } from '@/lib/payroll/constants'
 import { toast } from 'sonner'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import { ChangesPreviewModal } from './ChangesPreviewModal'
+import { StatusBadge, ContractTypeBadge, PaymentTypeBadge } from './PayrollBadges'
 import type { PayrollPeriod, PayrollItemWithEmployee, PayrollReceipt } from '@/types/payroll'
-
-type PaymentMethod = keyof typeof PAYMENT_METHODS
-const PAYMENT_METHODS = {
-  efectivo: { label: 'Efectivo' },
-  nequi: { label: 'Nequi' },
-  daviplata: { label: 'DaviPlata' },
-  pse: { label: 'PSE' },
-  qr_nequi: { label: 'QR Nequi' },
-  qr_bancolombia: { label: 'QR Bancolombia' },
-  tarjeta_debito: { label: 'Tarjeta Débito' },
-  tarjeta_credito: { label: 'Tarjeta Crédito' },
-} as const
-
-const MONTHS_ES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-]
-
-function parsePeriod(period: string): { month: number; year: number; label: string } {
-  const [year, month] = period.split('-').map(Number)
-  return {
-    month,
-    year,
-    label: `${MONTHS_ES[month - 1]} ${year}`,
-  }
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const config = {
-    draft: { variant: 'warning' as const, icon: Clock, label: PAYROLL_STATUS_CONFIG.draft.label },
-    approved: { variant: 'primary' as const, icon: CheckCircle, label: PAYROLL_STATUS_CONFIG.approved.label },
-    paid: { variant: 'success' as const, icon: CheckCircle, label: PAYROLL_STATUS_CONFIG.paid.label },
-  }[status] || { variant: 'neutral' as const, icon: Clock, label: status }
-
-  const Icon = config.icon
-
-  return (
-    <Badge variant={config.variant} size="md" className="gap-1.5">
-      <Icon className="w-3 h-3" />
-      {config.label}
-    </Badge>
-  )
-}
-
-function ContractTypeBadge({ type }: { type: string }) {
-  const variant = type === 'laboral' ? 'primary' : 'success'
-  return (
-    <Badge variant={variant} size="sm">
-      {type === 'laboral' ? 'Laboral' : 'Prestación'}
-    </Badge>
-  )
-}
-
-function PaymentTypeBadge({ type }: { type: string }) {
-  const config = {
-    fijo: { variant: 'primary' as const, label: 'Fijo' },
-    porcentaje: { variant: 'warning' as const, label: 'Comisión' },
-    mixed: { variant: 'info' as const, label: 'Mixto' },
-  }[type] || { variant: 'neutral' as const, label: type }
-
-  return (
-    <Badge variant={config.variant} size="sm">
-      {config.label}
-    </Badge>
-  )
-}
 
 type PendingChange = {
   itemId: string
@@ -115,6 +50,16 @@ type EditingValues = {
   contract_type?: 'laboral' | 'prestacion'
   payment_type?: 'fijo' | 'porcentaje' | 'mixed'
   base_salary?: number
+}
+
+const MONTHS_ES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+]
+
+function parsePeriod(period: string): { month: number; year: number; label: string } {
+  const [year, month] = period.split('-').map(Number)
+  return { month, year, label: `${MONTHS_ES[month - 1]} ${year}` }
 }
 
 interface PeriodDetailViewProps {
@@ -898,99 +843,4 @@ export function PeriodDetailView({
 }
 
 
-function PaymentModalWrapper({
-  onClose,
-  onConfirm,
-  loading,
-  totalNetPay,
-}: {
-  onClose: () => void
-  onConfirm: (method: PaymentMethod, reference?: string) => void
-  loading: boolean
-  totalNetPay: string
-}) {
-  const COLORS = useThemeColors()
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('efectivo')
-  const [paymentReference, setPaymentReference] = useState('')
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div
-        className="relative w-full max-w-md rounded-2xl p-6"
-        style={{ backgroundColor: COLORS.surface }}
-      >
-        <h3
-          className="text-xl font-bold mb-4 font-heading"
-          style={{ color: COLORS.textPrimary }}
-        >
-          Registrar Pago
-        </h3>
-
-        <div className="space-y-4">
-          {/* Total summary */}
-          <div
-            className="flex items-center justify-between p-3 rounded-xl"
-            style={{ backgroundColor: COLORS.surfaceSubtle }}
-          >
-            <span className="text-sm font-medium" style={{ color: COLORS.textSecondary }}>
-              Total a pagar
-            </span>
-            <span className="text-lg font-bold" style={{ color: COLORS.success }}>
-              {totalNetPay}
-            </span>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textSecondary }}>
-              Método de pago
-            </label>
-            <select
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-              className="w-full px-4 py-3 rounded-xl border"
-              style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }}
-            >
-              {Object.entries(PAYMENT_METHODS).map(([value, { label }]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: COLORS.textSecondary }}>
-              Referencia (opcional)
-            </label>
-            <input
-              type="text"
-              value={paymentReference}
-              onChange={(e) => setPaymentReference(e.target.value)}
-              placeholder="Número de transacción, referencia..."
-              className="w-full px-4 py-3 rounded-xl border"
-              style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface, color: COLORS.textPrimary }}
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-3 rounded-xl text-sm font-medium"
-            style={{ backgroundColor: COLORS.surfaceSubtle, color: COLORS.textSecondary }}
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={() => onConfirm(paymentMethod, paymentReference || undefined)}
-            disabled={loading}
-            className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-50 flex items-center justify-center gap-2"
-            style={{ backgroundColor: COLORS.success }}
-          >
-            {loading ? <Spinner size="sm" /> : <CheckCircle className="w-4 h-4" />}
-            Confirmar Pago
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+// PaymentModalWrapper moved to ./PaymentModalWrapper
