@@ -1580,6 +1580,47 @@ export type Database = {
           },
         ]
       }
+      notification_alert_events: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          level: string
+          message: string
+          resolved: boolean
+          resolved_at: string | null
+          worker_name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          level: string
+          message: string
+          resolved?: boolean
+          resolved_at?: string | null
+          worker_name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          level?: string
+          message?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          worker_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_alert_events_worker_name_fkey"
+            columns: ["worker_name"]
+            isOneToOne: false
+            referencedRelation: "notification_worker_heartbeats"
+            referencedColumns: ["worker_name"]
+          },
+        ]
+      }
       notification_conversations: {
         Row: {
           appointment_id: string | null
@@ -2065,6 +2106,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_worker_heartbeats: {
+        Row: {
+          created_at: string
+          dlq_depth: number
+          error_count: number
+          last_error: string | null
+          last_error_at: string | null
+          last_latency_ms: number | null
+          last_seen_at: string
+          last_success_at: string | null
+          metadata: Json
+          processed_count: number
+          queue_depth: number
+          queue_depth_updated_at: string | null
+          status: string
+          success_count: number
+          updated_at: string
+          worker_name: string
+        }
+        Insert: {
+          created_at?: string
+          dlq_depth?: number
+          error_count?: number
+          last_error?: string | null
+          last_error_at?: string | null
+          last_latency_ms?: number | null
+          last_seen_at?: string
+          last_success_at?: string | null
+          metadata?: Json
+          processed_count?: number
+          queue_depth?: number
+          queue_depth_updated_at?: string | null
+          status?: string
+          success_count?: number
+          updated_at?: string
+          worker_name: string
+        }
+        Update: {
+          created_at?: string
+          dlq_depth?: number
+          error_count?: number
+          last_error?: string | null
+          last_error_at?: string | null
+          last_latency_ms?: number | null
+          last_seen_at?: string
+          last_success_at?: string | null
+          metadata?: Json
+          processed_count?: number
+          queue_depth?: number
+          queue_depth_updated_at?: string | null
+          status?: string
+          success_count?: number
+          updated_at?: string
+          worker_name?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -3520,11 +3618,35 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      evaluate_worker_alerts: {
+        Args: never
+        Returns: {
+          alert_code: string
+          alert_level: string
+          alert_message: string
+          worker_name: string
+        }[]
+      }
       get_user_organization_ids: {
         Args: { p_user_id: string }
         Returns: {
           organization_id: string
         }[]
+      }
+      upsert_worker_heartbeat: {
+        Args: {
+          p_dlq_depth?: number
+          p_error_count?: number
+          p_last_error?: string
+          p_last_latency_ms?: number
+          p_metadata?: Json
+          p_processed_count?: number
+          p_queue_depth?: number
+          p_status?: string
+          p_success_count?: number
+          p_worker_name: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

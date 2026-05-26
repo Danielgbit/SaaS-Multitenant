@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { NotificationQueueItem, QueueItemStatus } from '@/types/notifications'
+import { devLog, devError } from '@/lib/logger'
 
 const QueueFiltersSchema = z.object({
   status: z.enum(['pending', 'processing', 'sent', 'delivered', 'read', 'failed', 'failed_permanently', 'cancelled']).optional(),
@@ -79,7 +80,7 @@ export async function getQueueStats(organizationId: string): Promise<{ success: 
       data: { sentToday, deliveredToday, failedToday, pending, stuckCount, deliveryRate },
     }
   } catch (error) {
-    console.error('Error in getQueueStats:', error)
+    devError('Error in getQueueStats:', error)
     return { success: false, error: 'Error al cargar estadísticas' }
   }
 }
@@ -122,7 +123,7 @@ export async function getQueueItems(
     const { data, error, count } = await query
 
     if (error) {
-      console.error('Error in getQueueItems:', error)
+      devError('Error in getQueueItems:', error)
       return { success: false, error: 'Error al cargar cola', data: { items: [], total: 0, page: 1, totalPages: 0 } }
     }
 
@@ -161,7 +162,7 @@ export async function getQueueItems(
       data: { items, total, page, totalPages },
     }
   } catch (error) {
-    console.error('Error in getQueueItems:', error)
+    devError('Error in getQueueItems:', error)
     return { success: false, error: 'Error inesperado', data: { items: [], total: 0, page: 1, totalPages: 0 } }
   }
 }
@@ -181,7 +182,7 @@ export async function getRecentItems(
       .limit(limit)
 
     if (error) {
-      console.error('Error in getRecentItems:', error)
+      devError('Error in getRecentItems:', error)
       return { success: false, error: 'Error al cargar mensajes recientes' }
     }
 
@@ -214,7 +215,7 @@ export async function getRecentItems(
 
     return { success: true, data: items }
   } catch (error) {
-    console.error('Error in getRecentItems:', error)
+    devError('Error in getRecentItems:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -240,13 +241,13 @@ export async function retryQueueItem(
       .in('status', ['failed', 'failed_permanently'])
 
     if (error) {
-      console.error('Error retrying queue item:', error)
+      devError('Error retrying queue item:', error)
       return { success: false, error: 'Error al reintentar mensaje' }
     }
 
     return { success: true }
   } catch (error) {
-    console.error('Error in retryQueueItem:', error)
+    devError('Error in retryQueueItem:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -267,13 +268,13 @@ export async function cancelQueueItem(
       .eq('status', 'pending')
 
     if (error) {
-      console.error('Error cancelling queue item:', error)
+      devError('Error cancelling queue item:', error)
       return { success: false, error: 'Error al cancelar mensaje' }
     }
 
     return { success: true }
   } catch (error) {
-    console.error('Error in cancelQueueItem:', error)
+    devError('Error in cancelQueueItem:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -300,13 +301,13 @@ export async function retryMultipleQueueItems(
       .in('status', ['failed', 'failed_permanently'])
 
     if (error) {
-      console.error('Error retrying multiple queue items:', error)
+      devError('Error retrying multiple queue items:', error)
       return { success: false, error: 'Error al reintentar mensajes' }
     }
 
     return { success: true }
   } catch (error) {
-    console.error('Error in retryMultipleQueueItems:', error)
+    devError('Error in retryMultipleQueueItems:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -328,13 +329,13 @@ export async function cancelMultipleQueueItems(
       .eq('status', 'pending')
 
     if (error) {
-      console.error('Error cancelling multiple queue items:', error)
+      devError('Error cancelling multiple queue items:', error)
       return { success: false, error: 'Error al cancelar mensajes' }
     }
 
     return { success: true }
   } catch (error) {
-    console.error('Error in cancelMultipleQueueItems:', error)
+    devError('Error in cancelMultipleQueueItems:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }

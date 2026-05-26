@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { MessageTemplate, TemplateVariable, NotificationChannel } from '@/types/notifications'
+import { devLog, devError } from '@/lib/logger'
 
 const TemplateSchema = z.object({
   organizationId: z.string().uuid().optional().nullable(),
@@ -62,7 +63,7 @@ export async function getTemplates(
 
     return { success: true, data: data || [] }
   } catch (error) {
-    console.error('Error in getTemplates:', error)
+    devError('Error in getTemplates:', error)
     return { success: false, error: 'Error inesperado', data: [] }
   }
 }
@@ -83,7 +84,7 @@ export async function getTemplateById(templateId: string) {
 
     return { success: true, data }
   } catch (error) {
-    console.error('Error in getTemplateById:', error)
+    devError('Error in getTemplateById:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -117,13 +118,13 @@ export async function createTemplate(
       .single()
 
     if (error) {
-      console.error('Error creating template:', error)
+      devError('Error creating template:', error)
       return { success: false, error: 'Error al crear template' }
     }
 
     return { success: true, data }
   } catch (error) {
-    console.error('Error in createTemplate:', error)
+    devError('Error in createTemplate:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -159,13 +160,13 @@ export async function updateTemplate(
       .single()
 
     if (error) {
-      console.error('Error updating template:', error)
+      devError('Error updating template:', error)
       return { success: false, error: 'Error al actualizar template' }
     }
 
     return { success: true, data }
   } catch (error) {
-    console.error('Error in updateTemplate:', error)
+    devError('Error in updateTemplate:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -181,13 +182,13 @@ export async function deleteTemplate(templateId: string) {
       .eq('is_default', false)
 
     if (error) {
-      console.error('Error deleting template:', error)
+      devError('Error deleting template:', error)
       return { success: false, error: 'Error al eliminar template' }
     }
 
     return { success: true }
   } catch (error) {
-    console.error('Error in deleteTemplate:', error)
+    devError('Error in deleteTemplate:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -230,13 +231,13 @@ export async function resetTemplateToDefault(templateId: string) {
       .eq('id', templateId)
 
     if (updateError) {
-      console.error('Error resetting template:', updateError)
+      devError('Error resetting template:', updateError)
       return { success: false, error: 'Error al resetear template' }
     }
 
     return { success: true }
   } catch (error) {
-    console.error('Error in resetTemplateToDefault:', error)
+    devError('Error in resetTemplateToDefault:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }

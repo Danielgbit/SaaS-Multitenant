@@ -4,6 +4,27 @@ import { createServiceRoleClient } from '@/lib/supabase/service-role'
 
 export const runtime = 'edge'
 
+async function sendHeartbeat(supabase: any, workerName: string, status: string, opts: {
+  processedCount?: number
+  errorCount?: number
+  lastError?: string
+} = {}) {
+  try {
+    await supabase.rpc('upsert_worker_heartbeat', {
+      p_worker_name: workerName,
+      p_status: status,
+      p_processed_count: opts.processedCount || 0,
+      p_error_count: opts.errorCount || 0,
+      p_success_count: 0,
+      p_queue_depth: -1,
+      p_dlq_depth: -1,
+      p_last_latency_ms: null,
+      p_last_error: opts.lastError || null,
+      p_metadata: '{}',
+    })
+  } catch {}
+}
+
 export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -14,14 +35,22 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createServiceRoleClient()
+
+    await sendHeartbeat(supabase, 'cron-reminders', 'healthy')
+
     const result = await runCheckReminders(supabase)
 
     if (!result.success) {
+      await sendHeartbeat(supabase, 'cron-reminders', 'error', { lastError: result.errors?.[0] })
       return NextResponse.json({
         message: 'Check reminders failed',
         ...result,
       }, { status: 500 })
     }
+
+    await sendHeartbeat(supabase, 'cron-reminders', 'healthy', {
+      processedCount: result.processed || 0,
+    })
 
     return NextResponse.json({
       message: `Processed: ${result.processed} (reminders: ${result.reminders}, alerts: ${result.alerts}, autoCompleted: ${result.autoCompleted})`,
@@ -29,6 +58,11 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error('Check reminders cron error:', error)
+    const errMsg = error instanceof Error ? error.message : String(error)
+    try {
+      const supabase = await createServiceRoleClient()
+      await sendHeartbeat(supabase, 'cron-reminders', 'error', { lastError: errMsg })
+    } catch {}
     return NextResponse.json({
       success: false,
       error: 'Internal server error',

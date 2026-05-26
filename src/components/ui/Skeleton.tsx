@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface SkeletonProps {
@@ -9,7 +10,7 @@ interface SkeletonProps {
   className?: string
 }
 
-export function Skeleton({ variant = 'text', width, height, className = '' }: SkeletonProps) {
+export const Skeleton = React.memo(function Skeleton({ variant = 'text', width, height, className = '' }: SkeletonProps) {
   const COLORS = useThemeColors()
   const bg = COLORS.textMuted + '20'
 
@@ -47,4 +48,4 @@ export function Skeleton({ variant = 'text', width, height, className = '' }: Sk
       style={{ backgroundColor: bg }}
     />
   )
-}
+})

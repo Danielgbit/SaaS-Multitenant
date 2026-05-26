@@ -245,6 +245,16 @@ async function processNotificationBatch(
           .eq('id', item.id)
         result.sent++
 
+        // Heartbeat: provider-specific
+        const providerName = channelAdapter.getProviderName()
+        const providerWorker = `provider-${item.channel as string}`
+        await sendHeartbeat(supabase, providerWorker, 'healthy', {
+          processedCount: 1,
+          successCount: 1,
+          lastLatencyMs: sendResult.durationMs,
+          metadata: { provider: providerName },
+        })
+
         try {
           const created = new Date(item.created_at as string).getTime()
           const sent = new Date(now).getTime()
@@ -299,6 +309,16 @@ async function processNotificationBatch(
         const newAttempts = ((item.attempts as number) || 0) + 1
         const maxAttempts = (item.max_attempts as number) || 3
         const { retryable } = classifyError(sendResult.error || '', undefined)
+
+        // Heartbeat: provider-specific failure
+        const providerWorkerErr = `provider-${item.channel as string}`
+        await sendHeartbeat(supabase, providerWorkerErr, 'warning', {
+          processedCount: 1,
+          errorCount: 1,
+          lastLatencyMs: sendResult.durationMs,
+          lastError: sendResult.error?.slice(0, 500),
+          metadata: { provider: channelAdapter.getProviderName(), newAttempts },
+        })
 
         if (newAttempts >= maxAttempts || !retryable) {
           const targetStatus = retryable ? 'failed' : 'failed_permanently' as QueueStatus
@@ -466,6 +486,51 @@ async function processNotificationBatch(
   return result
 }
 
+async function getQueueDepth(
+  supabase: Awaited<ReturnType<typeof createServiceRoleClient>>
+): Promise<{ queueDepth: number; dlqDepth: number }> {
+  try {
+    const [{ count: queueCount }, { count: dlqCount }] = await Promise.all([
+      (supabase as any).from('notification_queue').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      (supabase as any).from('dead_letter_notifications').select('*', { count: 'exact', head: true }),
+    ])
+    return { queueDepth: queueCount || 0, dlqDepth: dlqCount || 0 }
+  } catch {
+    return { queueDepth: -1, dlqDepth: -1 }
+  }
+}
+
+async function sendHeartbeat(
+  supabase: Awaited<ReturnType<typeof createServiceRoleClient>>,
+  workerName: string,
+  status: string,
+  opts: {
+    processedCount?: number
+    successCount?: number
+    errorCount?: number
+    queueDepth?: number
+    dlqDepth?: number
+    lastLatencyMs?: number
+    lastError?: string
+    metadata?: Record<string, unknown>
+  } = {}
+) {
+  try {
+    await (supabase as any).rpc('upsert_worker_heartbeat', {
+      p_worker_name: workerName,
+      p_status: status,
+      p_processed_count: opts.processedCount || 0,
+      p_success_count: opts.successCount || 0,
+      p_error_count: opts.errorCount || 0,
+      p_queue_depth: opts.queueDepth ?? -1,
+      p_dlq_depth: opts.dlqDepth ?? -1,
+      p_last_latency_ms: opts.lastLatencyMs ?? null,
+      p_last_error: opts.lastError || null,
+      p_metadata: opts.metadata ? JSON.stringify(opts.metadata) : '{}',
+    })
+  } catch {}
+}
+
 export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -476,7 +541,30 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createServiceRoleClient()
+
+    // Heartbeat: cron-dispatch alive
+    const depth = await getQueueDepth(supabase)
+    await sendHeartbeat(supabase, 'cron-dispatch', 'healthy', {
+      queueDepth: depth.queueDepth,
+      dlqDepth: depth.dlqDepth,
+    })
+
     const result = await processNotificationBatch(supabase)
+
+    // Evaluate worker alerts after processing
+    try {
+      await (supabase as any).rpc('evaluate_worker_alerts')
+    } catch {}
+
+    const finalStatus = result.errors.length > 0 ? 'warning' : 'healthy'
+    await sendHeartbeat(supabase, 'cron-dispatch', finalStatus, {
+      processedCount: result.processed,
+      successCount: result.sent,
+      errorCount: result.failed,
+      queueDepth: depth.queueDepth,
+      dlqDepth: depth.dlqDepth,
+      lastError: result.errors[0],
+    })
 
     return NextResponse.json({
       message: `Processed: ${result.processed}, Sent: ${result.sent}, Failed: ${result.failed}, Skipped: ${result.skipped}`,
@@ -485,6 +573,16 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error('[processNotifications] Fatal error:', error)
+    const errMsg = error instanceof Error ? error.message : String(error)
+
+    // Heartbeat: cron-dispatch error
+    try {
+      const supabase = await createServiceRoleClient()
+      await sendHeartbeat(supabase, 'cron-dispatch', 'error', {
+        lastError: errMsg,
+      })
+    } catch {}
+
     return NextResponse.json({
       success: false,
       error: 'Internal server error',

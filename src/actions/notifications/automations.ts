@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { AutomationRule, AutomationTrigger, NotificationChannel } from '@/types/notifications'
+import { devLog, devError } from '@/lib/logger'
 
 const AutomationRuleCreateSchema = z.object({
   organizationId: z.string().uuid(),
@@ -46,7 +47,7 @@ export async function getAutomationRules(
     const { data, error } = await query
 
     if (error) {
-      console.error('Error in getAutomationRules:', error)
+      devError('Error in getAutomationRules:', error)
       return { success: false, error: 'Error al cargar reglas de automatización' }
     }
 
@@ -64,7 +65,7 @@ export async function getAutomationRules(
 
     return { success: true, data: rules }
   } catch (error) {
-    console.error('Error in getAutomationRules:', error)
+    devError('Error in getAutomationRules:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -96,7 +97,7 @@ export async function createAutomationRule(
       .single()
 
     if (error) {
-      console.error('Error creating automation rule:', error)
+      devError('Error creating automation rule:', error)
       return { success: false, error: 'Error al crear regla' }
     }
 
@@ -114,7 +115,7 @@ export async function createAutomationRule(
 
     return { success: true, data: rule }
   } catch (error) {
-    console.error('Error in createAutomationRule:', error)
+    devError('Error in createAutomationRule:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -145,13 +146,13 @@ export async function updateAutomationRule(
       .eq('id', ruleId)
 
     if (error) {
-      console.error('Error updating automation rule:', error)
+      devError('Error updating automation rule:', error)
       return { success: false, error: 'Error al actualizar regla' }
     }
 
     return { success: true }
   } catch (error) {
-    console.error('Error in updateAutomationRule:', error)
+    devError('Error in updateAutomationRule:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -169,13 +170,13 @@ export async function toggleAutomationRule(
       .eq('id', ruleId)
 
     if (error) {
-      console.error('Error toggling automation rule:', error)
+      devError('Error toggling automation rule:', error)
       return { success: false, error: 'Error al actualizar' }
     }
 
     return { success: true }
   } catch (error) {
-    console.error('Error in toggleAutomationRule:', error)
+    devError('Error in toggleAutomationRule:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }
@@ -192,13 +193,13 @@ export async function deleteAutomationRule(
       .eq('id', ruleId)
 
     if (error) {
-      console.error('Error deleting automation rule:', error)
+      devError('Error deleting automation rule:', error)
       return { success: false, error: 'Error al eliminar' }
     }
 
     return { success: true }
   } catch (error) {
-    console.error('Error in deleteAutomationRule:', error)
+    devError('Error in deleteAutomationRule:', error)
     return { success: false, error: 'Error inesperado' }
   }
 }

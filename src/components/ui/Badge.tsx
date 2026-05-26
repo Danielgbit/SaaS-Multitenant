@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode } from 'react'
+import React, { type ReactNode } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
 type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'primary' | 'gold' | 'neutral'
@@ -18,7 +18,7 @@ const sizeClasses = {
   md: 'px-2.5 py-1 text-xs',
 }
 
-export function Badge({ variant = 'neutral', size = 'md', pulse = false, children, className = '' }: BadgeProps) {
+export const Badge = React.memo(function Badge({ variant = 'neutral', size = 'md', pulse = false, children, className = '' }: BadgeProps) {
   const COLORS = useThemeColors()
 
   const variantTokens: Record<BadgeVariant, { bg: string; text: string }> = {
@@ -47,4 +47,4 @@ export function Badge({ variant = 'neutral', size = 'md', pulse = false, childre
       {children}
     </span>
   )
-}
+})
