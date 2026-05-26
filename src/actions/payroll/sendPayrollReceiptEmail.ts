@@ -69,11 +69,11 @@ export async function sendPayrollReceiptEmail(input: {
     return { success: false, error: 'Empleado sin usuario asociado', emailSent: false }
   }
 
-  const { data: employeeUser } = await ((supabase as any)
+  const { data: employeeUser } = await (supabase as any)
     .from('users')
     .select('email')
     .eq('id', employee.user_id!)
-    .single() as Promise<{ data: { email: string } | null; error: unknown }>)
+    .single() as Promise<unknown> as unknown as { data: { email: string } | null; error: unknown }
 
   if (!employeeUser?.email) {
     return { success: false, error: 'Empleado sin email registrado', emailSent: false }
