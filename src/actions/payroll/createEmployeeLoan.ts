@@ -45,7 +45,7 @@ export async function createEmployeeLoan(
     return { success: false, error: 'No se encontró organización' }
   }
 
-  const { data: employee } = await (supabase as any)
+  const { data: employee } = await supabase
     .from('employees')
     .select('id, name, max_debt_limit, debt_warning_threshold')
     .eq('id', input.employee_id)
@@ -55,7 +55,7 @@ export async function createEmployeeLoan(
     return { success: false, error: 'Empleado no encontrado' }
   }
 
-  const { data: existingLoans } = await (supabase as any)
+  const { data: existingLoans } = await supabase
     .from('employee_loans')
     .select('remaining_amount')
     .eq('employee_id', input.employee_id)
@@ -83,7 +83,7 @@ export async function createEmployeeLoan(
     return { success: false, error: warning, blocked: true }
   }
 
-  const { data: loan, error } = await (supabase as any)
+  const { data: loan, error } = await supabase
     .from('employee_loans')
     .insert({
       employee_id: input.employee_id,
@@ -124,7 +124,7 @@ export async function getEmployeeLoans(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('employee_loans')
     .select('*')
     .eq('employee_id', employeeId)
@@ -151,7 +151,7 @@ export async function updateEmployeeLoan(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from('employee_loans')
     .update({ status })
     .eq('id', id)

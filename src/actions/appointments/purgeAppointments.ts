@@ -58,7 +58,7 @@ export async function purgeAppointments(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: orgMember, error: orgError } = await (supabase as any)
+  const { data: orgMember, error: orgError } = await supabase
     .from('organization_members')
     .select('organization_id, role')
     .eq('user_id', user.id)
@@ -116,7 +116,7 @@ export async function deleteAppointmentsByIds(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: orgMember } = await (supabase as any)
+  const { data: orgMember } = await supabase
     .from('organization_members')
     .select('organization_id, role')
     .eq('user_id', user.id)
@@ -174,7 +174,7 @@ export async function updateRetentionSettings(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: orgMember } = await (supabase as any)
+  const { data: orgMember } = await supabase
     .from('organization_members')
     .select('organization_id, role')
     .eq('user_id', user.id)

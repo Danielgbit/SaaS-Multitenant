@@ -22,7 +22,7 @@ export async function getWhatsAppSettings(
   const supabase = await createClient()
 
   try {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('whatsapp_settings')
       .select('*')
       .eq('organization_id', organizationId)

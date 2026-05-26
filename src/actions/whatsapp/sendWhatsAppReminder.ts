@@ -49,7 +49,7 @@ export async function sendWhatsAppReminder(
   const supabase = await createClient()
 
   try {
-    const { data: appointment, error: appointmentError } = await (supabase as any)
+    const { data: appointment, error: appointmentError } = await supabase
       .from('appointments')
       .select(`
         id,
@@ -78,7 +78,7 @@ export async function sendWhatsAppReminder(
       return { success: false, error: 'Cliente sin número de teléfono' }
     }
 
-    const { data: settings, error: settingsError } = await (supabase as any)
+    const { data: settings, error: settingsError } = await supabase
       .from('whatsapp_settings')
       .select('*')
       .eq('organization_id', apt.organization_id)
@@ -143,7 +143,7 @@ export async function sendWhatsAppReminder(
 
     const n8nResponse = await response.text()
 
-    await (supabase as any)
+    await supabase
       .from('whatsapp_logs')
       .insert({
         organization_id: apt.organization_id,

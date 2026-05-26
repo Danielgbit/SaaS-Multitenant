@@ -83,10 +83,11 @@ export async function POST(request: NextRequest) {
           } as any)
           .eq('organization_id', subscription.organization_id)
 
-        await (supabase.from('invoices' as any).insert({
+        await (supabase.from('invoices').insert({
           organization_id: subscription.organization_id,
           stripe_invoice_id: invoice.id,
           invoice_number: invoice.number,
+          subtotal_cents: invoice.subtotal,
           amount_cents: invoice.amount_paid,
           currency: invoice.currency,
           status: 'paid',

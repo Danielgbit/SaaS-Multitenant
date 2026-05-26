@@ -28,7 +28,7 @@ export async function calculateEmployeePayroll(input: CalculateInput): Promise<{
 
   // Get payroll config for the year
   const year = new Date(input.period_start).getFullYear()
-  const { data: config } = await (supabase as any)
+  const { data: config } = await supabase
     .from('payroll_config')
     .select('*')
     .eq('year', year)
@@ -127,8 +127,8 @@ export async function calculateEmployeePayroll(input: CalculateInput): Promise<{
   const totalEarnings = grossCommission + baseSalary
 
   if (input.force_transport_subsidy || input.has_transport_subsidy) {
-    if (input.force_transport_subsidy || totalEarnings <= config.smmlv * 2) {
-      transportSubsidy = config.transport_subsidy * employmentFactor
+    if (input.force_transport_subsidy || totalEarnings <= config.smmlv! * 2) {
+      transportSubsidy = config.transport_subsidy! * employmentFactor
     }
   }
 
@@ -138,8 +138,8 @@ export async function calculateEmployeePayroll(input: CalculateInput): Promise<{
   let totalDeductions = 0
 
   if (input.contract_type === 'laboral') {
-    healthDeduction = Number((baseSalary * config.health_rate).toFixed(2))
-    pensionDeduction = Number((baseSalary * config.pension_rate).toFixed(2))
+    healthDeduction = Number((baseSalary * (config.health_rate ?? 0)).toFixed(2))
+    pensionDeduction = Number((baseSalary * (config.pension_rate ?? 0)).toFixed(2))
     totalDeductions = healthDeduction + pensionDeduction
   }
 

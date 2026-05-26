@@ -59,7 +59,7 @@ export async function getEmailLogs(
   }
 
   try {
-    const { data: logs, error: logsError } = await (supabase as any)
+    const { data: logs, error: logsError } = await supabase
       .from('email_logs')
       .select('*')
       .eq('organization_id', organizationId)
@@ -71,7 +71,19 @@ export async function getEmailLogs(
       return { success: false, error: 'Error al obtener logs.' }
     }
 
-    return { success: true, data: logs || [] }
+    return { success: true, data: (logs || []) as unknown as Array<{
+      id: string
+      organization_id: string
+      appointment_id: string | null
+      client_id: string | null
+      email_type: string
+      to_email: string
+      subject: string
+      status: string
+      error_message: string | null
+      sent_at: string | null
+      created_at: string
+    }> }
   } catch (error) {
     console.error('Error in getEmailLogs:', error)
     return { success: false, error: 'Error inesperado' }

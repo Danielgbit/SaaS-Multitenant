@@ -23,7 +23,7 @@ export async function recordSale(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: client } = await (supabase as any)
+  const { data: client } = await supabase
     .from('clients')
     .select('id, name')
     .eq('id', input.client_id)
@@ -40,7 +40,7 @@ export async function recordSale(
     return sum + (p.unit_price - discount) * p.quantity
   }, 0)
 
-  const { data: existingAccount } = await (supabase as any)
+  const { data: existingAccount } = await supabase
     .from('client_accounts')
     .select('id, balance')
     .eq('client_id', input.client_id)
@@ -56,7 +56,7 @@ export async function recordSale(
       return { success: false, error: 'Cliente tiene cuenta bloqueada por deuda vencida' }
     }
   } else {
-    const { data: newAccount, error: createError } = await (supabase as any)
+    const { data: newAccount, error: createError } = await supabase
       .from('client_accounts')
       .insert({
         client_id: input.client_id,
@@ -75,7 +75,7 @@ export async function recordSale(
     accountId = newAccount.id
   }
 
-  const { data: transaction, error: transactionError } = await (supabase as any)
+  const { data: transaction, error: transactionError } = await supabase
     .from('client_account_transactions')
     .insert({
       account_id: accountId,
@@ -98,7 +98,7 @@ export async function recordSale(
     const discount = (product.unit_price * (product.discount_percent || 0)) / 100
     const totalPrice = (product.unit_price - discount) * product.quantity
 
-    const { error: saleError } = await (supabase as any)
+    const { error: saleError } = await supabase
       .from('client_product_sales')
       .insert({
         transaction_id: transaction.id,
@@ -115,14 +115,14 @@ export async function recordSale(
     }
 
     if (product.inventory_item_id) {
-      const { data: currentItem } = await (supabase as any)
+      const { data: currentItem } = await supabase
         .from('inventory_items')
         .select('quantity')
         .eq('id', product.inventory_item_id)
         .single()
       
       if (currentItem) {
-        await (supabase as any)
+        await supabase
           .from('inventory_items')
           .update({
             quantity: currentItem.quantity - product.quantity,
@@ -132,7 +132,7 @@ export async function recordSale(
     }
   }
 
-  const { data: updatedAccount } = await (supabase as any)
+  const { data: updatedAccount } = await supabase
     .from('client_accounts')
     .select('balance')
     .eq('id', accountId)
@@ -175,7 +175,7 @@ export async function recordPayment(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: account, error: accountError } = await (supabase as any)
+  const { data: account, error: accountError } = await supabase
     .from('client_accounts')
     .select('id, balance')
     .eq('client_id', input.client_id)
@@ -190,13 +190,13 @@ export async function recordPayment(
     return { success: false, error: 'El monto no puede exceder el saldo pendiente' }
   }
 
-  const { data: client } = await (supabase as any)
+  const { data: client } = await supabase
     .from('clients')
     .select('name')
     .eq('id', input.client_id)
     .single()
 
-  const { data: transaction, error: transactionError } = await (supabase as any)
+  const { data: transaction, error: transactionError } = await supabase
     .from('client_account_transactions')
     .insert({
       account_id: account.id,

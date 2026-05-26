@@ -16,7 +16,7 @@ export async function getPayrollSettings(organizationId: string): Promise<{
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('organization_payroll_settings')
     .select('*')
     .eq('organization_id', organizationId)
@@ -35,7 +35,7 @@ export async function getPayrollSettings(organizationId: string): Promise<{
       allow_advance_payments: true,
     }
 
-    const { data: newData, error: insertError } = await (supabase as any)
+    const { data: newData, error: insertError } = await supabase
       .from('organization_payroll_settings')
       .insert(defaultSettings)
       .select()
@@ -66,7 +66,7 @@ export async function updatePayrollSettings(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('organization_payroll_settings')
     .update({
       ...input,

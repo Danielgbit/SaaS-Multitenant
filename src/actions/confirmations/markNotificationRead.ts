@@ -27,7 +27,7 @@ export async function markNotificationRead(
     return { error: 'No autorizado.' }
   }
 
-  const { data: notification, error: notifError } = await (supabase as any)
+  const { data: notification, error: notifError } = await supabase
     .from('notifications')
     .select('id, user_id, organization_id')
     .eq('id', notificationId)
@@ -41,7 +41,7 @@ export async function markNotificationRead(
     return { error: 'No tienes permiso para marcar esta notificación.' }
   }
 
-  const { error: updateError } = await (supabase as any)
+  const { error: updateError } = await supabase
     .from('notifications')
     .update({ read: true })
     .eq('id', notificationId)
@@ -74,7 +74,7 @@ export async function markAllNotificationsRead(
     return { error: 'No tienes permiso.' }
   }
 
-  const { error: updateError } = await (supabase as any)
+  const { error: updateError } = await supabase
     .from('notifications')
     .update({ read: true })
     .eq('user_id', userId)

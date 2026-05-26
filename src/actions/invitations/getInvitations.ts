@@ -21,7 +21,7 @@ export async function getInvitationsByEmployee(employeeId: string) {
     return { error: 'No se encontró organización.' }
   }
 
-  const { data: invitations, error } = await (supabase as any)
+  const { data: invitations, error } = await supabase
     .from('employee_invitations')
     .select('*')
     .eq('employee_id', employeeId)
@@ -58,7 +58,7 @@ export async function getPendingInvitations(organizationId?: string) {
     return { error: 'No se encontró organización.' }
   }
 
-  const { data: invitations, error } = await (supabase as any)
+  const { data: invitations, error } = await supabase
     .from('employee_invitations')
     .select('*, employee:employees(name)')
     .eq('organization_id', orgId)

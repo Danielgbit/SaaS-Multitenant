@@ -84,7 +84,7 @@ export async function revokeAccess(
     return { error: 'No se pudo revocar el acceso.' }
   }
 
-  await (supabase as any)
+  await supabase
     .from('employee_invitations')
     .update({ status: 'cancelled' })
     .eq('employee_id', employeeId)

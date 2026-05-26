@@ -30,7 +30,7 @@ export async function confirmService(
     return { success: false, error: 'No autorizado.' }
   }
 
-  const { data: appointment, error: apptError } = await (supabase as any)
+  const { data: appointment, error: apptError } = await supabase
     .from('appointments')
     .select(`
       id,
@@ -56,7 +56,7 @@ export async function confirmService(
     return { success: false, error: 'Esta cita aún no fue marcada por el empleado.' }
   }
 
-  const { data: orgMember, error: orgError } = await (supabase as any)
+  const { data: orgMember, error: orgError } = await supabase
     .from('organization_members')
     .select('organization_id, role')
     .eq('user_id', user.id)
@@ -74,7 +74,7 @@ export async function confirmService(
   const now = new Date().toISOString()
 
   // Get prices from appointment_services with employee override support
-  const { data: appointmentServices } = await (supabase as any)
+  const { data: appointmentServices } = await supabase
     .from('appointment_services')
     .select('service_id, services(price)')
     .eq('appointment_id', appointmentId)
@@ -82,10 +82,10 @@ export async function confirmService(
   let currentPrice = 0
   for (const as of appointmentServices || []) {
     // Check for employee-specific price override
-    const { data: employeeService } = await (supabase as any)
+    const { data: employeeService } = await supabase
       .from('employee_services')
       .select('price_override')
-      .eq('employee_id', appointment.employee_id)
+      .eq('employee_id', appointment.employee_id!)
       .eq('service_id', as.service_id)
       .single()
 
@@ -94,7 +94,7 @@ export async function confirmService(
     currentPrice += price
   }
 
-  const { data: newLog, error: logError } = await (supabase as any)
+  const { data: newLog, error: logError } = await supabase
     .from('confirmation_logs')
     .insert({
       appointment_id: appointmentId,
@@ -115,7 +115,7 @@ export async function confirmService(
     return { success: false, error: 'Error al registrar la confirmación. Intenta de nuevo.' }
   }
 
-  const { error: updateError } = await (supabase as any)
+  const { error: updateError } = await supabase
     .from('appointments')
     .update({
       confirmation_status: 'confirmed',
@@ -132,7 +132,7 @@ export async function confirmService(
   }
 
   if (appointment.completed_by) {
-    await (supabase as any)
+    await supabase
       .from('notifications')
       .insert({
         organization_id: appointment.organization_id,

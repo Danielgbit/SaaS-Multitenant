@@ -35,7 +35,7 @@ export async function getClientAccountDetail(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: client, error: clientError } = await (supabase as any)
+  const { data: client, error: clientError } = await supabase
     .from('clients')
     .select('id, name, phone, email')
     .eq('id', clientId)
@@ -46,7 +46,7 @@ export async function getClientAccountDetail(
     return { success: false, error: 'Cliente no encontrado' }
   }
 
-  const { data: account, error: accountError } = await (supabase as any)
+  const { data: account, error: accountError } = await supabase
     .from('client_accounts')
     .select('id, balance, total_purchased, total_paid, credit_limit, is_over_limit, is_at_warning_threshold')
     .eq('client_id', clientId)
@@ -57,7 +57,7 @@ export async function getClientAccountDetail(
     return { success: false, error: accountError.message }
   }
 
-  const { data: transactions, error: transactionsError } = await (supabase as any)
+  const { data: transactions, error: transactionsError } = await supabase
     .from('client_account_transactions')
     .select(`
       *,
@@ -91,7 +91,7 @@ export async function getClientAccountDetail(
         is_at_warning_threshold: false,
       },
       client,
-      transactions: transactions || [],
+      transactions: (transactions || []) as unknown as import('@/types/clientAccounts').ClientAccountTransactionWithDetails[],
     },
   }
 }
@@ -114,7 +114,7 @@ export async function getClientDiscounts(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: discounts, error } = await (supabase as any)
+  const { data: discounts, error } = await supabase
     .from('client_product_discounts')
     .select(`
       inventory_item_id,

@@ -31,7 +31,7 @@ export async function markCompleted(
     return { error: 'No autorizado.' }
   }
 
-  const { data: appointment, error: apptError } = await (supabase as any)
+  const { data: appointment, error: apptError } = await supabase
     .from('appointments')
     .select(`
       id,
@@ -64,7 +64,7 @@ export async function markCompleted(
     return { error: 'Esta cita ya fue confirmada.' }
   }
 
-  const { data: employee, error: empError } = await (supabase as any)
+  const { data: employee, error: empError } = await supabase
     .from('employees')
     .select('id, user_id, name')
     .eq('user_id', user.id)
@@ -91,7 +91,7 @@ export async function markCompleted(
   }
 
   // Get prices from appointment_services with employee override support
-  const { data: appointmentServices } = await (supabase as any)
+  const { data: appointmentServices } = await supabase
     .from('appointment_services')
     .select('service_id, services(price)')
     .eq('appointment_id', appointmentId)
@@ -99,7 +99,7 @@ export async function markCompleted(
   let basePrice = 0
   for (const as of appointmentServices || []) {
     // Check for employee-specific price override
-    const { data: employeeService } = await (supabase as any)
+    const { data: employeeService } = await supabase
       .from('employee_services')
       .select('price_override')
       .eq('employee_id', appointment.employee_id)
@@ -113,7 +113,7 @@ export async function markCompleted(
 
   const finalPrice = basePrice + (priceAdjustment || 0)
 
-  const { data: log, error: logError } = await (supabase as any)
+  const { data: log, error: logError } = await supabase
     .from('confirmation_logs')
     .insert({
       appointment_id: appointmentId,
@@ -133,7 +133,7 @@ export async function markCompleted(
     return { error: 'Error al registrar la acción. Intenta de nuevo.' }
   }
 
-  const { error: updateError } = await (supabase as any)
+  const { error: updateError } = await supabase
     .from('appointments')
     .update({
       confirmation_status: 'completed',
@@ -149,7 +149,7 @@ export async function markCompleted(
     return { error: 'Error al actualizar la cita. Intenta de nuevo.' }
   }
 
-  const { data: assistants, error: asstError } = await (supabase as any)
+  const { data: assistants, error: asstError } = await supabase
     .from('organization_members')
     .select('user_id')
     .eq('organization_id', appointment.organization_id)
@@ -173,7 +173,7 @@ export async function markCompleted(
       },
     }))
 
-    await (supabase as any)
+    await supabase
       .from('notifications')
       .insert(notifications)
   }

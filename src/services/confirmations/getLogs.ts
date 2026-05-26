@@ -6,7 +6,7 @@ export async function getLogsForAppointment(
 ): Promise<ConfirmationLog[]> {
   const supabase = await createClient()
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('confirmation_logs')
     .select('*')
     .eq('appointment_id', appointmentId)

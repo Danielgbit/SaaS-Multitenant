@@ -83,7 +83,7 @@ export async function createInventoryItem(
     return { error: `Límite alcanzado. Máximo ${limit} productos en tu plan.` }
   }
 
-  const { data: item, error: insertError } = await (supabase as any)
+  const { data: item, error: insertError } = await supabase
     .from('inventory_items')
     .insert({
       organization_id,

@@ -39,7 +39,7 @@ export async function cancelInvitation(
     return { error: 'No tienes permisos para cancelar invitaciones.' }
   }
 
-  const { data: invitation, error: inviteError } = await (supabase as any)
+  const { data: invitation, error: inviteError } = await supabase
     .from('employee_invitations')
     .select('*')
     .eq('id', invitationId)
@@ -54,7 +54,7 @@ export async function cancelInvitation(
     return { error: 'Esta invitación ya no está activa.' }
   }
 
-  const { error: updateError } = await (supabase as any)
+  const { error: updateError } = await supabase
     .from('employee_invitations')
     .update({ status: 'cancelled' })
     .eq('id', invitationId)

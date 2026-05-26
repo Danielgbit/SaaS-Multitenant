@@ -38,7 +38,7 @@ export async function getWhatsAppLogs(
   const supabase = await createClient()
 
   try {
-    let query = (supabase as any)
+    let query = supabase
       .from('whatsapp_logs')
       .select(`
         id,
@@ -67,7 +67,7 @@ export async function getWhatsAppLogs(
       return { success: false, error: 'Error al obtener historial' }
     }
 
-    const { count } = await (supabase as any)
+    const { count } = await supabase
       .from('whatsapp_logs')
       .select('*', { count: 'exact', head: true })
       .eq('organization_id', organizationId)

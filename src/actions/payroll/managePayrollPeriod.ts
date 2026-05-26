@@ -15,7 +15,7 @@ export async function approvePayrollPeriod(periodId: string): Promise<{
   }
 
   // Get period to verify ownership
-  const { data: period } = await (supabase as any)
+  const { data: period } = await supabase
     .from('payroll_periods')
     .select('id, organization_id, status')
     .eq('id', periodId)
@@ -41,7 +41,7 @@ export async function approvePayrollPeriod(periodId: string): Promise<{
     return { success: false, error: 'Solo owners/admins pueden aprobar períodos' }
   }
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from('payroll_periods')
     .update({ status: 'approved' })
     .eq('id', periodId)
@@ -72,7 +72,7 @@ export async function markPayrollPeriodAsPaid(
   }
 
   // Get period
-  const { data: period } = await (supabase as any)
+  const { data: period } = await supabase
     .from('payroll_periods')
     .select('id, organization_id, status')
     .eq('id', periodId)
@@ -106,7 +106,7 @@ export async function markPayrollPeriodAsPaid(
     updateData.payment_reference = paymentReference
   }
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from('payroll_periods')
     .update(updateData)
     .eq('id', periodId)
@@ -133,7 +133,7 @@ export async function deletePayrollPeriod(periodId: string): Promise<{
   }
 
   // Get period
-  const { data: period } = await (supabase as any)
+  const { data: period } = await supabase
     .from('payroll_periods')
     .select('id, organization_id, status')
     .eq('id', periodId)
@@ -160,7 +160,7 @@ export async function deletePayrollPeriod(periodId: string): Promise<{
   }
 
   // Delete will cascade to payroll_items, period_commissions, payroll_item_loans
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from('payroll_periods')
     .delete()
     .eq('id', periodId)

@@ -57,7 +57,7 @@ export async function updateInventoryItem(
     return { error: 'No perteneces a esta organización.' }
   }
 
-  const { error: updateError } = await (supabase as any)
+  const { error: updateError } = await supabase
     .from('inventory_items')
     .update({
       name: name.trim(),

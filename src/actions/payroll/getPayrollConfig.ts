@@ -10,7 +10,7 @@ export async function getPayrollConfig(year: number): Promise<{
 }> {
   const supabase = await createClient()
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('payroll_config')
     .select('*')
     .eq('year', year)
@@ -66,7 +66,7 @@ export async function updatePayrollConfig(input: {
   if (input.health_rate !== undefined) updateData.health_rate = input.health_rate
   if (input.pension_rate !== undefined) updateData.pension_rate = input.pension_rate
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('payroll_config')
     .update(updateData)
     .eq('year', input.year)

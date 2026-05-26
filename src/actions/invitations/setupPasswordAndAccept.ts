@@ -31,7 +31,7 @@ export async function setupPasswordAndAccept(
   const supabase = await createClient()
   const supabaseAdmin = await createServiceRoleClient()
 
-  const { data: invitation, error: inviteError } = await (supabase as any)
+  const { data: invitation, error: inviteError } = await supabase
     .from('employee_invitations')
     .select('*, employees(name), organizations(name)')
     .eq('token', token)
@@ -56,7 +56,7 @@ export async function setupPasswordAndAccept(
     user = { id: foundUser.id }
   } else {
     const { data: authData, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
-      email: invitation.email,
+      email: invitation.email!,
       password: validation.data.password,
       email_confirm: true,
       user_metadata: {
@@ -115,7 +115,7 @@ export async function setupPasswordAndAccept(
     return { error: 'No se pudo crear la membresía. Intenta de nuevo.' }
   }
 
-  await (supabase as any)
+  await supabase
     .from('employee_invitations')
     .update({
       status: 'accepted',

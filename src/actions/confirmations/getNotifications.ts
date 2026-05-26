@@ -30,7 +30,7 @@ export async function getNotifications(
     return []
   }
 
-  let query = (supabase as any)
+  let query = supabase
     .from('notifications')
     .select('*')
     .eq('user_id', userId)
@@ -65,7 +65,7 @@ export async function getUnreadNotificationCount(
     return 0
   }
 
-  const { count, error } = await (supabase as any)
+  const { count, error } = await supabase
     .from('notifications')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)

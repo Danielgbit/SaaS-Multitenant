@@ -51,7 +51,7 @@ export async function requestWhatsAppActivation(
       .single()
 
     await (supabase
-      .from('whatsapp_activation_requests' as any)
+      .from('whatsapp_activation_requests')
       .insert({
         organization_id: organizationId,
         contact_name: contactName,

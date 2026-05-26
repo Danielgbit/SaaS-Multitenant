@@ -104,7 +104,7 @@ export async function generatePayrollReceipt(input: {
     netAmount = commissionAmount - loansDeducted
   }
 
-  const { data: receipt, error: receiptError } = await (supabase as any)
+  const { data: receipt, error: receiptError } = await supabase
     .from('payroll_receipts')
     .insert({
       employee_id: input.employee_id,
@@ -138,13 +138,13 @@ export async function generatePayrollReceipt(input: {
   }))
 
   if (receiptServices.length > 0) {
-    await (supabase as any)
+    await supabase
       .from('payroll_receipt_services')
       .insert(receiptServices)
   }
 
   for (const loanApply of loansToApply) {
-    await (supabase as any)
+    await supabase
       .from('payroll_receipt_loans')
       .insert({
         receipt_id: receipt.id,
@@ -152,7 +152,7 @@ export async function generatePayrollReceipt(input: {
         amount_deducted: loanApply.amount,
       })
 
-    const { data: loan } = await (supabase as any)
+    const { data: loan } = await supabase
       .from('employee_loans')
       .select('remaining_amount')
       .eq('id', loanApply.loan_id)
@@ -160,7 +160,7 @@ export async function generatePayrollReceipt(input: {
 
     if (loan) {
       const newRemaining = loan.remaining_amount - loanApply.amount
-      await (supabase as any)
+      await supabase
         .from('employee_loans')
         .update({
           remaining_amount: newRemaining,
@@ -191,7 +191,7 @@ export async function getPayrollReceipts(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('payroll_receipts')
     .select('*')
     .eq('employee_id', employeeId)

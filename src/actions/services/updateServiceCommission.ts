@@ -27,7 +27,7 @@ export async function updateServiceCommission(
     return { success: false, error: 'No se encontró organización' }
   }
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from('services')
     .update({ has_commission: hasCommission })
     .eq('id', serviceId)

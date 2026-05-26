@@ -28,7 +28,7 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
     const fourMinutesLater = new Date(now.getTime() + 4 * 60 * 1000)
     const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000)
 
-    const { data: reminderAppointments, error: reminderError } = await (supabase as any)
+    const { data: reminderAppointments, error: reminderError } = await supabase
       .from('appointments')
       .select(`
         id,
@@ -48,7 +48,7 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
       for (const apt of reminderAppointments) {
         try {
           // Contar cuántos reminders tiene esta cita en los últimos 10 min
-          const { count: existingReminders } = await (supabase as any)
+          const { count: existingReminders } = await supabase
             .from('notifications')
             .select('*', { count: 'exact', head: true })
             .eq('metadata->>appointment_id', apt.id)
@@ -61,7 +61,7 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
 
           // Verificar si ya existe un reminder muy reciente (< 3 min)
           const threeMinutesAgo = new Date(now.getTime() - 3 * 60 * 1000)
-          const { count: recentReminders } = await (supabase as any)
+          const { count: recentReminders } = await supabase
             .from('notifications')
             .select('*', { count: 'exact', head: true })
             .eq('metadata->>appointment_id', apt.id)
@@ -72,15 +72,15 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
             continue // Ya se envió reminder recientemente
           }
 
-          if (apt.employees?.user_id) {
-            const clientName = apt.clients?.name || 'Cliente'
+          if (apt.employees?.[0]?.user_id) {
+            const clientName = apt.clients?.[0]?.name || 'Cliente'
             const reminderNumber = (existingReminders || 0) + 1
 
-            await (supabase as any)
+            await supabase
               .from('notifications')
               .insert({
                 organization_id: apt.organization_id,
-                user_id: apt.employees.user_id,
+                user_id: apt.employees[0].user_id!,
                 type: 'reminder',
                 title: reminderNumber === 1
                   ? 'Servicio por terminar'
@@ -110,7 +110,7 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
     // =================================================================
     const sixtyMinutesAgo = new Date(now.getTime() - 60 * 60 * 1000)
 
-    const { data: unmarkedAppointments, error: unmarkedError } = await (supabase as any)
+    const { data: unmarkedAppointments, error: unmarkedError } = await supabase
       .from('appointments')
       .select(`
         id,
@@ -126,13 +126,13 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
       for (const apt of unmarkedAppointments) {
         try {
           // Update appointment to needs_review
-          await (supabase as any)
+          await supabase
             .from('appointments')
             .update({ confirmation_status: 'needs_review' })
             .eq('id', apt.id)
 
           // Notify assistants
-          const { data: assistants } = await (supabase as any)
+          const { data: assistants } = await supabase
             .from('organization_members')
             .select('user_id')
             .eq('organization_id', apt.organization_id)
@@ -150,7 +150,7 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
               },
             }))
 
-            await (supabase as any)
+            await supabase
               .from('notifications')
               .insert(notifications)
           }
@@ -169,7 +169,7 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
     // =================================================================
     const oneTwentyMinutesAgo = new Date(now.getTime() - 120 * 60 * 1000)
 
-    const { data: autoCompleteAppointments, error: autoCompleteError } = await (supabase as any)
+    const { data: autoCompleteAppointments, error: autoCompleteError } = await supabase
       .from('appointments')
       .select(`
         id,
@@ -184,7 +184,7 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
       for (const apt of autoCompleteAppointments) {
         try {
           // System marks as completed
-          await (supabase as any)
+          await supabase
             .from('appointments')
             .update({ 
               confirmation_status: 'completed',
@@ -194,7 +194,7 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
             .eq('id', apt.id)
 
           // Log the action
-          await (supabase as any)
+          await supabase
             .from('confirmation_logs')
             .insert({
               appointment_id: apt.id,
@@ -208,7 +208,7 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
             })
 
           // Notify assistants
-          const { data: assistants } = await (supabase as any)
+          const { data: assistants } = await supabase
             .from('organization_members')
             .select('user_id')
             .eq('organization_id', apt.organization_id)
@@ -226,7 +226,7 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
               },
             }))
 
-            await (supabase as any)
+            await supabase
               .from('notifications')
               .insert(notifications)
           }

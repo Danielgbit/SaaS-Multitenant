@@ -64,7 +64,7 @@ export async function updateEmailSettings(
   }
 
   try {
-    const { error: upsertError } = await (supabase as any)
+    const { error: upsertError } = await supabase
       .from('email_settings')
       .upsert(
         { organization_id: organizationId, ...updateData },

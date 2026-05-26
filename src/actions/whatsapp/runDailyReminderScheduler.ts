@@ -26,7 +26,7 @@ export async function runDailyReminderScheduler(): Promise<{
     const tomorrowEnd = new Date(tomorrow)
     tomorrowEnd.setHours(23, 59, 59, 999)
 
-    const { data: organizations, error: orgsError } = await (supabase as any)
+    const { data: organizations, error: orgsError } = await supabase
       .from('whatsapp_settings')
       .select('organization_id, enabled, reminder_hours_before')
       .eq('enabled', true)
@@ -37,7 +37,7 @@ export async function runDailyReminderScheduler(): Promise<{
 
     const orgIds = organizations.map((org: any) => org.organization_id)
 
-    const { data: settingsList } = await (supabase as any)
+    const { data: settingsList } = await supabase
       .from('booking_settings')
       .select('organization_id, use_notification_v2')
       .in('organization_id', orgIds)
@@ -54,7 +54,7 @@ export async function runDailyReminderScheduler(): Promise<{
       return { success: true, processed: 0, sent: 0, failed: 0, skippedV2: orgIds.length, errors: [] }
     }
 
-    const { data: appointments, error: aptsError } = await (supabase as any)
+    const { data: appointments, error: aptsError } = await supabase
       .from('appointments')
       .select('id')
       .in('organization_id', v1OrgIds)

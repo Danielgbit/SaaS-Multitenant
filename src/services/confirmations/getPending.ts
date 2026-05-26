@@ -7,7 +7,7 @@ export async function getPendingConfirmationsForOrg(
 ): Promise<PendingConfirmationWithDetails[]> {
   const supabase = await createClient()
 
-  let query = (supabase as any)
+  let query = supabase
     .from('appointments')
     .select(`
       id,
@@ -42,7 +42,7 @@ export async function getPendingConfirmationsForOrg(
     return []
   }
 
-  return (data as PendingConfirmationWithDetails[]) || []
+  return (data as unknown as PendingConfirmationWithDetails[]) || []
 }
 
 export async function getAppointmentWithConfirmationStatus(
@@ -50,7 +50,7 @@ export async function getAppointmentWithConfirmationStatus(
 ): Promise<PendingConfirmationWithDetails | null> {
   const supabase = await createClient()
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('appointments')
     .select(`
       id,
@@ -79,5 +79,5 @@ export async function getAppointmentWithConfirmationStatus(
     return null
   }
 
-  return data as PendingConfirmationWithDetails
+  return data as unknown as PendingConfirmationWithDetails
 }

@@ -20,7 +20,7 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: item } = await (supabase as any)
+  const { data: item } = await supabase
     .from('payroll_items')
     .select(`
       *,
@@ -38,7 +38,16 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
     return { success: false, error: 'Item no encontrado' }
   }
 
-  const { data: period } = await (supabase as any)
+  const it = item as unknown as {
+    percentage: number | null
+    contract_type: string | null
+    payment_type: string | null
+    base_salary: number | null
+    has_transport_subsidy: boolean | null
+    force_transport_subsidy: boolean | null
+  }
+
+  const { data: period } = await supabase
     .from('payroll_periods')
     .select('organization_id, status, period')
     .eq('id', item.payroll_period_id)
@@ -68,7 +77,7 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
   const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate()
   const periodEnd = `${period.period}-${lastDay.toString().padStart(2, '0')}`
 
-  const { data: payrollConfig } = await (supabase as any)
+  const { data: payrollConfig } = await supabase
     .from('payroll_config')
     .select('*')
     .eq('year', parseInt(year))
@@ -78,7 +87,7 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
     return { success: false, error: `No hay configuración de nómina para ${year}` }
   }
 
-  const { data: appointments } = await (supabase as any)
+  const { data: appointments } = await supabase
     .from('appointments')
     .select(`
       id,
@@ -96,7 +105,7 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
   let totalServices = 0
 
   if (appointments && appointments.length > 0) {
-    const commissionPercentage = item.percentage || item.employee?.percentage || 60
+    const commissionPercentage = it.percentage ?? item.employee?.percentage ?? 60
 
     for (const apt of appointments) {
       const services = apt.appointment_services as any[] || []
@@ -110,26 +119,26 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
     }
   }
 
-  let baseSalary = item.base_salary || item.employee?.base_salary || 0
+  let baseSalary = it.base_salary ?? item.employee?.base_salary ?? 0
   let healthDeduction = 0
   let pensionDeduction = 0
   let transportSubsidy = 0
 
-  if (item.contract_type === 'laboral') {
-    if (item.payment_type === 'fijo' || item.payment_type === 'mixed') {
-      healthDeduction = baseSalary * (payrollConfig.health_rate / 100)
-      pensionDeduction = baseSalary * (payrollConfig.pension_rate / 100)
+  if (it.contract_type === 'laboral') {
+    if (it.payment_type === 'fijo' || it.payment_type === 'mixed') {
+      healthDeduction = baseSalary * ((payrollConfig.health_rate ?? 0) / 100)
+      pensionDeduction = baseSalary * ((payrollConfig.pension_rate ?? 0) / 100)
     }
 
-    if (item.payment_type === 'porcentaje' || item.payment_type === 'mixed') {
-      healthDeduction = grossCommission * (payrollConfig.health_rate / 100)
-      pensionDeduction = grossCommission * (payrollConfig.pension_rate / 100)
+    if (it.payment_type === 'porcentaje' || it.payment_type === 'mixed') {
+      healthDeduction = grossCommission * ((payrollConfig.health_rate ?? 0) / 100)
+      pensionDeduction = grossCommission * ((payrollConfig.pension_rate ?? 0) / 100)
     }
   }
 
-  if (item.employee?.has_transport_subsidy || item.has_transport_subsidy) {
-    const earnedMoreThan2SMMLV = (grossCommission + baseSalary) > (payrollConfig.smmmlv * 2)
-    if (item.employee?.force_transport_subsidy || item.force_transport_subsidy || !earnedMoreThan2SMMLV) {
+  if (item.employee?.has_transport_subsidy || it.has_transport_subsidy) {
+    const earnedMoreThan2SMMLV = (grossCommission + baseSalary) > (payrollConfig.smmlv! * 2)
+    if (item.employee?.force_transport_subsidy || it.force_transport_subsidy || !earnedMoreThan2SMMLV) {
       transportSubsidy = payrollConfig.transport_subsidy
     }
   }
@@ -138,7 +147,7 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
   const grossPay = grossCommission + baseSalary + transportSubsidy
   const netPay = grossPay - totalDeductions
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from('payroll_items')
     .update({
       total_services: totalServices,

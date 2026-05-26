@@ -17,7 +17,7 @@ export async function getPendingLoans(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('employee_loans')
     .select('id, remaining_amount, concept, created_at')
     .eq('employee_id', employeeId)
@@ -53,7 +53,7 @@ export async function getEmployeeDebtInfo(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: employee } = await (supabase as any)
+  const { data: employee } = await supabase
     .from('employees')
     .select('max_debt_limit, debt_warning_threshold')
     .eq('id', employeeId)
@@ -63,7 +63,7 @@ export async function getEmployeeDebtInfo(
     return { success: false, error: 'Empleado no encontrado' }
   }
 
-  const { data: loans } = await (supabase as any)
+  const { data: loans } = await supabase
     .from('employee_loans')
     .select('id, remaining_amount, concept, created_at, amount')
     .eq('employee_id', employeeId)

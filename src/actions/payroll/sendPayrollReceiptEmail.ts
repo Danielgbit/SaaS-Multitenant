@@ -55,7 +55,7 @@ export async function sendPayrollReceiptEmail(input: {
     return { success: false, error: 'Solo owners/admins pueden enviar receipts' }
   }
 
-  const { data: employee } = await (supabase as any)
+  const { data: employee } = await supabase
     .from('employees')
     .select('id, name, user_id')
     .eq('id', input.employeeId)
@@ -69,11 +69,11 @@ export async function sendPayrollReceiptEmail(input: {
     return { success: false, error: 'Empleado sin usuario asociado', emailSent: false }
   }
 
-  const { data: employeeUser } = await (supabase as any)
+  const { data: employeeUser } = await ((supabase as any)
     .from('users')
     .select('email')
-    .eq('id', employee.user_id)
-    .single()
+    .eq('id', employee.user_id!)
+    .single() as Promise<{ data: { email: string } | null; error: unknown }>)
 
   if (!employeeUser?.email) {
     return { success: false, error: 'Empleado sin email registrado', emailSent: false }
@@ -89,7 +89,7 @@ export async function sendPayrollReceiptEmail(input: {
     return { success: false, error: 'Organizacion no encontrada' }
   }
 
-  const { data: payrollItem } = await (supabase as any)
+  const { data: payrollItem } = await supabase
     .from('payroll_items')
     .select('net_pay')
     .eq('payroll_period_id', input.periodId)
@@ -100,7 +100,7 @@ export async function sendPayrollReceiptEmail(input: {
     return { success: false, error: 'Item de nomina no encontrado' }
   }
 
-  const { data: payrollPeriodData } = await (supabase as any)
+  const { data: payrollPeriodData } = await supabase
     .from('payroll_periods')
     .select('period')
     .eq('id', input.periodId)
@@ -118,7 +118,7 @@ export async function sendPayrollReceiptEmail(input: {
     businessName: organization.name,
     period: periodLabel,
     employeeName: employee.name,
-    netPay: payrollItem.net_pay,
+    netPay: payrollItem.net_pay ?? 0,
     paymentMethod: input.paymentMethod,
     paymentReference: input.paymentReference,
     paidAt: new Date().toISOString(),
@@ -131,7 +131,7 @@ export async function sendPayrollReceiptEmail(input: {
     businessName: organization.name,
     employeeName: employee.name,
     period: periodLabel,
-    netPay: formatCurrencyCOP(payrollItem.net_pay),
+    netPay: formatCurrencyCOP(payrollItem.net_pay ?? 0),
     paymentMethod: PAYMENT_METHOD_LABELS[input.paymentMethod] || input.paymentMethod,
     paymentReference: input.paymentReference,
     paidAt: formatDate(new Date().toISOString()),

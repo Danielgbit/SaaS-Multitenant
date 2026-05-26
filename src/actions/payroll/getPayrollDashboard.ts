@@ -5,7 +5,7 @@ import type { PayrollDashboardSummary, PeriodEmployeeSummary, PayrollPeriod } fr
 
 async function enrichPeriodEmployees(supabase: any, period: any) {
   if (!period) return period
-  const { data: items } = await (supabase as any)
+  const { data: items } = await supabase
     .from('payroll_items')
     .select(`
       employee_id,
@@ -47,7 +47,7 @@ export async function getPayrollDashboard(organizationId: string): Promise<{
   const currentPeriod = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`
 
   // Get all periods for org, ordered by period desc
-  const { data: periods, error } = await (supabase as any)
+  const { data: periods, error } = await supabase
     .from('payroll_periods')
     .select('*')
     .eq('organization_id', organizationId)
@@ -79,7 +79,7 @@ export async function getPayrollDashboard(organizationId: string): Promise<{
   const enrichedPrevious = await Promise.all(previousPeriods.map((p: any) => enrichPeriodEmployees(supabase, p)))
 
   // Get total employee debt
-  const { data: loanData } = await (supabase as any)
+  const { data: loanData } = await supabase
     .from('employee_loans')
     .select('remaining_amount')
     .eq('organization_id', organizationId)
@@ -110,7 +110,7 @@ export async function getPayrollPeriods(organizationId: string, limit = 12): Pro
 }> {
   const supabase = await createClient()
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('payroll_periods')
     .select('*')
     .eq('organization_id', organizationId)
@@ -131,7 +131,7 @@ export async function getPayrollPeriodById(periodId: string): Promise<{
 }> {
   const supabase = await createClient()
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('payroll_periods')
     .select('*')
     .eq('id', periodId)

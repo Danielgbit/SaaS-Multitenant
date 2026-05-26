@@ -23,7 +23,7 @@ export async function verifyInvitation(token: string): Promise<VerifyInvitationR
 
   const supabase = await createClient()
 
-  const { data: invitation, error } = await (supabase as any)
+  const { data: invitation, error } = await supabase
     .from('employee_invitations')
     .select('*, employees(name), organizations(name)')
     .eq('token', token)

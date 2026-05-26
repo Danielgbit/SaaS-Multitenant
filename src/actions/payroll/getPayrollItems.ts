@@ -15,7 +15,7 @@ export async function getPayrollItems(periodId: string): Promise<{
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('payroll_items')
     .select(`
       *,
@@ -47,7 +47,7 @@ export async function getPayrollItemById(itemId: string): Promise<{
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('payroll_items')
     .select(`
       *,
@@ -78,7 +78,7 @@ export async function getPeriodCommissions(itemId: string): Promise<{
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('period_commissions')
     .select('*')
     .eq('payroll_item_id', itemId)

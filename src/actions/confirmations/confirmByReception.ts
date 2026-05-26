@@ -72,7 +72,7 @@ export async function confirmByReception(
   }
 
   // Obtener la confirmación actual
-  const { data: confirmation, error: confError } = await (supabase as any)
+  const { data: confirmation, error: confError } = await supabase
     .from('appointment_confirmations')
     .select('appointment_id, status')
     .eq('id', confirmation_id)
@@ -91,7 +91,7 @@ export async function confirmByReception(
     correlationId: string
   } | null = null
   if (confirmation.appointment_id) {
-    const { data: apt } = await (supabase as any)
+    const { data: apt } = await supabase
       .from('appointments')
       .select('created_at, status, confirmation_status')
       .eq('id', confirmation.appointment_id)
@@ -101,14 +101,14 @@ export async function confirmByReception(
         appointmentId: confirmation.appointment_id,
         observedUpdatedAt: apt.created_at,
         initialStatus: apt.status,
-        initialConfirmationStatus: apt.confirmation_status,
+        initialConfirmationStatus: apt.confirmation_status!,
         correlationId: crypto.randomUUID(),
       }
     }
   }
 
   // Actualizar confirmación
-  const { error: updateError } = await (supabase as any)
+  const { error: updateError } = await supabase
     .from('appointment_confirmations')
     .update({
       status: newStatus,

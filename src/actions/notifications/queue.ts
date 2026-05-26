@@ -31,34 +31,34 @@ export async function getQueueStats(organizationId: string): Promise<{ success: 
     const todayIso = today.toISOString()
 
     const [sentResult, deliveredResult, failedResult, pendingResult, stuckResult] = await Promise.all([
-      (supabase as any)
+      supabase
         .from('notification_queue')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
         .eq('status', 'sent')
         .gte('created_at', todayIso),
 
-      (supabase as any)
+      supabase
         .from('notification_queue')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
         .eq('status', 'delivered')
         .gte('created_at', todayIso),
 
-      (supabase as any)
+      supabase
         .from('notification_queue')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
         .in('status', ['failed', 'failed_permanently'])
         .gte('created_at', todayIso),
 
-      (supabase as any)
+      supabase
         .from('notification_queue')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
         .eq('status', 'pending'),
 
-      (supabase as any)
+      supabase
         .from('notification_queue')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
@@ -101,7 +101,7 @@ export async function getQueueItems(
   const supabase = await createClient()
 
   try {
-    let query = (supabase as any)
+    let query = supabase
       .from('notification_queue')
       .select('*', { count: 'exact' })
       .eq('organization_id', organizationId)
@@ -174,7 +174,7 @@ export async function getRecentItems(
   const supabase = await createClient()
 
   try {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('notification_queue')
       .select('*')
       .eq('organization_id', organizationId)
@@ -226,7 +226,7 @@ export async function retryQueueItem(
   const supabase = await createClient()
 
   try {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('notification_queue')
       .update({
         status: 'pending',
@@ -258,7 +258,7 @@ export async function cancelQueueItem(
   const supabase = await createClient()
 
   try {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('notification_queue')
       .update({
         status: 'cancelled',
@@ -286,7 +286,7 @@ export async function retryMultipleQueueItems(
   const supabase = await createClient()
 
   try {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('notification_queue')
       .update({
         status: 'pending',
@@ -319,7 +319,7 @@ export async function cancelMultipleQueueItems(
   const supabase = await createClient()
 
   try {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('notification_queue')
       .update({
         status: 'cancelled',

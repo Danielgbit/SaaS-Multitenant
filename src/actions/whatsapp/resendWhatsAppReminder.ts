@@ -23,7 +23,7 @@ export async function resendWhatsAppReminder(
   const supabase = await createClient()
 
   try {
-    const { data: log, error: logError } = await (supabase as any)
+    const { data: log, error: logError } = await supabase
       .from('whatsapp_logs')
       .select('appointment_id, organization_id')
       .eq('id', logId)
@@ -37,7 +37,7 @@ export async function resendWhatsAppReminder(
       return { success: false, error: 'El log no tiene una cita asociada' }
     }
 
-    const { data: settings } = await (supabase as any)
+    const { data: settings } = await supabase
       .from('booking_settings')
       .select('use_notification_v2')
       .eq('organization_id', log.organization_id)

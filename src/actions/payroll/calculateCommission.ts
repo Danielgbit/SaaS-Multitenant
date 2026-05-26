@@ -35,11 +35,9 @@ export async function calculateCommission(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: employee } = await (supabase as any)
+  const { data: employee } = await supabase
     .from('employees')
-    .select(
-      'id, name, default_commission_rate, payment_type, fixed_salary'
-    )
+    .select('*')
     .eq('id', employeeId)
     .single()
 
@@ -48,12 +46,19 @@ export async function calculateCommission(
     return { success: false, error: 'Empleado no encontrado' }
   }
 
+  const emp = employee as unknown as {
+    default_commission_rate: number | null
+    payment_type: string | null
+    fixed_salary: number | null
+    base_salary: number | null
+  }
+
   const startDate = new Date(periodStart)
   startDate.setHours(0, 0, 0, 0)
   const endDate = new Date(periodEnd)
   endDate.setHours(23, 59, 59, 999)
 
-  const { data: appointments } = await (supabase as any)
+  const { data: appointments } = await supabase
     .from('appointments')
     .select(`
       id,
@@ -79,7 +84,7 @@ export async function calculateCommission(
   }
 
   // Batch fetch all services in ONE query
-  const { data: allServices } = await (supabase as any)
+  const { data: allServices } = await supabase
     .from('services')
     .select('id, name, price, has_commission')
     .in('id', [...allServiceIds])
@@ -89,7 +94,7 @@ export async function calculateCommission(
   )
 
   // Batch fetch all employee_services for this employee in ONE query
-  const { data: allEmpServices } = await (supabase as any)
+  const { data: allEmpServices } = await supabase
     .from('employee_services')
     .select('service_id, commission_rate, price_override')
     .eq('employee_id', employeeId)
@@ -114,7 +119,7 @@ export async function calculateCommission(
 
       const empService = empServiceMap.get(as.service_id)
       const price = (empService as any)?.price_override || (service as any).price
-      const rate = (empService as any)?.commission_rate || employee.default_commission_rate
+      const rate = (empService as any)?.commission_rate || emp.default_commission_rate
       const commission = Number((price * (rate / 100)).toFixed(2))
 
       breakdown.push({
@@ -173,9 +178,9 @@ export async function calculateCommission(
       total_services: Number(totalServices.toFixed(2)),
       total_commissionable: Number(totalCommissionable.toFixed(2)),
       total_commission: Number(totalCommission.toFixed(2)),
-      default_rate: employee.default_commission_rate,
-      payment_type: employee.payment_type,
-      base_salary: employee.base_salary || employee.fixed_salary,
+      default_rate: emp.default_commission_rate ?? 0,
+      payment_type: emp.payment_type as any,
+      base_salary: emp.base_salary || emp.fixed_salary,
       dayGroups,
     },
   }

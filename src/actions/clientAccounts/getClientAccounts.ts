@@ -17,7 +17,7 @@ export async function getClientAccounts(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: accounts, error } = await (supabase as any)
+  const { data: accounts, error } = await supabase
     .from('client_accounts')
     .select(`
       *,
@@ -62,7 +62,7 @@ export async function getClientAccountsSummary(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: accounts, error } = await (supabase as any)
+  const { data: accounts, error } = await supabase
     .from('client_accounts')
     .select('balance, credit_limit, is_over_limit, is_at_warning_threshold')
     .eq('organization_id', organizationId)
@@ -106,7 +106,7 @@ export async function getAllClientsWithCreditInfo(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: clients, error } = await (supabase as any)
+  const { data: clients, error } = await supabase
     .from('clients')
     .select(`
       *,
@@ -121,5 +121,5 @@ export async function getAllClientsWithCreditInfo(
     return { success: false, error: error.message }
   }
 
-  return { success: true, data: clients }
+  return { success: true, data: clients as unknown as ClientWithCreditInfo[] }
 }

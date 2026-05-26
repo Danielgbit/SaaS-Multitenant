@@ -56,14 +56,16 @@ async function EmployeesContent() {
   const availabilitySummary = await getAvailabilitySummaryForEmployees(employeeIds)
 
   // 5. Crear mapa para acceso rápido (usar objeto plano para serialización)
-  const availabilityMap: Record<string, typeof availabilitySummary[0]> = {}
+  type AvailabilityItem = NonNullable<typeof availabilitySummary>[number]
+  const availabilityMap: Record<string, AvailabilityItem> = {}
   for (const a of availabilitySummary) {
     availabilityMap[a.employee_id] = a
   }
 
   // 6. Obtener invitaciones pendientes
   const { invitations } = await getPendingInvitations(orgMember.organization_id)
-  const invitationMap: Record<string, typeof invitations[0]> = {}
+  type InvitationItem = NonNullable<typeof invitations>[number]
+  const invitationMap: Record<string, InvitationItem> = {}
   if (invitations) {
     for (const inv of invitations) {
       invitationMap[inv.employee_id] = inv

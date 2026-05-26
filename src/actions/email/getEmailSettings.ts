@@ -43,7 +43,7 @@ export async function getEmailSettings(
   }
 
   try {
-    const { data: settings, error: settingsError } = await (supabase as any)
+    const { data: settings, error: settingsError } = await supabase
       .from('email_settings')
       .select('*')
       .eq('organization_id', organizationId)
@@ -55,7 +55,7 @@ export async function getEmailSettings(
     }
 
     if (!settings) {
-      const { data: newSettings, error: createError } = await (supabase as any)
+      const { data: newSettings, error: createError } = await supabase
         .from('email_settings')
         .insert({ organization_id: organizationId })
         .select()

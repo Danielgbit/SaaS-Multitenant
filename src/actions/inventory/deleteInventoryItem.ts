@@ -48,7 +48,7 @@ export async function deleteInventoryItem(
     return { error: 'No perteneces a esta organización.' }
   }
 
-  const { error: deleteError } = await (supabase as any)
+  const { error: deleteError } = await supabase
     .from('inventory_items')
     .update({
       active: false,

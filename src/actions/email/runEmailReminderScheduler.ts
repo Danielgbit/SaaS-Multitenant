@@ -27,7 +27,7 @@ export async function runEmailReminderScheduler(): Promise<{
     const tomorrowEnd = new Date(tomorrow)
     tomorrowEnd.setHours(23, 59, 59, 999)
 
-    const { data: organizations, error: orgsError } = await (supabase as any)
+    const { data: organizations, error: orgsError } = await supabase
       .from('email_settings')
       .select('organization_id, enabled, reminder_hours_before, send_reminders')
       .eq('enabled', true)
@@ -39,7 +39,7 @@ export async function runEmailReminderScheduler(): Promise<{
 
     const orgIds = organizations.map((org: any) => org.organization_id)
 
-    const { data: settingsList } = await (supabase as any)
+    const { data: settingsList } = await supabase
       .from('booking_settings')
       .select('organization_id, use_notification_v2')
       .in('organization_id', orgIds)
@@ -58,7 +58,7 @@ export async function runEmailReminderScheduler(): Promise<{
 
     skippedV2 = orgIds.length - v1OrgIds.length
 
-    const { data: appointments, error: aptsError } = await (supabase as any)
+    const { data: appointments, error: aptsError } = await supabase
       .from('appointments')
       .select('id, organization_id, start_time, client_id, employee_id')
       .in('organization_id', v1OrgIds)
@@ -73,32 +73,32 @@ export async function runEmailReminderScheduler(): Promise<{
 
     for (const apt of appointments) {
       try {
-        const { data: client } = await (supabase as any)
+        const { data: client } = await supabase
           .from('clients')
           .select('name, email')
           .eq('id', apt.client_id)
           .single()
 
-        const { data: service } = await (supabase as any)
+        const { data: service } = await supabase
           .from('services')
           .select('name, duration, price')
           .eq('organization_id', apt.organization_id)
           .limit(1)
           .single()
 
-        const { data: employee } = await (supabase as any)
+        const { data: employee } = await supabase
           .from('employees')
           .select('name')
-          .eq('id', apt.employee_id)
+          .eq('id', apt.employee_id!)
           .single()
 
-        const { data: org } = await (supabase as any)
+        const { data: org } = await supabase
           .from('organizations')
           .select('name')
           .eq('id', apt.organization_id)
           .single()
 
-        const { data: existingReminder } = await (supabase as any)
+        const { data: existingReminder } = await supabase
           .from('email_logs')
           .select('id')
           .eq('appointment_id', apt.id)

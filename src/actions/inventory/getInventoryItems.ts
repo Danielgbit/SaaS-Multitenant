@@ -31,7 +31,7 @@ export async function getInventoryItems(
 ): Promise<InventoryItem[]> {
   const supabase = await createClient()
 
-  let query = (supabase as any)
+  let query = supabase
     .from('inventory_items')
     .select('*')
     .eq('organization_id', organizationId)
@@ -66,7 +66,7 @@ export async function getInventoryCategories(
 ): Promise<string[]> {
   const supabase = await createClient()
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('inventory_items')
     .select('category')
     .eq('organization_id', organizationId)
@@ -91,7 +91,7 @@ export async function getInventoryCount(
 ): Promise<number> {
   const supabase = await createClient()
 
-  const { count, error } = await (supabase as any)
+  const { count, error } = await supabase
     .from('inventory_items')
     .select('*', { count: 'exact', head: true })
     .eq('organization_id', organizationId)
@@ -110,7 +110,7 @@ export async function getLowStockItems(
 ): Promise<InventoryItem[]> {
   const supabase = await createClient()
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('inventory_items')
     .select('*')
     .eq('organization_id', organizationId)

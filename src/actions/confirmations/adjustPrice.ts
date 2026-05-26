@@ -29,7 +29,7 @@ export async function adjustPrice(
     return { error: 'No autorizado.' }
   }
 
-  const { data: appointment, error: apptError } = await (supabase as any)
+  const { data: appointment, error: apptError } = await supabase
     .from('appointments')
     .select('id, organization_id, price_adjustment, confirmation_status')
     .eq('id', appointmentId)
@@ -43,7 +43,7 @@ export async function adjustPrice(
     return { error: 'No se puede ajustar el precio de una cita ya confirmada.' }
   }
 
-  const { data: orgMember, error: orgError } = await (supabase as any)
+  const { data: orgMember, error: orgError } = await supabase
     .from('organization_members')
     .select('organization_id, role')
     .eq('user_id', user.id)
@@ -60,7 +60,7 @@ export async function adjustPrice(
 
   const previousPrice = appointment.price_adjustment || 0
 
-  const { data: log, error: logError } = await (supabase as any)
+  const { data: log, error: logError } = await supabase
     .from('confirmation_logs')
     .insert({
       appointment_id: appointmentId,
@@ -80,7 +80,7 @@ export async function adjustPrice(
     return { error: 'Error al registrar el ajuste. Intenta de nuevo.' }
   }
 
-  const { error: updateError } = await (supabase as any)
+  const { error: updateError } = await supabase
     .from('appointments')
     .update({ price_adjustment: newPrice })
     .eq('id', appointmentId)

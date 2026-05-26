@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { NotificationProvider, NotificationChannel } from '@/types/notifications'
+import type { Json } from '@/../types/supabase'
 
 const ProviderUpsertSchema = z.object({
   organizationId: z.string().uuid(),
@@ -21,7 +22,7 @@ export async function getProvider(
   const supabase = await createClient()
 
   try {
-    let query = (supabase as any)
+    let query = supabase
       .from('notification_providers')
       .select('*')
       .eq('organization_id', organizationId)
@@ -45,13 +46,13 @@ export async function getProvider(
       id: data[0].id,
       organizationId: data[0].organization_id,
       channel: data[0].channel as NotificationChannel,
-      provider: data[0].provider,
-      isEnabled: data[0].is_enabled,
-      config: data[0].config || {},
-      rateLimitPerMin: data[0].rate_limit_per_min,
-      rateLimitPerDay: data[0].rate_limit_per_day,
-      createdAt: data[0].created_at,
-      updatedAt: data[0].updated_at,
+      provider: data[0].provider as any,
+      isEnabled: data[0].is_enabled ?? false,
+      config: (data[0].config ?? {}) as unknown as Record<string, unknown>,
+      rateLimitPerMin: data[0].rate_limit_per_min ?? 0,
+      rateLimitPerDay: data[0].rate_limit_per_day ?? undefined,
+      createdAt: data[0].created_at ?? '',
+      updatedAt: data[0].updated_at ?? '',
     }
 
     return { success: true, data: channel ? provider : provider }
@@ -73,7 +74,7 @@ export async function upsertProvider(
   const supabase = await createClient()
 
   try {
-    const existingResult = await (supabase as any)
+    const existingResult = await supabase
       .from('notification_providers')
       .select('id')
       .eq('organization_id', validation.data.organizationId)
@@ -85,20 +86,20 @@ export async function upsertProvider(
       organization_id: validation.data.organizationId,
       channel: validation.data.channel,
       provider: validation.data.provider,
-      config: validation.data.config || {},
+      config: (validation.data.config ?? {}) as unknown as Json,
       rate_limit_per_min: validation.data.rateLimitPerMin,
-      rate_limit_per_day: validation.data.rateLimitPerDay,
+      rate_limit_per_day: validation.data.rateLimitPerDay ?? null,
       is_enabled: validation.data.isEnabled,
       updated_at: new Date().toISOString(),
     }
 
     if (existingResult.data) {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (supabase
         .from('notification_providers')
-        .update(providerData)
+        .update(providerData as unknown as Partial<never>)
         .eq('id', existingResult.data.id)
         .select()
-        .single()
+        .single() as unknown as { data: unknown; error: unknown })
 
       if (error) {
         console.error('Error updating provider:', error)
@@ -107,11 +108,11 @@ export async function upsertProvider(
 
       return { success: true, data: mapRowToProvider(data) }
     } else {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (supabase
         .from('notification_providers')
-        .insert({ ...providerData, id: undefined })
+        .insert(providerData as unknown as Partial<never>)
         .select()
-        .single()
+        .single() as unknown as { data: unknown; error: unknown })
 
       if (error) {
         console.error('Error creating provider:', error)
@@ -133,7 +134,7 @@ export async function toggleProvider(
   const supabase = await createClient()
 
   try {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('notification_providers')
       .update({
         is_enabled: isEnabled,
@@ -159,7 +160,7 @@ export async function testProviderConnection(
   const supabase = await createClient()
 
   try {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('notification_providers')
       .select('config')
       .eq('id', id)
@@ -169,7 +170,7 @@ export async function testProviderConnection(
       return { success: false, error: 'Proveedor no encontrado' }
     }
 
-    const webhookUrl = data.config?.webhook_url as string | undefined
+    const webhookUrl = (data.config as unknown as Record<string, unknown>)?.webhook_url as string | undefined
 
     if (!webhookUrl) {
       return { success: false, error: 'Webhook URL no configurada' }
@@ -203,17 +204,18 @@ export async function testProviderConnection(
   }
 }
 
-function mapRowToProvider(row: Record<string, unknown>): NotificationProvider {
+function mapRowToProvider(row: unknown): NotificationProvider {
+  const r = row as Record<string, unknown>
   return {
-    id: row.id as string,
-    organizationId: row.organization_id as string,
-    channel: row.channel as NotificationChannel,
-    provider: row.provider as NotificationProvider['provider'],
-    isEnabled: row.is_enabled as boolean,
-    config: row.config as Record<string, unknown> || {},
-    rateLimitPerMin: row.rate_limit_per_min as number,
-    rateLimitPerDay: row.rate_limit_per_day as number | undefined,
-    createdAt: row.created_at as string,
-    updatedAt: row.updated_at as string,
+    id: r.id as string,
+    organizationId: r.organization_id as string,
+    channel: r.channel as NotificationChannel,
+    provider: r.provider as NotificationProvider['provider'],
+    isEnabled: r.is_enabled as boolean,
+    config: (r.config ?? {}) as unknown as Record<string, unknown>,
+    rateLimitPerMin: r.rate_limit_per_min as number,
+    rateLimitPerDay: r.rate_limit_per_day as number | undefined,
+    createdAt: r.created_at as string,
+    updatedAt: r.updated_at as string,
   }
 }

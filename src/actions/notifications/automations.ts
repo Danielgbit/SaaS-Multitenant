@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { AutomationRule, AutomationTrigger, NotificationChannel } from '@/types/notifications'
+import type { Json } from '@/../types/supabase'
 import { devLog, devError } from '@/lib/logger'
 
 const AutomationRuleCreateSchema = z.object({
@@ -35,7 +36,7 @@ export async function getAutomationRules(
   const supabase = await createClient()
 
   try {
-    let query = (supabase as any)
+    let query = supabase
       .from('automation_rules')
       .select('*')
       .eq('organization_id', organizationId)
@@ -59,7 +60,7 @@ export async function getAutomationRules(
       templateId: row.template_id,
       delayMinutes: row.delay_minutes,
       isEnabled: row.is_enabled,
-      conditions: row.conditions || {},
+      conditions: (row.conditions ?? {}) as unknown as Record<string, unknown>,
       createdAt: row.created_at,
     }))
 
@@ -82,7 +83,7 @@ export async function createAutomationRule(
   const supabase = await createClient()
 
   try {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('automation_rules')
       .insert({
         organization_id: validation.data.organizationId,
@@ -90,7 +91,7 @@ export async function createAutomationRule(
         channel: validation.data.channel,
         template_id: validation.data.templateId || null,
         delay_minutes: validation.data.delayMinutes,
-        conditions: validation.data.conditions,
+        conditions: validation.data.conditions as unknown as Json,
         is_enabled: true,
       })
       .select()
@@ -106,11 +107,11 @@ export async function createAutomationRule(
       organizationId: data.organization_id,
       triggerEvent: data.trigger_event as AutomationTrigger,
       channel: data.channel as NotificationChannel,
-      templateId: data.template_id,
-      delayMinutes: data.delay_minutes,
-      isEnabled: data.is_enabled,
-      conditions: data.conditions || {},
-      createdAt: data.created_at,
+      templateId: data.template_id ?? undefined,
+      delayMinutes: data.delay_minutes ?? 0,
+      isEnabled: data.is_enabled ?? false,
+      conditions: (data.conditions ?? {}) as unknown as Record<string, unknown>,
+      createdAt: data.created_at ?? '',
     }
 
     return { success: true, data: rule }
@@ -140,10 +141,10 @@ export async function updateAutomationRule(
     if (validation.data.isEnabled !== undefined) updateData.is_enabled = validation.data.isEnabled
     if (validation.data.conditions !== undefined) updateData.conditions = validation.data.conditions
 
-    const { error } = await (supabase as any)
+    const { error } = await (supabase
       .from('automation_rules')
-      .update(updateData)
-      .eq('id', ruleId)
+      .update(updateData as unknown as Partial<never>)
+      .eq('id', ruleId) as unknown as { error: unknown })
 
     if (error) {
       devError('Error updating automation rule:', error)
@@ -164,7 +165,7 @@ export async function toggleAutomationRule(
   const supabase = await createClient()
 
   try {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('automation_rules')
       .update({ is_enabled: isEnabled })
       .eq('id', ruleId)
@@ -187,7 +188,7 @@ export async function deleteAutomationRule(
   const supabase = await createClient()
 
   try {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('automation_rules')
       .delete()
       .eq('id', ruleId)

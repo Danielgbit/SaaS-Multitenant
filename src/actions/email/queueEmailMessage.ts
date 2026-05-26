@@ -40,7 +40,7 @@ export async function queueEmailMessage(
   const supabase = await createClient()
 
   try {
-    const { data: settings } = await (supabase as any)
+    const { data: settings } = await supabase
       .from('email_settings')
       .select('enabled')
       .eq('organization_id', organizationId)
@@ -72,7 +72,7 @@ export async function queueEmailMessage(
     if (emailError) {
       console.error('Error sending email:', emailError)
 
-      await (supabase as any)
+      await supabase
         .from('email_logs')
         .insert({
           organization_id: organizationId,
@@ -88,7 +88,7 @@ export async function queueEmailMessage(
       return { success: false, error: 'Error al enviar email' }
     }
 
-    await (supabase as any)
+    await supabase
       .from('email_logs')
       .insert({
         organization_id: organizationId,
@@ -105,7 +105,7 @@ export async function queueEmailMessage(
   } catch (error) {
     console.error('Error in queueEmailMessage:', error)
 
-    await (supabase as any)
+    await supabase
       .from('email_logs')
       .insert({
         organization_id: organizationId,

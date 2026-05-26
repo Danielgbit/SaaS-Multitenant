@@ -43,7 +43,7 @@ export async function updateWhatsAppSettings(
       updateData.reminder_hours_before = reminderHoursBefore
     }
 
-    const { data: existing } = await (supabase as any)
+    const { data: existing } = await supabase
       .from('whatsapp_settings')
       .select('id')
       .eq('organization_id', organizationId)
@@ -51,14 +51,14 @@ export async function updateWhatsAppSettings(
 
     let result
     if (existing) {
-      result = await (supabase as any)
+      result = await supabase
         .from('whatsapp_settings')
         .update(updateData)
         .eq('organization_id', organizationId)
         .select()
         .single()
     } else {
-      result = await (supabase as any)
+      result = await supabase
         .from('whatsapp_settings')
         .insert({
           organization_id: organizationId,

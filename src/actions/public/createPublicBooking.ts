@@ -227,7 +227,7 @@ export async function createPublicBooking(
 
   // 10. Encolar mensaje de WhatsApp si está configurado
   try {
-    const { data: whatsappSettings } = await (supabase as any)
+    const { data: whatsappSettings } = await supabase
       .from('whatsapp_settings')
       .select('enabled')
       .eq('organization_id', organizationId)
@@ -255,7 +255,7 @@ export async function createPublicBooking(
     }
 
     if (clientEmail) {
-      const { data: emailSettings } = await (supabase as any)
+      const { data: emailSettings } = await supabase
         .from('email_settings')
         .select('enabled, send_confirmation')
         .eq('organization_id', organizationId)

@@ -51,7 +51,7 @@ export async function createPayrollPeriod(input: {
   }
 
   // Check if period already exists
-  const { data: existing } = await (supabase as any)
+  const { data: existing } = await supabase
     .from('payroll_periods')
     .select('id, status')
     .eq('organization_id', input.organization_id)
@@ -65,18 +65,18 @@ export async function createPayrollPeriod(input: {
       return { success: false, error: `El período ${input.period} ya está ${existing.status}. Solo se pueden regenerar borradores.` }
     }
     // Limpiar datos anteriores y regenerar desde cero
-    const { data: existingItems } = await (supabase as any)
+    const { data: existingItems } = await supabase
       .from('payroll_items')
       .select('id')
       .eq('payroll_period_id', existing.id)
 
     if (existingItems && existingItems.length > 0) {
       const itemIds = existingItems.map((i: any) => i.id)
-      await (supabase as any)
+      await supabase
         .from('period_commissions')
         .delete()
         .in('payroll_item_id', itemIds)
-      await (supabase as any)
+      await supabase
         .from('payroll_items')
         .delete()
         .eq('payroll_period_id', existing.id)
@@ -108,7 +108,7 @@ export async function createPayrollPeriod(input: {
   const periodEnd = `${input.period}-${lastDay.toString().padStart(2, '0')}`
 
   // Get payroll config for calculations
-  const { data: payrollConfig } = await (supabase as any)
+  const { data: payrollConfig } = await supabase
     .from('payroll_config')
     .select('*')
     .eq('year', year)
@@ -120,7 +120,7 @@ export async function createPayrollPeriod(input: {
 
   // Create payroll period if doesn't exist yet
   if (!periodRecord) {
-    const { data: newPeriod, error: periodError } = await (supabase as any)
+    const { data: newPeriod, error: periodError } = await supabase
       .from('payroll_periods')
       .insert({
         organization_id: input.organization_id,
@@ -215,7 +215,7 @@ export async function createPayrollPeriod(input: {
 
   // Insert payroll items
   if (payrollItems.length > 0) {
-    const { error: itemsError } = await (supabase as any)
+    const { error: itemsError } = await supabase
       .from('payroll_items')
       .insert(payrollItems)
 
@@ -228,7 +228,7 @@ export async function createPayrollPeriod(input: {
     const totalTransport = payrollItems.reduce((sum, item) => sum + item.transport_subsidy_amount, 0)
     const totalGross = payrollItems.reduce((sum, item) => sum + item.gross_pay, 0)
 
-    await (supabase as any)
+    await supabase
       .from('payroll_periods')
       .update({
         total_employees: payrollItems.length,

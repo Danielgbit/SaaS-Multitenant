@@ -78,7 +78,7 @@ export async function permanentDeleteEmployee(
   }
 
   // Step 1: Preserve employee name in appointments
-  const { error: appointmentsError } = await (supabase as any)
+  const { error: appointmentsError } = await supabase
     .from('appointments')
     .update({
       employee_id: null,
@@ -92,10 +92,10 @@ export async function permanentDeleteEmployee(
   }
 
   // Step 2: Preserve employee name in appointment_confirmations
-  const { error: confirmationsError } = await (supabase as any)
+  const { error: confirmationsError } = await supabase
     .from('appointment_confirmations')
     .update({
-      employee_id: null,
+      employee_id: null as unknown as string,
       deleted_employee_name: employee.name,
     })
     .eq('employee_id', employeeId)
@@ -103,7 +103,7 @@ export async function permanentDeleteEmployee(
   if (confirmationsError) {
     console.error('Error updating appointment_confirmations:', confirmationsError)
     // Rollback: restore employee_id in appointments
-    await (supabase as any)
+    await supabase
       .from('appointments')
       .update({ employee_id: employeeId, deleted_employee_name: null })
       .eq('deleted_employee_name', employee.name)
@@ -119,11 +119,11 @@ export async function permanentDeleteEmployee(
   if (deleteError) {
     console.error('Error deleting employee:', deleteError)
     // Attempt rollback of both updates
-    await (supabase as any)
+    await supabase
       .from('appointments')
       .update({ employee_id: employeeId, deleted_employee_name: null })
       .eq('deleted_employee_name', employee.name)
-    await (supabase as any)
+    await supabase
       .from('appointment_confirmations')
       .update({ employee_id: employeeId, deleted_employee_name: null })
       .eq('deleted_employee_name', employee.name)

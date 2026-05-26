@@ -25,7 +25,7 @@ export async function getInvoices(
 
   try {
     const { data, error } = await supabase
-      .from('invoices' as any)
+      .from('invoices')
       .select('*')
       .eq('organization_id', organizationId)
       .order('created_at', { ascending: false })

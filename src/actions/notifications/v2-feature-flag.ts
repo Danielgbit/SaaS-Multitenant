@@ -6,7 +6,7 @@ export async function isV2EnabledForOrg(organizationId: string): Promise<boolean
   const supabase = await createClient()
 
   try {
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from('booking_settings')
       .select('use_notification_v2')
       .eq('organization_id', organizationId)

@@ -99,7 +99,7 @@ export async function createInvitation(
   const expiresAt = new Date()
   expiresAt.setDate(expiresAt.getDate() + INVITATION_EXPIRY_DAYS)
 
-  const { data: invitation, error: inviteError } = await (supabase as any)
+  const { data: invitation, error: inviteError } = await supabase
     .from('employee_invitations')
     .insert({
       organization_id: orgMember.organization_id,
@@ -139,7 +139,7 @@ async function sendInvitationEmail(
 ): Promise<boolean> {
   const supabase = await createClient()
 
-  const { data: organization } = await (supabase as any)
+  const { data: organization } = await supabase
     .from('organizations')
     .select('name')
     .eq('id', organizationId)

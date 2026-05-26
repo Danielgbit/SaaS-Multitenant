@@ -153,13 +153,14 @@ export async function addAppointmentToPayroll(
   }
 
   // ── Datos del empleado ──────────────────────────────
-  const { data: employee } = await (supabase as any)
+  const { data: employee } = await supabase
     .from('employees')
-    .select('default_commission_rate, contract_type, payment_type')
+    .select('*')
     .eq('id', employeeId)
     .single()
 
-  const defaultRate = (employee as any)?.default_commission_rate ?? 60
+  const emp = employee as unknown as { default_commission_rate: number | null; contract_type: string | null; payment_type: string | null }
+  const defaultRate = emp?.default_commission_rate ?? 60
 
   // ── UPSERT payroll_item ─────────────────────────────
   let { data: item } = await serviceSupabase
@@ -175,8 +176,8 @@ export async function addAppointmentToPayroll(
       .insert({
         payroll_period_id: periodRecord.id,
         employee_id: employeeId,
-        contract_type: employee?.contract_type ?? 'prestacion',
-        payment_type: employee?.payment_type ?? 'porcentaje',
+        contract_type: emp?.contract_type ?? 'prestacion',
+        payment_type: emp?.payment_type ?? 'porcentaje',
         total_services: 0,
         gross_commission: 0,
         gross_pay: 0,

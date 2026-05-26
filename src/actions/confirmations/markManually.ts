@@ -28,7 +28,7 @@ export async function markManually(
     return { error: 'No autorizado.' }
   }
 
-  const { data: appointment, error: apptError } = await (supabase as any)
+  const { data: appointment, error: apptError } = await supabase
     .from('appointments')
     .select('id, organization_id, employee_id, client_id, status, confirmation_status, price_adjustment, created_at')
     .eq('id', appointmentId)
@@ -42,7 +42,7 @@ export async function markManually(
     return { error: 'Esta cita ya fue confirmada.' }
   }
 
-  const { data: orgMember, error: orgError } = await (supabase as any)
+  const { data: orgMember, error: orgError } = await supabase
     .from('organization_members')
     .select('organization_id, role')
     .eq('user_id', user.id)
@@ -69,7 +69,7 @@ export async function markManually(
   }
 
   // Get prices from appointment_services with employee override support
-  const { data: appointmentServices } = await (supabase as any)
+  const { data: appointmentServices } = await supabase
     .from('appointment_services')
     .select('service_id, services(price)')
     .eq('appointment_id', appointmentId)
@@ -77,10 +77,10 @@ export async function markManually(
   let currentPrice = 0
   for (const as of appointmentServices || []) {
     // Check for employee-specific price override
-    const { data: employeeService } = await (supabase as any)
+    const { data: employeeService } = await supabase
       .from('employee_services')
       .select('price_override')
-      .eq('employee_id', appointment.employee_id)
+      .eq('employee_id', appointment.employee_id!)
       .eq('service_id', as.service_id)
       .single()
 
@@ -89,7 +89,7 @@ export async function markManually(
     currentPrice += price
   }
 
-  const { data: log, error: logError } = await (supabase as any)
+  const { data: log, error: logError } = await supabase
     .from('confirmation_logs')
     .insert({
       appointment_id: appointmentId,
@@ -109,7 +109,7 @@ export async function markManually(
     return { error: 'Error al registrar la acción. Intenta de nuevo.' }
   }
 
-  const { error: updateError } = await (supabase as any)
+  const { error: updateError } = await supabase
     .from('appointments')
     .update({
       confirmation_status: 'completed',
@@ -125,11 +125,11 @@ export async function markManually(
   }
 
   // Create appointment_confirmations record so it appears in /confirmations
-  const { data: confirmation, error: confError } = await (supabase as any)
+  const { data: confirmation, error: confError } = await supabase
     .from('appointment_confirmations')
     .insert({
-      organization_id: appointment.organization_id,
-      employee_id: appointment.employee_id,
+      organization_id: appointment.organization_id!,
+      employee_id: appointment.employee_id!,
       appointment_id: appointmentId,
       services: [],
       total_amount: currentPrice,
@@ -149,7 +149,7 @@ export async function markManually(
   }
 
   // Send service_ready notification to staff
-  const { data: orgMembers, error: membersError } = await (supabase as any)
+  const { data: orgMembers, error: membersError } = await supabase
     .from('organization_members')
     .select('user_id')
     .eq('organization_id', appointment.organization_id)
@@ -168,7 +168,7 @@ export async function markManually(
       }
     }))
 
-    await (supabase as any)
+    await supabase
       .from('notifications')
       .insert(notificationEntries)
   }

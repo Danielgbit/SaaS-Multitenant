@@ -10,7 +10,7 @@ export async function getPendingConfirmations(
 ): Promise<(AppointmentConfirmation & { employee_name?: string; client_name?: string | null })[]> {
   const supabase = await createClient()
 
-  let query = (supabase as any)
+  let query = supabase
     .from('appointment_confirmations')
     .select(`
       *,
@@ -47,7 +47,7 @@ export async function getPendingFromAppointments(
 ): Promise<PendingConfirmationWithDetails[]> {
   const supabase = await createClient()
 
-  let query = (supabase as any)
+  let query = supabase
     .from('appointments')
     .select(`
       id,
@@ -80,7 +80,7 @@ export async function getPendingFromAppointments(
     return []
   }
 
-  return (data as PendingConfirmationWithDetails[]) || []
+  return (data as unknown as PendingConfirmationWithDetails[]) || []
 }
 
 export async function getAppointmentConfirmationsByStatus(
@@ -89,7 +89,7 @@ export async function getAppointmentConfirmationsByStatus(
 ): Promise<PendingConfirmationWithDetails[]> {
   const supabase = await createClient()
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('appointments')
     .select(`
       id,
@@ -117,7 +117,7 @@ export async function getAppointmentConfirmationsByStatus(
     return []
   }
 
-  return (data as PendingConfirmationWithDetails[]) || []
+  return (data as unknown as PendingConfirmationWithDetails[]) || []
 }
 
 export async function getEmployeeConfirmations(
@@ -125,7 +125,7 @@ export async function getEmployeeConfirmations(
 ): Promise<AppointmentConfirmation[]> {
   const supabase = await createClient()
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('appointment_confirmations')
     .select('*')
     .eq('employee_id', employeeId)
@@ -137,7 +137,7 @@ export async function getEmployeeConfirmations(
     return []
   }
 
-  return (data as AppointmentConfirmation[]) || []
+  return (data as unknown as AppointmentConfirmation[]) || []
 }
 
 export async function getAllConfirmations(
@@ -146,7 +146,7 @@ export async function getAllConfirmations(
 ): Promise<AppointmentConfirmation[]> {
   const supabase = await createClient()
 
-  let query = (supabase as any)
+  let query = supabase
     .from('appointment_confirmations')
     .select('*')
     .eq('organization_id', organizationId)
@@ -163,7 +163,7 @@ export async function getAllConfirmations(
     return []
   }
 
-  return (data as AppointmentConfirmation[]) || []
+  return (data as unknown as AppointmentConfirmation[]) || []
 }
 
 export async function getConfirmationById(
@@ -171,7 +171,7 @@ export async function getConfirmationById(
 ): Promise<AppointmentConfirmation | null> {
   const supabase = await createClient()
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('appointment_confirmations')
     .select('*')
     .eq('id', confirmationId)
@@ -182,5 +182,5 @@ export async function getConfirmationById(
     return null
   }
 
-  return data as AppointmentConfirmation
+  return data as unknown as AppointmentConfirmation
 }

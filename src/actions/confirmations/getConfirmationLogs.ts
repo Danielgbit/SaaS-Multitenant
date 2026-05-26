@@ -21,7 +21,7 @@ export async function getConfirmationLogs(
     return []
   }
 
-  const { data: appointment, error: apptError } = await (supabase as any)
+  const { data: appointment, error: apptError } = await supabase
     .from('appointments')
     .select('organization_id')
     .eq('id', appointmentId)
@@ -31,7 +31,7 @@ export async function getConfirmationLogs(
     return []
   }
 
-  const { data: logs, error: logsError } = await (supabase as any)
+  const { data: logs, error: logsError } = await supabase
     .from('confirmation_logs')
     .select('*')
     .eq('appointment_id', appointmentId)

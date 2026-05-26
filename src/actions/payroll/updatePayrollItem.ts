@@ -29,7 +29,7 @@ export async function updatePayrollItem(input: z.infer<typeof UpdatePayrollItemS
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: item } = await (supabase as any)
+  const { data: item } = await supabase
     .from('payroll_items')
     .select('id, payroll_period_id, employee_id')
     .eq('id', itemId)
@@ -39,7 +39,7 @@ export async function updatePayrollItem(input: z.infer<typeof UpdatePayrollItemS
     return { success: false, error: 'Item no encontrado' }
   }
 
-  const { data: period } = await (supabase as any)
+  const { data: period } = await supabase
     .from('payroll_periods')
     .select('organization_id, status')
     .eq('id', item.payroll_period_id)
@@ -83,7 +83,7 @@ export async function updatePayrollItem(input: z.infer<typeof UpdatePayrollItemS
     return { success: true }
   }
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from('payroll_items')
     .update(updateData)
     .eq('id', itemId)

@@ -63,9 +63,9 @@ export async function createAppointment(
     supabase.from('clients').select('name, phone, email').eq('id', client_id).single().then(r => r.data),
     supabase.from('employees').select('name').eq('id', employee_id).single().then(r => r.data),
     supabase.from('organizations').select('name, phone, address').eq('id', organization_id).single().then(r => r.data),
-    (supabase as any).from('whatsapp_settings').select('enabled').eq('organization_id', organization_id).single().then((r: any) => r.data),
-    (supabase as any).from('email_settings').select('enabled, send_confirmation').eq('organization_id', organization_id).single().then((r: any) => r.data),
-    (supabase as any).from('booking_settings').select('timezone, reminder_hours_before, use_notification_v2').eq('organization_id', organization_id).single().then((r: any) => r.data),
+    supabase.from('whatsapp_settings').select('enabled').eq('organization_id', organization_id).single().then((r: any) => r.data),
+    supabase.from('email_settings').select('enabled, send_confirmation').eq('organization_id', organization_id).single().then((r: any) => r.data),
+    supabase.from('booking_settings').select('timezone, reminder_hours_before, use_notification_v2').eq('organization_id', organization_id).single().then((r: any) => r.data),
   ])
 
   const useNotificationV2 = (bookingSettingsData as any)?.use_notification_v2 === true
@@ -201,7 +201,7 @@ export async function updateAppointmentStatus(
             .eq('id', aptData.employee_id)
             .single()
 
-          const { data: emailCfg } = await (supabase as any)
+          const { data: emailCfg } = await supabase
             .from('email_settings')
             .select('enabled')
             .eq('organization_id', preconditions.data.organization_id)

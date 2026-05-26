@@ -18,7 +18,7 @@ export async function acceptInvitation(token: string): Promise<{ success?: boole
     return { error: 'Debes iniciar sesión para aceptar la invitación.' }
   }
 
-  const { data: invitation, error: inviteError } = await (supabase as any)
+  const { data: invitation, error: inviteError } = await supabase
     .from('employee_invitations')
     .select('*')
     .eq('token', token)
@@ -75,7 +75,7 @@ export async function acceptInvitation(token: string): Promise<{ success?: boole
     return { error: 'No se pudo crear la membresía.' }
   }
 
-  const { error: updateInviteError } = await (supabase as any)
+  const { error: updateInviteError } = await supabase
     .from('employee_invitations')
     .update({
       status: 'accepted',

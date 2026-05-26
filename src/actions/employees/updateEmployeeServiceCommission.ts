@@ -39,7 +39,7 @@ export async function updateEmployeeServiceCommission(
     updateData.commission_rate = input.commission_rate
   }
 
-  const { data: existing } = await (supabase as any)
+  const { data: existing } = await supabase
     .from('employee_services')
     .select('id')
     .eq('employee_id', input.employee_id)
@@ -47,7 +47,7 @@ export async function updateEmployeeServiceCommission(
     .single()
 
   if (existing) {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('employee_services')
       .update(updateData)
       .eq('employee_id', input.employee_id)
@@ -57,7 +57,7 @@ export async function updateEmployeeServiceCommission(
       return { success: false, error: error.message }
     }
   } else {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('employee_services')
       .insert({
         employee_id: input.employee_id,

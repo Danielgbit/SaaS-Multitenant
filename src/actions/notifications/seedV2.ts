@@ -21,7 +21,7 @@ export async function seedNotificationV2ForOrg(
   let rulesCreated = 0
 
   try {
-    const { data: existingProviders } = await (supabase as any)
+    const { data: existingProviders } = await supabase
       .from('notification_providers')
       .select('channel, provider')
       .eq('organization_id', organizationId)
@@ -31,16 +31,16 @@ export async function seedNotificationV2ForOrg(
     )
 
     if (!hasWhatsAppProvider) {
-      const { data: integration } = await (supabase as any)
+      const { data: integration } = await supabase
         .from('integrations')
         .select('config')
         .eq('organization_id', organizationId)
         .eq('type', 'whatsapp')
         .single()
 
-      if (integration?.config?.webhook_url) {
+      if (integration && (integration.config as Record<string, unknown>)?.webhook_url) {
         const config = integration.config as Record<string, unknown>
-        const { error: insertError } = await (supabase as any)
+        const { error: insertError } = await supabase
           .from('notification_providers')
           .insert({
             organization_id: organizationId,
@@ -50,7 +50,7 @@ export async function seedNotificationV2ForOrg(
             config: {
               webhook_url: config.webhook_url,
               api_key: config.api_key || '',
-            },
+            } as any,
             rate_limit_per_min: 30,
           })
 
@@ -68,7 +68,7 @@ export async function seedNotificationV2ForOrg(
       providersSkipped++
     }
 
-    const { data: existingRules } = await (supabase as any)
+    const { data: existingRules } = await supabase
       .from('automation_rules')
       .select('trigger_event')
       .eq('organization_id', organizationId)
@@ -89,7 +89,7 @@ export async function seedNotificationV2ForOrg(
     for (const trigger of defaultTriggers) {
       if (existingTriggers.has(trigger.trigger_event)) continue
 
-      const { error: ruleError } = await (supabase as any)
+      const { error: ruleError } = await supabase
         .from('automation_rules')
         .insert({
           organization_id: organizationId,
@@ -130,7 +130,7 @@ export async function seedNotificationV2ForAllOrgs(): Promise<{
   const supabase = await createClient()
   const results: SeedResult[] = []
 
-  const { data: orgs } = await (supabase as any)
+  const { data: orgs } = await supabase
     .from('organizations')
     .select('id')
 

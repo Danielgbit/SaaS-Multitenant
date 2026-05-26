@@ -38,7 +38,7 @@ export async function cancelConfirmation(
     return { error: 'No autorizado.' }
   }
 
-  const { data: appointment, error: apptError } = await (supabase as any)
+  const { data: appointment, error: apptError } = await supabase
     .from('appointments')
     .select('id, organization_id, status, confirmation_status, created_at')
     .eq('id', appointmentId)
@@ -56,7 +56,7 @@ export async function cancelConfirmation(
     return { error: 'Esta cita ya fue cancelada.' }
   }
 
-  const { data: orgMember } = await (supabase as any)
+  const { data: orgMember } = await supabase
     .from('organization_members')
     .select('role')
     .eq('user_id', user.id)
@@ -78,7 +78,7 @@ export async function cancelConfirmation(
     correlationId: crypto.randomUUID(),
   }
 
-  const { error: updateError } = await (supabase as any)
+  const { error: updateError } = await supabase
     .from('appointments')
     .update({
       confirmation_status: 'cancelled',

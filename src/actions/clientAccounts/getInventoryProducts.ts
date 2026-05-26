@@ -22,7 +22,7 @@ export async function getInventoryProducts(
     return { success: false, error: 'No autorizado' }
   }
 
-  let query = (supabase as any)
+  let query = supabase
     .from('inventory_items')
     .select('*')
     .eq('organization_id', organizationId)
@@ -47,7 +47,7 @@ export async function getInventoryProducts(
     return { success: false, error: error.message }
   }
 
-  return { success: true, data: items }
+  return { success: true, data: items as unknown as InventoryItemWithStock[] }
 }
 
 export async function getInventoryCategories(
@@ -64,7 +64,7 @@ export async function getInventoryCategories(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('inventory_items')
     .select('category')
     .eq('organization_id', organizationId)
@@ -98,7 +98,7 @@ export async function updateInventoryStock(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: item, error: fetchError } = await (supabase as any)
+  const { data: item, error: fetchError } = await supabase
     .from('inventory_items')
     .select('id, quantity')
     .eq('id', inventoryItemId)
@@ -115,7 +115,7 @@ export async function updateInventoryStock(
     return { success: false, error: 'No hay suficiente stock' }
   }
 
-  const { error: updateError } = await (supabase as any)
+  const { error: updateError } = await supabase
     .from('inventory_items')
     .update({
       quantity: newQuantity,

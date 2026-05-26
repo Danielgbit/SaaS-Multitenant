@@ -298,7 +298,7 @@ export async function cancelPublicBooking(
     const clientData = appointment.clients
 
     // WhatsApp
-    const { data: whatsappSettings } = await (supabase as any)
+    const { data: whatsappSettings } = await supabase
       .from('whatsapp_settings')
       .select('enabled')
       .eq('organization_id', organization.id)
@@ -327,11 +327,11 @@ export async function cancelPublicBooking(
 
     // Email
     if (clientData?.email) {
-      const { data: emailSettings } = await (supabase as any)
+      const { data: emailSettings } = await supabase
         .from('email_settings')
-        .select('enabled, send_cancellation')
+        .select('enabled, send_cancellation' as unknown as string)
         .eq('organization_id', organization.id)
-        .single()
+        .single() as unknown as { data: { enabled: boolean; send_cancellation: boolean } | null; error: unknown }
 
       if (emailSettings?.enabled && emailSettings?.send_cancellation) {
         const { queueEmailMessage } = await import('@/actions/email/queueEmailMessage')
@@ -395,7 +395,7 @@ export async function getCancellationInfo(
 
   const supabase = await createClient()
 
-  const { data: appointment, error } = await (supabase as any)
+  const { data: appointment, error } = await supabase
     .from('appointments')
     .select(
       `

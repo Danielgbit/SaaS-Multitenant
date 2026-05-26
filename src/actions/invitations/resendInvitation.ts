@@ -39,7 +39,7 @@ export async function resendInvitation(
     return { error: 'No tienes permisos para reenviar invitaciones.' }
   }
 
-  const { data: invitation, error: inviteError } = await (supabase as any)
+  const { data: invitation, error: inviteError } = await supabase
     .from('employee_invitations')
     .select('*, employees(name)')
     .eq('id', invitationId)
@@ -58,7 +58,7 @@ export async function resendInvitation(
     return { error: 'Esta invitación ha expirado.' }
   }
 
-  const { data: rateCheck } = await (supabase as any).rpc(
+  const { data: rateCheck } = await supabase.rpc(
     'can_resend_invitation',
     { p_invitation_id: invitationId }
   )
@@ -67,7 +67,7 @@ export async function resendInvitation(
     return { error: 'Has alcanzado el límite de reenvíos. Intenta más tarde.' }
   }
 
-  const { data: updateResult, error: updateError } = await (supabase as any)
+  const { data: updateResult, error: updateError } = await supabase
     .from('employee_invitations')
     .update({
       resend_count: invitation.resend_count + 1,

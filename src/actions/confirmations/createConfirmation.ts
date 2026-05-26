@@ -101,7 +101,7 @@ export async function createConfirmation(
   }
 
   // Insertar confirmación
-  const { data: confirmation, error: insertError } = await (supabase as any)
+  const { data: confirmation, error: insertError } = await supabase
     .from('appointment_confirmations')
     .insert({
       organization_id,
@@ -128,7 +128,7 @@ export async function createConfirmation(
 
   // Actualizar el status del appointment si existe
   if (appointment_id) {
-    const { error: aptError } = await (supabase as any)
+    const { error: aptError } = await supabase
       .from('appointments')
       .update({
         status: 'completed',
