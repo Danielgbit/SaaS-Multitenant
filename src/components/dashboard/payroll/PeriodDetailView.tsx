@@ -9,8 +9,6 @@ import {
   Users,
   Wallet,
   TrendingUp,
-  CheckCircle,
-  Clock,
   AlertTriangle,
   ChevronRight,
   Pencil,
@@ -24,7 +22,8 @@ import {
   Trash2,
   FileText,
   Mail,
-  Edit2
+  Edit2,
+  CheckCircle,
 } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
@@ -36,7 +35,20 @@ import { toast } from 'sonner'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import { ChangesPreviewModal } from './ChangesPreviewModal'
 import { StatusBadge, ContractTypeBadge, PaymentTypeBadge } from './PayrollBadges'
+import { PaymentModalWrapper } from './PaymentModalWrapper'
 import type { PayrollPeriod, PayrollItemWithEmployee, PayrollReceipt } from '@/types/payroll'
+
+type PaymentMethod = keyof typeof PAYMENT_METHODS
+const PAYMENT_METHODS = {
+  efectivo: { label: 'Efectivo' },
+  nequi: { label: 'Nequi' },
+  daviplata: { label: 'DaviPlata' },
+  pse: { label: 'PSE' },
+  qr_nequi: { label: 'QR Nequi' },
+  qr_bancolombia: { label: 'QR Bancolombia' },
+  tarjeta_debito: { label: 'Tarjeta Débito' },
+  tarjeta_credito: { label: 'Tarjeta Crédito' },
+} as const
 
 type PendingChange = {
   itemId: string
@@ -375,32 +387,9 @@ export function PeriodDetailView({
                   <Trash2 className="w-4 h-4" />
                   Eliminar
                 </button>
-              </>
-            )}
-            {period.status === 'approved' && (
-              <button
-                onClick={() => setShowPaymentModal(true)}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 flex items-center gap-2"
-                style={{ backgroundColor: COLORS.success }}
-              >
-                <CreditCard className="w-4 h-4" />
-                Marcar Pagado
-              </button>
-            )}
-            {period.status === 'approved' && (
-              <button
-                onClick={() => { setShowDeleteModal(true); setDeleteConfirmed(false) }}
-                disabled={loading}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-all duration-200 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
-                style={{ backgroundColor: 'rgba(220,38,38,0.4)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(220,38,38,0.8)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(220,38,38,0.4)'}
-              >
-                <Trash2 className="w-4 h-4" />
-                Eliminar
-              </button>
-            )}
-          </div>
+        </>
+      )}
+    </div>
         </div>
       </div>
 
