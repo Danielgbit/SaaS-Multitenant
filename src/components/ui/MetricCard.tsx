@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useEffect, useRef } from 'react'
+import React, { type ReactNode, useEffect, useRef } from 'react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from './Card'
@@ -47,7 +47,7 @@ function CountUpNumber({ value, isCurrency = false }: { value: number; isCurrenc
   return <motion.span>{displayValue}</motion.span>
 }
 
-export function MetricCard({
+export const MetricCard = React.memo(function MetricCard({
   title,
   value,
   prefix,
@@ -158,4 +158,4 @@ export function MetricCard({
       </div>
     </Card>
   )
-}
+})

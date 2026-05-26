@@ -19,7 +19,7 @@ const WORKLOAD_COLORS = {
   overloaded: { bg: '#FEE2E2', text: '#DC2626', border: '#DC2626' }
 }
 
-export function EmployeeChip({
+export const EmployeeChip = React.memo(function EmployeeChip({
   employee,
   isSelected,
   onClick,
@@ -124,4 +124,4 @@ export function EmployeeChip({
       )}
     </button>
   )
-}
+})
