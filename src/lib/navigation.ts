@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard, CalendarDays, CheckCircle, Bell, ShieldCheck,
   FileSearch, Users, Receipt, WalletCards, UserCircle, Wallet,
-  Scissors, Clock, Package, MessageSquare, Mail, CreditCard, Settings,
+  Scissors, Clock, Package, MessageSquare, Mail, CreditCard, Settings, Smile,
 } from 'lucide-react'
 
 export interface RouteDefinition {
@@ -82,6 +82,13 @@ export const dashboardRoutes: RouteDefinition[] = [
     href: '/payroll/mi',
     label: 'Mi Nómina',
     icon: WalletCards,
+    group: 'Gestión',
+    showOnlyForEmpleado: true,
+  },
+  {
+    href: '/mi',
+    label: 'Mi Espacio',
+    icon: Smile,
     group: 'Gestión',
     showOnlyForEmpleado: true,
   },

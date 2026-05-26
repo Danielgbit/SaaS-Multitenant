@@ -99,10 +99,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  if (isEmpleado && pathname === '/dashboard' || (pathname === '/' && isEmpleado)) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/mi'
+    return NextResponse.redirect(url)
+  }
+
   if (isStaff || isEmpleado) {
     if (RESTRICTED_FOR_STAFF_EMPLEADO.some(path => pathname.startsWith(path))) {
       const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
+      url.pathname = isEmpleado ? '/mi' : '/dashboard'
       return NextResponse.redirect(url)
     }
   }
@@ -110,7 +116,7 @@ export async function proxy(request: NextRequest) {
   if (isEmpleado) {
     if (RESTRICTED_FOR_EMPLEADO.some(path => pathname.startsWith(path))) {
       const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
+      url.pathname = '/mi'
       return NextResponse.redirect(url)
     }
   }
