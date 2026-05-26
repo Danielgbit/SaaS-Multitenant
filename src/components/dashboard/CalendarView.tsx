@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { setupAppointmentsRealtime } from '@/components/providers/AppointmentRealtimeProvider'
 import { useTheme } from 'next-themes'
@@ -17,7 +18,6 @@ import {
   Trash2,
 } from 'lucide-react'
 import { Spinner } from '@/components/ui'
-import { PurgeModal } from '@/components/calendar/PurgeModal'
 import {
   Employee,
   Client,
@@ -30,16 +30,33 @@ import { useCalendarFilters } from '@/hooks/useCalendarFilters'
 import { EmployeeSelectorBar } from '@/components/calendar/EmployeeSelectorBar'
 import { AppointmentList } from '@/components/calendar/AppointmentList'
 import { ScheduleWarningBanner } from '@/components/calendar/ScheduleWarningBanner'
-import { NewAppointmentWizard } from '@/components/calendar/wizard/NewAppointmentWizard'
 import { formatTime, convertTo24Hour } from '@/lib/utils/formatTime'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { toast } from 'sonner'
 import { useCalendarModals } from '@/hooks/calendar/useCalendarModals'
 import { useCalendarMutations } from '@/hooks/calendar/useCalendarMutations'
 import { useAppointmentForm } from '@/hooks/calendar/useAppointmentForm'
-import { AppointmentDetailModal } from '@/components/calendar/AppointmentDetailModal'
 import { ConfirmActionModal } from '@/components/calendar/ConfirmActionModal'
-import { EditAppointmentModal } from '@/components/calendar/EditAppointmentModal'
+
+const NewAppointmentWizard = dynamic(
+  () => import('@/components/calendar/wizard/NewAppointmentWizard').then(m => ({ default: m.NewAppointmentWizard })),
+  { ssr: false }
+)
+
+const EditAppointmentModal = dynamic(
+  () => import('@/components/calendar/EditAppointmentModal').then(m => ({ default: m.EditAppointmentModal })),
+  { ssr: false }
+)
+
+const AppointmentDetailModal = dynamic(
+  () => import('@/components/calendar/AppointmentDetailModal').then(m => ({ default: m.AppointmentDetailModal })),
+  { ssr: false }
+)
+
+const PurgeModal = dynamic(
+  () => import('@/components/calendar/PurgeModal').then(m => ({ default: m.PurgeModal })),
+  { ssr: false }
+)
 
 export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const COLORS = useThemeColors()
