@@ -1584,7 +1584,9 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          email_sent_at: string | null
           id: string
+          in_app_sent_at: string | null
           level: string
           message: string
           resolved: boolean
@@ -1594,7 +1596,9 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string
+          email_sent_at?: string | null
           id?: string
+          in_app_sent_at?: string | null
           level: string
           message: string
           resolved?: boolean
@@ -1604,7 +1608,9 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string
+          email_sent_at?: string | null
           id?: string
+          in_app_sent_at?: string | null
           level?: string
           message?: string
           resolved?: boolean

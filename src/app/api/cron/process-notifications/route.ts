@@ -9,6 +9,7 @@ import { assertValidTransition, type QueueStatus } from '@/lib/notifications/sta
 import { classifyError, calculateBackoff } from '@/lib/notifications/retry-strategy'
 import { logOutboundMessage, logOutboundAttempt } from '@/lib/notifications/messages'
 import { normalizeSendResponse } from '@/lib/notifications/normalization'
+import { processCriticalNotificationAlerts } from '@/actions/admin/processCriticalNotificationAlerts'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -555,6 +556,9 @@ export async function POST(request: Request) {
     try {
       await (supabase as any).rpc('evaluate_worker_alerts')
     } catch {}
+
+    // Deliver critical alerts to admins (email + in-app)
+    await processCriticalNotificationAlerts(supabase)
 
     const finalStatus = result.errors.length > 0 ? 'warning' : 'healthy'
     await sendHeartbeat(supabase, 'cron-dispatch', finalStatus, {
