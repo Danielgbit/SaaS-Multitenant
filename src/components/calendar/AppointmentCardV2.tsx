@@ -23,7 +23,7 @@ function getEmployeeColor(employeeId: string, index: number): string {
   return DEFAULT_EMPLOYEE_COLORS[index % DEFAULT_EMPLOYEE_COLORS.length]
 }
 
-export function AppointmentCardV2({
+export const AppointmentCardV2 = React.memo(function AppointmentCardV2({
   apt,
   COLORS,
   STATUS_CONFIG,
@@ -116,4 +116,4 @@ export function AppointmentCardV2({
       )}
     </button>
   )
-}
+})
