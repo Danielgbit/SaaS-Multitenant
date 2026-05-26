@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { DashboardClient } from '@/components/dashboard/analytics/DashboardClient'
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import { getOnboardingState } from '@/actions/onboarding/getOnboardingState'
 import DashboardLoading from './loading'
 
 export const metadata: Metadata = {
@@ -62,6 +63,26 @@ async function DashboardContent() {
       <div className="p-8 text-center">
         <p className="text-slate-600">No tienes una organización asociada</p>
       </div>
+    )
+  }
+
+  // Redirect guard — solo owner/admin en org reciente con setup incompleto
+  if (role === 'owner' || role === 'admin') {
+    const onboardingState = await getOnboardingState()
+    if (onboardingState.isFirstTime) {
+      redirect(`/onboarding?step=${onboardingState.currentStep}`)
+    }
+
+    return (
+      <DashboardClient
+        organizationId={organizationId}
+        role={role}
+        organizationName={organizationName}
+        employeeName={employeeName}
+        onboardingCompleted={onboardingState.completed}
+        onboardingTotalCompleted={onboardingState.totalCompleted}
+        onboardingTotalSteps={onboardingState.totalSteps}
+      />
     )
   }
 

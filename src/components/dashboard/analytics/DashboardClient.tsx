@@ -9,6 +9,8 @@ import { flags } from '@/lib/flags'
 import { ChartErrorBoundary, ChartSkeleton } from '@/components/ui/ChartErrorBoundary'
 import { InsightsBanner } from './InsightsBanner'
 import { PeriodSelector } from './PeriodSelector'
+import { OnboardingChecklistCard } from '@/components/dashboard/OnboardingChecklistCard'
+import type { OnboardingStep } from '@/actions/onboarding/getOnboardingState'
 import {
   OverviewStatsGrid,
   TrendChartSection,
@@ -25,9 +27,19 @@ interface DashboardClientProps {
   role?: string | null
   employeeName?: string | null
   organizationName?: string | null
+  onboardingCompleted?: Record<OnboardingStep, boolean>
+  onboardingTotalCompleted?: number
+  onboardingTotalSteps?: number
 }
 
-export function DashboardClient({ organizationId, role, employeeName }: DashboardClientProps) {
+export function DashboardClient({
+  organizationId,
+  role,
+  employeeName,
+  onboardingCompleted,
+  onboardingTotalCompleted,
+  onboardingTotalSteps,
+}: DashboardClientProps) {
   const COLORS = useThemeColors()
   const [period, setPeriod] = useState<Period>('month')
 
@@ -118,6 +130,15 @@ export function DashboardClient({ organizationId, role, employeeName }: Dashboar
 
   return (
     <div className="space-y-6">
+      {/* Onboarding checklist — visible if setup incomplete */}
+      {onboardingCompleted && onboardingTotalCompleted !== undefined && onboardingTotalSteps !== undefined && (
+        <OnboardingChecklistCard
+          completed={onboardingCompleted}
+          totalCompleted={onboardingTotalCompleted}
+          totalSteps={onboardingTotalSteps}
+        />
+      )}
+
       {/* Header with gradient - Admin/Owner/Staff */}
       <div
           className="relative overflow-hidden rounded-2xl p-6 md:p-8"
