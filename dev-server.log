@@ -1,0 +1,108 @@
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.21:3000
+- Environments: .env.local
+- Experiments (use with caution):
+  · optimizePackageImports
+
+✓ Starting...
+✓ Ready in 2.4s
+○ Compiling /dashboard ...
+ GET /dashboard 200 in 22.1s (compile: 17.5s, proxy.ts: 1316ms, render: 3.3s)
+[analytics] getOverviewStats(month): 936.336ms
+[analytics] getOverviewStats(month) → days: 0, queries: 2 (using daily_analytics)
+[insights] getInsights: 1.658s
+[insights] getInsights → 2 insights generated
+ POST /dashboard 200 in 2.3s (compile: 8ms, proxy.ts: 486ms, render: 1826ms)
+[analytics] getTodayPulse(): 521.59ms
+[analytics] getTodayPulse() → revenue: 0, completed: 0, pending: 0, noShows: 0
+ POST /dashboard 200 in 945ms (compile: 5ms, proxy.ts: 408ms, render: 532ms)
+[analytics] getStaffUtilization(): 624.588ms
+[analytics] getStaffUtilization() → staff: 2, overall: 0%, underutilized: 0, overloaded: 0
+ POST /dashboard 200 in 1176ms (compile: 7ms, proxy.ts: 535ms, render: 634ms)
+[analytics] getOverviewStats(month): 444.608ms
+[analytics] getOverviewStats(month) → days: 0, queries: 2 (using daily_analytics)
+ POST /dashboard 200 in 880ms (compile: 7ms, proxy.ts: 420ms, render: 453ms)
+[analytics] getAppointmentsTrend(30d): 427.397ms
+[analytics] getAppointmentsTrend(30d) → days: 0, queries: 1 (using daily_analytics)
+ POST /dashboard 200 in 846ms (compile: 5ms, proxy.ts: 402ms, render: 439ms)
+ POST /dashboard 200 in 881ms (compile: 7ms, proxy.ts: 440ms, render: 435ms)
+ POST /dashboard 200 in 1107ms (compile: 6ms, proxy.ts: 419ms, render: 682ms)
+[analytics] getTopServices(30d): 447.915ms
+[analytics] getTopServices(30d) → services: 1
+ POST /dashboard 200 in 990ms (compile: 5ms, proxy.ts: 524ms, render: 461ms)
+[analytics] getTodayPulse(): 652.091ms
+[analytics] getTodayPulse() → revenue: 0, completed: 0, pending: 0, noShows: 0
+ POST /dashboard 200 in 1807ms (compile: 11ms, proxy.ts: 1108ms, render: 688ms)
+[analytics] getTodayPulse(): 580.374ms
+[analytics] getTodayPulse() → revenue: 0, completed: 0, pending: 0, noShows: 0
+ POST /dashboard 200 in 1419ms (compile: 5ms, proxy.ts: 825ms, render: 589ms)
+ GET /dashboard 200 in 988ms (compile: 6ms, proxy.ts: 878ms, render: 105ms)
+ GET /dashboard 200 in 490ms (compile: 7ms, proxy.ts: 414ms, render: 69ms)
+ GET /dashboard 200 in 605ms (compile: 9ms, proxy.ts: 513ms, render: 84ms)
+[analytics] getTodayPulse(): 622.357ms
+[analytics] getTodayPulse() → revenue: 0, completed: 0, pending: 0, noShows: 0
+ POST /dashboard 200 in 1124ms (compile: 6ms, proxy.ts: 484ms, render: 634ms)
+ GET /dashboard 200 in 577ms (compile: 5ms, proxy.ts: 511ms, render: 61ms)
+ GET /dashboard 200 in 566ms (compile: 5ms, proxy.ts: 502ms, render: 60ms)
+ GET /dashboard 200 in 587ms (compile: 6ms, proxy.ts: 511ms, render: 69ms)
+[analytics] getTodayPulse(): 555.395ms
+[analytics] getTodayPulse() → revenue: 0, completed: 0, pending: 0, noShows: 0
+ POST /dashboard 200 in 1094ms (compile: 6ms, proxy.ts: 524ms, render: 564ms)
+ GET /dashboard 200 in 1196ms (compile: 6ms, proxy.ts: 1024ms, render: 166ms)
+ GET /dashboard 200 in 554ms (compile: 6ms, proxy.ts: 436ms, render: 112ms)
+ GET /dashboard 200 in 545ms (compile: 14ms, proxy.ts: 433ms, render: 97ms)
+[analytics] getTodayPulse(): 601.975ms
+[analytics] getTodayPulse() → revenue: 0, completed: 0, pending: 0, noShows: 0
+ POST /dashboard 200 in 1239ms (compile: 6ms, proxy.ts: 620ms, render: 612ms)
+[analytics] getTodayPulse(): 698.33ms
+[analytics] getTodayPulse() → revenue: 0, completed: 0, pending: 0, noShows: 0
+ POST /dashboard 200 in 1673ms (compile: 6ms, proxy.ts: 963ms, render: 705ms)
+[analytics] getTodayPulse(): 879.002ms
+[analytics] getTodayPulse() → revenue: 0, completed: 0, pending: 0, noShows: 0
+ POST /dashboard 200 in 1501ms (compile: 5ms, proxy.ts: 608ms, render: 888ms)
+[analytics] getTodayPulse(): 762.733ms
+[analytics] getTodayPulse() → revenue: 0, completed: 0, pending: 0, noShows: 0
+ POST /dashboard 200 in 2.6s (compile: 14ms, proxy.ts: 1760ms, render: 796ms)
+[analytics] getTodayPulse(): 652.39ms
+[analytics] getTodayPulse() → revenue: 0, completed: 0, pending: 0, noShows: 0
+ POST /dashboard 200 in 1285ms (compile: 6ms, proxy.ts: 612ms, render: 666ms)
+[analytics] getTodayPulse(): 583.838ms
+[analytics] getTodayPulse() → revenue: 0, completed: 0, pending: 0, noShows: 0
+ POST /dashboard 200 in 1239ms (compile: 6ms, proxy.ts: 637ms, render: 596ms)
+ GET /dashboard 200 in 1548ms (compile: 9ms, proxy.ts: 1347ms, render: 192ms)
+ GET /dashboard 200 in 554ms (compile: 5ms, proxy.ts: 454ms, render: 95ms)
+ GET /dashboard 200 in 636ms (compile: 6ms, proxy.ts: 521ms, render: 109ms)
+ GET /dashboard 200 in 1110ms (compile: 9ms, proxy.ts: 976ms, render: 125ms)
+ GET /dashboard 200 in 527ms (compile: 6ms, proxy.ts: 429ms, render: 92ms)
+ GET /dashboard 200 in 579ms (compile: 6ms, proxy.ts: 495ms, render: 78ms)
+ GET /dashboard 200 in 694ms (compile: 5ms, proxy.ts: 606ms, render: 83ms)
+ GET /dashboard 200 in 2.1s (compile: 999ms, proxy.ts: 792ms, render: 348ms)
+ GET /dashboard 200 in 599ms (compile: 4ms, proxy.ts: 523ms, render: 72ms)
+ GET /dashboard 200 in 740ms (compile: 12ms, proxy.ts: 604ms, render: 124ms)
+ GET /dashboard 200 in 669ms (compile: 6ms, proxy.ts: 571ms, render: 92ms)
+ GET /dashboard 200 in 665ms (compile: 6ms, proxy.ts: 545ms, render: 113ms)
+ GET /dashboard 200 in 624ms (compile: 6ms, proxy.ts: 544ms, render: 74ms)
+ GET /dashboard 200 in 590ms (compile: 3ms, proxy.ts: 523ms, render: 64ms)
+ GET /dashboard 200 in 673ms (compile: 7ms, proxy.ts: 574ms, render: 92ms)
+ GET /dashboard 200 in 753ms (compile: 26ms, proxy.ts: 568ms, render: 159ms)
+ GET /dashboard 200 in 606ms (compile: 6ms, proxy.ts: 462ms, render: 137ms)
+ GET /dashboard 200 in 628ms (compile: 6ms, proxy.ts: 499ms, render: 123ms)
+ GET /dashboard 200 in 649ms (compile: 14ms, proxy.ts: 454ms, render: 182ms)
+ GET /dashboard 200 in 719ms (compile: 7ms, proxy.ts: 589ms, render: 124ms)
+ GET /dashboard 200 in 976ms (compile: 144ms, proxy.ts: 566ms, render: 266ms)
+ GET /dashboard 200 in 1672ms (compile: 209ms, proxy.ts: 543ms, render: 920ms)
+ GET /dashboard 200 in 817ms (compile: 101ms, proxy.ts: 553ms, render: 162ms)
+ GET /dashboard 200 in 806ms (compile: 100ms, proxy.ts: 436ms, render: 271ms)
+ GET /dashboard 200 in 803ms (compile: 83ms, proxy.ts: 541ms, render: 179ms)
+ GET /dashboard 200 in 1839ms (compile: 9ms, proxy.ts: 1654ms, render: 176ms)
+ GET /dashboard 200 in 643ms (compile: 4ms, proxy.ts: 550ms, render: 89ms)
+ GET /dashboard 200 in 631ms (compile: 5ms, proxy.ts: 546ms, render: 81ms)
+ GET /dashboard 200 in 719ms (compile: 4ms, proxy.ts: 622ms, render: 93ms)
+ GET /dashboard 200 in 752ms (compile: 6ms, proxy.ts: 611ms, render: 134ms)
+ GET /dashboard 200 in 764ms (compile: 6ms, proxy.ts: 632ms, render: 126ms)
+ GET /dashboard 200 in 1487ms (compile: 11ms, proxy.ts: 1309ms, render: 167ms)
+ GET /dashboard 200 in 801ms (compile: 5ms, proxy.ts: 633ms, render: 163ms)
+ GET /dashboard 200 in 748ms (compile: 19ms, proxy.ts: 549ms, render: 180ms)
+ GET /dashboard 200 in 1369ms (compile: 8ms, proxy.ts: 1149ms, render: 211ms)
+ GET /dashboard 200 in 668ms (compile: 7ms, proxy.ts: 536ms, render: 126ms)
