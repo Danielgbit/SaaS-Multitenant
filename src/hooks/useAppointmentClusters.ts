@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import type { AppointmentWithDetails } from '@/types/calendar'
 
 const TIME_WINDOW_MS = 5 * 60 * 1000
@@ -76,7 +76,7 @@ export function useAppointmentClusters(
     return map
   }, [clusters])
 
-  const renderAppointments = (
+  const renderAppointments = useCallback((
     renderCard: (apt: AppointmentWithDetails, index: number) => React.ReactNode,
     renderCluster: (cluster: ClusterGroup, index: number) => React.ReactNode
   ) => {
@@ -99,7 +99,7 @@ export function useAppointmentClusters(
     })
 
     return result
-  }
+  }, [appointments, clusterMap])
 
   return { clusters, renderAppointments }
 }

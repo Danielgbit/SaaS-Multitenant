@@ -9,6 +9,7 @@ export async function getServices(organizationId: string): Promise<Service[]> {
     .select('*')
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
+    .limit(200)
 
   if (error) {
     console.error('Error fetching services:', error)

@@ -59,16 +59,10 @@
     opacity: 0;
   }
   
-  .animate-shake {
-    animation: shake 0.4s ease-in-out;
-  }
-  
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-in,
     .animate-fade-in-up,
-    .animate-shake,
-    .animate-scale-in-95,
-    .animate-menu-enter {
+    .animate-scale-in-95 {
       animation: none;
       opacity: 1;
       transform: none;
@@ -96,12 +90,6 @@
       transform: translateY(0);
     }
   }
-  
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
-  }
 
   .animate-scale-in-95 {
     animation: scaleIn95 0.15s ease-out forwards;
@@ -116,25 +104,6 @@
       opacity: 1;
       transform: scale(1);
     }
-  }
-
-  .animate-menu-enter {
-    animation: menuEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  @keyframes menuEnter {
-    from {
-      opacity: 0;
-      transform: scale(0.95) translateY(-8px);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-  
-  .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900;
   }
 
   .scrollbar-thin {
@@ -172,11 +141,6 @@
     background-color: theme('colors.slate.500');
   }
 
-  .sidebar-nav {
-    mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
-  }
-
   @keyframes slideDownNotif {
     from {
       opacity: 0;
@@ -192,39 +156,9 @@
     animation: slideDownNotif 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
-  .animate-glow-pulse {
-    animation: glowPulse 2s ease-in-out infinite;
-  }
-
-  @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.4); }
-    50% { box-shadow: 0 0 0 8px rgba(20, 184, 166, 0); }
-  }
-
-  .animate-pulse-opacity {
-    animation: pulseOpacity 2s ease-in-out infinite;
-  }
-
-  @keyframes pulseOpacity {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  .animate-glow-subtle {
-    animation: glowSubtle 3s ease-in-out infinite;
-  }
-
-  @keyframes glowSubtle {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(15, 76, 92, 0.1); }
-    50% { box-shadow: 0 0 8px 2px rgba(15, 76, 92, 0.15); }
-  }
 }
 
 @layer utilities {
-  .min-h-screen-dvh {
-    min-height: 100dvh;
-  }
-
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }

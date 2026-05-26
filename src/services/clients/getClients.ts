@@ -14,6 +14,7 @@ export async function getClients(organizationId: string): Promise<Client[]> {
     .select('*')
     .eq('organization_id', organizationId)
     .order('name', { ascending: true })
+    .limit(200)
 
   if (error) {
     console.error('Error fetching clients:', error.message)

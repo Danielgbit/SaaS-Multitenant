@@ -28,7 +28,7 @@ function getWorkloadLevel(count: number): WorkloadLevel {
 function calculateWorkload(
   appointments: AppointmentWithDetails[],
   employeeId: string
-): EmployeeWorkload {
+): EmployeeWorkload & { dailyBreakdown: Record<string, number> } {
   const employeeApts = appointments.filter(apt => apt.employee_id === employeeId)
 
   const byDay: Record<string, number> = {}
@@ -37,7 +37,6 @@ function calculateWorkload(
     byDay[key] = (byDay[key] || 0) + 1
   })
 
-  const dailyBreakdown = byDay
   const weeklyCount = employeeApts.length
   const maxPerDay = Math.max(0, ...Object.values(byDay))
 
@@ -45,7 +44,8 @@ function calculateWorkload(
     employeeId,
     weeklyCount,
     maxPerDay,
-    workloadLevel: getWorkloadLevel(maxPerDay)
+    workloadLevel: getWorkloadLevel(maxPerDay),
+    dailyBreakdown: byDay,
   }
 }
 
@@ -64,30 +64,23 @@ function calculateAllWorkloads(
 
 function employeesWithWorkload(
   employees: Employee[],
-  appointments: AppointmentWithDetails[],
-  workloads: Record<string, EmployeeWorkload>
+  workloads: Record<string, EmployeeWorkload & { dailyBreakdown?: Record<string, number> }>
 ): EmployeeWithWorkload[] {
   return employees.map(emp => {
     const wl = workloads[emp.id] || {
       employeeId: emp.id,
       weeklyCount: 0,
       maxPerDay: 0,
-      workloadLevel: 'low' as WorkloadLevel
+      workloadLevel: 'low' as WorkloadLevel,
+      dailyBreakdown: {} as Record<string, number>,
     }
-
-    const employeeApts = appointments.filter(apt => apt.employee_id === emp.id)
-    const byDay: Record<string, number> = {}
-    employeeApts.forEach(apt => {
-      const key = formatDateKey(new Date(apt.start_time))
-      byDay[key] = (byDay[key] || 0) + 1
-    })
 
     return {
       ...emp,
       weeklyCount: wl.weeklyCount,
       maxPerDay: wl.maxPerDay,
       workloadLevel: wl.workloadLevel,
-      dailyBreakdown: byDay,
+      dailyBreakdown: wl.dailyBreakdown || {},
       hasConfiguredSchedule: true
     }
   })
@@ -137,8 +130,8 @@ export function useCalendarFilters({
   )
 
   const employeesWithLoad = useMemo(
-    () => employeesWithWorkload(employees, appointments, employeeWorkloads),
-    [employees, appointments, employeeWorkloads]
+    () => employeesWithWorkload(employees, employeeWorkloads),
+    [employees, employeeWorkloads]
   )
 
   const filteredAppointments = useMemo(() => {

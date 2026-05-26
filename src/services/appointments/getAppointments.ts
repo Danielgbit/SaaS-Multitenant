@@ -88,6 +88,7 @@ export async function getAppointmentsByClient(clientId: string): Promise<Appoint
     .select('*')
     .eq('client_id', clientId)
     .order('start_time', { ascending: false })
+    .limit(50)
 
   if (error) {
     console.error('Error fetching client appointments:', error.message)

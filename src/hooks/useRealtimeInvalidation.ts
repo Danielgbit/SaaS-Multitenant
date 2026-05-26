@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { realtimeManager, handleRealtimeEvent } from '@/lib/realtime'
 
@@ -29,11 +29,11 @@ export function useRealtimeInvalidation(orgId: string) {
     }
   }, [orgId, queryClient])
 
-  const invalidateNow = () => {
+  const invalidateNow = useCallback(() => {
     if (orgId) {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     }
-  }
+  }, [orgId, queryClient])
 
   return { invalidateNow }
 }

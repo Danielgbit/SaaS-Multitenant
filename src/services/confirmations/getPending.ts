@@ -29,6 +29,7 @@ export async function getPendingConfirmationsForOrg(
     .eq('organization_id', organizationId)
     .in('confirmation_status', ['completed', 'needs_review'])
     .order('start_time', { ascending: false })
+    .limit(100)
 
   if (employeeId) {
     query = query.eq('employee_id', employeeId)

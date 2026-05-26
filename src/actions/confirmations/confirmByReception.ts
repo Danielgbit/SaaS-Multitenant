@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { devLog } from '@/lib/logger'
 
 const ConfirmReceptionSchema = z.object({
   confirmation_id: z.string().uuid('ID de confirmación inválido'),
@@ -15,12 +16,10 @@ const ConfirmReceptionSchema = z.object({
 export async function confirmByReception(
   input: z.infer<typeof ConfirmReceptionSchema>
 ): Promise<{ success: boolean; error?: string }> {
-  console.log('[confirmByReception] Input:', input)
-
   const parsed = ConfirmReceptionSchema.safeParse(input)
 
   if (!parsed.success) {
-    console.log('[confirmByReception] Validation failed:', parsed.error.issues)
+    devLog('[confirmByReception] Validation failed:', parsed.error.issues)
     const firstError = parsed.error.issues[0]?.message
     return { success: false, error: firstError || 'Datos inválidos' }
   }

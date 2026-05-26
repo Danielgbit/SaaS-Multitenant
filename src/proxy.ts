@@ -1,6 +1,14 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { updateSession } from '@/lib/supabase/proxy'
 import { createServerClient } from '@supabase/ssr'
+import type { Database } from '@/../types/supabase'
+
+const RESTRICTED_FOR_STAFF_EMPLEADO = [
+  '/payroll', '/employees', '/whatsapp', '/email', '/settings', '/billing',
+] as const
+
+const RESTRICTED_FOR_EMPLEADO = [
+  '/clients', '/services', '/inventory',
+] as const
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
@@ -10,9 +18,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const supabaseResponse = await updateSession(request)
+  let supabaseResponse = NextResponse.next({ request })
 
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -20,14 +28,42 @@ export async function proxy(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll() {},
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
       },
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const isAuthRoute =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/register') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password') ||
+    pathname.startsWith('/invite')
+
+  const isPublicRoute =
+    pathname.startsWith('/confirmar') ||
+    pathname.startsWith('/help') ||
+    pathname.startsWith('/reservar')
+
+  if (!user && !isAuthRoute && !isPublicRoute && pathname !== '/') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  if (user && isAuthRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/calendar'
+    return NextResponse.redirect(url)
+  }
 
   if (!user) {
     return supabaseResponse
@@ -50,12 +86,10 @@ export async function proxy(request: NextRequest) {
   const isEmpleado = role === 'empleado'
 
   if (pathname.startsWith('/admin')) {
-    if (!BYPASS_ADMIN_AUTH) {
-      if (role !== 'owner_saas') {
-        const url = request.nextUrl.clone()
-        url.pathname = '/dashboard'
-        return NextResponse.redirect(url)
-      }
+    if (!BYPASS_ADMIN_AUTH && role !== 'owner_saas') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
     }
   }
 
@@ -66,16 +100,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isStaff || isEmpleado) {
-    const restrictedForStaffAndEmpleado = [
-      '/payroll',
-      '/employees',
-      '/whatsapp',
-      '/email',
-      '/settings',
-      '/billing',
-    ]
-
-    if (restrictedForStaffAndEmpleado.some(path => pathname.startsWith(path))) {
+    if (RESTRICTED_FOR_STAFF_EMPLEADO.some(path => pathname.startsWith(path))) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)
@@ -83,13 +108,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isEmpleado) {
-    const restrictedForEmpleado = [
-      '/clients',
-      '/services',
-      '/inventory',
-    ]
-
-    if (restrictedForEmpleado.some(path => pathname.startsWith(path))) {
+    if (RESTRICTED_FOR_EMPLEADO.some(path => pathname.startsWith(path))) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)

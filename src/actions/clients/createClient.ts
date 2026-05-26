@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from 'next/cache'
 import { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
+import { devLog, devError } from '@/lib/logger'
 
 const CreateClientSchema = z.object({
   organization_id: z.string().uuid('ID de organización inválido'),
@@ -21,12 +22,10 @@ type CreateClientInput = z.infer<typeof CreateClientSchema>
 export async function createClientAction(
   input: CreateClientInput
 ): Promise<{ error?: string; success?: boolean; clientId?: string }> {
-  console.log('[createClient] Input:', input)
-  
   const parsed = CreateClientSchema.safeParse(input)
 
   if (!parsed.success) {
-    console.log('[createClient] Validation failed:', parsed.error.issues)
+    devLog('[createClient] Validation failed:', parsed.error.issues)
     const firstError = parsed.error.issues[0]?.message
     return { error: firstError || 'Datos inválidos' }
   }
@@ -55,7 +54,7 @@ export async function createClientAction(
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    console.log('[createClient] Auth error:', authError)
+    devLog('[createClient] Auth error:', authError)
     return { error: 'No autorizado.' }
   }
 
@@ -86,11 +85,11 @@ export async function createClientAction(
     .single()
 
   if (insertError) {
-    console.error('[createClient] Insert error:', insertError)
+    devError('[createClient] Insert error:', insertError)
     return { error: 'Error al crear el cliente. Intenta de nuevo.' }
   }
 
-  console.log('[createClient] Client created successfully:', client.id)
+  devLog('[createClient] Client created:', client.id)
 
   revalidatePath('/clients')
   revalidatePath('/calendar')
@@ -98,7 +97,7 @@ export async function createClientAction(
   try {
     revalidateTag('clients', 'max')
   } catch (e) {
-    console.log('[createClient] revalidateTag not available or error:', e)
+    devLog('[createClient] revalidateTag error:', e)
   }
 
   return { success: true, clientId: client.id }

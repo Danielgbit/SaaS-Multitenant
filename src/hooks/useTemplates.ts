@@ -21,21 +21,21 @@ export function useTemplates(organizationId: string, channel: NotificationChanne
     setLoading(false)
   }, [organizationId, channel])
 
-  const resetTemplate = async (templateId: string) => {
+  const resetTemplate = useCallback(async (templateId: string) => {
     const result = await resetTemplateToDefault(templateId)
     if (result.success) {
       await load()
     }
     return result
-  }
+  }, [load])
 
-  const deleteTemplateAction = async (templateId: string) => {
+  const deleteTemplateAction = useCallback(async (templateId: string) => {
     const result = await deleteTemplate(templateId)
     if (result.success) {
       await load()
     }
     return result
-  }
+  }, [load])
 
   useEffect(() => {
     load()

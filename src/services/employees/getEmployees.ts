@@ -13,6 +13,7 @@ export async function getEmployees(organizationId: string): Promise<Employee[]> 
     .select('*')
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: true })
+    .limit(200)
 
   if (error) {
     console.error('Error al obtener empleados:', error.message)
