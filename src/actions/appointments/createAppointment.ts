@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { clientEnv } from '@/lib/env/client'
 import { generateConfirmationToken } from '@/lib/appointments/confirmation-links/tokens'
 import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
@@ -73,7 +74,7 @@ export async function createAppointment(
   const useNotificationV2 = (bookingSettingsData as any)?.use_notification_v2 === true
 
   // Generar confirmation token
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const appUrl = clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const tokenResult = await generateConfirmationToken(appointment.id, organization_id, 'confirm')
   const confirmationLink = tokenResult.success && tokenResult.token
     ? `${appUrl}/confirmar/${tokenResult.token}`

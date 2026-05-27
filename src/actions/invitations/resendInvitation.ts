@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { clientEnv } from '@/lib/env/client'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -83,7 +84,7 @@ export async function resendInvitation(
   }
 
   if (invitation.email) {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const baseUrl = clientEnv?.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     const invitationUrl = `${baseUrl}/invite/${invitation.token}`
 
     await sendResendEmail(

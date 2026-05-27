@@ -1,11 +1,8 @@
 import Stripe from 'stripe'
+import { serverEnv } from '@/lib/env/server'
 
 const getStripeSecretKey = () => {
-  const key = process.env.STRIPE_SECRET_KEY
-  if (!key) {
-    throw new Error('STRIPE_SECRET_KEY is not set')
-  }
-  return key
+  return serverEnv.STRIPE_SECRET_KEY
 }
 
 let stripeInstance: Stripe | null = null
@@ -39,11 +36,11 @@ export const stripe = {
 } as unknown as Stripe
 
 export const STRIPE_PRICE_IDS = {
-  basic: process.env.STRIPE_PRICE_BASIC_MONTHLY || null,
-  professional: process.env.STRIPE_PRICE_PRO_MONTHLY || null,
+  basic: serverEnv.STRIPE_PRICE_BASIC_MONTHLY ?? null,
+  professional: serverEnv.STRIPE_PRICE_PRO_MONTHLY ?? null,
 } as const
 
-export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || ''
+export const STRIPE_WEBHOOK_SECRET = serverEnv.STRIPE_WEBHOOK_SECRET ?? ''
 
 export const STRIPE_CUSTOMER_PORTAL_SETTINGS = {
   features: {

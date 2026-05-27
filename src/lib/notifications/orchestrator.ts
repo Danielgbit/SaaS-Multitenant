@@ -8,6 +8,7 @@ import {
   generateIdempotencyKey,
 } from '@/types/notifications'
 import { getRequestId } from '@/lib/request-context'
+import { clientEnv } from '@/lib/env/client'
 import { getOrCreateConversation } from './conversations'
 import { logNotificationEvent } from './event-timeline'
 
@@ -157,7 +158,7 @@ export async function NotificationOrchestrator(
       return { success: true, queued: 0, errors: [], traceId }
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const appUrl = clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
     for (const rule of rules) {
       try {

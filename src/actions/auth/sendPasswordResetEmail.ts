@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { clientEnv } from '@/lib/env/client'
 import { z } from 'zod'
 
 const ForgotPasswordSchema = z.object({
@@ -21,7 +22,7 @@ export async function sendPasswordResetEmail(
   const supabase = await createClient()
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password`,
+    redirectTo: `${clientEnv?.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/reset-password`,
   })
 
   if (error) {

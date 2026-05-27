@@ -1,19 +1,12 @@
 import { Resend } from 'resend'
-
-const getResendApiKey = () => {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) {
-    console.warn('RESEND_API_KEY is not set - emails will fail to send')
-    return 're_dummy_key_for_build'
-  }
-  return apiKey
-}
+import { serverEnv } from '@/lib/env/server'
+import { clientEnv } from '@/lib/env/client'
 
 let resendInstance: Resend | null = null
 
 function getResend(): Resend {
   if (!resendInstance) {
-    resendInstance = new Resend(getResendApiKey())
+    resendInstance = new Resend(serverEnv.RESEND_API_KEY)
   }
   return resendInstance
 }
@@ -28,7 +21,7 @@ export function getResendInstance() {
   return getResend()
 }
 
-export const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Prügressy <noreply@focusidestudio.com>'
+export const EMAIL_FROM = serverEnv.RESEND_FROM_EMAIL
 export const CONTACT_EMAIL = 'contacto@focusidestudio.com'
 
 export async function sendEmail({
@@ -40,11 +33,6 @@ export async function sendEmail({
   subject: string
   html: string
 }) {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY not configured - email not sent')
-    return { success: false, error: 'RESEND_API_KEY not configured' }
-  }
-
   try {
     const data = await getResend().emails.send({
       from: EMAIL_FROM,
@@ -95,12 +83,16 @@ export async function sendTrialExpiringEmail({
   organizationName: string
   daysLeft: number
 }) {
+  const billingUrl = clientEnv?.NEXT_PUBLIC_APP_URL
+    ? `${clientEnv.NEXT_PUBLIC_APP_URL}/dashboard/billing`
+    : '#'
+
   const html = `
     <h2>Tu trial de Prügressy está por terminar</h2>
     <p>Hola,</p>
     <p>Tu período de prueba de <strong>${organizationName}</strong> termina en <strong>${daysLeft} días</strong>.</p>
     <p>No pierdes tu acceso, pero después del trial necesitarás un plan activo para continuar usando todas las funcionalidades.</p>
-    <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing" style="background:#0F4C5C;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;">Actualizar plan</a></p>
+    <p><a href="${billingUrl}" style="background:#0F4C5C;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;">Actualizar plan</a></p>
     <p>¿Tienes preguntas? Responde a este email.</p>
     <p>Saludos,<br>Equipo Prügressy</p>
   `

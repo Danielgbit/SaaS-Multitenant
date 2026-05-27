@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { withRequestContext } from '@/lib/request-context'
+import { serverEnv } from '@/lib/env/server'
 
 export const runtime = 'nodejs'
 
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
 
     try {
     const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET
+    const cronSecret = serverEnv.CRON_SECRET
 
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { discardDeadLetterNotification } from '@/lib/notifications/admin'
 
 export const runtime = 'edge'
 
@@ -18,22 +19,11 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createServiceRoleClient()
-
-    // Mark as discarded
-    const { error } = await (supabase as any)
-      .from('dead_letter_notifications')
-      .update({ replay_status: 'discarded' })
-      .eq('id', dlqId)
-      .eq('replay_status', 'pending')
-
-    if (error) {
-      console.error('[notifications/discard] error:', error)
-      return NextResponse.json({ error: 'Failed to discard' }, { status: 500 })
-    }
+    await discardDeadLetterNotification(supabase, dlqId)
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('[notifications/discard] error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Internal server error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -11,11 +11,12 @@ import { logOutboundMessage, logOutboundAttempt } from '@/lib/notifications/mess
 import { normalizeSendResponse } from '@/lib/notifications/normalization'
 import { processCriticalNotificationAlerts } from '@/actions/admin/processCriticalNotificationAlerts'
 import { withRequestContext } from '@/lib/request-context'
+import { serverEnv } from '@/lib/env/server'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-const DRY_RUN = process.env.PROCESS_NOTIFICATIONS_DRY_RUN === 'true'
+const DRY_RUN = serverEnv.PROCESS_NOTIFICATIONS_DRY_RUN === 'true'
 const BATCH_SIZE = 50
 const RATE_LIMIT_WINDOW_MS = 60 * 1000
 
@@ -537,7 +538,7 @@ export async function POST(request: Request) {
   return withRequestContext(undefined, async () => {
     try {
     const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET
+    const cronSecret = serverEnv.CRON_SECRET
 
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

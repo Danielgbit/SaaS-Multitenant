@@ -1,9 +1,10 @@
 import { sendEmail } from '@/lib/resend'
+import { clientEnv } from '@/lib/env/client'
 
 type SupabaseClient = Awaited<ReturnType<typeof import('@/lib/supabase/service-role').createServiceRoleClient>>
 
 function buildAlertEmailHtml(alert: { worker_name: string; code: string; message: string; created_at: string }) {
-  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || ''}/admin/system/notifications`
+  const dashboardUrl = `${clientEnv?.NEXT_PUBLIC_APP_URL || ''}/admin/system/notifications`
   return `
 <!DOCTYPE html>
 <html>

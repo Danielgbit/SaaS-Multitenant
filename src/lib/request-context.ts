@@ -1,5 +1,4 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
-import { randomUUID } from 'crypto'
 
 type RequestContext = {
   requestId: string
@@ -11,14 +10,14 @@ export function withRequestContext<T>(
   requestId: string | undefined,
   fn: () => Promise<T>
 ): Promise<T> {
-  return storage.run({ requestId: requestId ?? randomUUID() }, fn)
+  return storage.run({ requestId: requestId ?? crypto.randomUUID() }, fn)
 }
 
 export function getRequestId(): string {
   const requestId = storage.getStore()?.requestId
   if (!requestId) {
     console.warn('[request-context] getRequestId called outside context')
-    return randomUUID()
+    return crypto.randomUUID()
   }
   return requestId
 }

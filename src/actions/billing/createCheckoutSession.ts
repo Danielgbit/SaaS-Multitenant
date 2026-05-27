@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { clientEnv } from '@/lib/env/client'
 import { getStripeInstance } from '@/lib/stripe'
 import { z } from 'zod'
 
@@ -95,8 +96,8 @@ export async function createCheckoutSession(input: {
         organization_id: organizationId,
         plan_id: planId,
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?canceled=true`,
+      success_url: `${clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/billing?success=true`,
+      cancel_url: `${clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/billing?canceled=true`,
     })
 
     if (!session.url) {

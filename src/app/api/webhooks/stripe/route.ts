@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
+import { serverEnv } from '@/lib/env/server'
 
 // Best-effort in-memory idempotency. See SECURITY.md for limitations.
 const STRIPE_IDEMPOTENCY = new Set<string>()
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      serverEnv.STRIPE_WEBHOOK_SECRET!
     )
   } catch (err) {
     console.error('Webhook signature verification failed:', err)

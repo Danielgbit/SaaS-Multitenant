@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getStripeInstance } from '@/lib/stripe'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { requireRole } from '@/lib/auth/authorization'
 
 const CancelSubscriptionSchema = z.object({
   organizationId: z.string().uuid(),
@@ -24,6 +25,12 @@ export async function cancelSubscription(
 
   const { organizationId } = parsed.data
   const supabase = await createClient()
+
+  try {
+    await requireRole(supabase, organizationId, ['owner'])
+  } catch {
+    return { success: false, error: 'No autorizado. Solo el propietario puede cancelar la suscripción.' }
+  }
 
   try {
     const { data: subscription, error } = await supabase

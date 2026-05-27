@@ -1,6 +1,7 @@
 import type { SendResult, QueueItemStatus } from '@/types/notifications'
 import type { WhatsAppProvider, ParsedWebhook, WhatsAppSendParams } from './types'
 import { redactHeaders, truncatePayload, classifyProviderError } from '@/lib/notifications/redact-secrets'
+import { serverEnv } from '@/lib/env/server'
 
 export class WasenderProvider implements WhatsAppProvider {
   readonly name = 'wasender'
@@ -119,7 +120,7 @@ export class WasenderProvider implements WhatsAppProvider {
     const webhookToken = request.headers.get('x-wasender-token')
     const authToken = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
 
-    const expectedToken = process.env.WASENDER_WEBHOOK_TOKEN
+    const expectedToken = serverEnv.WASENDER_WEBHOOK_TOKEN
     if (!expectedToken) return true
 
     if (webhookToken && webhookToken === expectedToken) return true

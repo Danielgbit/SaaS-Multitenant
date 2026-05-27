@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { runEmailReminderScheduler } from '@/actions/email/runEmailReminderScheduler'
 import { withRequestContext } from '@/lib/request-context'
+import { serverEnv } from '@/lib/env/server'
 
 export const runtime = 'nodejs'
 
@@ -8,7 +9,7 @@ export async function POST(request: Request) {
   return withRequestContext(undefined, async () => {
   try {
     const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET
+    const cronSecret = serverEnv.CRON_SECRET
 
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { clientEnv } from '@/lib/env/client'
 import { z } from 'zod'
 import type { CreateInvitationInput, MemberRole } from '@/types/invitations'
 
@@ -118,7 +119,7 @@ export async function createInvitation(
     return { error: 'No se pudo crear la invitación.' }
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const baseUrl = clientEnv?.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
   const invitationUrl = `${baseUrl}/invite/${token}`
 
   let emailSent = false

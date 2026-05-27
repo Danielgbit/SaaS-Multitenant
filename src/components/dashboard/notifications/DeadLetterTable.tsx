@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Copy, Check, RotateCcw, Trash2, Eye } from 'lucide-react'
+import { replayDeadLetterAction } from '@/actions/admin/replayDeadLetter'
+import { discardDeadLetterAction } from '@/actions/admin/discardDeadLetter'
 
 interface DeadLetter {
   id: string
@@ -29,8 +31,9 @@ interface DeadLetterTableProps {
 
 export function DeadLetterTable({ deadLetters }: DeadLetterTableProps) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [actionId, setActionId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
-  const [actionInProgress, setActionInProgress] = useState<string | null>(null)
   const [expandedPayload, setExpandedPayload] = useState<string | null>(null)
 
   const handleCopy = async (text: string, id: string) => {
@@ -39,54 +42,34 @@ export function DeadLetterTable({ deadLetters }: DeadLetterTableProps) {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
-  const handleReplay = async (dlqId: string) => {
-    setActionInProgress(dlqId)
-    try {
-      const response = await fetch('/api/notifications/dead-letter/replay', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || ''}`,
-        },
-        body: JSON.stringify({ dlqId }),
-      })
-
-      if (!response.ok) {
-        throw new Error(await response.text())
+  const handleReplay = (dlqId: string) => {
+    setActionId(dlqId)
+    startTransition(async () => {
+      try {
+        await replayDeadLetterAction(dlqId)
+        router.refresh()
+      } catch (error) {
+        console.error('Failed to replay:', error)
+        alert('Error al reintentar. Intente nuevamente.')
+      } finally {
+        setActionId(null)
       }
-
-      router.refresh()
-    } catch (error) {
-      console.error('Failed to replay:', error)
-      alert('Error al reintentar. Intente nuevamente.')
-    } finally {
-      setActionInProgress(null)
-    }
+    })
   }
 
-  const handleDiscard = async (dlqId: string) => {
-    setActionInProgress(dlqId)
-    try {
-      const response = await fetch('/api/notifications/dead-letter/discard', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || ''}`,
-        },
-        body: JSON.stringify({ dlqId }),
-      })
-
-      if (!response.ok) {
-        throw new Error(await response.text())
+  const handleDiscard = (dlqId: string) => {
+    setActionId(dlqId)
+    startTransition(async () => {
+      try {
+        await discardDeadLetterAction(dlqId)
+        router.refresh()
+      } catch (error) {
+        console.error('Failed to discard:', error)
+        alert('Error al descartar. Intente nuevamente.')
+      } finally {
+        setActionId(null)
       }
-
-      router.refresh()
-    } catch (error) {
-      console.error('Failed to discard:', error)
-      alert('Error al descartar. Intente nuevamente.')
-    } finally {
-      setActionInProgress(null)
-    }
+    })
   }
 
   return (
@@ -164,7 +147,7 @@ export function DeadLetterTable({ deadLetters }: DeadLetterTableProps) {
                       <>
                         <button
                           onClick={() => handleReplay(dl.id)}
-                          disabled={actionInProgress === dl.id}
+                          disabled={isPending && actionId === dl.id}
                           className="rounded bg-blue-600 p-1 text-white hover:bg-blue-700 disabled:opacity-50"
                           title="Reintentar"
                         >
@@ -172,7 +155,7 @@ export function DeadLetterTable({ deadLetters }: DeadLetterTableProps) {
                         </button>
                         <button
                           onClick={() => handleDiscard(dl.id)}
-                          disabled={actionInProgress === dl.id}
+                          disabled={isPending && actionId === dl.id}
                           className="rounded bg-gray-600 p-1 text-white hover:bg-gray-700 disabled:opacity-50"
                           title="Descartar"
                         >

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { clientEnv } from '@/lib/env/client'
 import { getStripeInstance } from '@/lib/stripe'
 
 export async function createPortalSession(
@@ -32,7 +33,7 @@ export async function createPortalSession(
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing`,
+      return_url: `${clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/billing`,
     })
 
     if (!session.url) {

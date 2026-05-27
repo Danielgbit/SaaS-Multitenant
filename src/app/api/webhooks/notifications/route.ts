@@ -15,6 +15,7 @@ import { webhookLimiter } from '@/lib/rate-limiter'
 import { getClientIp } from '@/lib/network/get-client-ip'
 import type { WhatsAppProvider } from '@/lib/notifications/channels/whatsapp/providers/types'
 import type { NotificationProviderType } from '@/types/notifications'
+import { serverEnv } from '@/lib/env/server'
 
 export const runtime = 'nodejs'
 
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
     webhookLimiter.hit(rateKey, { ip, route: 'webhook:notifications' })
 
     // Webhook secret fallback auth
-    const webhookSecret = process.env.WEBHOOK_SECRET
+    const webhookSecret = serverEnv.WEBHOOK_SECRET
     if (webhookSecret) {
       const authHeader = request.headers.get('authorization')
       if (authHeader !== `Bearer ${webhookSecret}`) {

@@ -1,6 +1,7 @@
 import type { SendResult, QueueItemStatus } from '@/types/notifications'
 import type { WhatsAppProvider, ParsedWebhook, WhatsAppSendParams } from './types'
 import { redactHeaders, truncatePayload, classifyProviderError } from '@/lib/notifications/redact-secrets'
+import { serverEnv } from '@/lib/env/server'
 
 export class N8NProvider implements WhatsAppProvider {
   readonly name = 'n8n'
@@ -119,7 +120,7 @@ export class N8NProvider implements WhatsAppProvider {
   }
 
   async validateWebhook(request: Request, _body: string): Promise<boolean> {
-    const webhookSecret = process.env.WEBHOOK_SECRET
+    const webhookSecret = serverEnv.WEBHOOK_SECRET
     if (!webhookSecret) return true
 
     const authHeader = request.headers.get('authorization')

@@ -8,11 +8,12 @@ import { logger } from '@/lib/notifications/logger'
 import { runShadowBatch } from '@/lib/notifications/shadow/runner'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { withRequestContext } from '@/lib/request-context'
+import { serverEnv } from '@/lib/env/server'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-const CRON_SECRET = process.env.CRON_SECRET || ''
+const CRON_SECRET = serverEnv.CRON_SECRET ?? ''
 
 async function sendHeartbeat(
   supabase: any,

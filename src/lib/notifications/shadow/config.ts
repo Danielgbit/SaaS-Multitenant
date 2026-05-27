@@ -11,12 +11,14 @@ interface ShadowNotifyConfig {
   schedulingToleranceSeconds: number
 }
 
+import { serverEnv } from '@/lib/env/server'
+
 export function shadowNotifyConfig(): ShadowNotifyConfig {
-  const enabled = process.env.SHADOW_NOTIFICATION_ENABLED === 'true'
-  const mode = (process.env.SHADOW_NOTIFICATION_MODE as ShadowNotifyConfig['mode']) || 'observe_only'
-  const batchSize = parseInt(process.env.SHADOW_BATCH_SIZE || '20', 10)
-  const processingTimeoutMinutes = parseInt(process.env.SHADOW_PROCESSING_TIMEOUT_MIN || '5', 10)
-  const schedulingToleranceSeconds = parseInt(process.env.SHADOW_SCHEDULING_TOLERANCE_SEC || '60', 10)
+  const enabled = serverEnv.SHADOW_NOTIFICATION_ENABLED === 'true'
+  const mode = (serverEnv.SHADOW_NOTIFICATION_MODE as ShadowNotifyConfig['mode']) || 'observe_only'
+  const batchSize = serverEnv.SHADOW_BATCH_SIZE
+  const processingTimeoutMinutes = serverEnv.SHADOW_PROCESSING_TIMEOUT_MIN
+  const schedulingToleranceSeconds = serverEnv.SHADOW_SCHEDULING_TOLERANCE_SEC
 
   return {
     enabled,

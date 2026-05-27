@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertTriangle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Spinner } from '@/components/ui'
+import { requeueStuckNotificationAction } from '@/actions/admin/requeueStuckNotifications'
 
 interface StuckProcessingAlertProps {
   stuckItems: Array<{
@@ -17,32 +18,22 @@ interface StuckProcessingAlertProps {
 
 export function StuckProcessingAlert({ stuckItems }: StuckProcessingAlertProps) {
   const router = useRouter()
-  const [isRequeuing, setIsRequeuing] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const [requeuingId, setRequeuingId] = useState<string | null>(null)
 
-  const handleRequeue = async (queueItemId: string) => {
-    setIsRequeuing(queueItemId)
-    try {
-      const response = await fetch('/api/notifications/stuck/requeue', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || ''}`,
-        },
-        body: JSON.stringify({ queueItemId }),
-      })
-
-      if (!response.ok) {
-        const error = await response.text()
-        throw new Error(error)
+  const handleRequeue = (queueItemId: string) => {
+    setRequeuingId(queueItemId)
+    startTransition(async () => {
+      try {
+        await requeueStuckNotificationAction(queueItemId)
+        router.refresh()
+      } catch (error) {
+        console.error('Failed to requeue:', error)
+        alert('Error al reencolar. Intente nuevamente.')
+      } finally {
+        setRequeuingId(null)
       }
-
-      router.refresh()
-    } catch (error) {
-      console.error('Failed to requeue:', error)
-      alert('Error al reencolar. Intente nuevamente.')
-    } finally {
-      setIsRequeuing(null)
-    }
+    })
   }
 
   return (
@@ -89,14 +80,14 @@ export function StuckProcessingAlert({ stuckItems }: StuckProcessingAlertProps) 
                 </div>
                 <button
                   onClick={() => handleRequeue(item.id)}
-                  disabled={isRequeuing === item.id}
+                  disabled={isPending && requeuingId === item.id}
                   className="rounded-lg px-3 py-1 text-sm font-medium transition-colors disabled:opacity-50"
                   style={{
                     backgroundColor: 'hsl(var(--error))',
                     color: 'white',
                   }}
                 >
-                  {isRequeuing === item.id ? (
+                  {isPending && requeuingId === item.id ? (
                     <Spinner size="sm" className="text-white" />
                   ) : (
                     'Requeue'
