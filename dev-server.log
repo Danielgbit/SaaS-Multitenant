@@ -212,3 +212,5 @@
  GET /dashboard 200 in 1292ms (compile: 27ms, proxy.ts: 811ms, render: 454ms)
  GET /dashboard 200 in 929ms (compile: 11ms, proxy.ts: 713ms, render: 204ms)
  GET /dashboard 200 in 844ms (compile: 12ms, proxy.ts: 578ms, render: 254ms)
+ GET /dashboard 200 in 1546ms (compile: 17ms, proxy.ts: 1300ms, render: 228ms)
+ GET /dashboard 200 in 728ms (compile: 17ms, proxy.ts: 501ms, render: 210ms)
