@@ -27,7 +27,7 @@ jobs:
         run: npm test
 
       - name: Documentation generation
-        run: pnpm docs:gen
+        run: npm run docs:gen
 
   build:
     if: github.ref == 'refs/heads/main'
