@@ -77,7 +77,7 @@ export async function sendWhatsAppReminder(
         flow: 'sendWhatsAppReminder',
         operation: 'fetch_appointment',
         appointmentId,
-        organizationId: appointment?.organization_id || null,
+        organizationId: null,
         error: appointmentError,
       })
       return { success: false, error: 'Cita no encontrada' }

@@ -66,28 +66,25 @@ export async function runDailyReminderScheduler(): Promise<{
       }
     }
 
-    const result = {
+    appLog('info', 'scheduler completed', {
+      flow: 'runDailyReminderScheduler',
+      operation: 'complete',
+      processed: appointments.length,
+      sent,
+      failed,
+    })
+
+    return {
       success: true,
       processed: appointments.length,
       sent,
       failed,
       errors,
     }
-
-    appLog('info', 'scheduler completed', {
-      flow: 'runDailyReminderScheduler',
-      operation: 'complete',
-      processed: result.processed,
-      sent: result.sent,
-      failed: result.failed,
-    })
-
-    return result
   } catch (error) {
     appLog('error', 'scheduler failed', {
       flow: 'runDailyReminderScheduler',
       operation: 'execute',
-      processed,
       sent,
       failed,
       error,
