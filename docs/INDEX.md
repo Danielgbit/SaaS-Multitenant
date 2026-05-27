@@ -89,6 +89,7 @@ Cada documento tiene un **STATUS** que indica su relación con la realidad del c
 | `docs/governance/OPERATIONAL_VISUAL_SYSTEMS.md` | CURRENT | Registro OVS — sistemas visuales operacionales |
 | `docs/governance/WARN-TAXONOMY-v1.md` | CURRENT | Taxonomía de clasificación WARN para architecture guard |
 | `docs/governance/README-WARN-REVIEW.md` | CURRENT | Guía de revisión de WARN entries |
+| `docs/governance/DB-MIGRATIONS.md` | CURRENT | Convención de nomenclatura y reglas para migrations |
 | `docs/governance/DOCUMENTATION_POLICY.md` | CURRENT | Políticas de mantenimiento documental |
 
 ---

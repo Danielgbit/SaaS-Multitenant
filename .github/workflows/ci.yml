@@ -29,6 +29,9 @@ jobs:
       - name: Documentation generation
         run: npm run docs:gen
 
+      - name: Check auto-generated docs are fresh
+        run: git diff --exit-code docs/auto-generated/
+
   build:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest

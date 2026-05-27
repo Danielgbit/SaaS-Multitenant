@@ -4,7 +4,7 @@
 > Regenerar con: `pnpm docs:gen`
 > Generated: 2026-05-27
 
-Total: 53 migrations
+Total: 61 migrations
 
 | File | Description |
 |------|-------------|
@@ -61,3 +61,11 @@ Total: 53 migrations
 | `20260527000006_fix_evaluate_worker_alerts_ambiguity.sql` | Fix Evaluate Worker Alerts Ambiguity |
 | `20260527000007_notification_alert_delivery.sql` | Notification Alert Delivery |
 | `20260527000008_seed_worker_heartbeats.sql` | Seed Worker Heartbeats |
+| `20260528000001_financial_events.sql` | Financial Events |
+| `20260528000002_seed_financial_events.sql` | Seed Financial Events |
+| `20260528000003_financial_events_triggers.sql` | Financial Events Triggers |
+| `20260529000001_appointment_payment_status.sql` | Appointment Payment Status |
+| `20260530000001_link_transactions_to_appointments.sql` | Link Transactions To Appointments |
+| `20260531000001_protect_financial_events.sql` | Protect Financial Events |
+| `20260531000002_commission_accrued_trigger.sql` | Commission Accrued Trigger |
+| `20260531000003_backfill_appointment_payment_status.sql` | Backfill Appointment Payment Status |
