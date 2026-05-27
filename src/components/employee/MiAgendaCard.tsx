@@ -3,9 +3,10 @@
 import { useMemo } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Calendar, Clock } from 'lucide-react'
+import type { UpcomingAppointment } from '@/types/employee-metrics'
 
 interface Props {
-  appointments: Record<string, any>[]
+  appointments: UpcomingAppointment[]
 }
 
 function formatTime(iso: string) {
@@ -32,11 +33,14 @@ export function MiAgendaCard({ appointments }: Props) {
   const colors = useThemeColors()
 
   const grouped = useMemo(() => {
-    const map = new Map<string, typeof appointments>()
+    const map = new Map<string, UpcomingAppointment[]>()
     for (const apt of appointments) {
-      const key = formatDate(apt.start_time)
+      const key = formatDate(apt.startTime)
       if (!map.has(key)) map.set(key, [])
       map.get(key)!.push(apt)
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
     }
     return [...map.entries()]
   }, [appointments])
@@ -85,16 +89,16 @@ export function MiAgendaCard({ appointments }: Props) {
                 >
                   <div className="flex items-center gap-1.5 text-xs font-mono" style={{ color: colors.primary }}>
                     <Clock className="w-3.5 h-3.5" />
-                    <span>{formatTime(apt.start_time)}</span>
+                    <span>{formatTime(apt.startTime)}</span>
                   </div>
                   <span className="text-sm font-medium" style={{ color: colors.textPrimary }}>
-                    {apt.clients?.name || 'Cliente'}
+                    {apt.clientName ?? 'Cliente'}
                   </span>
                   <span
                     className="text-xs px-2 py-0.5 rounded-full ml-auto"
                     style={{
-                      background: apt.status === 'pending' ? colors.warningLight : colors.successLight,
-                      color: apt.status === 'pending' ? colors.warning : colors.success,
+                      background: apt.status === 'confirmed' ? colors.successLight : colors.warningLight,
+                      color: apt.status === 'confirmed' ? colors.success : colors.warning,
                     }}
                   >
                     {apt.status === 'confirmed' ? 'Confirmada' : 'Pendiente'}

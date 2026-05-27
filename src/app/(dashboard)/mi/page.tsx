@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { MiDashboard } from '@/components/employee/MiDashboard'
+import { getMyMetrics } from '@/actions/employee/getMyMetrics'
+import { getMyHistory } from '@/actions/employee/getMyHistory'
+import { getMyUpcoming } from '@/actions/employee/getMyUpcoming'
 
 export default async function MiPage() {
   const supabase = await createClient()
@@ -32,53 +35,46 @@ export default async function MiPage() {
     )
   }
 
-  const startOfToday = new Date()
-  startOfToday.setHours(0, 0, 0, 0)
-  const endOfWeek = new Date(startOfToday)
-  endOfWeek.setDate(endOfWeek.getDate() + 7)
+  const [availResult, servicesResult] = await Promise.all([
+    supabase
+      .from('employee_availability')
+      .select('*')
+      .eq('employee_id', employee.id)
+      .order('day_of_week'),
+    supabase
+      .from('employee_services')
+      .select('service_id, services(name, duration, price)')
+      .eq('employee_id', employee.id),
+  ])
 
-  let availability: any[] = []
-  let empServices: any[] = []
-  let appointments: any[] = []
+  const [metricsResult, historyResult, upcomingResult] = await Promise.all([
+    getMyMetrics(),
+    getMyHistory(),
+    getMyUpcoming(),
+  ])
 
-  try {
-    const [availResult, servicesResult, apptsResult] = await Promise.all([
-      supabase
-        .from('employee_availability')
-        .select('*')
-        .eq('employee_id', employee.id)
-        .order('day_of_week'),
-      supabase
-        .from('employee_services')
-        .select('service_id, services(name, duration, price)')
-        .eq('employee_id', employee.id),
-      supabase
-        .from('appointments')
-        .select('id, start_time, end_time, status, clients(name)')
-        .eq('employee_id', employee.id)
-        .not('status', 'in', '("cancelled","no_show")')
-        .gte('start_time', startOfToday.toISOString())
-        .lt('start_time', endOfWeek.toISOString())
-        .order('start_time'),
-    ])
-
-    availability = availResult.data ?? []
-    empServices = servicesResult.data ?? []
-    appointments = apptsResult.data ?? []
-  } catch {
-    // If data fetch fails, render dashboard with empty data
-  }
-
-  const services = (empServices ?? [])
+  const availability = availResult.data ?? []
+  const rawServices = servicesResult.data ?? []
+  const services = rawServices
     .map((es: any) => es.services)
     .filter(Boolean)
 
   return (
     <MiDashboard
       employee={employee}
-      availability={availability ?? []}
+      availability={availability}
       services={services}
-      appointments={appointments ?? []}
+      appointments={upcomingResult.data ?? []}
+      metrics={metricsResult.data ?? {
+        completedThisMonth: 0,
+        revenueThisMonth: 0,
+        completionRate: 0,
+        streak: 0,
+        noShowRate: 0,
+        pendingLoans: 0,
+        cancelledThisMonth: 0,
+      }}
+      history={historyResult.data ?? []}
     />
   )
 }

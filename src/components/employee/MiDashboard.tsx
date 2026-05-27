@@ -6,16 +6,25 @@ import { MiAgendaCard } from './MiAgendaCard'
 import { MiServicesCard } from './MiServicesCard'
 import { MiAvailabilityCard } from './MiAvailabilityCard'
 import { MiPayrollLink } from './MiPayrollLink'
+import { MiMetricsCards } from './MiMetricsCards'
+import { MiHistoryCard } from './MiHistoryCard'
 import type { EmployeeAvailability } from '@/types/availability'
+import type { EmployeeMetrics, ServiceHistory, UpcomingAppointment } from '@/types/employee-metrics'
+import type { Database } from '@/../types/supabase'
+
+type Employee = Database['public']['Tables']['employees']['Row']
+type Service = Database['public']['Tables']['services']['Row']
 
 interface Props {
-  employee: Record<string, any>
+  employee: Employee
   availability: EmployeeAvailability[]
-  services: Record<string, any>[]
-  appointments: Record<string, any>[]
+  services: Service[]
+  appointments: UpcomingAppointment[]
+  metrics: EmployeeMetrics
+  history: ServiceHistory[]
 }
 
-export function MiDashboard({ employee, availability, services, appointments }: Props) {
+export function MiDashboard({ employee, availability, services, appointments, metrics, history }: Props) {
   const colors = useThemeColors()
 
   return (
@@ -35,22 +44,26 @@ export function MiDashboard({ employee, availability, services, appointments }: 
         </div>
       </div>
 
+      {/* Metrics row — full width */}
+      <MiMetricsCards metrics={metrics} />
+
       {/* Grid: 2 cols desktop, 1 col mobile */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left column */}
         <div className="space-y-6">
-          <MiProfileCard employee={employee} />
+          <MiProfileCard employee={employee as any} />
           <MiAvailabilityCard employeeId={employee.id} initialAvailability={availability} />
         </div>
 
         {/* Right column */}
         <div className="space-y-6">
-          <MiAgendaCard appointments={appointments} />
-          <MiServicesCard services={services} />
+          <MiHistoryCard history={history} />
+          <MiServicesCard services={services as any} />
         </div>
       </div>
 
       {/* Bottom — full width */}
+      <MiAgendaCard appointments={appointments} />
       <MiPayrollLink />
     </div>
   )
