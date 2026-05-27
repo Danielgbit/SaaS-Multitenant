@@ -47,7 +47,7 @@ export async function countEmployeeRecords(employeeId: string): Promise<Employee
     supabase.from('employee_availability').select('id', { count: 'exact', head: true }).eq('employee_id', employeeId),
     supabase.from('employee_services').select('id', { count: 'exact', head: true }).eq('employee_id', employeeId),
     supabase.from('employee_loans').select('id', { count: 'exact', head: true }).eq('employee_id', employeeId),
-    supabase.from('payroll_receipts').select('id', { count: 'exact', head: true }).eq('employee_id', employeeId),
+    supabase.from('payroll_items').select('id', { count: 'exact', head: true }).eq('employee_id', employeeId),
     supabase
       .from('appointments')
       .select('id', { count: 'exact', head: true })

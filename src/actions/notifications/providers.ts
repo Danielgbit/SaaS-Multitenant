@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import type { NotificationProvider, NotificationChannel } from '@/types/notifications'
+import type { NotificationProvider, NotificationChannel, NotificationProviderType } from '@/types/notifications'
 import type { Json } from '@/../types/supabase'
 
 const ProviderUpsertSchema = z.object({
@@ -46,7 +46,7 @@ export async function getProvider(
       id: data[0].id,
       organizationId: data[0].organization_id,
       channel: data[0].channel as NotificationChannel,
-      provider: data[0].provider as any,
+      provider: data[0].provider as NotificationProviderType,
       isEnabled: data[0].is_enabled ?? false,
       config: (data[0].config ?? {}) as unknown as Record<string, unknown>,
       rateLimitPerMin: data[0].rate_limit_per_min ?? 0,

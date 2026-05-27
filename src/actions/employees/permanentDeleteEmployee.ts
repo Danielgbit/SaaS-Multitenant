@@ -110,7 +110,7 @@ export async function permanentDeleteEmployee(
     return { success: false, error: 'No se pudieron actualizar las confirmaciones.' }
   }
 
-  // Step 3: Delete employee (cascades to: employee_availability, employee_services, employee_invitations, employee_loans, payroll_receipts)
+  // Step 3: Delete employee (cascades to: employee_availability, employee_services, employee_invitations, employee_loans, payroll_items)
   const { error: deleteError } = await supabase
     .from('employees')
     .delete()

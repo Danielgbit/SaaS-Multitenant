@@ -117,7 +117,7 @@ export function PeriodDetailView({
     if (editingValues.contract_type !== item.contract_type) {
       changes.push({
         itemId: item.id,
-        employeeName: (item.employee as any)?.name || 'Empleado',
+        employeeName: item.employee?.name || 'Empleado',
         field: 'contract_type',
         oldValue: item.contract_type,
         newValue: editingValues.contract_type,
@@ -126,7 +126,7 @@ export function PeriodDetailView({
     if (editingValues.payment_type !== item.payment_type) {
       changes.push({
         itemId: item.id,
-        employeeName: (item.employee as any)?.name || 'Empleado',
+        employeeName: item.employee?.name || 'Empleado',
         field: 'payment_type',
         oldValue: item.payment_type,
         newValue: editingValues.payment_type,
@@ -135,7 +135,7 @@ export function PeriodDetailView({
     if (editingValues.base_salary !== item.base_salary) {
       changes.push({
         itemId: item.id,
-        employeeName: (item.employee as any)?.name || 'Empleado',
+        employeeName: item.employee?.name || 'Empleado',
         field: 'base_salary',
         oldValue: item.base_salary,
         newValue: editingValues.base_salary,
@@ -254,7 +254,7 @@ export function PeriodDetailView({
     if (editingValues.contract_type !== item.contract_type) {
       changes.push({
         itemId: item.id,
-        employeeName: (item.employee as any)?.name || 'Empleado',
+        employeeName: item.employee?.name || 'Empleado',
         field: 'contract_type',
         oldValue: item.contract_type,
         newValue: editingValues.contract_type,
@@ -263,7 +263,7 @@ export function PeriodDetailView({
     if (editingValues.payment_type !== item.payment_type) {
       changes.push({
         itemId: item.id,
-        employeeName: (item.employee as any)?.name || 'Empleado',
+        employeeName: item.employee?.name || 'Empleado',
         field: 'payment_type',
         oldValue: item.payment_type,
         newValue: editingValues.payment_type,
@@ -272,7 +272,7 @@ export function PeriodDetailView({
     if (editingValues.base_salary !== item.base_salary) {
       changes.push({
         itemId: item.id,
-        employeeName: (item.employee as any)?.name || 'Empleado',
+        employeeName: item.employee?.name || 'Empleado',
         field: 'base_salary',
         oldValue: item.base_salary,
         newValue: editingValues.base_salary,
@@ -522,12 +522,12 @@ export function PeriodDetailView({
                             className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
                             style={{ backgroundColor: COLORS.primary + '15', color: COLORS.primary }}
                           >
-                            {(item.employee as any)?.name?.charAt(0)?.toUpperCase() || '?'}
+                            {item.employee?.name?.charAt(0)?.toUpperCase() || '?'}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="font-medium" style={{ color: COLORS.textPrimary }}>
-                                {(item.employee as any)?.name || 'Empleado'}
+                                {item.employee?.name || 'Empleado'}
                               </span>
                               {item.base_salary > 0 && item.base_salary < 1500000 && (
                                 <span
@@ -598,7 +598,7 @@ export function PeriodDetailView({
                             {item.payment_type === 'porcentaje' && item.gross_commission > 0
                               ? <>
                                   <span className="text-xs font-medium" style={{ color: COLORS.warning }}>
-                                    {(item.employee as any)?.percentage || 60}%
+                                    {item.employee?.percentage || 60}%
                                   </span>
                                   <span className="mx-1" style={{ color: COLORS.textMuted }}>·</span>
                                   {formatCurrencyCOP(item.gross_commission)}
@@ -608,7 +608,7 @@ export function PeriodDetailView({
                                     {formatCurrencyCOP(item.base_salary)}
                                     <span className="mx-1" style={{ color: COLORS.textMuted }}>+</span>
                                     <span className="text-xs font-medium" style={{ color: COLORS.warning }}>
-                                      {(item.employee as any)?.percentage || 60}%
+                                      {item.employee?.percentage || 60}%
                                     </span>
                                   </>
                                 : item.payment_type === 'porcentaje'
@@ -711,7 +711,7 @@ export function PeriodDetailView({
                   </div>
                   <div>
                     <p className="font-medium" style={{ color: COLORS.textPrimary }}>
-                      {(receipt as any).employee_name || 'Empleado'}
+                      {items.find(i => i.employee_id === receipt.employee_id)?.employee?.name || 'Empleado'}
                     </p>
                     <p className="text-xs" style={{ color: COLORS.textMuted }}>
                       {new Date(receipt.payment_date).toLocaleDateString('es-ES')}
@@ -753,7 +753,7 @@ export function PeriodDetailView({
         confirmDisabled={period.status === 'approved' && !deleteConfirmed}
         extraContent={period.status === 'approved' ? (
           <label className="flex items-center gap-2.5 cursor-pointer p-2 rounded-xl transition-colors"
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = (COLORS as any).surfaceSubtle}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <input
@@ -779,7 +779,7 @@ export function PeriodDetailView({
         description={
           <div className="space-y-2 text-left">
             <p>Al aprobar el período se confirmarán los siguientes valores:</p>
-            <div className="rounded-xl p-3 space-y-1.5" style={{ backgroundColor: (COLORS as any).surfaceSubtle }}>
+            <div className="rounded-xl p-3 space-y-1.5" style={{ backgroundColor: COLORS.surfaceSubtle }}>
               <div className="flex justify-between text-sm">
                 <span style={{ color: COLORS.textMuted }}>Empleados</span>
                 <span className="font-medium" style={{ color: COLORS.textPrimary }}>{period.total_employees || 0}</span>

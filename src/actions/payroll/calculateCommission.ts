@@ -2,6 +2,15 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { CommissionBreakdown, CommissionSummary } from '@/types/payroll'
+import type { PaymentType } from '@/types/employees'
+import type { Database } from '@/../types/supabase'
+
+type ServiceRow = Database['public']['Tables']['services']['Row']
+type EmpServiceRow = {
+  service_id: string
+  commission_rate: number | null
+  price_override: number | null
+}
 
 export type DayGroup = {
   date: string
@@ -75,7 +84,6 @@ export async function calculateCommission(
     .lte('start_time', endDate.toISOString())
     .order('start_time', { ascending: true })
 
-  // Collect all unique service_ids for batch lookup
   const allServiceIds = new Set<string>()
   for (const apt of appointments || []) {
     for (const as of apt.appointment_services || []) {
@@ -83,28 +91,25 @@ export async function calculateCommission(
     }
   }
 
-  // Batch fetch all services in ONE query
   const { data: allServices } = await supabase
     .from('services')
     .select('id, name, price, has_commission')
     .in('id', [...allServiceIds])
 
-  const serviceMap = new Map(
-    (allServices || []).map((s: any) => [s.id, s])
+  const serviceMap = new Map<string, ServiceRow>(
+    (allServices || []).map((s) => [s.id, s as ServiceRow])
   )
 
-  // Batch fetch all employee_services for this employee in ONE query
   const { data: allEmpServices } = await supabase
     .from('employee_services')
     .select('service_id, commission_rate, price_override')
     .eq('employee_id', employeeId)
     .in('service_id', [...allServiceIds])
 
-  const empServiceMap = new Map(
-    (allEmpServices || []).map((es: any) => [es.service_id, es])
+  const empServiceMap = new Map<string, EmpServiceRow>(
+    (allEmpServices || []).map((es) => [es.service_id, es as EmpServiceRow])
   )
 
-  // Now compute commissions with O(1) lookups instead of N+1 queries
   const breakdown: CommissionBreakdown[] = []
   let totalServices = 0
   let totalCommissionable = 0
@@ -115,17 +120,17 @@ export async function calculateCommission(
 
     for (const as of apt.appointment_services || []) {
       const service = serviceMap.get(as.service_id)
-      if (!service || !(service as any).has_commission) continue
+      if (!service || !service.has_commission) continue
 
       const empService = empServiceMap.get(as.service_id)
-      const price = (empService as any)?.price_override || (service as any).price
-      const rate = (empService as any)?.commission_rate || emp.default_commission_rate
+      const price = empService?.price_override ?? service.price
+      const rate = empService?.commission_rate ?? emp.default_commission_rate ?? 0
       const commission = Number((price * (rate / 100)).toFixed(2))
 
       breakdown.push({
         appointment_id: apt.id,
         date: apt.start_time,
-        service_name: (service as any).name,
+        service_name: service.name,
         service_price: price,
         commission_rate: rate,
         commission_amount: commission,
@@ -179,7 +184,7 @@ export async function calculateCommission(
       total_commissionable: Number(totalCommissionable.toFixed(2)),
       total_commission: Number(totalCommission.toFixed(2)),
       default_rate: emp.default_commission_rate ?? 0,
-      payment_type: emp.payment_type as any,
+      payment_type: (emp.payment_type ?? 'porcentaje') as PaymentType,
       base_salary: emp.base_salary || emp.fixed_salary,
       dayGroups,
     },
