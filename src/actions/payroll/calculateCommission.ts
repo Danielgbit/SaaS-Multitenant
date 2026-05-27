@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { appLog } from '@/lib/app-logger'
+import { setRequestContext } from '@/lib/request-context'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { CommissionBreakdown, CommissionSummary } from '@/types/payroll'
 import type { PaymentType } from '@/types/employees'
@@ -238,6 +239,7 @@ export async function calculateCommission(
   data?: CommissionWithDayGroups
   error?: string
 }> {
+  setRequestContext({ flow: 'payroll.commission' })
   const label = `[payroll] calculateCommission`
   console.time(label)
   const supabase = await createClient()

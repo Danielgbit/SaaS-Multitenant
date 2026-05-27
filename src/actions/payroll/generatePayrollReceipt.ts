@@ -7,6 +7,7 @@ import { calculateCommission } from './calculateCommission'
 import { getPendingLoans } from './getPendingLoans'
 import type { PayrollReceipt, PeriodType } from '@/types/payroll'
 import { appLog } from '@/lib/app-logger'
+import { setRequestContext } from '@/lib/request-context'
 
 const GenerateReceiptSchema = z.object({
   employee_id: z.string().uuid('ID de empleado inválido'),
@@ -35,6 +36,7 @@ export async function generatePayrollReceipt(input: {
   data?: PayrollReceipt
   error?: string
 }> {
+  setRequestContext({ flow: 'payroll.generate' })
   const parsed = GenerateReceiptSchema.safeParse(input)
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message }

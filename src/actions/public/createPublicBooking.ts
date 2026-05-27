@@ -9,6 +9,7 @@ import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
 import { appLog } from '@/lib/app-logger'
+import { setRequestContext } from '@/lib/request-context'
 
 // =============================================================================
 // SCHEMA DE VALIDACIÓN
@@ -110,6 +111,7 @@ async function findOrCreateClient(
 export async function createPublicBooking(
   input: PublicBookingInput
 ): Promise<{ error?: string; success?: boolean; appointmentId?: string; organizationName?: string }> {
+  setRequestContext({ flow: 'booking.public' })
   // 1. Validar input con Zod
   const parsed = PublicBookingSchema.safeParse(input)
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { runCheckReminders } from '@/actions/cron/runCheckReminders'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { withRequestContext } from '@/lib/request-context'
+import { withRequestContext, setRequestContext } from '@/lib/request-context'
 import { serverEnv } from '@/lib/env/server'
 
 export const runtime = 'nodejs'
@@ -29,6 +29,7 @@ async function sendHeartbeat(supabase: any, workerName: string, status: string, 
 
 export async function POST(request: Request) {
   return withRequestContext(undefined, async () => {
+    setRequestContext({ flow: 'cron.check-reminders' })
     try {
       const authHeader = request.headers.get('authorization')
       const cronSecret = serverEnv.CRON_SECRET

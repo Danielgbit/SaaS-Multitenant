@@ -3,12 +3,14 @@
 import { createClient } from '@/lib/supabase/server'
 import type { UpcomingAppointment } from '@/types/employee-metrics'
 import { appLog } from '@/lib/app-logger'
+import { setRequestContext } from '@/lib/request-context'
 
 export async function getMyUpcoming(): Promise<{
   success: boolean
   data?: UpcomingAppointment[]
   error?: string
 }> {
+  setRequestContext({ flow: 'employee.dashboard' })
   const supabase = await createClient()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()

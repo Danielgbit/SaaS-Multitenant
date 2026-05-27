@@ -1,5 +1,6 @@
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import type { NotificationInboundEvent } from '@/types/notifications'
+import { getRequestId } from '@/lib/request-context'
 import { logNotificationEvent } from './event-timeline'
 
 const CONFIRM_KEYWORDS = ['confirmar', 'confirmo', 'sí', 'si', 'yes']
@@ -230,7 +231,7 @@ export async function processInboundReply(
         type: 'confirmation_sent',
         title: action === 'confirm' ? 'Cita confirmada' : 'Cita cancelada',
         message: `El cliente ${action === 'confirm' ? 'confirmó' : 'canceló'} via WhatsApp`,
-        metadata: { appointment_id: appointmentId },
+        metadata: { appointment_id: appointmentId, trace_id: event.traceId || getRequestId() || null },
       }))
     )
   }

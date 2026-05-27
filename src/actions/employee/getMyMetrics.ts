@@ -5,6 +5,7 @@ import type { Database } from '@/../types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { EmployeeMetrics } from '@/types/employee-metrics'
 import { appLog } from '@/lib/app-logger'
+import { setRequestContext } from '@/lib/request-context'
 
 type AppointmentDateRow = {
   start_time: string
@@ -21,6 +22,7 @@ export async function getMyMetrics(): Promise<{
   data?: EmployeeMetrics
   error?: string
 }> {
+  setRequestContext({ flow: 'employee.dashboard' })
   const supabase = await createClient()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()

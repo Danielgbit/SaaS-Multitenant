@@ -7,7 +7,7 @@ import { processInboundReply } from '@/lib/notifications/processor'
 import { logNotificationEvent } from '@/lib/notifications/event-timeline'
 import { logInboundMessage } from '@/lib/notifications/messages'
 import { startSpan, endSpan } from '@/lib/notifications/observability'
-import { withRequestContext } from '@/lib/request-context'
+import { withRequestContext, setRequestContext } from '@/lib/request-context'
 import { normalizeWebhook } from '@/lib/notifications/normalization'
 import { WasenderProvider } from '@/lib/notifications/channels/whatsapp/providers/wasender'
 import { N8NProvider } from '@/lib/notifications/channels/whatsapp/providers/n8n'
@@ -33,6 +33,7 @@ const IDEMPOTENCY_MAX_SIZE = 5000
 
 export async function POST(request: Request) {
   return withRequestContext(undefined, async () => {
+    setRequestContext({ flow: 'webhook.notifications' })
     const span = startSpan('webhook:notifications')
   const rawBody = await request.text()
   const supabase = await createServiceRoleClient()

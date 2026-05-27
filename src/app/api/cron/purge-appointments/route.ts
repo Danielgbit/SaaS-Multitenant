@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { withRequestContext } from '@/lib/request-context'
+import { withRequestContext, setRequestContext } from '@/lib/request-context'
 import { serverEnv } from '@/lib/env/server'
 
 export const runtime = 'nodejs'
@@ -58,6 +58,7 @@ async function runPurgeForOrganization(
 
 export async function POST(request: Request) {
   return withRequestContext(undefined, async () => {
+    setRequestContext({ flow: 'cron.purge-appointments' })
     const startedAt = Date.now()
 
     try {

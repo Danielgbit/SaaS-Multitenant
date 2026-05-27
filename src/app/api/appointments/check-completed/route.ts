@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { withRequestContext } from '@/lib/request-context'
+import { withRequestContext, setRequestContext } from '@/lib/request-context'
 import { serverEnv } from '@/lib/env/server'
 
 export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   return withRequestContext(undefined, async () => {
+    setRequestContext({ flow: 'cron.check-completed' })
     try {
       const authHeader = request.headers.get('authorization')
       const secret = authHeader?.replace('Bearer ', '')

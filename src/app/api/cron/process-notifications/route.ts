@@ -10,7 +10,7 @@ import { classifyError, calculateBackoff } from '@/lib/notifications/retry-strat
 import { logOutboundMessage, logOutboundAttempt } from '@/lib/notifications/messages'
 import { normalizeSendResponse } from '@/lib/notifications/normalization'
 import { processCriticalNotificationAlerts } from '@/actions/admin/processCriticalNotificationAlerts'
-import { withRequestContext } from '@/lib/request-context'
+import { withRequestContext, setRequestContext } from '@/lib/request-context'
 import { serverEnv } from '@/lib/env/server'
 
 export const runtime = 'nodejs'
@@ -536,6 +536,7 @@ async function sendHeartbeat(
 
 export async function POST(request: Request) {
   return withRequestContext(undefined, async () => {
+    setRequestContext({ flow: 'cron.process-notifications' })
     try {
     const authHeader = request.headers.get('authorization')
     const cronSecret = serverEnv.CRON_SECRET

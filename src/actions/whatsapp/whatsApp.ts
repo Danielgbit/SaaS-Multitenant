@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { enqueueShadowSeed } from '@/lib/notifications/shadow/seeder'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
 import { appLog } from '@/lib/app-logger'
+import { setRequestContext } from '@/lib/request-context'
 
 const WHATSAPP_TEMPLATES = {
   appointment_reminder: {
@@ -82,6 +83,7 @@ const QueueMessageSchema = z.object({
 export async function queueWhatsAppMessage(
   input: z.infer<typeof QueueMessageSchema>
 ) {
+  setRequestContext({ flow: 'notification.queue' })
   const parsed = QueueMessageSchema.safeParse(input)
 
   if (!parsed.success) {

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/notifications/logger'
+import { getRequestId } from '@/lib/request-context'
 import type { NotificationMessageRecord } from '@/types/notifications'
 
 interface LogOutboundParams {
@@ -61,19 +62,11 @@ export async function logOutboundMessage(params: LogOutboundParams): Promise<Not
     channel: params.channel,
     payload: params.payload,
     status: params.status,
-    trace_id: params.traceId || null,
+    trace_id: params.traceId || getRequestId() || null,
     request_payload: params.requestPayload || null,
     response_payload: params.responsePayload || null,
     response_headers: params.responseHeaders || null,
     response_status: params.responseStatus || null,
-    processing_time_ms: params.durationMs || null,
-    retry_count: params.retryCount ?? 0,
-    normalized_payload: params.normalizedPayload || null,
-    error_message: params.errorMessage || null,
-    error_type: params.errorType || null,
-    attempt_number: params.attemptNumber ?? 0,
-    provider_name: params.providerName || null,
-    correlation_id: params.correlationId || null,
   }
 
   const { data, error } = await (supabase as any)
@@ -126,7 +119,7 @@ export async function logInboundMessage(params: LogInboundParams): Promise<Notif
     channel: params.channel,
     payload: { ...params.payload, text: params.text },
     status: 'received',
-    trace_id: params.traceId || null,
+    trace_id: params.traceId || getRequestId() || null,
     request_payload: params.requestPayload || null,
     response_payload: params.responsePayload || null,
     response_headers: params.responseHeaders || null,

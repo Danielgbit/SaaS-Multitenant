@@ -5,6 +5,7 @@ import type {
 } from './types'
 import type { NotificationChannel, NotificationProviderType } from '@/types/notifications'
 import { createClient } from '@/lib/supabase/server'
+import { getRequestId } from '@/lib/request-context'
 
 export class InAppChannel implements NotificationChannelAdapter {
   private organizationId: string
@@ -31,7 +32,7 @@ export class InAppChannel implements NotificationChannelAdapter {
         title: (message.metadata?.title as string) || 'Notificación',
         message: message.body,
         metadata: {
-          trace_id: message.metadata?.traceId,
+          trace_id: message.metadata?.traceId || getRequestId(),
           appointment_id: message.appointmentId,
           channel: 'in_app',
           ...message.metadata,

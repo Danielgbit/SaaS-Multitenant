@@ -3,12 +3,14 @@
 import { createClient } from '@/lib/supabase/server'
 import type { ServiceHistory } from '@/types/employee-metrics'
 import { appLog } from '@/lib/app-logger'
+import { setRequestContext } from '@/lib/request-context'
 
 export async function getMyHistory(): Promise<{
   success: boolean
   data?: ServiceHistory[]
   error?: string
 }> {
+  setRequestContext({ flow: 'employee.dashboard' })
   const supabase = await createClient()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()

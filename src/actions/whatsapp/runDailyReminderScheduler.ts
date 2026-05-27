@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { sendWhatsAppReminder } from './sendWhatsAppReminder'
 import { getWhatsappProviderOrgs } from '@/lib/notifications/providers'
 import { appLog } from '@/lib/app-logger'
+import { setRequestContext } from '@/lib/request-context'
 
 export async function runDailyReminderScheduler(): Promise<{
   success: boolean
@@ -16,6 +17,7 @@ export async function runDailyReminderScheduler(): Promise<{
   failed: number
   errors: string[]
 }> {
+  setRequestContext({ flow: 'scheduler.reminders' })
   const supabase = await createClient()
 
   const errors: string[] = []

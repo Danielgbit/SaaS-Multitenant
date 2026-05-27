@@ -1,4 +1,4 @@
-import { getRequestId } from './request-context'
+import { getRequestId, getRequestContext } from './request-context'
 
 type LogLevel = 'info' | 'warn' | 'error'
 
@@ -30,12 +30,17 @@ export function appLog(
   message: string,
   metadata?: Record<string, unknown>
 ) {
+  const ctx = getRequestContext()
+
   const payload = {
     timestamp: new Date().toISOString(),
     level,
     message,
     requestId: getRequestId(),
     ...normalizeMetadata(metadata),
+    ...(ctx?.organizationId && { organizationId: ctx.organizationId }),
+    ...(ctx?.userId && { userId: ctx.userId }),
+    ...(ctx?.flow && { flow: ctx.flow }),
   }
 
   try {

@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/notifications/logger'
 import { runShadowBatch } from '@/lib/notifications/shadow/runner'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { withRequestContext } from '@/lib/request-context'
+import { withRequestContext, setRequestContext } from '@/lib/request-context'
 import { serverEnv } from '@/lib/env/server'
 
 export const runtime = 'nodejs'
@@ -44,6 +44,7 @@ async function sendHeartbeat(
 
 export async function POST(request: NextRequest) {
   return withRequestContext(undefined, async () => {
+    setRequestContext({ flow: 'cron.shadow-notifications' })
     const authHeader = request.headers.get('authorization')
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getRequestId } from '@/lib/request-context'
 import type { NotificationEvent, NotificationEventType } from '@/types/notifications'
 
 interface LogEventParams {
@@ -27,7 +28,7 @@ export async function logNotificationEvent(params: LogEventParams): Promise<void
       conversation_id: params.conversationId || null,
       event_type: params.eventType,
       metadata: params.metadata || {},
-      trace_id: params.traceId || null,
+      trace_id: params.traceId || getRequestId() || null,
       latency_ms: params.latencyMs || null,
       worker_id: params.workerId || null,
       provider_message_id: params.providerMessageId || null,

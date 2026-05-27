@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
 import { appLog } from '@/lib/app-logger'
+import { setRequestContext } from '@/lib/request-context'
 
 // =============================================================================
 // SCHEMA DE VALIDACIÓN
@@ -118,6 +119,7 @@ function canCancelByTime(startTime: Date): boolean {
 export async function cancelPublicBooking(
   input: CancelPublicBookingInput
 ): Promise<CancelPublicBookingResult> {
+  setRequestContext({ flow: 'booking.cancel' })
   // 1. Validar input
   const parsed = CancelPublicBookingSchema.safeParse(input)
 

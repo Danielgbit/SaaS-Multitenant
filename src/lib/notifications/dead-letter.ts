@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/notifications/logger'
+import { getRequestId } from '@/lib/request-context'
 import type { DeadLetterNotification, NotificationChannel } from '@/types/notifications'
 
 interface MoveToDLQParams {
@@ -22,7 +23,7 @@ interface MoveToDLQParams {
 export async function moveToDeadLetter(params: MoveToDLQParams): Promise<DeadLetterNotification> {
   const supabase = await createClient()
   const item = params.queueItem
-  const traceId = item.trace_id || crypto.randomUUID()
+  const traceId = item.trace_id || getRequestId() || crypto.randomUUID()
 
   const { data, error } = await (supabase as any)
     .from('dead_letter_notifications')

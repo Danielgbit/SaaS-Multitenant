@@ -8,6 +8,7 @@ import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
 import { appLog } from '@/lib/app-logger'
+import { setRequestContext } from '@/lib/request-context'
 import {
   validateCreateInput,
   checkCreatePreconditions,
@@ -19,6 +20,7 @@ import {
 export async function createAppointment(
   input: unknown
 ): Promise<{ error?: string; success?: boolean; appointmentId?: string }> {
+  setRequestContext({ flow: 'booking.create' })
   const validated = validateCreateInput(input)
   if (!validated.success) return { error: validated.error }
 

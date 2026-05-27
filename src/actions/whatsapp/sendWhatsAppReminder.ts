@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { enqueueShadowSeed } from '@/lib/notifications/shadow/seeder'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
 import { appLog } from '@/lib/app-logger'
+import { setRequestContext } from '@/lib/request-context'
 
 const SendReminderSchema = z.object({
   appointmentId: z.string().uuid(),
@@ -44,6 +45,7 @@ export async function sendWhatsAppReminder(
   success: boolean
   error?: string
 }> {
+  setRequestContext({ flow: 'notification.send' })
   const validation = SendReminderSchema.safeParse(input)
   if (!validation.success) {
     return { success: false, error: 'ID de cita inválido' }
