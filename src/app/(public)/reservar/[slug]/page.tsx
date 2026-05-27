@@ -24,34 +24,40 @@ export default async function PublicBookingPage({ params }: Props) {
     notFound()
   }
 
-  // Obtener servicios activos
-  const { data: services } = await supabase
-    .from('services')
-    .select('id, name, duration, price')
-    .eq('organization_id', organization.id)
-    .eq('active', true)
-    .order('name')
-
-  // Obtener empleados activos
-  const { data: employees } = await supabase
-    .from('employees')
-    .select('id, name')
-    .eq('organization_id', organization.id)
-    .eq('active', true)
-    .order('name')
-
-  // Obtener disponibilidad de empleados
-  const employeeIds = employees?.map(e => e.id) || []
-  
+  let services: any[] | null = []
+  let employees: any[] | null = []
   let availabilities: { employee_id: string; day_of_week: number }[] = []
-  
-  if (employeeIds.length > 0) {
-    const { data: avail } = await supabase
-      .from('employee_availability')
-      .select('employee_id, day_of_week')
-      .in('employee_id', employeeIds)
-    
-    availabilities = avail || []
+
+  try {
+    const [servicesResult, employeesResult] = await Promise.all([
+      supabase
+        .from('services')
+        .select('id, name, duration, price')
+        .eq('organization_id', organization.id)
+        .eq('active', true)
+        .order('name'),
+      supabase
+        .from('employees')
+        .select('id, name')
+        .eq('organization_id', organization.id)
+        .eq('active', true)
+        .order('name'),
+    ])
+
+    services = servicesResult.data || []
+    employees = employeesResult.data || []
+
+    const employeeIds = employees.map(e => e.id)
+    if (employeeIds.length > 0) {
+      const { data: avail } = await supabase
+        .from('employee_availability')
+        .select('employee_id, day_of_week')
+        .in('employee_id', employeeIds)
+
+      availabilities = avail || []
+    }
+  } catch {
+    // Graceful degradation on fetch failure
   }
 
   // Filtrar empleados que tienen al menos un día de disponibilidad

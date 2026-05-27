@@ -16,7 +16,6 @@ export default async function MiPage() {
 
   if (!orgMember) redirect('/login')
 
-  // Fetch employee linked to this user
   const { data: employee } = await supabase
     .from('employees')
     .select('*')
@@ -33,35 +32,43 @@ export default async function MiPage() {
     )
   }
 
-  // Fetch availability
-  const { data: availability } = await supabase
-    .from('employee_availability')
-    .select('*')
-    .eq('employee_id', employee.id)
-    .order('day_of_week')
-
-  // Fetch employee services with service details
-  const { data: empServices } = await supabase
-    .from('employee_services')
-    .select('service_id, services(name, duration, price)')
-    .eq('employee_id', employee.id)
-
-  // Fetch upcoming appointments (today + next 7 days)
   const startOfToday = new Date()
   startOfToday.setHours(0, 0, 0, 0)
   const endOfWeek = new Date(startOfToday)
   endOfWeek.setDate(endOfWeek.getDate() + 7)
 
-  const { data: appointments } = await supabase
-    .from('appointments')
-    .select('id, start_time, end_time, status, clients(name)')
-    .eq('employee_id', employee.id)
-    .not('status', 'in', '("cancelled","no_show")')
-    .gte('start_time', startOfToday.toISOString())
-    .lt('start_time', endOfWeek.toISOString())
-    .order('start_time')
+  let availability: any[] = []
+  let empServices: any[] = []
+  let appointments: any[] = []
 
-  // Parse services
+  try {
+    const [availResult, servicesResult, apptsResult] = await Promise.all([
+      supabase
+        .from('employee_availability')
+        .select('*')
+        .eq('employee_id', employee.id)
+        .order('day_of_week'),
+      supabase
+        .from('employee_services')
+        .select('service_id, services(name, duration, price)')
+        .eq('employee_id', employee.id),
+      supabase
+        .from('appointments')
+        .select('id, start_time, end_time, status, clients(name)')
+        .eq('employee_id', employee.id)
+        .not('status', 'in', '("cancelled","no_show")')
+        .gte('start_time', startOfToday.toISOString())
+        .lt('start_time', endOfWeek.toISOString())
+        .order('start_time'),
+    ])
+
+    availability = availResult.data ?? []
+    empServices = servicesResult.data ?? []
+    appointments = apptsResult.data ?? []
+  } catch {
+    // If data fetch fails, render dashboard with empty data
+  }
+
   const services = (empServices ?? [])
     .map((es: any) => es.services)
     .filter(Boolean)
