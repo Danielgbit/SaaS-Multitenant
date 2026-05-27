@@ -1,0 +1,26 @@
+name: Docs
+on: [pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    # Fase inicial: warning mode — no bloquea el merge
+    # Semana 3+: cambiar continue-on-error a false
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - name: Regenerar documentación auto-generada
+        run: pnpm docs:gen
+
+      - name: Verificar que auto-generated docs están frescos
+        run: git diff --exit-code docs/auto-generated/ || echo "WARN: docs/auto-generated/ desactualizado. Ejecutar pnpm docs:gen"
+
+      - name: Validar documentación
+        run: pnpm docs:check || echo "WARN: docs:check reporto problemas"

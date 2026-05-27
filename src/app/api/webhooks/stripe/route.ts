@@ -3,6 +3,10 @@ import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 
+// Best-effort in-memory idempotency. See SECURITY.md for limitations.
+const STRIPE_IDEMPOTENCY = new Set<string>()
+const IDEMPOTENCY_MAX_SIZE = 5000
+
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const headersList = await headers()
@@ -23,6 +27,16 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error('Webhook signature verification failed:', err)
     return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 })
+  }
+
+  // Idempotency: best-effort dedup in-memory
+  const eventId = event.id
+  if (eventId) {
+    if (STRIPE_IDEMPOTENCY.has(eventId)) {
+      return NextResponse.json({ received: true, deduplicated: true })
+    }
+    if (STRIPE_IDEMPOTENCY.size > IDEMPOTENCY_MAX_SIZE) STRIPE_IDEMPOTENCY.clear()
+    STRIPE_IDEMPOTENCY.add(eventId)
   }
 
   const supabase = await createClient()

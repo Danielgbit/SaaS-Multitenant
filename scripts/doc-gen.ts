@@ -4,6 +4,15 @@ import { join, relative } from 'path'
 const ROOT = join(__dirname, '..')
 const DOCS_AUTO = join(ROOT, 'docs', 'auto-generated')
 
+// TODO: implement docs validation engine (links, banners, source-of-truth blocks)
+// Current --validate flag is a no-op. Planned for Phase 2.
+const isValidateMode = process.argv.includes('--validate')
+if (isValidateMode) {
+  console.log('WARN: --validate mode is not yet implemented. This is a no-op.')
+  console.log('TODO: implement docs validation engine')
+  process.exit(0)
+}
+
 function generateMigrationsIndex(): string {
   const migrationsDir = join(ROOT, 'supabase', 'migrations')
   const files = readdirSync(migrationsDir)

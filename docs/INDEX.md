@@ -26,6 +26,7 @@ Cada documento tiene un **STATUS** que indica su relación con la realidad del c
 | `.env.example` (raíz) | CURRENT | Variables de entorno documentadas |
 | `docs/setup/SETUP.md` | CURRENT | Setup paso a paso con checklist de verificación |
 | `docs/architecture/CURRENT/ENVIRONMENT.md` | CURRENT | Referencia completa de variables de entorno |
+| `docs/architecture/CURRENT/DATABASE.md` | CURRENT | Schema de base de datos, entidades, RLS |
 | `docs/operations/DEPLOYMENT.md` | CURRENT | Despliegue a producción, orden de provisioning, rollback |
 
 ---
@@ -74,8 +75,8 @@ Cada documento tiene un **STATUS** que indica su relación con la realidad del c
 | `docs/modules/WHATSAPP.md` | CURRENT | Arquitectura de notificaciones WhatsApp v2 |
 | `docs/modules/EMPLOYEE-INVITE.md` | CURRENT | Flujo de invitación de empleados + recuperación de contraseña |
 | `docs/modules/SHADOW-MODE.md` | CURRENT | Shadow Mode — validación en paralelo de arquitectura |
-| `docs/modules/PAYROLL.md` | 📅 PENDIENTE | Arquitectura de nómina |
-| `docs/modules/DATA-RETENTION.md` | 📅 PENDIENTE | Sistema de purga y retención de datos |
+| `docs/modules/PAYROLL.md` | CURRENT | Arquitectura de nómina (V1+V2, fire-and-forget, failure tolerance) |
+| `docs/modules/DATA-RETENTION.md` | CURRENT | Sistema de purga y retención de datos |
 
 ---
 
@@ -96,8 +97,10 @@ Cada documento tiene un **STATUS** que indica su relación con la realidad del c
 
 | Documento | STATUS | Descripción |
 |-----------|--------|-------------|
-| `docs/operations/TROUBLESHOOTING.md` | 📅 PENDIENTE | Errores comunes y soluciones |
-| `docs/operations/TESTING.md` | 📅 PENDIENTE | Cómo ejecutar y escribir tests |
+| `docs/operations/DEPLOYMENT.md` | CURRENT | Despliegue a producción, orden de provisioning, rollback |
+| `docs/operations/SECURITY.md` | CURRENT | Rate limiting, webhooks, CSRF, RLS, checklist de seguridad |
+| `docs/operations/TROUBLESHOOTING.md` | CURRENT | Errores comunes por síntoma observable |
+| `docs/operations/TESTING.md` | CURRENT | Tests unitarios, Playwright, shadow mode, philosophy |
 
 ---
 

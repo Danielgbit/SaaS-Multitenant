@@ -14,6 +14,24 @@
 
 ---
 
+## 1.5 Non-goals
+
+El sistema documental NO incluye intencionalmente:
+
+- Referencias exhaustivas de columnas de base de datos
+- API Reference auto-generada (Swagger, Typedoc)
+- Detalles de implementación interna de UI (props, estados locales)
+- Procedimientos temporales de debugging
+- Notas de migraciones one-off
+- Experimental spikes sin impacto arquitectónico
+- Guías de contribución open-source (CONTRIBUTING.md)
+
+Esto protege la calidad y mantenibilidad del sistema. Si algo fuera de esta
+lista aparece en un PR, evaluar si merece documentación permanente o es
+información transitoria.
+
+---
+
 ## 2. Reglas Obligatorias
 
 ### Al agregar una variable de entorno
@@ -123,3 +141,30 @@ Incluyen:
 - `routes.md` — árbol de rutas del App Router
 - `cron-index.md` — endpoints cron detectados
 - `migrations-index.md` — lista de migraciones con fechas
+
+---
+
+## 8. Proposal Lifecycle (FUTURE/)
+
+Todo documento en `docs/architecture/FUTURE/` debe incluir metadatos de ciclo de vida.
+
+### Metadatos obligatorios
+
+```markdown
+> Owner: <team, area, or responsible maintainer>
+> Created: YYYY-MM-DD
+> Last reviewed: YYYY-MM-DD
+> Review deadline: YYYY-MM-DD (máx 6 meses desde created o última review)
+```
+
+### Reglas
+
+- **Review deadline** obligatorio. Máximo 6 meses desde creación o última revisión.
+- Si la proposal no ha avanzado al pasar el deadline → mover a `docs/archive/` con nota `STALE — archived due to inactivity since [date]`.
+- Si la proposal se vuelve obsoleta → archivar con nota `SUPERSEDED — replaced by [doc/path]`.
+- Si la proposal se implementa → mover contenido relevante a `CURRENT/` y archivar el original.
+
+### Excepciones
+
+- Documentos de contexto fundacional (domain-overview, event-classification) pueden tener review deadline anual en vez de semestral.
+- Documentos que describen sistemas externos estables mantenidos por el proveedor.

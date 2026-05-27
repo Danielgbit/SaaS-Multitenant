@@ -11,6 +11,8 @@ import { withRequestContext } from '@/lib/request-context'
 import { normalizeWebhook } from '@/lib/notifications/normalization'
 import { WasenderProvider } from '@/lib/notifications/channels/whatsapp/providers/wasender'
 import { N8NProvider } from '@/lib/notifications/channels/whatsapp/providers/n8n'
+import { webhookLimiter } from '@/lib/rate-limiter'
+import { getClientIp } from '@/lib/network/get-client-ip'
 import type { WhatsAppProvider } from '@/lib/notifications/channels/whatsapp/providers/types'
 import type { NotificationProviderType } from '@/types/notifications'
 
@@ -25,6 +27,9 @@ function detectProvider(
   return { provider: new N8NProvider({}), providerType: 'n8n' }
 }
 
+const WEBHOOK_IDEMPOTENCY = new Set<string>()
+const IDEMPOTENCY_MAX_SIZE = 5000
+
 export async function POST(request: Request) {
   return withRequestContext(undefined, async () => {
     const span = startSpan('webhook:notifications')
@@ -36,6 +41,34 @@ export async function POST(request: Request) {
 
     if (!body || Object.keys(body).length === 0) {
       return NextResponse.json({ error: 'Empty payload' }, { status: 400 })
+    }
+
+    // Rate limiting
+    const ip = getClientIp(request.headers)
+    const rateKey = `webhook:notifications:${ip}`
+    if (!webhookLimiter.check(rateKey).allowed) {
+      webhookLimiter.hit(rateKey, { ip, route: 'webhook:notifications' })
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
+    webhookLimiter.hit(rateKey, { ip, route: 'webhook:notifications' })
+
+    // Webhook secret fallback auth
+    const webhookSecret = process.env.WEBHOOK_SECRET
+    if (webhookSecret) {
+      const authHeader = request.headers.get('authorization')
+      if (authHeader !== `Bearer ${webhookSecret}`) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    }
+
+    // Idempotency: dedup por provider_message_id
+    const providerMsgId = (body as any).providerMessageId || (body as any).message_id
+    if (providerMsgId && WEBHOOK_IDEMPOTENCY.has(providerMsgId)) {
+      return NextResponse.json({ success: true, deduplicated: true })
+    }
+    if (providerMsgId) {
+      if (WEBHOOK_IDEMPOTENCY.size > IDEMPOTENCY_MAX_SIZE) WEBHOOK_IDEMPOTENCY.clear()
+      WEBHOOK_IDEMPOTENCY.add(providerMsgId)
     }
 
     await logNotificationEvent({

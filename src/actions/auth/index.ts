@@ -2,6 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
+import { authLimiter, registerLimiter } from '@/lib/rate-limiter'
+import { getClientIp } from '@/lib/network/get-client-ip'
 
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get('email') as string
@@ -10,6 +13,17 @@ export async function loginAction(prevState: any, formData: FormData) {
   if (!email || !password) {
     return { error: 'El email y la contraseña son requeridos' }
   }
+
+  const headerStore = await headers()
+  const ip = getClientIp(headerStore)
+
+  const rateKey = `login:${ip}`
+  const rateCheck = authLimiter.check(rateKey)
+  if (!rateCheck.allowed) {
+    authLimiter.hit(rateKey, { ip, route: 'login' })
+    return { error: 'Demasiados intentos. Intenta de nuevo en unos segundos.' }
+  }
+  authLimiter.hit(rateKey, { ip, route: 'login' })
 
   const supabase = await createClient()
 
@@ -36,6 +50,17 @@ export async function registerAction(prevState: any, formData: FormData) {
   if (!email || !password || !businessName || !fullName) {
     return { error: 'Todos los campos son requeridos' }
   }
+
+  const headerStore = await headers()
+  const ip = getClientIp(headerStore)
+
+  const rateKey = `register:${ip}`
+  const rateCheck = registerLimiter.check(rateKey)
+  if (!rateCheck.allowed) {
+    registerLimiter.hit(rateKey, { ip, route: 'register' })
+    return { error: 'Demasiados registros desde esta IP. Intenta más tarde.' }
+  }
+  registerLimiter.hit(rateKey, { ip, route: 'register' })
 
   const supabase = await createClient()
 
