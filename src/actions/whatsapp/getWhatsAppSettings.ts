@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use getProvider() from @/actions/notifications/providers
+ * This file is no longer used by any UI component.
+ */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'

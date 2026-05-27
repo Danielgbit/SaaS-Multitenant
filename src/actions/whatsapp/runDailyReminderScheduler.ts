@@ -1,14 +1,18 @@
+/**
+ * @deprecated V1 pathway
+ * TODO post-MVP: migrate to NotificationOrchestrator
+ */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import { sendWhatsAppReminder } from './sendWhatsAppReminder'
+import { getWhatsappProviderOrgs } from '@/lib/notifications/providers'
 
 export async function runDailyReminderScheduler(): Promise<{
   success: boolean
   processed: number
   sent: number
   failed: number
-  skippedV2: number
   errors: string[]
 }> {
   const supabase = await createClient()
@@ -16,7 +20,6 @@ export async function runDailyReminderScheduler(): Promise<{
   const errors: string[] = []
   let sent = 0
   let failed = 0
-  let skippedV2 = 0
 
   try {
     const tomorrow = new Date()
@@ -26,45 +29,25 @@ export async function runDailyReminderScheduler(): Promise<{
     const tomorrowEnd = new Date(tomorrow)
     tomorrowEnd.setHours(23, 59, 59, 999)
 
-    const { data: organizations, error: orgsError } = await supabase
-      .from('whatsapp_settings')
-      .select('organization_id, enabled, reminder_hours_before')
-      .eq('enabled', true)
+    const orgs = await getWhatsappProviderOrgs()
 
-    if (orgsError || !organizations || organizations.length === 0) {
-      return { success: true, processed: 0, sent: 0, failed: 0, skippedV2: 0, errors: [] }
+    if (orgs.length === 0) {
+      return { success: true, processed: 0, sent: 0, failed: 0, errors: [] }
     }
 
-    const orgIds = organizations.map((org: any) => org.organization_id)
-
-    const { data: settingsList } = await supabase
-      .from('booking_settings')
-      .select('organization_id, use_notification_v2')
-      .in('organization_id', orgIds)
-
-    const v2Orgs = new Set(
-      (settingsList || [])
-        .filter((s: any) => s.use_notification_v2 === true)
-        .map((s: any) => s.organization_id)
-    )
-
-    const v1OrgIds = orgIds.filter((id: string) => !v2Orgs.has(id))
-
-    if (v1OrgIds.length === 0) {
-      return { success: true, processed: 0, sent: 0, failed: 0, skippedV2: orgIds.length, errors: [] }
-    }
+    const orgIds = orgs.map((org) => org.organizationId)
 
     const { data: appointments, error: aptsError } = await supabase
       .from('appointments')
       .select('id')
-      .in('organization_id', v1OrgIds)
+      .in('organization_id', orgIds)
       .gte('start_time', tomorrow.toISOString())
       .lte('start_time', tomorrowEnd.toISOString())
       .in('status', ['pending', 'confirmed'])
 
     if (aptsError || !appointments) {
       errors.push('Error al buscar citas')
-      return { success: false, processed: 0, sent: 0, failed: 0, skippedV2: 0, errors }
+      return { success: false, processed: 0, sent: 0, failed: 0, errors }
     }
 
     for (const apt of appointments) {
@@ -82,12 +65,11 @@ export async function runDailyReminderScheduler(): Promise<{
       processed: appointments.length,
       sent,
       failed,
-      skippedV2,
       errors,
     }
   } catch (error) {
     console.error('Error in runDailyReminderScheduler:', error)
     errors.push(String(error))
-    return { success: false, processed: 0, sent, failed, skippedV2: 0, errors }
+    return { success: false, processed: 0, sent, failed, errors }
   }
 }

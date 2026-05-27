@@ -1,9 +1,13 @@
-/** @deprecated V1 direct send. Use V2 orchestrator. */
+/**
+ * @deprecated V1 pathway
+ * TODO post-MVP: migrate reminder dispatch to NotificationOrchestrator
+ */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { enqueueShadowSeed } from '@/lib/notifications/shadow/seeder'
+import { getWhatsappProvider } from '@/lib/notifications/providers'
 
 const SendReminderSchema = z.object({
   appointmentId: z.string().uuid(),
@@ -78,19 +82,13 @@ export async function sendWhatsAppReminder(
       return { success: false, error: 'Cliente sin número de teléfono' }
     }
 
-    const { data: settings, error: settingsError } = await supabase
-      .from('whatsapp_settings')
-      .select('*')
-      .eq('organization_id', apt.organization_id)
-      .single()
+    const provider = await getWhatsappProvider(apt.organization_id)
 
-    if (settingsError || !settings) {
-      return { success: false, error: 'Configuración de WhatsApp no encontrada' }
-    }
-
-    if (!settings.enabled || !settings.webhook_url) {
+    if (!provider?.webhookUrl) {
       return { success: false, error: 'WhatsApp no está habilitado' }
     }
+
+    const webhookUrl = provider.webhookUrl
 
     const appointmentDate = new Date(apt.start_time)
     const formattedDate = appointmentDate.toLocaleDateString('es-ES', {
@@ -125,14 +123,14 @@ export async function sendWhatsAppReminder(
       'Content-Type': 'application/json',
     }
 
-    if (settings.api_key) {
-      headers['Authorization'] = `Bearer ${settings.api_key}`
+    if (provider.apiKey) {
+      headers['Authorization'] = `Bearer ${provider.apiKey}`
     }
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-    const response = await fetch(settings.webhook_url, {
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers,
       body: JSON.stringify(messagePayload),
@@ -170,7 +168,7 @@ export async function sendWhatsAppReminder(
         responseStatus: response.status,
         errorMessage: n8nResponse,
         sentAt: new Date().toISOString(),
-        providerUrl: settings.webhook_url,
+        providerUrl: webhookUrl,
         channel: 'whatsapp',
       })
 
@@ -187,7 +185,7 @@ export async function sendWhatsAppReminder(
       status: 'sent',
       responseStatus: response.status,
       sentAt: new Date().toISOString(),
-      providerUrl: settings.webhook_url,
+      providerUrl: webhookUrl,
       channel: 'whatsapp',
     })
 

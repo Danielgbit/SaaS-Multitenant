@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { getWhatsappProvider } from '@/lib/notifications/providers'
 
 // =============================================================================
 // SCHEMA DE VALIDACIÓN
@@ -298,13 +299,9 @@ export async function cancelPublicBooking(
     const clientData = appointment.clients
 
     // WhatsApp
-    const { data: whatsappSettings } = await supabase
-      .from('whatsapp_settings')
-      .select('enabled')
-      .eq('organization_id', organization.id)
-      .single()
+    const provider = await getWhatsappProvider(organization.id)
 
-    if (whatsappSettings?.enabled && clientData?.phone) {
+    if (provider && clientData?.phone) {
       const { queueWhatsAppMessage } = await import('@/actions/whatsapp/whatsApp')
       await queueWhatsAppMessage({
         organizationId: organization.id,

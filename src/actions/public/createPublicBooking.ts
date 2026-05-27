@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { generateSlots } from '@/services/slots/generateSlots'
 import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
+import { getWhatsappProvider } from '@/lib/notifications/providers'
 
 // =============================================================================
 // SCHEMA DE VALIDACIÓN
@@ -227,13 +228,9 @@ export async function createPublicBooking(
 
   // 10. Encolar mensaje de WhatsApp si está configurado
   try {
-    const { data: whatsappSettings } = await supabase
-      .from('whatsapp_settings')
-      .select('enabled')
-      .eq('organization_id', organizationId)
-      .single()
+    const provider = await getWhatsappProvider(organizationId)
 
-    if (whatsappSettings?.enabled && clientPhone) {
+    if (provider && clientPhone) {
       await queueWhatsAppMessage({
         organizationId,
         appointmentId: appointment.id,

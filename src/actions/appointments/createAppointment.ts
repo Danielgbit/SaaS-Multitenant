@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { generateConfirmationToken } from '@/lib/appointments/confirmation-links/tokens'
 import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
+import { getWhatsappProvider } from '@/lib/notifications/providers'
 import {
   validateCreateInput,
   checkCreatePreconditions,
@@ -63,7 +64,7 @@ export async function createAppointment(
     supabase.from('clients').select('name, phone, email').eq('id', client_id).single().then(r => r.data),
     supabase.from('employees').select('name').eq('id', employee_id).single().then(r => r.data),
     supabase.from('organizations').select('name, phone, address').eq('id', organization_id).single().then(r => r.data),
-    supabase.from('whatsapp_settings').select('enabled').eq('organization_id', organization_id).single().then((r: any) => r.data),
+    getWhatsappProvider(organization_id),
     supabase.from('email_settings').select('enabled, send_confirmation').eq('organization_id', organization_id).single().then((r: any) => r.data),
     supabase.from('booking_settings').select('timezone, reminder_hours_before, use_notification_v2').eq('organization_id', organization_id).single().then((r: any) => r.data),
   ])
@@ -101,7 +102,7 @@ export async function createAppointment(
     }
   } else {
     try {
-      if (whatsappSettings?.enabled && clientData?.phone) {
+      if (whatsappSettings && clientData?.phone) {
         await queueWhatsAppMessage({
           organizationId: organization_id,
           appointmentId: appointment.id,

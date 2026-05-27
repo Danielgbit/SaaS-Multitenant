@@ -7,6 +7,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { enqueueShadowSeed } from '@/lib/notifications/shadow/seeder'
+import { getWhatsappProvider } from '@/lib/notifications/providers'
 
 const WHATSAPP_TEMPLATES = {
   appointment_reminder: {
@@ -99,21 +100,15 @@ export async function queueWhatsAppMessage(
       })
     }
 
-    const { data: settings } = await supabase
-      .from('integrations')
-      .select('config')
-      .eq('organization_id', organizationId)
-      .eq('type', 'whatsapp')
-      .single()
+    const provider = await getWhatsappProvider(organizationId)
 
-    const config = (settings?.config as Record<string, unknown>) || {}
-    const webhookUrl = config.webhook_url as string
-    const apiKey = config.api_key as string
-
-    if (!webhookUrl) {
+    if (!provider?.webhookUrl) {
       console.error('[queueWhatsAppMessage] No webhook URL configured for org', organizationId)
       return { success: false, error: 'WhatsApp no configurado' }
     }
+
+    const webhookUrl = provider.webhookUrl
+    const apiKey = provider.apiKey
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
