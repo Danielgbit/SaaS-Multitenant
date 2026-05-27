@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { calculateCommission } from './calculateCommission'
 import { getPendingLoans } from './getPendingLoans'
 import type { PayrollReceipt, PeriodType } from '@/types/payroll'
+import { appLog } from '@/lib/app-logger'
 
 const GenerateReceiptSchema = z.object({
   employee_id: z.string().uuid('ID de empleado inválido'),
@@ -197,7 +198,14 @@ export async function generatePayrollReceipt(input: {
       .insert(periodCommissions)
 
     if (pcError) {
-      console.error('[generatePayrollReceipt] Error inserting period_commissions:', pcError.message)
+      appLog('error', 'period_commissions insert failed', {
+        flow: 'generatePayrollReceipt',
+        operation: 'insert_period_commissions',
+        organizationId,
+        employeeId: input.employee_id,
+        payrollItemId: payrollItem.id,
+        error: pcError.message,
+      })
     }
   }
 
@@ -212,7 +220,15 @@ export async function generatePayrollReceipt(input: {
       })
 
     if (pilError) {
-      console.error('[generatePayrollReceipt] Error inserting payroll_item_loans:', pilError.message)
+      appLog('error', 'payroll_item_loans insert failed', {
+        flow: 'generatePayrollReceipt',
+        operation: 'insert_payroll_item_loans',
+        organizationId,
+        employeeId: input.employee_id,
+        payrollItemId: payrollItem.id,
+        loanId: loanApply.loan_id,
+        error: pilError.message,
+      })
     }
 
     const { data: loan } = await supabase

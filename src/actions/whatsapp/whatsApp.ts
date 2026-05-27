@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { enqueueShadowSeed } from '@/lib/notifications/shadow/seeder'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
+import { appLog } from '@/lib/app-logger'
 
 const WHATSAPP_TEMPLATES = {
   appointment_reminder: {
@@ -103,7 +104,11 @@ export async function queueWhatsAppMessage(
     const provider = await getWhatsappProvider(organizationId)
 
     if (!provider?.webhookUrl) {
-      console.error('[queueWhatsAppMessage] No webhook URL configured for org', organizationId)
+      appLog('error', 'no webhook URL configured', {
+        flow: 'queueWhatsAppMessage',
+        operation: 'config_check',
+        organizationId,
+      })
       return { success: false, error: 'WhatsApp no configurado' }
     }
 
@@ -152,7 +157,13 @@ export async function queueWhatsAppMessage(
       })
 
     if (!response.ok) {
-      console.error('[queueWhatsAppMessage] N8N webhook failed:', n8nResponse)
+      appLog('error', 'n8n webhook failed', {
+        flow: 'queueWhatsAppMessage',
+        operation: 'webhook_post',
+        organizationId,
+        status: response.status,
+        response: n8nResponse,
+      })
       return { success: false, error: 'Error al enviar mensaje' }
     }
 
@@ -172,7 +183,12 @@ export async function queueWhatsAppMessage(
 
     return { success: true }
   } catch (error) {
-    console.error('Error in queueWhatsAppMessage:', error)
+    appLog('error', 'unexpected error', {
+      flow: 'queueWhatsAppMessage',
+      operation: 'execute',
+      organizationId,
+      error,
+    })
     return { success: false, error: 'Error inesperado' }
   }
 }

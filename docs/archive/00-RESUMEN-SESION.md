@@ -1,3 +1,8 @@
+> **STATUS: LEGACY / ARCHIVED**
+> Este documento se mantiene como referencia histórica.
+> Su contenido puede estar desactualizado. Ver docs/INDEX.md para la documentación vigente.
+> ---
+
 # Resumen de SesiÃ³n â€” Arquitectura del Dominio de Citas v2.0
 
 **Fecha:** 2026-05-16  
@@ -315,3 +320,4 @@ FASE 5: Resilience
 ---
 
 **Fin del resumen**
+

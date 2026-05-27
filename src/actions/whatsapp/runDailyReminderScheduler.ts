@@ -7,6 +7,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { sendWhatsAppReminder } from './sendWhatsAppReminder'
 import { getWhatsappProviderOrgs } from '@/lib/notifications/providers'
+import { appLog } from '@/lib/app-logger'
 
 export async function runDailyReminderScheduler(): Promise<{
   success: boolean
@@ -20,6 +21,11 @@ export async function runDailyReminderScheduler(): Promise<{
   const errors: string[] = []
   let sent = 0
   let failed = 0
+
+  appLog('info', 'scheduler started', {
+    flow: 'runDailyReminderScheduler',
+    operation: 'start',
+  })
 
   try {
     const tomorrow = new Date()
@@ -60,15 +66,32 @@ export async function runDailyReminderScheduler(): Promise<{
       }
     }
 
-    return {
+    const result = {
       success: true,
       processed: appointments.length,
       sent,
       failed,
       errors,
     }
+
+    appLog('info', 'scheduler completed', {
+      flow: 'runDailyReminderScheduler',
+      operation: 'complete',
+      processed: result.processed,
+      sent: result.sent,
+      failed: result.failed,
+    })
+
+    return result
   } catch (error) {
-    console.error('Error in runDailyReminderScheduler:', error)
+    appLog('error', 'scheduler failed', {
+      flow: 'runDailyReminderScheduler',
+      operation: 'execute',
+      processed,
+      sent,
+      failed,
+      error,
+    })
     errors.push(String(error))
     return { success: false, processed: 0, sent, failed, errors }
   }

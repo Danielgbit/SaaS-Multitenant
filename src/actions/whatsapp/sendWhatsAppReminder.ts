@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { enqueueShadowSeed } from '@/lib/notifications/shadow/seeder'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
+import { appLog } from '@/lib/app-logger'
 
 const SendReminderSchema = z.object({
   appointmentId: z.string().uuid(),
@@ -72,7 +73,13 @@ export async function sendWhatsAppReminder(
       .single()
 
     if (appointmentError || !appointment) {
-      console.error('Error fetching appointment:', appointmentError)
+      appLog('error', 'appointment fetch failed', {
+        flow: 'sendWhatsAppReminder',
+        operation: 'fetch_appointment',
+        appointmentId,
+        organizationId: appointment?.organization_id || null,
+        error: appointmentError,
+      })
       return { success: false, error: 'Cita no encontrada' }
     }
 
@@ -155,7 +162,14 @@ export async function sendWhatsAppReminder(
       })
 
     if (!response.ok) {
-      console.error('N8N webhook failed:', n8nResponse)
+      appLog('error', 'n8n webhook failed', {
+        flow: 'sendWhatsAppReminder',
+        operation: 'webhook_post',
+        appointmentId: apt.id,
+        organizationId: apt.organization_id,
+        status: response.status,
+        response: n8nResponse,
+      })
 
       await enqueueShadowSeed({
         appointmentId: apt.id,
@@ -191,7 +205,12 @@ export async function sendWhatsAppReminder(
 
     return { success: true }
   } catch (error) {
-    console.error('Error in sendWhatsAppReminder:', error)
+    appLog('error', 'unexpected error', {
+      flow: 'sendWhatsAppReminder',
+      operation: 'execute',
+      appointmentId,
+      error,
+    })
     return { success: false, error: 'Error inesperado' }
   }
 }

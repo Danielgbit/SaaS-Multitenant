@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
+import { appLog } from '@/lib/app-logger'
 
 // =============================================================================
 // SCHEMA DE VALIDACIÓN
@@ -276,7 +277,13 @@ export async function cancelPublicBooking(
     .eq('id', appointment.id)
 
   if (updateError) {
-    console.error('Error cancelling appointment:', updateError)
+    appLog('error', 'appointment cancel update failed', {
+      flow: 'cancelPublicBooking',
+      operation: 'update_status',
+      organizationId: organization.id,
+      appointmentId: appointment.id,
+      error: updateError,
+    })
     return {
       error: 'No se pudo cancelar la reserva. Intenta de nuevo.',
       errorType: 'unknown',
@@ -357,7 +364,13 @@ export async function cancelPublicBooking(
       }
     }
   } catch (notificationError) {
-    console.error('Error sending cancellation notifications:', notificationError)
+    appLog('warn', 'cancellation notification dispatch failed', {
+      flow: 'cancelPublicBooking',
+      operation: 'notify',
+      organizationId: organization.id,
+      appointmentId: appointment.id,
+      error: notificationError,
+    })
   }
 
   // 12. Revalidar

@@ -82,7 +82,7 @@ Plataforma SaaS de gestión integral para negocios de bienestar que combina:
 #### Configuración
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| API Key Resend | ✅ | `re_gZ7gfQFV_JkRNYTH9LMq9Sty5eqsdkcTX` |
+| API Key Resend | ✅ | Configurada en `.env.local` |
 | Dominio verificado | ✅ | `focusidestudio.com` verificado en Resend |
 | Variable `RESEND_FROM_EMAIL` | ✅ | `noreply@focusidestudio.com` |
 
@@ -153,7 +153,7 @@ Los roles ahora usan terminología en español claro:
 #### 1. Email de Invitacion - API Key Resend Actualizado
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| API Key Resend | ✅ | `re_NdCwvRUB_99z6BEWAPpdxQcbnfd1dmTCg` (nuevo) |
+| API Key Resend | ✅ | Configurada en `.env.local` |
 | Dominio verificado | ✅ | `focusidestudio.com` |
 | Variable `RESEND_FROM_EMAIL` | ✅ | `noreply@focusidestudio.com` |
 

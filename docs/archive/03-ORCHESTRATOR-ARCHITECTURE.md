@@ -1,3 +1,8 @@
+> **STATUS: LEGACY / ARCHIVED**
+> Este documento se mantiene como referencia histórica.
+> Su contenido puede estar desactualizado. Ver docs/INDEX.md para la documentación vigente.
+> ---
+
 # ORCHESTRATOR ARCHITECTURE â€” Appointments v2.0
 
 **Document:** 03-ORCHESTRATOR-ARCHITECTURE.md  

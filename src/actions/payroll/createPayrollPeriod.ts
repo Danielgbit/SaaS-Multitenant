@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { calculateEmployeePayroll } from './calculateEmployeePayroll'
 import { getPendingLoans } from './getPendingLoans'
+import { appLog } from '@/lib/app-logger'
 
 const CreatePeriodSchema = z.object({
   organization_id: z.string().uuid(),
@@ -177,7 +178,14 @@ export async function createPayrollPeriod(input: {
     })
 
     if (!calcResult.success || !calcResult.data) {
-      console.error(`Error calculating payroll for employee ${emp.id}:`, calcResult.error)
+      appLog('warn', 'employee calculation failed, skipping', {
+        flow: 'createPayrollPeriod',
+        operation: 'calculate_employee',
+        organizationId: input.organization_id,
+        employeeId: emp.id,
+        period: input.period,
+        error: calcResult.error,
+      })
       continue
     }
 
@@ -220,7 +228,14 @@ export async function createPayrollPeriod(input: {
       .insert(payrollItems)
 
     if (itemsError) {
-      console.error('Error inserting payroll items:', itemsError)
+      appLog('error', 'payroll_items insert failed', {
+        flow: 'createPayrollPeriod',
+        operation: 'insert_items',
+        organizationId: input.organization_id,
+        periodId: periodRecord?.id,
+        itemsCount: payrollItems.length,
+        error: itemsError,
+      })
     }
 
     // Update period totals

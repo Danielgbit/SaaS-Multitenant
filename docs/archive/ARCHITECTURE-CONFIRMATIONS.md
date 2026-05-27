@@ -1,3 +1,8 @@
+> **STATUS: LEGACY / ARCHIVED**
+> Este documento se mantiene como referencia hist�rica.
+> Su contenido puede estar desactualizado. Ver docs/INDEX.md para la documentaci�n vigente.
+> ---
+
 # Arquitectura del Sistema de Confirmaciones - Prügressy
 
 **Proyecto:** Prügressy SaaS  
@@ -660,3 +665,4 @@ SUPABASE_SERVICE_ROLE_KEY=
 *Documento creado: 19 Abril 2026*  
 *Autor: Arquitectura SaaS Prügressy*  
 *Versión: 1.0 - Listo para implementación*
+

@@ -6,6 +6,7 @@ import { generateConfirmationToken } from '@/lib/appointments/confirmation-links
 import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
+import { appLog } from '@/lib/app-logger'
 import {
   validateCreateInput,
   checkCreatePreconditions,
@@ -98,7 +99,16 @@ export async function createAppointment(
         booking_settings: bookingSettingsData || undefined,
       } as any, { confirmationLink })
     } catch (orchestratorError) {
-      console.error('[createAppointment] Orchestrator error:', orchestratorError)
+      appLog('error', 'orchestrator failed', {
+        flow: 'createAppointment',
+        operation: 'orchestrate',
+        organization_id,
+        employee_id,
+        client_id,
+        service_id,
+        start_time,
+        error: orchestratorError,
+      })
     }
   } else {
     try {
@@ -136,7 +146,13 @@ export async function createAppointment(
         })
       }
     } catch (notificationError) {
-      console.error('Error sending notifications:', notificationError)
+      appLog('warn', 'notification dispatch failed', {
+        flow: 'createAppointment',
+        operation: 'notify',
+        organization_id,
+        appointment_id: appointment?.id,
+        error: notificationError,
+      })
     }
   }
 
@@ -240,7 +256,13 @@ export async function updateAppointmentStatus(
         }
       }
     } catch (emailError) {
-      console.error('Error sending status email:', emailError)
+      appLog('warn', 'status email dispatch failed', {
+        flow: 'updateAppointmentStatus',
+        operation: 'send_email',
+        organization_id: preconditions.data.organization_id,
+        appointment_id,
+        error: emailError,
+      })
     }
   }
 

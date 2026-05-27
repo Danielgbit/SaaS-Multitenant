@@ -8,6 +8,7 @@ import { generateSlots } from '@/services/slots/generateSlots'
 import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
+import { appLog } from '@/lib/app-logger'
 
 // =============================================================================
 // SCHEMA DE VALIDACIÓN
@@ -83,7 +84,13 @@ async function findOrCreateClient(
     .single()
 
   if (insertError) {
-    console.error('Error creating client:', insertError)
+    appLog('error', 'client creation failed', {
+      flow: 'createPublicBooking',
+      operation: 'find_or_create_client',
+      organizationId,
+      hasClientPhone: Boolean(phone),
+      error: insertError,
+    })
     throw new Error('Error al registrar cliente')
   }
 
@@ -181,7 +188,15 @@ export async function createPublicBooking(
       return { error: 'El horario ya no está disponible. Por favor selecciona otro.' }
     }
   } catch (genError) {
-    console.error('Error verifying slot availability:', genError)
+    appLog('error', 'slot verification failed', {
+      flow: 'createPublicBooking',
+      operation: 'verify_slot',
+      organizationId,
+      serviceId,
+      employeeId,
+      startTime: startDate?.toISOString(),
+      error: genError,
+    })
     return { error: 'Error al verificar disponibilidad.' }
   }
 
@@ -214,7 +229,16 @@ export async function createPublicBooking(
     .single()
 
   if (insertError) {
-    console.error('Error creating appointment:', insertError)
+    appLog('error', 'appointment insert failed', {
+      flow: 'createPublicBooking',
+      operation: 'insert_appointment',
+      organizationId,
+      serviceId,
+      employeeId,
+      clientId,
+      startTime,
+      error: insertError,
+    })
     return { error: 'Error al crear la cita. Intenta de nuevo.' }
   }
 
@@ -291,7 +315,13 @@ export async function createPublicBooking(
       }
     }
   } catch (notificationError) {
-    console.error('Error sending notifications:', notificationError)
+    appLog('warn', 'notification dispatch failed', {
+      flow: 'createPublicBooking',
+      operation: 'notify',
+      organizationId,
+      appointmentId: appointment?.id,
+      error: notificationError,
+    })
   }
 
   // 11. Revalidar paths
@@ -325,7 +355,12 @@ export async function getPublicServices(organizationSlug: string) {
     .order('name')
 
   if (error) {
-    console.error('Error fetching services:', error)
+    appLog('error', 'services fetch failed', {
+      flow: 'getPublicServices',
+      operation: 'fetch',
+      organizationSlug,
+      error,
+    })
     return { error: 'Error al cargar servicios' }
   }
 
@@ -354,7 +389,13 @@ export async function getPublicEmployees(organizationSlug: string, serviceId: st
     .order('name')
 
   if (error) {
-    console.error('Error fetching employees:', error)
+    appLog('error', 'employees fetch failed', {
+      flow: 'getPublicEmployees',
+      operation: 'fetch',
+      organizationSlug,
+      serviceId,
+      error,
+    })
     return { error: 'Error al cargar profesionales' }
   }
 

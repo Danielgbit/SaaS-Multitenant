@@ -355,7 +355,7 @@ createChannel(channel: 'sms', config): null  // No implementado
 
 | Variable | Valor |
 |----------|-------|
-| `CRON_SECRET` | `prugressy_cron_secret_2026` |
+| `CRON_SECRET` | `[SECRETO - configurado en .env.local]` |
 | Batch size | 50 items por ejecución |
 | Processing timeout | 10 minutos |
 | Rate limit window | 60 segundos |
@@ -813,7 +813,7 @@ El cliente responde "confirmar" al mensaje de WhatsApp
 |----------|-------------|---------|
 | `NEXT_PUBLIC_APP_URL` | URL base de la app para links en templates | `https://app.prugressy.com` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role para cron y webhook (bypass RLS) | `eyJ...` |
-| `CRON_SECRET` | Token de autenticación para el endpoint cron | `prugressy_cron_secret_2026` |
+| `CRON_SECRET` | Token de autenticación para el endpoint cron | `[configurado en .env.local]` |
 
 ### Opcionales
 
@@ -971,7 +971,7 @@ src/
 
 ```http
 POST /api/cron/process-notifications
-Authorization: Bearer prugressy_cron_secret_2026
+Authorization: Bearer <CRON_SECRET>
 ```
 
 **Response:**

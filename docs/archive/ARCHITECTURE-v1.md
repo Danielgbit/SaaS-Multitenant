@@ -1,3 +1,8 @@
+> **STATUS: LEGACY / ARCHIVED**
+> Este documento se mantiene como referencia hist�rica.
+> Su contenido puede estar desactualizado. Ver docs/INDEX.md para la documentaci�n vigente.
+> ---
+
 # Arquitectura del Sistema - SaaS Prügressy
 
 ## Visión General
@@ -467,3 +472,4 @@ Empleado marca "Listo ✓" → Supabase Realtime → Asistente recibe notificaci
 - Tests unitarios y de integración
 - PWA support
 - Multi-language (i18n)
+

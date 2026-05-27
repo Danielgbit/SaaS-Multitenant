@@ -12,7 +12,9 @@
     "guard:verbose": "tsx scripts/architecture-guard.ts --verbose",
     "test": "vitest run",
     "test:watch": "vitest",
-    "analyze": "ANALYZE=true next build --webpack"
+    "analyze": "ANALYZE=true next build --webpack",
+    "docs:gen": "tsx scripts/doc-gen.ts",
+    "docs:check": "tsx scripts/doc-gen.ts --validate"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
