@@ -66,7 +66,6 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
   const [filter, setFilter] = useState<FilterStatus>('pending')
   const [processing, setProcessing] = useState<string | null>(null)
   const [showSuccess, setShowSuccess] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [payingConf, setPayingConf] = useState<any | null>(null)
   const COLORS = useThemeColors()
