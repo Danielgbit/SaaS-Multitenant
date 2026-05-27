@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/notifications/logger'
 import { runShadowBatch } from '@/lib/notifications/shadow/runner'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { withRequestContext } from '@/lib/request-context'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -41,7 +42,8 @@ async function sendHeartbeat(
 }
 
 export async function POST(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
+  return withRequestContext(undefined, async () => {
+    const authHeader = request.headers.get('authorization')
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return NextResponse.json(
@@ -107,7 +109,8 @@ export async function POST(request: NextRequest) {
       { error: 'Shadow worker failed', details: error.message },
       { status: 500 }
     )
-  }
+    }
+  })
 }
 
 export async function GET() {

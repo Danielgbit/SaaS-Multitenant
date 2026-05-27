@@ -10,6 +10,7 @@ import { classifyError, calculateBackoff } from '@/lib/notifications/retry-strat
 import { logOutboundMessage, logOutboundAttempt } from '@/lib/notifications/messages'
 import { normalizeSendResponse } from '@/lib/notifications/normalization'
 import { processCriticalNotificationAlerts } from '@/actions/admin/processCriticalNotificationAlerts'
+import { withRequestContext } from '@/lib/request-context'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -533,7 +534,8 @@ async function sendHeartbeat(
 }
 
 export async function POST(request: Request) {
-  try {
+  return withRequestContext(undefined, async () => {
+    try {
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
 
@@ -591,7 +593,8 @@ export async function POST(request: Request) {
       success: false,
       error: 'Internal server error',
     }, { status: 500 })
-  }
+    }
+  })
 }
 
 export async function GET() {

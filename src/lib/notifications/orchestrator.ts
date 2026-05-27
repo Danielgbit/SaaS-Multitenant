@@ -7,7 +7,7 @@ import {
   type TemplateType,
   generateIdempotencyKey,
 } from '@/types/notifications'
-import { randomUUID } from 'crypto'
+import { getRequestId } from '@/lib/request-context'
 import { getOrCreateConversation } from './conversations'
 import { logNotificationEvent } from './event-timeline'
 
@@ -139,7 +139,7 @@ export async function NotificationOrchestrator(
   links?: { confirmationLink?: string; cancellationLink?: string; rescheduleLink?: string }
 ): Promise<OrchestratorResult> {
   const supabase = await createClient()
-  const traceId = randomUUID()
+  const traceId = getRequestId()
   const errors: string[] = []
   let queued = 0
 

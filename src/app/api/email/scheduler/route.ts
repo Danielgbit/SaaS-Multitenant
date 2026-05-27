@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { runEmailReminderScheduler } from '@/actions/email/runEmailReminderScheduler'
+import { withRequestContext } from '@/lib/request-context'
+
+export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
+  return withRequestContext(undefined, async () => {
   try {
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
@@ -29,7 +33,8 @@ export async function POST(request: Request) {
       success: false,
       error: 'Internal server error',
     }, { status: 500 })
-  }
+    }
+  })
 }
 
 export async function GET() {

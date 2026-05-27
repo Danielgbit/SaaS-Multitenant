@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { runCheckReminders } from '@/actions/cron/runCheckReminders'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { withRequestContext } from '@/lib/request-context'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 async function sendHeartbeat(supabase: any, workerName: string, status: string, opts: {
   processedCount?: number
@@ -26,48 +27,50 @@ async function sendHeartbeat(supabase: any, workerName: string, status: string, 
 }
 
 export async function POST(request: Request) {
-  try {
-    const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET
+  return withRequestContext(undefined, async () => {
+    try {
+      const authHeader = request.headers.get('authorization')
+      const cronSecret = process.env.CRON_SECRET
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+      if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
 
-    const supabase = await createServiceRoleClient()
+      const supabase = await createServiceRoleClient()
 
-    await sendHeartbeat(supabase, 'cron-reminders', 'healthy')
+      await sendHeartbeat(supabase, 'cron-reminders', 'healthy')
 
-    const result = await runCheckReminders(supabase)
+      const result = await runCheckReminders(supabase)
 
-    if (!result.success) {
-      await sendHeartbeat(supabase, 'cron-reminders', 'error', { lastError: result.errors?.[0] })
+      if (!result.success) {
+        await sendHeartbeat(supabase, 'cron-reminders', 'error', { lastError: result.errors?.[0] })
+        return NextResponse.json({
+          message: 'Check reminders failed',
+          ...result,
+        }, { status: 500 })
+      }
+
+      await sendHeartbeat(supabase, 'cron-reminders', 'healthy', {
+        processedCount: result.processed || 0,
+      })
+
       return NextResponse.json({
-        message: 'Check reminders failed',
+        message: `Processed: ${result.processed} (reminders: ${result.reminders}, alerts: ${result.alerts}, autoCompleted: ${result.autoCompleted})`,
         ...result,
+      })
+    } catch (error) {
+      console.error('Check reminders cron error:', error)
+      const errMsg = error instanceof Error ? error.message : String(error)
+      try {
+        const supabase = await createServiceRoleClient()
+        await sendHeartbeat(supabase, 'cron-reminders', 'error', { lastError: errMsg })
+      } catch {}
+      return NextResponse.json({
+        success: false,
+        error: 'Internal server error',
       }, { status: 500 })
     }
-
-    await sendHeartbeat(supabase, 'cron-reminders', 'healthy', {
-      processedCount: result.processed || 0,
-    })
-
-    return NextResponse.json({
-      message: `Processed: ${result.processed} (reminders: ${result.reminders}, alerts: ${result.alerts}, autoCompleted: ${result.autoCompleted})`,
-      ...result,
-    })
-  } catch (error) {
-    console.error('Check reminders cron error:', error)
-    const errMsg = error instanceof Error ? error.message : String(error)
-    try {
-      const supabase = await createServiceRoleClient()
-      await sendHeartbeat(supabase, 'cron-reminders', 'error', { lastError: errMsg })
-    } catch {}
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-    }, { status: 500 })
-  }
+  })
 }
 
 export async function GET() {

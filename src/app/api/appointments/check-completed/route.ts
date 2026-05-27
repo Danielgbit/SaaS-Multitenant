@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { withRequestContext } from '@/lib/request-context'
+
+export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
+  return withRequestContext(undefined, async () => {
   try {
     const { searchParams } = new URL(request.url)
     const secret = searchParams.get('secret')
@@ -103,7 +107,8 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('[check-completed] Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
+    }
+  })
 }
 
 export const dynamic = 'force-dynamic'

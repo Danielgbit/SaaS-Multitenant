@@ -1,3 +1,5 @@
+import { getRequestId } from '@/lib/request-context'
+
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 export interface LogMeta {
@@ -33,7 +35,7 @@ function log(level: LogLevel, message: string, meta?: LogMeta): void {
       service: 'notifications',
       level,
       message,
-      traceId: meta?.traceId ?? crypto.randomUUID(),
+      traceId: meta?.traceId ?? getRequestId(),
       ...(meta ? sanitizeMeta(meta) : {}),
     })
     switch (level) {

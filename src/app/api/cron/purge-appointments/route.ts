@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { withRequestContext } from '@/lib/request-context'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 async function sendHeartbeat(
   supabase: any,
@@ -55,9 +56,10 @@ async function runPurgeForOrganization(
 }
 
 export async function POST(request: Request) {
-  const startedAt = Date.now()
+  return withRequestContext(undefined, async () => {
+    const startedAt = Date.now()
 
-  try {
+    try {
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
 
@@ -138,7 +140,8 @@ export async function POST(request: Request) {
       success: false,
       error: 'Internal server error',
     }, { status: 500 })
-  }
+    }
+  })
 }
 
 export async function GET() {

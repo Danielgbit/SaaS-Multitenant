@@ -1,3 +1,5 @@
+import { getRequestId } from './request-context'
+
 type LogLevel = 'info' | 'warn' | 'error'
 
 function normalizeMetadata(
@@ -32,6 +34,7 @@ export function appLog(
     timestamp: new Date().toISOString(),
     level,
     message,
+    requestId: getRequestId(),
     ...normalizeMetadata(metadata),
   }
 

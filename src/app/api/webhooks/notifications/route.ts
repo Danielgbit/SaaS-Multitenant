@@ -7,6 +7,7 @@ import { processInboundReply } from '@/lib/notifications/processor'
 import { logNotificationEvent } from '@/lib/notifications/event-timeline'
 import { logInboundMessage } from '@/lib/notifications/messages'
 import { startSpan, endSpan } from '@/lib/notifications/observability'
+import { withRequestContext } from '@/lib/request-context'
 import { normalizeWebhook } from '@/lib/notifications/normalization'
 import { WasenderProvider } from '@/lib/notifications/channels/whatsapp/providers/wasender'
 import { N8NProvider } from '@/lib/notifications/channels/whatsapp/providers/n8n'
@@ -25,7 +26,8 @@ function detectProvider(
 }
 
 export async function POST(request: Request) {
-  const span = startSpan('webhook:notifications')
+  return withRequestContext(undefined, async () => {
+    const span = startSpan('webhook:notifications')
   const rawBody = await request.text()
   const supabase = await createServiceRoleClient()
 
@@ -233,7 +235,8 @@ export async function POST(request: Request) {
       { success: false, error: 'Internal server error', traceId: span.traceId },
       { status: 500 }
     )
-  }
+    }
+  })
 }
 
 export async function GET() {
