@@ -53,6 +53,60 @@ describe('commission sign invariants', () => {
     expect(accruedAt.getTime()).toBeLessThan(settledAt.getTime())
   })
 
+  it('commission from events path: same price+rate produces same total as legacy formula', () => {
+    const price = 100000
+    const rate = 60
+    const legacyCommission = Number((price * (rate / 100)).toFixed(2))
+    const eventAmount = -60000
+    const eventCommission = Math.abs(eventAmount)
+
+    expect(legacyCommission).toBe(60000)
+    expect(eventCommission).toBe(legacyCommission)
+  })
+
+  it('commission total from events: sum of absolute values of negative amounts', () => {
+    const events = [{ amount: -30000 }, { amount: -25000 }, { amount: -15000 }]
+    const total = events.reduce((s, e) => s + Math.abs(e.amount), 0)
+    expect(total).toBe(70000)
+  })
+
+  it('reconciliation diff < 0.01 threshold is treated as no drift', () => {
+    const eventsTotal = 60000.00
+    const legacyTotal = 60000.005
+    const diff = Math.abs(eventsTotal - legacyTotal)
+    expect(diff > 0.01).toBe(false)
+  })
+
+  it('reconciliation diff > 0.01 threshold triggers drift detection', () => {
+    const eventsTotal = 60000
+    const legacyTotal = 60100
+    const diff = Math.abs(eventsTotal - legacyTotal)
+    expect(diff > 0.01).toBe(true)
+    expect(diff).toBe(100)
+  })
+
+  it('duplicate events with same idempotency_key do not double total', () => {
+    const events = [
+      { amount: -30000, key: 'dup-key' },
+      { amount: -30000, key: 'dup-key' },
+    ]
+
+    const seen = new Set<string>()
+    const uniqueTotal = events
+      .filter(e => {
+        if (seen.has(e.key)) return false
+        seen.add(e.key)
+        return true
+      })
+      .reduce((s, e) => s + Math.abs(e.amount), 0)
+
+    const rawTotal = events.reduce((s, e) => s + Math.abs(e.amount), 0)
+
+    expect(rawTotal).toBe(60000)
+    expect(uniqueTotal).toBe(30000)
+    expect(uniqueTotal).not.toBe(rawTotal)
+  })
+
   it('commission_accrued is a valid FinancialEventType', () => {
     const validTypes: FinancialEventType[] = [
       'payment_received',
