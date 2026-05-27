@@ -138,10 +138,7 @@ export function EmployeeActionMenu({
   }, [isOpen, onClose])
 
   useEffect(() => {
-    if (!isOpen || !position || !menuRef.current) {
-      setIsPositioned(false)
-      return
-    }
+    if (!isOpen || !position || !menuRef.current) return
 
     const timer = setTimeout(() => {
       if (menuRef.current) {
