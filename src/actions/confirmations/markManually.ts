@@ -148,6 +148,33 @@ export async function markManually(
     // Don't return error - the appointment was already updated
   }
 
+  // Auto-registrar transacción financiera
+  try {
+    const apt = appointment as unknown as { payment_method?: string; client_id?: string }
+    const { data: account } = await supabase
+      .from('client_accounts')
+      .select('id, balance')
+      .eq('client_id', apt.client_id!)
+      .single()
+
+    if (account) {
+      const balance = account.balance || 0
+      await supabase.from('client_account_transactions').insert({
+        account_id: account.id,
+        organization_id: appointment.organization_id,
+        transaction_type: 'payment',
+        amount: currentPrice,
+        balance_after: balance + currentPrice,
+        payment_method: apt.payment_method || 'cash',
+        appointment_id: appointmentId,
+        notes: reason ? `Marcado manual: ${reason}` : 'Marcado manual',
+        created_by: user.id,
+      }).select('id')
+    }
+  } catch (e) {
+    console.error('[markManually] financial auto-add error:', e)
+  }
+
   // Send service_ready notification to staff
   const { data: orgMembers, error: membersError } = await supabase
     .from('organization_members')

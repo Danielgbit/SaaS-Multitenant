@@ -67,7 +67,7 @@ export async function recordAppointmentPayment(input: RecordPaymentInput) {
   if (txError) return { error: 'Error al registrar pago' }
 
   // Update appointment payment_status (trigger handles the rest)
-  await supabase
+  await (supabase as any)
     .from('appointments')
     .update({ payment_status: 'paid' })
     .eq('id', input.appointmentId)

@@ -1,0 +1,3 @@
+-- Seed placeholder
+-- Intentionally empty for MVP
+-- Add seed data here for local development and CI environments

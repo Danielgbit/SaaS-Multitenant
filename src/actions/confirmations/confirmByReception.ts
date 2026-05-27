@@ -149,7 +149,8 @@ export async function confirmByReception(
   // Auto-registrar transacción financiera si hay payment_method
   if (action === 'complete' && payment_method && confirmation.appointment_id) {
     try {
-      const { data: apt } = await supabase
+      const conf = confirmation as unknown as { total_amount?: number; employee_id?: string }
+      const { data: apt } = await (supabase as any)
         .from('appointments')
         .select('client_id, organization_id')
         .eq('id', confirmation.appointment_id)
@@ -170,12 +171,12 @@ export async function confirmByReception(
             account_id: accountId,
             organization_id: apt.organization_id,
             transaction_type: 'payment',
-            amount: confirmation.total_amount || 0,
-            balance_after: currentBalance + (confirmation.total_amount || 0),
+            amount: conf.total_amount || 0,
+            balance_after: currentBalance + (conf.total_amount || 0),
             payment_method: payment_method,
             appointment_id: confirmation.appointment_id,
             notes: notes || null,
-            created_by: confirmation.employee_id,
+            created_by: conf.employee_id,
           })
         }
       }
