@@ -14,8 +14,6 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const hostname = request.nextUrl.hostname
 
-  console.log('[middleware]', { pathname, hostname })
-
   if (pathname.startsWith('/api/cron/') || pathname.startsWith('/api/webhooks/')) {
     return NextResponse.next()
   }
