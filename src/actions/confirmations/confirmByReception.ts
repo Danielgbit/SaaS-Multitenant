@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { appLog } from '@/lib/app-logger'
 import { z } from 'zod'
 import { devLog } from '@/lib/logger'
 
@@ -74,7 +75,7 @@ export async function confirmByReception(
   // Obtener la confirmación actual
   const { data: confirmation, error: confError } = await supabase
     .from('appointment_confirmations')
-    .select('appointment_id, status')
+    .select('appointment_id, status, employee_id')
     .eq('id', confirmation_id)
     .single()
 
@@ -150,7 +151,7 @@ export async function confirmByReception(
   if (action === 'complete' && payment_method && confirmation.appointment_id) {
     try {
       const conf = confirmation as unknown as { total_amount?: number; employee_id?: string }
-      const { data: apt } = await (supabase as any)
+      const { data: apt } = await supabase
         .from('appointments')
         .select('client_id, organization_id')
         .eq('id', confirmation.appointment_id)
@@ -190,6 +191,30 @@ export async function confirmByReception(
     import('@/actions/payroll/addAppointmentToPayroll').then((m) =>
       m.addAppointmentToPayroll(confirmation.appointment_id!).catch((e) => {
         console.error('[confirmByReception] payroll auto-add error:', e)
+      })
+    )
+  }
+
+  // Auto-registrar comisión (fire-and-forget)
+  if (action === 'complete' && confirmation.appointment_id) {
+    const accrualKey = `commission_accrued:hook:${confirmation.appointment_id}:${confirmation.employee_id}:confirmByReception`
+    import('@/actions/financial/recordCommissionAccrual').then((m) =>
+      m.recordCommissionAccrual({
+        appointmentId: confirmation.appointment_id!,
+        organizationId: organization_id,
+        idempotencyKey: accrualKey,
+      }).then((result) => {
+        if ('error' in result) {
+          appLog('error', '[confirmByReception] commission accrual failed', {
+            appointmentId: confirmation.appointment_id,
+            error: result.error,
+          })
+        }
+      }).catch((e) => {
+        appLog('error', '[confirmByReception] commission accrual exception', {
+          appointmentId: confirmation.appointment_id,
+          error: e instanceof Error ? e.message : String(e),
+        })
       })
     )
   }

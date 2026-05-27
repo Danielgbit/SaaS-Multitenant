@@ -7,6 +7,7 @@ export type FinancialEventType =
   // Financial (mutan estado financiero)
   | 'payment_received'
   | 'refund_processed'
+  | 'commission_accrued'
   | 'commission_settled'
   | 'adjustment_applied'
 
@@ -38,10 +39,11 @@ export interface FinancialEvent {
 
 /**
  * Sign convention for amounts:
- *   payment_received  → positive
- *   refund_processed  → negative
- *   commission_settled → negative
- *   adjustment_applied → positive or negative
+ *   payment_received     → positive
+ *   refund_processed     → negative
+ *   commission_accrued   → negative
+ *   commission_settled   → negative
+ *   adjustment_applied   → positive or negative
  */
 
 export function formatFinancialAmount(amount: number): string {

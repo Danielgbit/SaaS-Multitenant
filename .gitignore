@@ -44,3 +44,6 @@ next-env.d.ts
 # ngrok
 ngrok.exe
 
+# dev logs
+dev-server.log
+

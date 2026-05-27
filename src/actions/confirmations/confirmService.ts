@@ -2,6 +2,7 @@
 
 import { revalidateTag, revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { appLog } from '@/lib/app-logger'
 import { ConfirmServiceSchema, type ConfirmServiceState } from './schemas'
 
 export async function confirmService(
@@ -173,6 +174,28 @@ export async function confirmService(
   import('@/actions/payroll/addAppointmentToPayroll').then((m) =>
     m.addAppointmentToPayroll(appointmentId).catch((e) => {
       console.error('[confirmService] payroll auto-add error:', e)
+    })
+  )
+
+  // Auto-registrar comisión (fire-and-forget)
+  const accrualKey = `commission_accrued:hook:${appointmentId}:${appointment.employee_id}:confirmService`
+  import('@/actions/financial/recordCommissionAccrual').then((m) =>
+    m.recordCommissionAccrual({
+      appointmentId,
+      organizationId: appointment.organization_id,
+      idempotencyKey: accrualKey,
+    }).then((result) => {
+      if ('error' in result) {
+        appLog('error', '[confirmService] commission accrual failed', {
+          appointmentId,
+          error: result.error,
+        })
+      }
+    }).catch((e) => {
+      appLog('error', '[confirmService] commission accrual exception', {
+        appointmentId,
+        error: e instanceof Error ? e.message : String(e),
+      })
     })
   )
 
