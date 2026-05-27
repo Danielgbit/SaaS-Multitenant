@@ -47,3 +47,6 @@ ngrok.exe
 # dev logs
 dev-server.log
 
+# audit artifacts (operational data, not for repo)
+audit-artifacts/
+
