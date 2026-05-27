@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   CheckCircle, Clock, Package, User, Phone, 
@@ -30,12 +30,7 @@ export function EmployeeConfirmations({
   const [submitting, setSubmitting] = useState<string | null>(null)
   const [selectedServices, setSelectedServices] = useState<Record<string, boolean>>({})
   const [showSuccess, setShowSuccess] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
   const COLORS = useThemeColors()
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const pendingConfirmations = confirmations.filter(c => c.status === 'pending_employee')
   
@@ -92,8 +87,6 @@ export function EmployeeConfirmations({
   const areAllSelected = (conf: AppointmentConfirmation) => {
     return conf.services.every(s => selectedServices[`${conf.id}-${s.service_id}`] ?? s.performed)
   }
-
-  if (!mounted) return null
 
   return (
     <>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   CheckCircle, XCircle, Clock,
@@ -71,8 +71,6 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
   const [payingConf, setPayingConf] = useState<any | null>(null)
   const COLORS = useThemeColors()
 
-  useEffect(() => { setMounted(true) }, [])
-
   const filteredConfirmations = confirmations.filter(c => {
     if (filter === 'pending') return c.status === 'pending_reception'
     if (filter === 'completed') return c.status === 'completed'
@@ -118,8 +116,6 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
   }
 
   const isDark = COLORS.isDark
-
-  if (!mounted) return null
 
   const filterOptions: { value: FilterStatus; label: string; count: number }[] = [
     { value: 'pending', label: 'Pendientes', count: pendingCount },
