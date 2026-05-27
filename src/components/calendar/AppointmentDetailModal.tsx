@@ -1,7 +1,8 @@
 'use client'
 
-import { Calendar, Clock, User, Building2, Sparkles, FileText, Phone, Circle, X } from 'lucide-react'
+import { Calendar, Clock, User, Building2, Sparkles, FileText, Phone, Circle, X, DollarSign } from 'lucide-react'
 import { ConfirmationButton } from '@/components/dashboard/ConfirmationButton'
+import { AppointmentFinancialTimeline } from './AppointmentFinancialTimeline'
 import type { AppointmentWithDetails } from '@/types/calendar'
 import type { CalendarColors } from '@/types/calendar'
 import type { ReactNode } from 'react'
@@ -19,12 +20,13 @@ interface AppointmentDetailModalProps {
   onDelete: () => void
   onEdit: () => void
   onCompleted: () => void
+  organizationId?: string
 }
 
 export function AppointmentDetailModal({
   appointment, COLORS, STATUS_CONFIG, userRole, updatingStatus,
   formatTime, onClose, onConfirmAppointment, onAdminConfirmService,
-  onDelete, onEdit, onCompleted,
+  onDelete, onEdit, onCompleted, organizationId,
 }: AppointmentDetailModalProps) {
   if (!appointment) return null
 
@@ -125,6 +127,20 @@ export function AppointmentDetailModal({
                   <span className="text-xs uppercase tracking-wider font-medium" style={{ color: COLORS.textSecondary }}>Notas</span>
                 </div>
                 <p className="text-sm" style={{ color: COLORS.textSecondary }}>{appointment.notes}</p>
+              </div>
+            )}
+
+            {/* Financial Timeline */}
+            {organizationId && appointment.status === 'completed' && (
+              <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="w-4 h-4" style={{ color: COLORS.primary }} />
+                  <span className="text-xs uppercase tracking-wider font-medium" style={{ color: COLORS.textSecondary }}>Movimientos financieros</span>
+                </div>
+                <AppointmentFinancialTimeline
+                  appointmentId={appointment.id}
+                  organizationId={organizationId}
+                />
               </div>
             )}
           </div>

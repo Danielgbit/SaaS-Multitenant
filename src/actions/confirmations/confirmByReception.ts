@@ -146,7 +146,43 @@ export async function confirmByReception(
     }
   }
 
-  console.log('[confirmByReception] Confirmation updated:', confirmation_id, 'to', newStatus)
+  // Auto-registrar transacción financiera si hay payment_method
+  if (action === 'complete' && payment_method && confirmation.appointment_id) {
+    try {
+      const { data: apt } = await supabase
+        .from('appointments')
+        .select('client_id, organization_id')
+        .eq('id', confirmation.appointment_id)
+        .single()
+
+      if (apt?.client_id) {
+        const { data: account } = await supabase
+          .from('client_accounts')
+          .select('id, balance')
+          .eq('client_id', apt.client_id)
+          .single()
+
+        const accountId = account?.id
+        const currentBalance = account?.balance || 0
+
+        if (accountId) {
+          await supabase.from('client_account_transactions').insert({
+            account_id: accountId,
+            organization_id: apt.organization_id,
+            transaction_type: 'payment',
+            amount: confirmation.total_amount || 0,
+            balance_after: currentBalance + (confirmation.total_amount || 0),
+            payment_method: payment_method,
+            appointment_id: confirmation.appointment_id,
+            notes: notes || null,
+            created_by: confirmation.employee_id,
+          })
+        }
+      }
+    } catch (e) {
+      console.error('[confirmByReception] financial auto-add error:', e)
+    }
+  }
 
   // Auto-agregar a nómina cuando se completa el pago
   if (action === 'complete' && confirmation.appointment_id) {

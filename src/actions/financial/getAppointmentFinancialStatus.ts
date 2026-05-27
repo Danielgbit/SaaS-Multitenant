@@ -18,7 +18,7 @@ export async function getAppointmentFinancialStatus(
 ): Promise<AppointmentFinancialStatus> {
   const supabase = await createClient()
 
-  const { data: events } = await supabase
+  const { data: events } = await (supabase as any)
     .from('financial_events')
     .select('*')
     .eq('entity_type', 'appointment')
@@ -27,7 +27,7 @@ export async function getAppointmentFinancialStatus(
     .order('occurred_at', { ascending: false })
     .limit(50)
 
-  const financialEvents = (events as unknown as FinancialEvent[]) || []
+  const financialEvents = (events || []) as unknown as FinancialEvent[]
 
   const payments = financialEvents.filter(
     e => e.event_type === 'payment_received' && e.status === 'settled'
@@ -39,11 +39,11 @@ export async function getAppointmentFinancialStatus(
   const amountPaid = payments.reduce((sum, e) => sum + e.amount, 0)
   const amountRefunded = refunds.reduce((sum, e) => sum + Math.abs(e.amount), 0)
 
-  const { data: appointment } = await supabase
+  const { data: appointment } = await (supabase as any)
     .from('appointments')
     .select('payment_status')
     .eq('id', appointmentId)
-    .single()
+    .single() as unknown as { data: { payment_status: string } | null }
 
   const totalAmount = Math.max(
     amountPaid,

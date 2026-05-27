@@ -122,7 +122,7 @@ export function AppointmentFinancialTimeline({
               {/* Icon */}
               <div className="relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"
                 style={{ backgroundColor: event.amount >= 0 ? '#D1FAE5' : '#FEE2E2' }}>
-                <Icon className="w-4 h-4" style={{ color: event.amount >= 0 ? '#16A34A' : '#DC2626' }} />
+                <Icon className="w-4 h-4 text-emerald-600" />
               </div>
 
               {/* Content */}
@@ -139,11 +139,11 @@ export function AppointmentFinancialTimeline({
                   <span className="text-xs" style={{ color: '#64748B' }}>
                     {formatDateTime(event.occurred_at)}
                   </span>
-                  {event.metadata?.payment_method && (
+                  {(event.metadata as Record<string, string>)?.payment_method && (
                     <>
                       <span style={{ color: '#CBD5E1' }}>·</span>
                       <span className="text-xs capitalize" style={{ color: '#64748B' }}>
-                        {String(event.metadata.payment_method)}
+                        {(event.metadata as Record<string, string>).payment_method}
                       </span>
                     </>
                   )}

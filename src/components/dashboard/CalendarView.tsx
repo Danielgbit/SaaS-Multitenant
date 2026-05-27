@@ -483,6 +483,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
         onDelete={() => modals.setShowDeleteConfirm(true)}
         onEdit={openEdit}
         onCompleted={() => { modals.setSelectedAppointment(null); setCurrentDate(new Date(currentDate)) }}
+        organizationId={organizationId}
       />
 
       {/* New Appointment Modal - Wizard */}

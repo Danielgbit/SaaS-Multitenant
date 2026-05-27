@@ -39,7 +39,7 @@ Cada documento tiene un **STATUS** que indica su relación con la realidad del c
 | `docs/architecture/CURRENT/ARCHITECTURE.md` | CURRENT | Visión general del sistema, stack, estructura, flujos |
 | `docs/architecture/CURRENT/ENVIRONMENT.md` | CURRENT | Referencia completa de variables de entorno |
 | `docs/architecture/CURRENT/CRON-JOBS.md` | CURRENT | Todos los endpoints cron programados |
-| `docs/architecture/CURRENT/DATABASE.md` | 📅 PENDIENTE | Schema de base de datos, entidades y migraciones |
+| `docs/architecture/CURRENT/DATABASE.md` | CURRENT | Schema de base de datos, entidades, relaciones, RLS, legacy tables |
 
 ### Future — Propuestas y Planes
 
