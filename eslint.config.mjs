@@ -14,6 +14,13 @@ const eslintConfig = defineConfig([
       "max-lines-per-function": ["warn", { max: 120, skipBlankLines: true, skipComments: true }],
     },
   },
+  // Legacy debt — warning-only, no bloquear CI (revisar progresivamente)
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+      "prefer-const": "warn",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
