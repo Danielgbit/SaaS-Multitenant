@@ -30,7 +30,7 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    SELECT default_commission_rate INTO v_employee_rate
+    SELECT percentage INTO v_employee_rate
     FROM employees
     WHERE id = v_appointment.employee_id;
 

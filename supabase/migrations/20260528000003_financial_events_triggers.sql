@@ -158,7 +158,7 @@ DECLARE
 BEGIN
     IF NEW.status = 'paid' AND (OLD.status IS NULL OR OLD.status != 'paid') THEN
         FOR v_item IN
-            SELECT pi.id, pi.employee_id, pi.total_commission, pi.net_pay
+            SELECT pi.id, pi.employee_id, pi.gross_commission, pi.net_pay
             FROM payroll_items pi
             WHERE pi.payroll_period_id = NEW.id
         LOOP
@@ -175,7 +175,7 @@ BEGIN
                 'payroll_items', v_item.id,
                 'payroll', NEW.id,
                 'worker', NULL,
-                COALESCE(v_item.total_commission, 0) * -1, 'COP',
+                COALESCE(v_item.gross_commission, 0) * -1, 'COP',
                 'pi_' || v_item.id || '_paid', 'settled',
                 jsonb_build_object('employee_id', v_item.employee_id, 'net_pay', v_item.net_pay),
                 NOW()

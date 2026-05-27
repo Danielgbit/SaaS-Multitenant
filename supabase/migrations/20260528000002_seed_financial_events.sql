@@ -64,8 +64,8 @@ SELECT
         ELSE 'adjustment_applied'
     END,
     'client_account_transactions', cat.id,
-    CASE WHEN cat.appointment_id IS NOT NULL THEN 'appointment' ELSE 'client' END,
-    COALESCE(cat.appointment_id, ca.client_id),
+    'client',
+    ca.client_id,
     'system', NULL,
     CASE
         WHEN cat.transaction_type IN ('refund') THEN ABS(cat.amount) * -1
@@ -101,7 +101,7 @@ SELECT
     'payroll_items', pi.id,
     'payroll', pp.id,
     'system', NULL,
-    pi.total_commission * -1,
+    pi.gross_commission * -1,
     'COP',
     'seed_payroll_items_' || pi.id, 'settled',
     jsonb_build_object(

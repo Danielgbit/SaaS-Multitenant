@@ -32,7 +32,7 @@ export async function recordCommissionAccrual(input: z.infer<typeof InputSchema>
 
   const { data: employee } = await supabase
     .from('employees')
-    .select('default_commission_rate')
+    .select('percentage')
     .eq('id', appointment.employee_id)
     .single()
 
@@ -42,7 +42,7 @@ export async function recordCommissionAccrual(input: z.infer<typeof InputSchema>
     services: { id: string; name: string; price: number; has_commission: boolean } | null
   }
 
-  const { data: services } = await (supabase as any)
+  const { data: services } = await supabase
     .from('appointment_services')
     .select(`
       id,
@@ -51,8 +51,8 @@ export async function recordCommissionAccrual(input: z.infer<typeof InputSchema>
     `)
     .eq('appointment_id', appointmentId)
 
-  const serviceRows: ServiceJoinRow[] = services || []
-  const defaultRate = (employee as unknown as { default_commission_rate: number | null })?.default_commission_rate ?? 60
+  const serviceRows: ServiceJoinRow[] = (services || []) as ServiceJoinRow[]
+  const defaultRate = employee?.percentage ?? 60
 
   for (const row of serviceRows) {
     const svc = row.services
@@ -74,7 +74,7 @@ export async function recordCommissionAccrual(input: z.infer<typeof InputSchema>
       ? `${idempotencyKey}_${row.id}`
       : `comm_accrued_manual_${row.id}`
 
-    const { error: txError } = await (supabase as any)
+    const { error: txError } = await supabase
       .from('financial_events')
       .insert({
         organization_id: organizationId,

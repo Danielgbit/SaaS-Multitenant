@@ -18,7 +18,7 @@ export async function getAppointmentFinancialStatus(
 ): Promise<AppointmentFinancialStatus> {
   const supabase = await createClient()
 
-  const { data: events } = await (supabase as any)
+  const { data: events } = await supabase
     .from('financial_events')
     .select('*')
     .eq('entity_type', 'appointment')
@@ -39,11 +39,11 @@ export async function getAppointmentFinancialStatus(
   const amountPaid = payments.reduce((sum, e) => sum + e.amount, 0)
   const amountRefunded = refunds.reduce((sum, e) => sum + Math.abs(e.amount), 0)
 
-  const { data: appointment } = await (supabase as any)
+  const { data: appointment } = await supabase
     .from('appointments')
     .select('payment_status')
     .eq('id', appointmentId)
-    .single() as unknown as { data: { payment_status: string } | null }
+    .single()
 
   const totalAmount = Math.max(
     amountPaid,
