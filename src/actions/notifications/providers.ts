@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { NotificationProvider, NotificationChannel, NotificationProviderType } from '@/types/notifications'
 import type { Json } from '@/../types/supabase'
+import { toCamelCase } from '@/lib/utils/transform'
 
 const ProviderUpsertSchema = z.object({
   organizationId: z.string().uuid(),
@@ -205,17 +206,5 @@ export async function testProviderConnection(
 }
 
 function mapRowToProvider(row: unknown): NotificationProvider {
-  const r = row as Record<string, unknown>
-  return {
-    id: r.id as string,
-    organizationId: r.organization_id as string,
-    channel: r.channel as NotificationChannel,
-    provider: r.provider as NotificationProvider['provider'],
-    isEnabled: r.is_enabled as boolean,
-    config: (r.config ?? {}) as unknown as Record<string, unknown>,
-    rateLimitPerMin: r.rate_limit_per_min as number,
-    rateLimitPerDay: r.rate_limit_per_day as number | undefined,
-    createdAt: r.created_at as string,
-    updatedAt: r.updated_at as string,
-  }
+  return toCamelCase<NotificationProvider>(row as Record<string, unknown>)
 }

@@ -7,6 +7,7 @@ import type {
   NotificationQueueItem,
   NotificationChannel,
 } from '@/types/notifications'
+import { toCamelCase, toCamelCaseArray } from '@/lib/utils/transform'
 
 export interface MessageInspectorData {
   message: NotificationMessageRecord | null
@@ -53,7 +54,9 @@ export async function getMessageInspectorData(
     .eq('organization_id', organizationId)
     .single()
 
-  const msg = (message as unknown as NotificationMessageRecord) || null
+  const msg = message
+    ? toCamelCase<NotificationMessageRecord>(message as Record<string, unknown>)
+    : null
 
   let queueItem: NotificationQueueItem | null = null
   let events: NotificationEvent[] = []
@@ -65,14 +68,16 @@ export async function getMessageInspectorData(
       .select('*')
       .eq('id', msg.queueItemId)
       .single()
-    queueItem = (qi as unknown as NotificationQueueItem) || null
+    queueItem = qi
+      ? toCamelCase<NotificationQueueItem>(qi as Record<string, unknown>)
+      : null
 
     const { data: evts } = await (supabase as any)
       .from('notification_events')
       .select('*')
       .eq('queue_item_id', msg.queueItemId)
       .order('created_at', { ascending: true })
-    events = (evts as unknown as NotificationEvent[]) || []
+    events = toCamelCaseArray<NotificationEvent>(evts as Record<string, unknown>[])
   }
 
   if (msg?.providerMessageId) {
@@ -81,7 +86,7 @@ export async function getMessageInspectorData(
       .select('*')
       .eq('provider_message_id', msg.providerMessageId)
       .order('created_at', { ascending: false })
-    inboundEvents = (inbound as unknown as NotificationInboundEvent[]) || []
+    inboundEvents = toCamelCaseArray<NotificationInboundEvent>(inbound as Record<string, unknown>[])
   }
 
   if (queueItem?.providerMessageId && queueItem.providerMessageId !== msg?.providerMessageId) {
@@ -91,7 +96,7 @@ export async function getMessageInspectorData(
       .eq('provider_message_id', queueItem.providerMessageId)
       .order('created_at', { ascending: false })
     const existing = new Set(inboundEvents.map((e) => e.id))
-    for (const ie of inbound as unknown as NotificationInboundEvent[] || []) {
+    for (const ie of toCamelCaseArray<NotificationInboundEvent>(inbound as Record<string, unknown>[])) {
       if (!existing.has(ie.id)) inboundEvents.push(ie)
     }
     inboundEvents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -230,7 +235,7 @@ export async function getRetryHistory(
     .in('event_type', ['PROCESSING', 'SENT', 'FAILED', 'DEAD_LETTERED'])
     .order('created_at', { ascending: true })
 
-  return (data as unknown as NotificationEvent[]) || []
+  return toCamelCaseArray<NotificationEvent>(data as Record<string, unknown>[])
 }
 
 export async function getInboundEvents(
@@ -243,7 +248,7 @@ export async function getInboundEvents(
     .eq('provider_message_id', providerMessageId)
     .order('created_at', { ascending: false })
 
-  return (data as unknown as NotificationInboundEvent[]) || []
+  return toCamelCaseArray<NotificationInboundEvent>(data as Record<string, unknown>[])
 }
 
 function isUUID(str: string): boolean {
