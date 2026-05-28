@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Calendar, Scissors, User, ChevronRight, CheckCircle2, Phone, MessageCircle, CalendarDays } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Card } from '@/components/ui/Card'
@@ -11,6 +12,7 @@ import { QuickActionsMenu } from '@/components/dashboard/quick-actions/QuickActi
 import type { UpcomingAppointment, UpcomingAppointmentsProps } from '@/types/analytics'
 
 export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps) {
+  const router = useRouter()
   const COLORS = useThemeColors()
 
   const formatTime = (dateStr: string) => {
@@ -35,9 +37,7 @@ export function UpcomingAppointments({ appointments }: UpcomingAppointmentsProps
   }
 
   const handleConfirm = (apt: UpcomingAppointment) => {
-    if (typeof window !== 'undefined') {
-      window.location.href = `/confirmations?appointment=${apt.id}`
-    }
+    router.push(`/confirmations?appointment=${apt.id}`)
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Mail, Send, XCircle, Clock, AlertCircle, CheckCircle2, MailOpen, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Spinner } from '@/components/ui'
@@ -42,12 +42,7 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
 
   const limit = 15
 
-  useEffect(() => {
-    setMounted(true)
-    loadLogs()
-  }, [organizationId, page])
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoading(true)
     setMessage(null)
 
@@ -66,7 +61,12 @@ export function EmailLogs({ organizationId }: EmailLogsProps) {
       setTotal(filteredLogs.length)
     }
     setLoading(false)
-  }
+  }, [organizationId, statusFilter, page, limit])
+
+  useEffect(() => {
+    setMounted(true)
+    loadLogs()
+  }, [loadLogs])
 
   const totalPages = Math.ceil(total / limit)
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Save, TestTube, Eye, EyeOff, CheckCircle, AlertTriangle, HelpCircle } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
@@ -31,11 +31,7 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
   const [webhookToken, setWebhookToken] = useState('')
   const [showToken, setShowToken] = useState(false)
 
-  useEffect(() => {
-    loadProvider()
-  }, [organizationId])
-
-  const loadProvider = async () => {
+  const loadProvider = useCallback(async () => {
     setLoading(true)
     const result = await getProvider(organizationId, 'whatsapp')
     if (result.success && result.data) {
@@ -51,7 +47,11 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
       setWebhookToken((result.data.config?.webhook_token as string) || '')
     }
     setLoading(false)
-  }
+  }, [organizationId])
+
+  useEffect(() => {
+    loadProvider()
+  }, [loadProvider])
 
   const handleSave = async () => {
     setSaving(true)

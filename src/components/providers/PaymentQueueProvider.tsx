@@ -126,21 +126,6 @@ export function PaymentQueueProvider({ children }: { children: ReactNode }) {
     setIsModalOpen(false)
   }, [])
 
-  const markAsPaid = useCallback((id: string) => {
-    removeFromQueue(id)
-    setCurrentNotification(null)
-    setIsModalOpen(false)
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      processingRef.current = false
-      processNext()
-    }, PROCESS_DELAY_MS)
-  }, [removeFromQueue])
-
   const processNext = useCallback(() => {
     if (processingRef.current) return
     if (currentNotification || isModalOpen) return
@@ -158,6 +143,21 @@ export function PaymentQueueProvider({ children }: { children: ReactNode }) {
       return rest
     })
   }, [currentNotification, isModalOpen, showNotificationToast])
+
+  const markAsPaid = useCallback((id: string) => {
+    removeFromQueue(id)
+    setCurrentNotification(null)
+    setIsModalOpen(false)
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      processingRef.current = false
+      processNext()
+    }, PROCESS_DELAY_MS)
+  }, [removeFromQueue, processNext])
 
   const contextValue = useMemo(() => ({
     queue,

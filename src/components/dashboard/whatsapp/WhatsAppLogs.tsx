@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Badge } from '@/components/ui/Badge'
@@ -46,12 +46,7 @@ export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
 
   const limit = 15
 
-  useEffect(() => {
-    setMounted(true)
-    loadLogs()
-  }, [organizationId, page])
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoading(true)
     setMessage(null)
 
@@ -71,7 +66,12 @@ export function WhatsAppLogs({ organizationId }: WhatsAppLogsProps) {
       setTotal(filteredLogs.length)
     }
     setLoading(false)
-  }
+  }, [organizationId, statusFilter, page, limit])
+
+  useEffect(() => {
+    setMounted(true)
+    loadLogs()
+  }, [loadLogs])
 
   const handleResend = async (logId: string) => {
     setResendingId(logId)
