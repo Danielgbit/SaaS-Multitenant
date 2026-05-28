@@ -47,13 +47,6 @@ ngrok.exe
 # dev logs
 dev-server.log
 
-# WIP — cash module (no completado)
-src/actions/cash-sessions/
-src/actions/operation-entries/
-src/app/(dashboard)/caja/
-src/components/dashboard/cash-session/
-src/types/cash-sessions.ts
-
 
 # audit artifacts (operational data, not for repo)
 audit-artifacts/

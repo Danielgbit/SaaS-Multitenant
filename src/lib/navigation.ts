@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard, CalendarDays, CheckCircle, Bell, ShieldCheck,
   FileSearch, Users, Receipt, WalletCards, UserCircle, Wallet,
-  Scissors, Clock, Package, MessageSquare, Mail, CreditCard, Settings, Smile,
+  Scissors, Clock, Package, MessageSquare, Mail, CreditCard, Settings, Smile, DollarSign,
 } from 'lucide-react'
 
 export interface RouteDefinition {
@@ -24,6 +24,13 @@ export const dashboardRoutes: RouteDefinition[] = [
     icon: LayoutDashboard,
     group: 'Operaciones',
     activeMatch: ['/dashboard', '/'],
+  },
+  {
+    href: '/caja',
+    label: 'Caja del Día',
+    icon: DollarSign,
+    group: 'Operaciones',
+    hideForEmpleado: true,
   },
   {
     href: '/calendar',
