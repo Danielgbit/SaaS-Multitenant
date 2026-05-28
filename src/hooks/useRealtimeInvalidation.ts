@@ -8,7 +8,9 @@ export function useRealtimeInvalidation(orgId: string) {
   const queryClient = useQueryClient()
   const orgIdRef = useRef(orgId)
 
-  orgIdRef.current = orgId
+  useEffect(() => {
+    orgIdRef.current = orgId
+  }, [orgId])
 
   useEffect(() => {
     if (!orgId) return
