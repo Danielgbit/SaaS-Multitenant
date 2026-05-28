@@ -199,5 +199,23 @@ export async function confirmService(
     })
   )
 
+  // Auto-registrar movimiento de caja (fire-and-forget, feature no completada)
+  import('@/actions/cash-sessions/createEntryFromSource').then((m) =>
+    m.createEntryFromSource({
+      organization_id: appointment.organization_id,
+      source_type: 'appointment',
+      source_id: appointmentId,
+      entry_type: 'income',
+      direction: 'in',
+      amount: currentPrice,
+      payment_method: paymentMethod as any,
+      title: `Pago servicio`,
+      created_by: user.id,
+      created_via: 'appointment_auto',
+    }).catch((e) => {
+      console.error('[confirmService] cash entry error:', e)
+    })
+  ).catch(() => {}) // modulo no disponible hasta que se complete la feature
+
   return { success: true, appointmentId }
 }
