@@ -228,25 +228,7 @@ export async function confirmByReception(
     }
   }
 
-  // Auto-registrar movimiento de caja (fire-and-forget, feature no completada)
-  if (action === 'complete' && payment_method) {
-    import('@/actions/cash-sessions/createEntryFromSource').then((m) =>
-      m.createEntryFromSource({
-        organization_id: organization_id,
-        source_type: 'appointment',
-        source_id: confirmation.appointment_id!,
-        entry_type: 'income',
-        direction: 'in',
-        amount: (confirmation as any).total_amount || 0,
-        payment_method: payment_method as any,
-        title: `Pago recepción`,
-        created_by: user.id,
-        created_via: 'appointment_auto',
-      }).catch((e) => {
-        console.error('[confirmByReception] cash entry error:', e)
-      })
-    ).catch(() => {}) // modulo no disponible hasta que se complete la feature
-  }
+  // TODO: registrar movimiento de caja cuando se complete el modulo
 
   // Revalidar paths
   revalidatePath('/dashboard/confirmations/reception')
