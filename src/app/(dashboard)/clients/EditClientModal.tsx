@@ -527,9 +527,6 @@ export function EditClientModal({
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true)
-      setIsSubmitted(false)
-      setFormErrors({})
-
       setTimeout(() => {
         nameInputRef.current?.focus()
       }, 100)

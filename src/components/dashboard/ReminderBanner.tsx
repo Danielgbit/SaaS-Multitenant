@@ -192,11 +192,14 @@ export function ReminderBanner({ userId, onOpenAppointment }: ReminderBannerProp
     setLoading(false)
   }, [userId, hasAnimatedIn])
 
+  // efecto legítimo: polling externo
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     fetchReminders()
     const interval = setInterval(fetchReminders, 60000)
     return () => clearInterval(interval)
   }, [fetchReminders])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleDismissAll = () => {
     setDismissed(true)

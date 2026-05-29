@@ -1,7 +1,7 @@
 'use client'
 import { useState, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { DollarSign, RefreshCw } from 'lucide-react'
+import { DollarSign, RefreshCw, Download } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { getTodaySession } from '@/actions/cash-sessions/getTodaySession'
 import { openSession } from '@/actions/cash-sessions/openSession'
@@ -9,11 +9,42 @@ import { closeSession } from '@/actions/cash-sessions/closeSession'
 import { createManualEntry } from '@/actions/operation-entries/createManualEntry'
 import { payEmployee } from '@/actions/operation-entries/payEmployee'
 import type { PaymentMethod } from '@/types/cash-sessions'
+import { ENTRY_TYPE_LABELS, PAYMENT_METHOD_LABELS } from '@/types/cash-sessions'
 import { CashTimeline } from './CashTimeline'
 import { CashSummary } from './CashSummary'
 import { OpenSessionForm } from './OpenSessionForm'
 import { NewEntryModal } from './NewEntryModal'
 import { PayEmployeeModal } from './PayEmployeeModal'
+
+function csvCell(value: unknown): string {
+  const str = String(value ?? '')
+  return `"${str.replace(/"/g, '""')}"`
+}
+
+function exportCashCSV(entries: any[]) {
+  const headers = ['Hora', 'Tipo', 'Grupo', 'Titulo', 'Descripcion', 'Direccion', 'Monto', 'Metodo Pago', 'Origen']
+  const rows = entries.map((e: any) => [
+    e.created_at ? new Date(e.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '',
+    ENTRY_TYPE_LABELS[e.entry_type as keyof typeof ENTRY_TYPE_LABELS] || e.entry_type,
+    e.entry_group || '',
+    e.title,
+    e.description || '',
+    e.direction || '-',
+    e.amount.toString(),
+    e.payment_method ? PAYMENT_METHOD_LABELS[e.payment_method as keyof typeof PAYMENT_METHOD_LABELS] : '-',
+    e.created_via,
+  ])
+  const csvContent = [headers.join(','), ...rows.map((r) => r.map(csvCell).join(','))].join('\n')
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `caja-${new Date().toISOString().split('T')[0]}.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
 
 interface Props { initialSession: any; initialEntries: any[]; organizationId: string; role: string; userId: string }
 
@@ -70,6 +101,9 @@ export function CashSessionClient({ initialSession, initialEntries, organization
               {canAdmin && <button onClick={() => setShowPay(true)} className="px-3 py-1.5 text-sm rounded-lg font-medium border" style={{ borderColor: theme.border, color: theme.textPrimary }}>Pagar Empleado</button>}
             </>
           )}
+          <button onClick={() => exportCashCSV(entries)} className="p-1.5 rounded-lg transition-all hover:opacity-70" style={{ color: theme.textSecondary }} title="Exportar CSV">
+            <Download className="w-4 h-4" />
+          </button>
           <button onClick={() => qc.invalidateQueries({ queryKey: ['cash-session', organizationId] })} className="p-1.5 rounded-lg" style={{ color: theme.textSecondary }}>
             <RefreshCw className="w-4 h-4" />
           </button>

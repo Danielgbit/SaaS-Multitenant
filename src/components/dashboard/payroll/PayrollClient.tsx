@@ -586,6 +586,7 @@ export function PayrollClient({
       {/* Loan Modal */}
       {showLoanModal && (
         <LoanModal
+          key={selectedEmployee?.id}
           employees={employees}
           selectedEmployee={selectedEmployee}
           organizationId={organizationId}

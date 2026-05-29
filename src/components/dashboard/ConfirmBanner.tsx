@@ -123,12 +123,15 @@ export function ConfirmBanner({ organizationId, onOpenPanel }: ConfirmBannerProp
     setLoading(false)
   }, [organizationId, lastCount, onOpenPanel, supabase])
 
+  // efecto legítimo: sincroniza con realtime (sistema externo)
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     fetchPending()
     realtimeManager.init(organizationId)
     const unsub = realtimeManager.on('appointments', () => { fetchPending() })
     return () => { unsub() }
   }, [fetchPending, organizationId])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (loading || pending.length === 0 || dismissed) {
     return null

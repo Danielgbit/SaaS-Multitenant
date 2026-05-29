@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { PAYMENT_METHOD_LABELS, PAYMENT_METHOD_ICONS } from '@/types/cash-sessions'
@@ -11,6 +11,7 @@ const METHODS: PaymentMethod[] = ['cash', 'qr', 'transfer', 'card']
 export function CashSummary({ session, entries, onClose, isClosing, canClose, organizationId }: any) {
   const [lowStockItems, setLowStockItems] = useState<any[]>([])
   const [showLowStock, setShowLowStock] = useState(false)
+  const [showMetrics, setShowMetrics] = useState(false)
 
   useEffect(() => {
     if (!organizationId) return
@@ -79,6 +80,24 @@ export function CashSummary({ session, entries, onClose, isClosing, canClose, or
           </div>
         )}
 
+        {active.length > 0 && (
+          <div className="border-t pt-3" style={{ borderColor: theme.border }}>
+            <button
+              onClick={() => setShowMetrics(!showMetrics)}
+              className="flex items-center gap-1.5 text-xs font-medium w-full"
+              style={{ color: theme.textPrimary }}
+            >
+              <span>{showMetrics ? '▼' : '▶'}</span>
+              📊 Hoy
+            </button>
+            {showMetrics && (
+              <div className="mt-2 space-y-1">
+                <DailyMetrics entries={active} />
+              </div>
+            )}
+          </div>
+        )}
+
         {lowStockItems.length > 0 && (
           <div className="border-t pt-3" style={{ borderColor: theme.border }}>
             <button onClick={() => setShowLowStock(!showLowStock)}
@@ -110,6 +129,47 @@ export function CashSummary({ session, entries, onClose, isClosing, canClose, or
           <button onClick={onClose} className="w-full py-2 rounded-lg text-sm font-medium" style={{ backgroundColor: theme.warning, color: '#fff' }}>Cerrar Caja</button>
         </div>
       )}
+    </div>
+  )
+}
+
+function DailyMetrics({ entries }: { entries: any[] }) {
+  const theme = useThemeColors()
+  const m = useMemo(() => {
+    const r = { income: 0, product_sale: 0, expense: 0, payroll_expense: 0, inventory_purchase: 0 }
+    for (const e of entries) {
+      if (e.direction === 'in' && e.entry_type === 'income') r.income += e.amount
+      if (e.direction === 'in' && e.entry_type === 'product_sale') r.product_sale += e.amount
+      if (e.direction === 'out' && e.entry_type === 'expense') r.expense += e.amount
+      if (e.direction === 'out' && e.entry_type === 'payroll_expense') r.payroll_expense += e.amount
+      if (e.direction === 'out' && e.entry_type === 'inventory_purchase') r.inventory_purchase += e.amount
+    }
+    return r
+  }, [entries])
+  const netDay = m.income + m.product_sale - m.expense - m.payroll_expense - m.inventory_purchase
+
+  const rows = [
+    { label: '💇 Servicios', value: m.income, color: '#22c55e' },
+    { label: '🏪 Productos', value: m.product_sale, color: '#22c55e' },
+    { label: '💸 Gastos', value: m.expense, color: '#ef4444' },
+    { label: '👥 Nómina', value: m.payroll_expense, color: '#ef4444' },
+    { label: '📦 Compra inv.', value: m.inventory_purchase, color: '#ef4444' },
+  ]
+
+  return (
+    <div className="space-y-1">
+      {rows.map((r) =>
+        r.value > 0 ? (
+          <div key={r.label} className="flex justify-between text-xs">
+            <span style={{ color: theme.textMuted }}>{r.label}</span>
+            <span style={{ color: r.color }}>{fmt(r.value)}</span>
+          </div>
+        ) : null
+      )}
+      <div className="border-t pt-1 mt-1 flex justify-between text-xs font-semibold" style={{ borderColor: theme.border, color: theme.textPrimary }}>
+        <span>💰 Neto del día</span>
+        <span style={{ color: netDay >= 0 ? '#22c55e' : '#ef4444' }}>{fmt(netDay)}</span>
+      </div>
     </div>
   )
 }

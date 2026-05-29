@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Trash2, AlertTriangle, Check, Calendar, FileText, Wrench, CreditCard, Clock } from 'lucide-react'
 import { Spinner } from '@/components/ui'

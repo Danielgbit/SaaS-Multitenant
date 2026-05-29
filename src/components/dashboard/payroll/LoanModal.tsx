@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { DollarSign, X, CheckCircle2, AlertTriangle, HelpCircle } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
@@ -47,13 +47,6 @@ export function LoanModal({
   const [concept, setConcept] = useState<LoanConcept>('advance')
   const [notes, setNotes] = useState('')
   const [interestRate, setInterestRate] = useState('0')
-
-  useEffect(() => {
-    setMounted(true)
-    if (selectedEmployee) {
-      setEmployeeId(selectedEmployee.id)
-    }
-  }, [selectedEmployee])
 
   const currentEmployee = employees.find((e) => e.id === employeeId)
   const currentDebt = currentEmployee?.total_pending_debt || 0
