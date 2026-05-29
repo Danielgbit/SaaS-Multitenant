@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { CreateSaleInput } from '@/types/clientAccounts'
 import { revalidatePath } from 'next/cache'
+import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
 
 export async function recordSale(
   organizationId: string,
@@ -137,6 +138,28 @@ export async function recordSale(
     .select('balance')
     .eq('id', accountId)
     .single()
+
+  // Auto-registrar ingreso por venta de productos en caja (fire-and-forget)
+  const saleItems = input.products.map((p: any) => ({
+    item_id: p.inventory_item_id, quantity: p.quantity,
+    unit_price: p.unit_price, subtotal: (p.unit_price - (p.unit_price * (p.discount_percent || 0)) / 100) * p.quantity,
+  }))
+
+  import('@/actions/cash-sessions/createEntryFromSource').then((m) => {
+    const today = getTodayDateColombia()
+    return m.createEntryFromSource({
+      organization_id: organizationId,
+      source_type: 'inventory_sale',
+      source_id: transaction.id,
+      entry_type: 'product_sale' as any,
+      direction: 'in',
+      amount: totalAmount,
+      payment_method: (input.payment_method as any) || 'cash',
+      title: 'Venta de productos',
+      created_by: user.id,
+      created_via: 'product_sale_hook',
+    }).catch((e: any) => console.error('[inventory] cash entry error:', e))
+  }).catch(() => {})
 
   revalidatePath(`/clients/${input.client_id}/account`)
   revalidatePath('/clients')

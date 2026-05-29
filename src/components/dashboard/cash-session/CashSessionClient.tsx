@@ -80,7 +80,7 @@ export function CashSessionClient({ initialSession, initialEntries, organization
           <CashTimeline entries={entries} canVoid={canAdmin} />
         </div>
         <div className="w-full lg:w-80 shrink-0">
-          <CashSummary session={session} entries={entries} onClose={hClose} isClosing={closeM.isPending} canClose={canManage && session.status === 'open'} />
+          <CashSummary session={session} entries={entries} onClose={hClose} isClosing={closeM.isPending} canClose={canManage && session.status === 'open'} organizationId={organizationId} />
         </div>
       </div>
       {showNew && <NewEntryModal onSubmit={hEntry} onClose={() => setShowNew(false)} isLoading={entryM.isPending} />}

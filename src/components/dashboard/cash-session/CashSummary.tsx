@@ -1,4 +1,6 @@
 'use client'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { PAYMENT_METHOD_LABELS, PAYMENT_METHOD_ICONS } from '@/types/cash-sessions'
 import type { PaymentMethod } from '@/types/cash-sessions'
@@ -6,7 +8,28 @@ import type { PaymentMethod } from '@/types/cash-sessions'
 function fmt(n: number) { return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n) }
 const METHODS: PaymentMethod[] = ['cash', 'qr', 'transfer', 'card']
 
-export function CashSummary({ session, entries, onClose, isClosing, canClose }: any) {
+export function CashSummary({ session, entries, onClose, isClosing, canClose, organizationId }: any) {
+  const [lowStockItems, setLowStockItems] = useState<any[]>([])
+  const [showLowStock, setShowLowStock] = useState(false)
+
+  useEffect(() => {
+    if (!organizationId) return
+    const fetch = async () => {
+      try {
+        const supabase = (await import('@/lib/supabase/client')).createClient()
+        const { data } = await supabase
+          .from('inventory_items')
+          .select('id, name, quantity, min_quantity, unit')
+          .eq('organization_id', organizationId)
+          .eq('active', true)
+          .order('name')
+        const filtered = (data || []).filter((i: any) => i.quantity <= i.min_quantity)
+        if (filtered.length > 0) setShowLowStock(true)
+        setLowStockItems(filtered)
+      } catch {}
+    }
+    fetch()
+  }, [organizationId])
   const theme = useThemeColors()
   const isClosed = session.status === 'closed'
   const ed = session.expected_cash_detail ?? { cash: 0, qr: 0, transfer: 0, card: 0 }
@@ -53,6 +76,32 @@ export function CashSummary({ session, entries, onClose, isClosing, canClose }: 
               <span className="text-sm font-semibold" style={{ color: totalDiff === 0 ? '#22c55e' : '#ef4444' }}>{totalDiff === 0 ? 'Cuadra' : 'Diferencia'}</span>
               <span className="text-lg font-bold" style={{ color: totalDiff === 0 ? '#22c55e' : '#ef4444' }}>{totalDiff! > 0 ? '+' : ''}{fmt(totalDiff!)}</span>
             </div>
+          </div>
+        )}
+
+        {lowStockItems.length > 0 && (
+          <div className="border-t pt-3" style={{ borderColor: theme.border }}>
+            <button onClick={() => setShowLowStock(!showLowStock)}
+              className="flex items-center gap-1.5 text-xs font-medium w-full"
+              style={{ color: theme.warning }}>
+              <span>{showLowStock ? '▼' : '▶'}</span>
+              ⚠ {lowStockItems.length} producto{lowStockItems.length !== 1 ? 's' : ''} con stock bajo
+            </button>
+            {showLowStock && (
+              <div className="mt-2 space-y-1">
+                {lowStockItems.slice(0, 5).map((i: any) => (
+                  <div key={i.id} className="flex justify-between text-xs" style={{ color: theme.textMuted }}>
+                    <span>{i.name}</span>
+                    <span style={{ color: i.quantity === 0 ? '#ef4444' : theme.warning }}>{i.quantity} / {i.min_quantity} {i.unit}</span>
+                  </div>
+                ))}
+                {lowStockItems.length > 5 && (
+                  <Link href="/inventory" className="block text-xs font-medium mt-1" style={{ color: theme.accentTeal }}>
+                    Ver todos en inventario →
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

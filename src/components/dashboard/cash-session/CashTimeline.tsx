@@ -40,10 +40,20 @@ export function CashTimeline({ entries, canVoid }: any) {
                 </div>
                 <p className="text-sm font-medium mt-0.5" style={{ color: theme.textPrimary }}>{e.title}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm font-semibold" style={{ color: c }}>
-                    {(e.direction === 'in' ? '+ ' : e.direction === 'out' ? '- ' : '') + fmt(e.amount)}
-                  </span>
-                  {e.payment_method && <span className="text-xs" style={{ color: theme.textMuted }}>{(PAYMENT_METHOD_LABELS as any)[e.payment_method]}</span>}
+                  {e.direction ? (
+                    <>
+                      <span className="text-sm font-semibold" style={{ color: c }}>
+                        {e.direction === 'in' ? '+ ' : '- '}{fmt(e.amount)}
+                      </span>
+                      {e.payment_method && <span className="text-xs" style={{ color: theme.textMuted }}>{(PAYMENT_METHOD_LABELS as any)[e.payment_method]}</span>}
+                    </>
+                  ) : (
+                    e.entry_type === 'inventory_out' && e.metadata?.estimated_cost && (
+                      <span className="text-xs" style={{ color: theme.textMuted }}>
+                        Costo est.: {fmt(e.metadata.estimated_cost)}
+                      </span>
+                    )
+                  )}
                 </div>
               </div>
               {canVoid && e.entry_status === 'active' && (
