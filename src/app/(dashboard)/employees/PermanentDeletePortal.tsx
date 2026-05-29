@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Trash2, AlertTriangle, Check, Calendar, FileText, Wrench, CreditCard, Clock } from 'lucide-react'
 import { Spinner } from '@/components/ui'
@@ -28,12 +28,7 @@ export function PermanentDeletePortal({ employee, onClose }: PermanentDeletePort
   const [confirmText, setConfirmText] = useState('')
   const [recordCounts, setRecordCounts] = useState<EmployeeRecordCounts | null>(null)
   const [isLoadingCounts, setIsLoadingCounts] = useState(true)
-  const [isMounted, setIsMounted] = useState(false)
 
-  useEffect(() => {
-    setIsMounted(true)
-    return () => setIsMounted(false)
-  }, [])
 
   useEffect(() => {
     if (!employee) return
@@ -63,7 +58,7 @@ export function PermanentDeletePortal({ employee, onClose }: PermanentDeletePort
       })
   }, [employee])
 
-  if (!employee || !isMounted) return null
+  if (!employee || typeof window === 'undefined') return null
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

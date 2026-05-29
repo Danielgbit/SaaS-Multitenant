@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { X, UserX, AlertTriangle } from 'lucide-react'
 import { Spinner } from '@/components/ui'
@@ -16,12 +16,6 @@ export function DeleteEmployeePortal({ employee, onClose }: DeleteEmployeePortal
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [reason, setReason] = useState('')
-  const [isMounted, setIsMounted] = useState(false)
-
-  useEffect(() => {
-    setIsMounted(true)
-    return () => setIsMounted(false)
-  }, [])
 
   useEffect(() => {
     if (employee) {
@@ -30,7 +24,7 @@ export function DeleteEmployeePortal({ employee, onClose }: DeleteEmployeePortal
     }
   }, [employee])
 
-  if (!employee || !isMounted) return null
+  if (!employee || typeof window === 'undefined') return null
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
