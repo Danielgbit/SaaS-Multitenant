@@ -10,7 +10,9 @@ quality:
     paths:
       - node_modules/
   script:
-    - npm ci
+    - node --version && npm --version
+    - npm config get registry
+    - npm install
     - npx tsc --noEmit
     - npm run lint
     - npm test
@@ -27,7 +29,7 @@ build:
     paths:
       - node_modules/
   script:
-    - npm ci
+    - npm install
     - npm run build
   variables:
     NEXT_PUBLIC_SUPABASE_URL: $NEXT_PUBLIC_SUPABASE_URL
