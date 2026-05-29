@@ -126,7 +126,7 @@ export function CashSummary({ session, entries, onClose, isClosing, canClose, or
       </div>
       {canClose && (
         <div className="p-3 border-t" style={{ borderColor: theme.border }}>
-          <button onClick={onClose} className="w-full py-2 rounded-lg text-sm font-medium" style={{ backgroundColor: theme.warning, color: '#fff' }}>Cerrar Caja</button>
+          <button onClick={() => { if (window.confirm('¿Cerrar la caja del día?\n\nAsegúrate de haber contado el efectivo y registrado todos los gastos.')) onClose(); }} className="w-full py-2 rounded-lg text-sm font-medium" style={{ backgroundColor: theme.warning, color: '#fff' }}>Cerrar Caja</button>
         </div>
       )}
     </div>

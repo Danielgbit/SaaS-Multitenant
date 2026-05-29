@@ -15,6 +15,7 @@ import { CashSummary } from './CashSummary'
 import { OpenSessionForm } from './OpenSessionForm'
 import { NewEntryModal } from './NewEntryModal'
 import { PayEmployeeModal } from './PayEmployeeModal'
+import { CashSessionAlertBanner } from './CashSessionAlertBanner'
 
 function csvCell(value: unknown): string {
   const str = String(value ?? '')
@@ -109,6 +110,12 @@ export function CashSessionClient({ initialSession, initialEntries, organization
           </button>
         </div>
       </div>
+
+      <CashSessionAlertBanner
+        sessionDate={session.session_date}
+        openedAt={session.opened_at}
+      />
+
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1 min-w-0">
           <CashTimeline entries={entries} canVoid={canAdmin} />
