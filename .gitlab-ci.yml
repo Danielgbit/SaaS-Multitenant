@@ -1,0 +1,41 @@
+stages:
+  - quality
+  - build
+
+quality:
+  stage: quality
+  image: node:20
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+  script:
+    - npm ci
+    - npx tsc --noEmit
+    - npm run lint
+    - npm test
+    - npm run docs:gen
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'main'
+
+build:
+  stage: build
+  image: node:20
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+  script:
+    - npm ci
+    - npm run build
+  variables:
+    NEXT_PUBLIC_SUPABASE_URL: $NEXT_PUBLIC_SUPABASE_URL
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: $NEXT_PUBLIC_SUPABASE_ANON_KEY
+    SUPABASE_SERVICE_ROLE_KEY: $SUPABASE_SERVICE_ROLE_KEY
+    RESEND_API_KEY: $RESEND_API_KEY
+    RESEND_FROM_EMAIL: $RESEND_FROM_EMAIL
+    STRIPE_SECRET_KEY: $STRIPE_SECRET_KEY
+    CRON_SECRET: $CRON_SECRET
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'main'

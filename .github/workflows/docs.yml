@@ -1,12 +1,23 @@
 name: Docs
-
-on:
-  pull_request:
+on: [pull_request]
 
 jobs:
-  docs:
+  check:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Echo
-        run: echo "Docs workflow OK"
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - name: Regenerar documentación auto-generada
+        run: pnpm docs:gen
+
+      - name: Verificar que auto-generated docs están frescos
+        run: git diff --exit-code docs/auto-generated/
+
+      - name: Validar documentación
+        run: pnpm docs:check
