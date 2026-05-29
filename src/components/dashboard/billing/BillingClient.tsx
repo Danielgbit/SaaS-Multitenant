@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { CheckCircle2, Shield, Sparkles, ArrowRight, TrendingUp } from 'lucide-react'
 import { createCheckoutSession } from '@/actions/billing/createCheckoutSession'
 import { PromoCodeInput } from './PromoCodeInput'
@@ -46,12 +46,6 @@ export function BillingClient({
   organizationId,
 }: BillingClientProps) {
   const COLORS = useThemeColors()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   const handleUpgrade = async (planId: string) => {
     const result = await createCheckoutSession({ planId, organizationId })
     if (result.success && result.url) {
@@ -67,17 +61,6 @@ export function BillingClient({
     max === -1 ? 'Ilimitados' : max.toString()
   const getInventoryLabel = (max: number) =>
     max === -1 ? 'Ilimitado' : max.toString()
-
-  if (!mounted) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div
-          className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin"
-          style={{ borderColor: COLORS.primary }}
-        />
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-10">

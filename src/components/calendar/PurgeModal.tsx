@@ -18,7 +18,6 @@ interface PurgeModalProps {
 
 export function PurgeModal({ organizationId, initialTab = 'selection', onClose, onSuccess }: PurgeModalProps) {
   const COLORS = useThemeColors()
-  const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState<'selection' | 'days'>(initialTab)
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -38,10 +37,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
   const [confirmText, setConfirmText] = useState('')
   const [purging, setPurging] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const loadAppointments = useCallback(async () => {
     setListLoading(true)
@@ -198,7 +193,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
     return colors[status] || { bg: COLORS.textMuted + '20', text: COLORS.textMuted }
   }
 
-  if (!mounted) return null
+  if (typeof window === 'undefined') return null
 
   const modalContent = (
     <div

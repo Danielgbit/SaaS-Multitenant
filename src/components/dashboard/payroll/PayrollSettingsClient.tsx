@@ -42,7 +42,6 @@ export function PayrollSettingsClient({
   settings,
 }: PayrollSettingsClientProps) {
   const COLORS = useThemeColors()
-  const [mounted, setMounted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -53,7 +52,6 @@ export function PayrollSettingsClient({
   const [allowAdvancePayments, setAllowAdvancePayments] = useState(true)
 
   useEffect(() => {
-    setMounted(true)
     if (settings) {
       setPayrollType(settings.payroll_type)
       setWeekStartsOn(settings.week_starts_on)
@@ -61,14 +59,6 @@ export function PayrollSettingsClient({
       setAllowAdvancePayments(settings.allow_advance_payments)
     }
   }, [settings])
-
-  if (!mounted) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <Spinner size="lg" style={{ color: COLORS.primary }} />
-      </div>
-    )
-  }
 
   const handleSave = async () => {
     setSaving(true)

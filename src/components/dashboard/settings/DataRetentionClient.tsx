@@ -22,7 +22,6 @@ export function DataRetentionClient({
   initialSettings
 }: DataRetentionClientProps) {
   const COLORS = useThemeColors()
-  const [mounted, setMounted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
@@ -30,10 +29,6 @@ export function DataRetentionClient({
   const [retentionDays, setRetentionDays] = useState(90)
   const [hasInitialized, setHasInitialized] = useState(false)
   const [showPurgeModal, setShowPurgeModal] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   useEffect(() => {
     if (initialSettings && !hasInitialized) {
@@ -60,14 +55,6 @@ export function DataRetentionClient({
 
     setSaving(false)
     setTimeout(() => setMessage(null), 3000)
-  }
-
-  if (!mounted) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Spinner size="lg" style={{ color: COLORS.primary }} />
-      </div>
-    )
   }
 
   return (

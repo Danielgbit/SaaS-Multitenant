@@ -34,14 +34,9 @@ export function Header ({
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
-  const [mounted, setMounted] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -146,10 +141,10 @@ export function Header ({
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="p-2 rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 hover:opacity-80"
             style={{ color: COLORS.textMuted }}
-            aria-label={mounted ? (theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro') : 'Cambiar modo'}
+            aria-label={theme ? (theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro') : 'Cambiar modo'}
             suppressHydrationWarning
           >
-            {mounted ? (
+            {theme ? (
               theme === 'dark' ? (
                 <Sun className="w-4 h-4" />
               ) : (

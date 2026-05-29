@@ -47,12 +47,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
   const [searchQuery, setSearchQuery] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [mounted, setMounted] = useState(false)
   const COLORS = useThemeColors()
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const filteredServices = services.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -123,8 +118,6 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
   const currentStepIndex = STEPS.findIndex(s => s.id === step)
   const isConfirmStep = step === 'confirm'
   const isSuccessStep = step === 'success'
-
-  if (!mounted) return null
 
   if (isSuccessStep) {
     return (

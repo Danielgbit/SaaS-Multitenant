@@ -37,7 +37,6 @@ export function LoanModal({
   onClose,
 }: LoanModalProps) {
   const COLORS = useThemeColors()
-  const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,8 +54,6 @@ export function LoanModal({
       setEmployeeId(selectedEmployee.id)
     }
   }, [selectedEmployee])
-
-  if (!mounted) return null
 
   const currentEmployee = employees.find((e) => e.id === employeeId)
   const currentDebt = currentEmployee?.total_pending_debt || 0
