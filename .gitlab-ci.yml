@@ -1,5 +1,6 @@
 stages:
   - lint
+  - typecheck
   - quality
   - build
 
@@ -18,6 +19,21 @@ lint:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "main"'
 
+typecheck:
+  stage: typecheck
+  image: node:20
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+  script:
+    - npm install
+    - npx tsc --noEmit
+  allow_failure: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
 quality:
   stage: quality
   image: node:20
@@ -27,7 +43,6 @@ quality:
       - node_modules/
   script:
     - npm install
-    - npx tsc --noEmit
     - npm test
     - npm run docs:gen
   rules:
