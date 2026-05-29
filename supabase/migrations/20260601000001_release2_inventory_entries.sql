@@ -43,7 +43,10 @@ alter table operation_entries add constraint operation_entries_created_via_check
     'inventory_auto', 'product_sale_hook', 'migration'
   ));
 
--- 5. Ampliar CHECK de source_type (agregar inventory_sale)
+-- 5b. Eliminar constraint genérico legacy de Release 1 que causa conflicto
+alter table operation_entries drop constraint if exists operation_entries_check;
+
+-- 6. Ampliar CHECK de source_type (agregar inventory_sale)
 alter table operation_entries drop constraint if exists operation_entries_source_type_check;
 alter table operation_entries add constraint operation_entries_source_type_check
   check (source_type in (
