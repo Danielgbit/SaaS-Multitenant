@@ -19,9 +19,9 @@ describe('dashboardRoutes', () => {
 })
 
 describe('filterRoutesByRole', () => {
-  it('admin/owner ve 17 rutas (excluye showOnlyForEmpleado)', () => {
+  it('admin/owner ve 18 rutas (excluye showOnlyForEmpleado)', () => {
     const filtered = filterRoutesByRole(dashboardRoutes, 'admin')
-    expect(filtered.length).toBe(17)
+    expect(filtered.length).toBe(18)
   })
 
   it('staff no ve rutas con hideForStaff', () => {
