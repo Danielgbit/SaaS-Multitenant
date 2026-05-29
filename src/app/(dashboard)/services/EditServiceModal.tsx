@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { X, PencilLine, Scissors, Clock, DollarSign, Check } from 'lucide-react'
 import { Spinner } from '@/components/ui'
@@ -25,17 +25,6 @@ export function EditServiceModal({ service, onClose }: EditServiceModalProps) {
   const [priceValue, setPriceValue] = useState(service ? dbPriceToInputFormat(service.price) : '')
   const [priceDisplay, setPriceDisplay] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (service) {
-      setName(service.name ?? '')
-      setDurationValue(service.duration?.toString() ?? '')
-      setPriceValue(service ? dbPriceToInputFormat(service.price) : '')
-      setDurationDisplay(null)
-      setPriceDisplay(null)
-      setError(null)
-    }
-  }, [service])
 
   if (!service) return null
 

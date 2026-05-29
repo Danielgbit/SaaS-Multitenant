@@ -453,6 +453,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
 
       {(isCreating || editingItem) && (
         <InventoryFormModal
+          key={editingItem?.id ?? 'new'}
           item={editingItem}
           categories={categories}
           organizationId={organizationId}

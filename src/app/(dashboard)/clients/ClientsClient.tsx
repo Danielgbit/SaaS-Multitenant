@@ -297,6 +297,7 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
       {/* Modals */}
       {(isCreating || editingClient) && (
         <EditClientModal
+          key={editingClient?.id ?? 'new'}
           client={editingClient}
           organizationId={organizationId}
           isOpen={isModalOpen}

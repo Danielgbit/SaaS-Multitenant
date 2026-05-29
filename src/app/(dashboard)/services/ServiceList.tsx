@@ -280,7 +280,7 @@ export function ServiceList({ services, allEmpty, filter = 'all', COLORS }: Serv
         ))}
       </ul>
 
-      <EditServiceModal service={editTarget} onClose={() => setEditTarget(null)} />
+      <EditServiceModal key={editTarget?.id ?? 'new'} service={editTarget} onClose={() => setEditTarget(null)} />
     </>
   )
 }

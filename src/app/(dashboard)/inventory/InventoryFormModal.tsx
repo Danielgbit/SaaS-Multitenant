@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { X, Package, Tag, DollarSign, Boxes, AlertCircle, CheckCircle, HelpCircle } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
@@ -54,25 +54,6 @@ export function InventoryFormModal({
     cost_price: '',
     unit: 'pieza',
   })
-
-  useEffect(() => {
-    if (isOpen) {
-      setFormData({
-        name: item?.name || '',
-        sku: item?.sku || '',
-        description: item?.description || '',
-        category: item?.category || '',
-        quantity: item?.quantity?.toString() || '0',
-        min_quantity: item?.min_quantity?.toString() || '5',
-        price: item?.price?.toString() || '',
-        cost_price: item?.cost_price?.toString() || '',
-        unit: item?.unit || 'pieza',
-      })
-      setFieldErrors({})
-      setTouched({})
-      setError('')
-    }
-  }, [isOpen, item])
 
   if (!isOpen) return null
 

@@ -244,11 +244,13 @@ export function EmployeesClient({
       )}
 
       <DeleteEmployeePortal
+        key={deleteTarget?.id}
         employee={deleteTarget}
         onClose={() => setDeleteTarget(null)}
       />
 
       <PermanentDeletePortal
+        key={hardDeleteTarget?.id}
         employee={hardDeleteTarget}
         onClose={() => setHardDeleteTarget(null)}
       />

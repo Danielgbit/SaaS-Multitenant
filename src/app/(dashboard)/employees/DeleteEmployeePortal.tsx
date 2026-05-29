@@ -17,13 +17,6 @@ export function DeleteEmployeePortal({ employee, onClose }: DeleteEmployeePortal
   const [error, setError] = useState<string | null>(null)
   const [reason, setReason] = useState('')
 
-  useEffect(() => {
-    if (employee) {
-      setReason('')
-      setError(null)
-    }
-  }, [employee])
-
   if (!employee || typeof window === 'undefined') return null
 
   function handleSubmit(e: React.FormEvent) {

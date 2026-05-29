@@ -529,30 +529,14 @@ export function EditClientModal({
       setIsVisible(true)
       setIsSubmitted(false)
       setFormErrors({})
-      
-      if (client) {
-        setName(client.name || '')
-        setEmail(client.email || '')
-        setPhone(client.phone || '')
-        setNotes(client.notes || '')
-        setConfirmationsEnabled(client.confirmations_enabled ?? true)
-        setConfirmationMethod((client.confirmation_method as ConfirmationMethod) || 'whatsapp')
-      } else {
-        setName('')
-        setEmail('')
-        setPhone('')
-        setNotes('')
-        setConfirmationsEnabled(true)
-        setConfirmationMethod('whatsapp')
-      }
-      
+
       setTimeout(() => {
         nameInputRef.current?.focus()
       }, 100)
     } else {
       setIsVisible(false)
     }
-  }, [isOpen, client])
+  }, [isOpen])
 
   useEffect(() => {
     if (isClosing) {

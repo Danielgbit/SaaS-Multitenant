@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Database, Info, CheckCircle2, Trash2, ChevronRight, AlertCircle } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
@@ -25,18 +25,9 @@ export function DataRetentionClient({
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  const [autoPurgeEnabled, setAutoPurgeEnabled] = useState(false)
-  const [retentionDays, setRetentionDays] = useState(90)
-  const [hasInitialized, setHasInitialized] = useState(false)
+  const [autoPurgeEnabled, setAutoPurgeEnabled] = useState(initialSettings?.auto_purge_enabled ?? false)
+  const [retentionDays, setRetentionDays] = useState(initialSettings?.auto_retention_days ?? 90)
   const [showPurgeModal, setShowPurgeModal] = useState(false)
-
-  useEffect(() => {
-    if (initialSettings && !hasInitialized) {
-      setAutoPurgeEnabled(initialSettings.auto_purge_enabled ?? false)
-      setRetentionDays(initialSettings.auto_retention_days ?? 90)
-      setHasInitialized(true)
-    }
-  }, [initialSettings, hasInitialized])
 
   async function handleSaveSettings() {
     setSaving(true)
