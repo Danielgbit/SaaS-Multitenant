@@ -33,17 +33,19 @@ export function PermanentDeletePortal({ employee, onClose }: PermanentDeletePort
   useEffect(() => {
     if (!employee) return
 
-    setIsLoadingCounts(true)
-    setRecordCounts(null)
     setConfirmText('')
     setError(null)
-    
+
+    let mounted = true
+
     countEmployeeRecords(employee.id)
       .then((counts) => {
+        if (!mounted) return
         setRecordCounts(counts)
         setIsLoadingCounts(false)
       })
       .catch((error) => {
+        if (!mounted) return
         console.error('Error loading record counts:', error)
         setRecordCounts({
           appointments: 0,
@@ -56,6 +58,8 @@ export function PermanentDeletePortal({ employee, onClose }: PermanentDeletePort
         })
         setIsLoadingCounts(false)
       })
+
+    return () => { mounted = false }
   }, [employee])
 
   if (!employee || typeof window === 'undefined') return null

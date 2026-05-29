@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { X, UserPlus, Phone, AlertTriangle, RotateCcw } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { createEmployee } from '@/actions/employees/createEmployee'
@@ -21,24 +21,11 @@ interface FormState {
 export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProps) {
   const [isPending, startTransition] = useTransition()
   const [state, setState] = useState<FormState>({ success: false })
-  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false)
 
-  useEffect(() => {
-    if (state.duplicateEmployee) {
-      setShowDuplicateWarning(true)
-    }
-  }, [state.duplicateEmployee])
-
-  useEffect(() => {
-    if (state.success && !state.error) {
-      setShowDuplicateWarning(false)
-      onClose()
-    }
-  }, [state.success, state.error, onClose])
+  const showDuplicateWarning = !!state.duplicateEmployee
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setShowDuplicateWarning(false)
     
     const formData = new FormData(e.currentTarget)
     const name = formData.get('name') as string
@@ -47,22 +34,23 @@ export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProp
     startTransition(async () => {
       const result = await createEmployee({ name, phone: phone || null })
       setState(result)
+      if (result.success && !result.error) {
+        onClose()
+      }
     })
   }
 
   function handleReactivate() {
     if (!state.duplicateEmployee) return
     
-    const employee = state.duplicateEmployee
     startTransition(async () => {
-      await toggleEmployeeStatus(employee.id, true)
+      await toggleEmployeeStatus(state.duplicateEmployee!.id, true)
       onClose()
     })
   }
 
   function handleClose() {
     setState({ success: false })
-    setShowDuplicateWarning(false)
     onClose()
   }
 

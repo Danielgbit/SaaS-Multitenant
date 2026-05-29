@@ -31,15 +31,16 @@ export function PermanentDeleteModal({ employee, onClose }: PermanentDeleteModal
   useEffect(() => {
     if (!employee) return
 
-    setIsLoadingCounts(true)
-    setRecordCounts(null)
-    
+    let mounted = true
+
     countEmployeeRecords(employee.id)
       .then((counts) => {
+        if (!mounted) return
         setRecordCounts(counts)
         setIsLoadingCounts(false)
       })
       .catch((error) => {
+        if (!mounted) return
         console.error('Error loading record counts:', error)
         setRecordCounts({
           appointments: 0,
@@ -52,6 +53,8 @@ export function PermanentDeleteModal({ employee, onClose }: PermanentDeleteModal
         })
         setIsLoadingCounts(false)
       })
+
+    return () => { mounted = false }
   }, [employee])
 
   if (!employee) return null
