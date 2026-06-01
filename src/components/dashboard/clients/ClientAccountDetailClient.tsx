@@ -276,13 +276,14 @@ export function ClientAccountDetailClient({
       {showSaleModal && (
         <SaleModal
           products={products}
-          onRecord={async (selected) => {
+          onRecord={async (selected, paymentMethod) => {
             const { recordSale } = await import('@/actions/clientAccounts/recordTransaction')
+            const isCredit = paymentMethod === 'credit'
             const result = await recordSale(organizationId, {
               client_id: client.id,
               products: selected.map(p => ({ inventory_item_id: p.productId, quantity: p.quantity, unit_price: p.price })),
-              payment_method: 'credit',
-              notes: 'Venta a crédito',
+              payment_method: paymentMethod,
+              notes: isCredit ? 'Venta a crédito' : 'Venta de contado',
             })
             if (result.success) {
               setSuccess(true)

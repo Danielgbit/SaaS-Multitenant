@@ -3,11 +3,6 @@
 import { Scissors } from 'lucide-react'
 import { formatDuration } from '@/lib/utils/formatTime'
 
-const COLORS = {
-  primary: '#0F4C5C', surface: '#FFFFFF', surfaceSubtle: '#F8FAFB',
-  border: '#E8ECEE', textPrimary: '#1A2B32', textSecondary: '#5A6B70',
-}
-
 interface Service { id: string; name: string; duration: number; price: number }
 interface BookingColors {
   primary: string; primaryLight: string; surface: string; surfaceSubtle: string

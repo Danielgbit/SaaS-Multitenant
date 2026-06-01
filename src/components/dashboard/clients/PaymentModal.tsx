@@ -4,17 +4,19 @@ import { useState } from 'react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
+import type { PaymentMethod } from '@/types/cash-sessions'
+import { PAYMENT_METHOD_LABELS } from '@/types/cash-sessions'
 
 interface PaymentModalProps {
   balance: number
-  onRecord: (amount: number, method: string, reference: string) => Promise<void>
+  onRecord: (amount: number, method: PaymentMethod, reference: string) => Promise<void>
   onClose: () => void
 }
 
 export function PaymentModal({ balance, onRecord, onClose }: PaymentModalProps) {
   const COLORS = useThemeColors()
   const [amount, setAmount] = useState('')
-  const [method, setMethod] = useState('cash')
+  const [method, setMethod] = useState<PaymentMethod>('cash')
   const [reference, setReference] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -42,13 +44,11 @@ export function PaymentModal({ balance, onRecord, onClose }: PaymentModalProps) 
           </div>
           <div>
             <label className="block text-sm font-medium mb-1" style={{ color: COLORS.textSecondary }}>Método de pago</label>
-            <select value={method} onChange={e => setMethod(e.target.value)} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, color: COLORS.textPrimary }}>
-              <option value="cash">Efectivo</option>
-              <option value="bancolombia">Transferencia Bancolombia</option>
-              <option value="nequi">Nequi</option>
-              <option value="daviplata">Daviplata</option>
-              <option value="debit_card">Tarjeta Débito</option>
-              <option value="credit_card">Tarjeta Crédito</option>
+            <select value={method} onChange={e => setMethod(e.target.value as PaymentMethod)} className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: COLORS.border, color: COLORS.textPrimary }}>
+              <option value="cash">{PAYMENT_METHOD_LABELS.cash}</option>
+              <option value="transfer">{PAYMENT_METHOD_LABELS.transfer}</option>
+              <option value="qr">{PAYMENT_METHOD_LABELS.qr}</option>
+              <option value="card">{PAYMENT_METHOD_LABELS.card}</option>
             </select>
           </div>
           <div>

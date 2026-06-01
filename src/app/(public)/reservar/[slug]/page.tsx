@@ -66,12 +66,12 @@ export default async function PublicBookingPage({ params }: Props) {
 
   if (!services || services.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FAFAF9' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-surface-subtle, #F8FAFC)' }}>
         <div className="text-center px-6">
-          <h1 className="text-2xl font-semibold mb-2 font-heading" style={{ color: '#1A2B32' }}>
+          <h1 className="text-2xl font-semibold mb-2 font-heading" style={{ color: 'var(--text-primary, #0F172A)' }}>
             {organization.name}
           </h1>
-          <p style={{ color: '#5A6B70' }}>
+          <p style={{ color: 'var(--text-secondary, #475569)' }}>
             No hay servicios disponibles en este momento.
           </p>
         </div>
@@ -80,7 +80,7 @@ export default async function PublicBookingPage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FAFAF9' }}>
+    <div className="min-h-screen">
       <BookingWizard 
         organization={organization}
         services={services}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { Spinner } from '@/components/ui'
+import { useThemeColors } from '@/hooks/useThemeColors'
 import { createPublicBooking } from '@/actions/public/createPublicBooking'
 import { formatTime, formatDate as formatDateUtil, formatDuration } from '@/lib/utils/formatTime'
 import { StepService } from './booking/StepService'
@@ -17,16 +18,10 @@ interface TimeSlot { start_time: string; end_time: string; available: boolean; b
 
 type BookingStep = 'service' | 'datetime' | 'client' | 'confirming' | 'confirmed'
 
-const COLORS = {
-  primary: '#0F4C5C', primaryLight: '#1A6B7C', surface: '#FFFFFF', surfaceSubtle: '#F8FAFB',
-  border: '#E8ECEE', borderLight: '#F0F3F4', textPrimary: '#1A2B32', textSecondary: '#5A6B70',
-  textMuted: '#8A9A9E', success: '#059669', successLight: '#D1FAE5', warning: '#D97706',
-  warningLight: '#FEF3C7', error: '#DC2626', errorLight: '#FEE2E2',
-}
-
 export function BookingWizard({ organization, services, employees }: {
   organization: Organization; services: Service[]; employees: Employee[]
 }) {
+  const colors = useThemeColors()
   const [step, setStep] = useState<BookingStep>('service')
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
@@ -86,18 +81,18 @@ export function BookingWizard({ organization, services, employees }: {
       <BookingConfirmed
         selectedService={selectedService} selectedEmployee={selectedEmployee}
         selectedDate={selectedDate} selectedSlot={selectedSlot}
-        organizationName={organization.name} colors={COLORS}
+        organizationName={organization.name} colors={colors}
         onNewBooking={() => window.location.reload()}
       />
     )
   }
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-8 px-4" style={{ backgroundColor: colors.surfaceSubtle }}>
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold mb-2" style={{ color: COLORS.textPrimary }}>{organization.name}</h1>
-          <p style={{ color: COLORS.textSecondary }}>Reserva tu cita en línea</p>
+          <h1 className="text-3xl font-semibold mb-2" style={{ color: colors.textPrimary }}>{organization.name}</h1>
+          <p style={{ color: colors.textSecondary }}>Reserva tu cita en línea</p>
         </div>
 
         {step !== 'confirming' && (
@@ -106,35 +101,35 @@ export function BookingWizard({ organization, services, employees }: {
               {[1, 2, 3].map(s => (
                 <div key={s} className="flex items-center">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
-                    style={{ backgroundColor: getStepNumber() >= s ? COLORS.primary : COLORS.borderLight, color: getStepNumber() >= s ? '#FFF' : COLORS.textMuted }}>
+                    style={{ backgroundColor: getStepNumber() >= s ? colors.primary : colors.borderLight, color: getStepNumber() >= s ? '#FFF' : colors.textMuted }}>
                     {getStepNumber() > s ? <CheckCircle2 className="w-5 h-5" /> : s}
                   </div>
-                  {s < 3 && <div className="w-12 h-0.5 mx-2" style={{ backgroundColor: getStepNumber() > s ? COLORS.primary : COLORS.borderLight }} />}
+                  {s < 3 && <div className="w-12 h-0.5 mx-2" style={{ backgroundColor: getStepNumber() > s ? colors.primary : colors.borderLight }} />}
                 </div>
               ))}
             </div>
-            <div className="flex justify-between mt-2 text-xs px-8" style={{ color: COLORS.textMuted }}>
+            <div className="flex justify-between mt-2 text-xs px-8" style={{ color: colors.textMuted }}>
               <span>Servicio</span><span>Horario</span><span>Tus datos</span>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl" style={{ backgroundColor: COLORS.errorLight }}>
-            <p className="text-sm font-medium" style={{ color: COLORS.error }}>{error}</p>
+          <div className="mb-6 p-4 rounded-xl" style={{ backgroundColor: colors.errorLight }}>
+            <p className="text-sm font-medium" style={{ color: colors.error }}>{error}</p>
           </div>
         )}
 
-        <div className="bg-white rounded-3xl shadow-lg overflow-hidden" style={{ border: `1px solid ${COLORS.border}` }}>
+        <div className="rounded-3xl shadow-lg overflow-hidden" style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}` }}>
           {step === 'service' && (
-            <StepService services={services} selectedService={selectedService} onSelect={selectService} colors={COLORS} />
+            <StepService services={services} selectedService={selectedService} onSelect={selectService} colors={colors} />
           )}
           {step === 'datetime' && (
             <StepDateTime
               selectedService={selectedService} selectedEmployee={selectedEmployee}
               selectedDate={selectedDate} selectedSlot={selectedSlot}
               availableSlots={availableSlots} loadingSlots={loadingSlots}
-              employees={employees} colors={COLORS}
+              employees={employees} colors={colors}
               onSelectEmployee={(emp) => { setSelectedEmployee(emp); setSelectedSlot('') }}
               onSelectDate={(d) => { setSelectedDate(d); setSelectedSlot('') }}
               onSelectSlot={setSelectedSlot}
@@ -145,7 +140,7 @@ export function BookingWizard({ organization, services, employees }: {
           {step === 'client' && (
             <StepClient
               clientName={clientName} clientPhone={clientPhone} clientEmail={clientEmail}
-              clientNotes={clientNotes} isSubmitting={isSubmitting} colors={COLORS}
+              clientNotes={clientNotes} isSubmitting={isSubmitting} colors={colors}
               onNameChange={setClientName} onPhoneChange={setClientPhone}
               onEmailChange={setClientEmail} onNotesChange={setClientNotes}
               onSubmit={handleSubmit} onBack={() => setStep('datetime')}
@@ -153,7 +148,7 @@ export function BookingWizard({ organization, services, employees }: {
           )}
         </div>
 
-        <p className="text-center mt-6 text-xs" style={{ color: COLORS.textMuted }}>Powered by Prügressy</p>
+        <p className="text-center mt-6 text-xs" style={{ color: colors.textMuted }}>Powered by Prügressy</p>
       </div>
     </div>
   )

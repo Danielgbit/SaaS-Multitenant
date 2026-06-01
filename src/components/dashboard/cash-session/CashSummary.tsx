@@ -1,37 +1,28 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
-import Link from 'next/link'
+import { useMemo, useState } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { PAYMENT_METHOD_LABELS, PAYMENT_METHOD_ICONS } from '@/types/cash-sessions'
+import { Minus } from 'lucide-react'
 import type { PaymentMethod } from '@/types/cash-sessions'
+import { CashStatusCard } from './CashStatusCard'
+import { PaymentBreakdownCard } from './PaymentBreakdownCard'
+import { DailyMetricsCard } from './DailyMetricsCard'
+import { LowStockAlertCard } from './LowStockAlertCard'
+import { ConfirmModal } from './ConfirmModal'
 
-function fmt(n: number) { return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n) }
 const METHODS: PaymentMethod[] = ['cash', 'qr', 'transfer', 'card']
 
-export function CashSummary({ session, entries, onClose, isClosing, canClose, organizationId }: any) {
-  const [lowStockItems, setLowStockItems] = useState<any[]>([])
-  const [showLowStock, setShowLowStock] = useState(false)
-  const [showMetrics, setShowMetrics] = useState(false)
+interface CashSummaryProps {
+  session: any
+  entries: any[]
+  onClose: (realCashDetail: Record<PaymentMethod, number>) => void | Promise<void>
+  isClosing: boolean
+  canClose: boolean
+  organizationId: string
+}
 
-  useEffect(() => {
-    if (!organizationId) return
-    const fetch = async () => {
-      try {
-        const supabase = (await import('@/lib/supabase/client')).createClient()
-        const { data } = await supabase
-          .from('inventory_items')
-          .select('id, name, quantity, min_quantity, unit')
-          .eq('organization_id', organizationId)
-          .eq('active', true)
-          .order('name')
-        const filtered = (data || []).filter((i: any) => i.quantity <= i.min_quantity)
-        if (filtered.length > 0) setShowLowStock(true)
-        setLowStockItems(filtered)
-      } catch {}
-    }
-    fetch()
-  }, [organizationId])
-  const theme = useThemeColors()
+export function CashSummary({ session, entries, onClose, isClosing, canClose, organizationId }: CashSummaryProps) {
+  const COLORS = useThemeColors()
+  const [showConfirm, setShowConfirm] = useState(false)
   const isClosed = session.status === 'closed'
   const ed = session.expected_cash_detail ?? { cash: 0, qr: 0, transfer: 0, card: 0 }
   const rd = session.real_cash_detail
@@ -42,134 +33,58 @@ export function CashSummary({ session, entries, onClose, isClosing, canClose, or
   const diff = (m: PaymentMethod) => rd ? (rd[m] ?? 0) - (ed[m] ?? 0) : null
   const totalDiff = rd ? METHODS.reduce((s, m) => s + (diff(m) ?? 0), 0) : null
 
-  return (
-    <div className="rounded-xl overflow-hidden sticky top-4" style={{ backgroundColor: theme.surface, border: '1px solid ' + theme.border }}>
-      <div className="p-3 border-b font-semibold text-sm flex items-center justify-between" style={{ borderColor: theme.border, color: theme.textPrimary }}>
-        <span>Resumen</span>
-        <span className="text-xs font-medium px-2 py-0.5 rounded-full"
-          style={{ backgroundColor: isClosed ? 'rgba(156,163,175,0.15)' : 'rgba(34,197,94,0.15)', color: isClosed ? '#9ca3af' : '#22c55e' }}>
-          {isClosed ? 'Cerrada' : 'Abierta'}
-        </span>
-      </div>
-      <div className="p-3 space-y-3">
-        <div className="flex justify-between"><span className="text-xs" style={{ color: theme.textMuted }}>Apertura</span><span className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{fmt(session.opening_cash)}</span></div>
-        <div className="border-t pt-3 space-y-2" style={{ borderColor: theme.border }}>
-          {METHODS.map((m) => {
-            const d = isClosed ? diff(m) : null
-            return (
-              <div key={m} className="flex justify-between">
-                <span className="text-xs" style={{ color: theme.textMuted }}>{PAYMENT_METHOD_ICONS[m]} {PAYMENT_METHOD_LABELS[m]}</span>
-                <span className="text-sm font-medium" style={{ color: theme.textPrimary }}>
-                  {fmt(ed[m] ?? 0)}
-                  {d !== null && <span className="text-xs ml-1" style={{ color: d === 0 ? theme.textMuted : d! > 0 ? '#22c55e' : '#ef4444' }}>{d! > 0 ? '+' : ''}{fmt(d!)}</span>}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-        <div className="border-t pt-3 flex justify-between" style={{ borderColor: theme.border }}>
-          <span className="text-sm font-semibold" style={{ color: theme.textPrimary }}>Total Esp.</span>
-          <span className="text-lg font-bold" style={{ color: theme.textPrimary }}>{fmt(ec)}</span>
-        </div>
-        {isClosed && totalDiff !== null && (
-          <div className={'rounded-lg p-3 ' + (totalDiff === 0 ? 'bg-green-50' : 'bg-red-50')}>
-            <div className="flex justify-between">
-              <span className="text-sm font-semibold" style={{ color: totalDiff === 0 ? '#22c55e' : '#ef4444' }}>{totalDiff === 0 ? 'Cuadra' : 'Diferencia'}</span>
-              <span className="text-lg font-bold" style={{ color: totalDiff === 0 ? '#22c55e' : '#ef4444' }}>{totalDiff! > 0 ? '+' : ''}{fmt(totalDiff!)}</span>
-            </div>
-          </div>
-        )}
-
-        {active.length > 0 && (
-          <div className="border-t pt-3" style={{ borderColor: theme.border }}>
-            <button
-              onClick={() => setShowMetrics(!showMetrics)}
-              className="flex items-center gap-1.5 text-xs font-medium w-full"
-              style={{ color: theme.textPrimary }}
-            >
-              <span>{showMetrics ? '▼' : '▶'}</span>
-              📊 Hoy
-            </button>
-            {showMetrics && (
-              <div className="mt-2 space-y-1">
-                <DailyMetrics entries={active} />
-              </div>
-            )}
-          </div>
-        )}
-
-        {lowStockItems.length > 0 && (
-          <div className="border-t pt-3" style={{ borderColor: theme.border }}>
-            <button onClick={() => setShowLowStock(!showLowStock)}
-              className="flex items-center gap-1.5 text-xs font-medium w-full"
-              style={{ color: theme.warning }}>
-              <span>{showLowStock ? '▼' : '▶'}</span>
-              ⚠ {lowStockItems.length} producto{lowStockItems.length !== 1 ? 's' : ''} con stock bajo
-            </button>
-            {showLowStock && (
-              <div className="mt-2 space-y-1">
-                {lowStockItems.slice(0, 5).map((i: any) => (
-                  <div key={i.id} className="flex justify-between text-xs" style={{ color: theme.textMuted }}>
-                    <span>{i.name}</span>
-                    <span style={{ color: i.quantity === 0 ? '#ef4444' : theme.warning }}>{i.quantity} / {i.min_quantity} {i.unit}</span>
-                  </div>
-                ))}
-                {lowStockItems.length > 5 && (
-                  <Link href="/inventory" className="block text-xs font-medium mt-1" style={{ color: theme.accentTeal }}>
-                    Ver todos en inventario →
-                  </Link>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-      {canClose && (
-        <div className="p-3 border-t" style={{ borderColor: theme.border }}>
-          <button onClick={() => { if (window.confirm('¿Cerrar la caja del día?\n\nAsegúrate de haber contado el efectivo y registrado todos los gastos.')) onClose(); }} className="w-full py-2 rounded-lg text-sm font-medium" style={{ backgroundColor: theme.warning, color: '#fff' }}>Cerrar Caja</button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function DailyMetrics({ entries }: { entries: any[] }) {
-  const theme = useThemeColors()
-  const m = useMemo(() => {
-    const r = { income: 0, product_sale: 0, expense: 0, payroll_expense: 0, inventory_purchase: 0 }
-    for (const e of entries) {
-      if (e.direction === 'in' && e.entry_type === 'income') r.income += e.amount
-      if (e.direction === 'in' && e.entry_type === 'product_sale') r.product_sale += e.amount
-      if (e.direction === 'out' && e.entry_type === 'expense') r.expense += e.amount
-      if (e.direction === 'out' && e.entry_type === 'payroll_expense') r.payroll_expense += e.amount
-      if (e.direction === 'out' && e.entry_type === 'inventory_purchase') r.inventory_purchase += e.amount
+  const expectedDetail = useMemo(() => {
+    if (!isClosed) {
+      return METHODS.reduce((acc, m) => {
+        acc[m] = (session.expected_cash_detail ?? { cash: 0, qr: 0, transfer: 0, card: 0 })[m] ?? 0
+        return acc
+      }, {} as Record<PaymentMethod, number>)
     }
-    return r
-  }, [entries])
-  const netDay = m.income + m.product_sale - m.expense - m.payroll_expense - m.inventory_purchase
-
-  const rows = [
-    { label: '💇 Servicios', value: m.income, color: '#22c55e' },
-    { label: '🏪 Productos', value: m.product_sale, color: '#22c55e' },
-    { label: '💸 Gastos', value: m.expense, color: '#ef4444' },
-    { label: '👥 Nómina', value: m.payroll_expense, color: '#ef4444' },
-    { label: '📦 Compra inv.', value: m.inventory_purchase, color: '#ef4444' },
-  ]
+    return ed
+  }, [isClosed, ed, session.expected_cash_detail])
 
   return (
-    <div className="space-y-1">
-      {rows.map((r) =>
-        r.value > 0 ? (
-          <div key={r.label} className="flex justify-between text-xs">
-            <span style={{ color: theme.textMuted }}>{r.label}</span>
-            <span style={{ color: r.color }}>{fmt(r.value)}</span>
-          </div>
-        ) : null
+    <div className="flex flex-col gap-3 p-3 lg:p-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto scrollbar-hide">
+      <CashStatusCard
+        session={session}
+        expectedCash={ec}
+        difference={isClosed ? totalDiff : null}
+      />
+
+      <PaymentBreakdownCard
+        expectedDetail={expectedDetail}
+        realDetail={rd}
+        isClosed={isClosed}
+      />
+
+      <DailyMetricsCard entries={active} />
+
+      <LowStockAlertCard organizationId={organizationId} />
+
+      {canClose && (
+        <>
+          <button
+            onClick={() => setShowConfirm(true)}
+            disabled={isClosing}
+            className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] focus-visible:ring-offset-2 dark:focus-visible:ring-[#38BDF8]"
+            style={{ backgroundColor: COLORS.warning, color: '#fff' }}
+          >
+            <Minus className="w-4 h-4" />
+            {isClosing ? 'Cerrando...' : 'Cerrar caja'}
+          </button>
+          {showConfirm && (
+            <ConfirmModal
+              title="Cerrar caja"
+              message="¿Cerrar la caja del día? Asegúrate de haber contado el efectivo y registrado todos los gastos."
+              confirmLabel="Cerrar caja"
+              variant="warning"
+              onConfirm={() => onClose(session.real_cash_detail ?? { cash: 0, qr: 0, transfer: 0, card: 0 })}
+              onClose={() => setShowConfirm(false)}
+              isLoading={isClosing}
+            />
+          )}
+        </>
       )}
-      <div className="border-t pt-1 mt-1 flex justify-between text-xs font-semibold" style={{ borderColor: theme.border, color: theme.textPrimary }}>
-        <span>💰 Neto del día</span>
-        <span style={{ color: netDay >= 0 ? '#22c55e' : '#ef4444' }}>{fmt(netDay)}</span>
-      </div>
     </div>
   )
 }

@@ -24,7 +24,7 @@ export function BookingConfirmed({
   onNewBooking: () => void
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#FAFAF9' }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: colors.surfaceSubtle }}>
       <div className="max-w-md w-full">
         <div className="bg-white rounded-3xl p-8 shadow-lg" style={{ border: `1px solid ${colors.border}` }}>
           <div className="text-center mb-6">

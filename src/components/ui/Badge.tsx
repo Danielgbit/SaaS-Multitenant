@@ -3,7 +3,7 @@
 import React, { type ReactNode } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
-type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'primary' | 'gold' | 'neutral'
+export type BadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'primary' | 'gold' | 'neutral'
 
 interface BadgeProps {
   variant?: BadgeVariant

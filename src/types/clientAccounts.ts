@@ -3,7 +3,8 @@
 // =====================================================
 
 export type TransactionType = 'sale' | 'payment' | 'credit' | 'refund' | 'adjustment'
-export type PaymentMethodType = 'cash' | 'transfer' | 'card' | 'other'
+export type PaymentMethodType = 'cash' | 'qr' | 'transfer' | 'card' | 'credit' | 'other'
+export type SalePaymentMethod = 'cash' | 'qr' | 'transfer' | 'card' | 'credit'
 
 export type ClientAccount = {
   id: string
@@ -124,14 +125,14 @@ export type CreateSaleInput = {
     unit_price: number
     discount_percent?: number
   }[]
-  payment_method?: string
+  payment_method?: SalePaymentMethod
   notes?: string
 }
 
 export type RecordPaymentInput = {
   client_id: string
   amount: number
-  payment_method: string
+  payment_method: Exclude<SalePaymentMethod, 'credit'>
   payment_reference?: string
   notes?: string
 }

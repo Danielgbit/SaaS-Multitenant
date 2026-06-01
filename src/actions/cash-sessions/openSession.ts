@@ -14,7 +14,11 @@ export async function openSession(input: OpenSessionInput): Promise<{ success: b
   const today = getTodayDateColombia()
   const { data: existing } = await (supabase as any).from('cash_sessions').select('id').eq('organization_id', input.organization_id).eq('session_date', today).eq('status', 'open').maybeSingle()
   if (existing) return { success: false, error: 'Ya hay caja abierta.' }
-  const { data: session, error } = await (supabase as any).from('cash_sessions').insert({ organization_id: input.organization_id, session_date: today, opened_by: user.id, opening_cash: input.opening_cash, notes: input.notes || null }).select('id').single()
+  const openingCash = input.opening_cash
+  if (typeof openingCash !== 'number' || Number.isNaN(openingCash) || openingCash < 0) {
+    return { success: false, error: 'El monto inicial debe ser mayor o igual a 0' }
+  }
+  const { data: session, error } = await (supabase as any).from('cash_sessions').insert({ organization_id: input.organization_id, session_date: today, opened_by: user.id, opening_cash: openingCash, notes: input.notes || null }).select('id').single()
   if (error) return { success: false, error: 'Error al abrir.' }
   revalidatePath('/caja')
   return { success: true, session_id: session.id }

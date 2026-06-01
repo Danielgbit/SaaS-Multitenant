@@ -1,9 +1,16 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { CreateSaleInput } from '@/types/clientAccounts'
+import type { CreateSaleInput, SalePaymentMethod, RecordPaymentInput } from '@/types/clientAccounts'
 import { revalidatePath } from 'next/cache'
-import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
+import type { PaymentMethod } from '@/types/cash-sessions'
+
+const CREDIT_METHODS: SalePaymentMethod[] = ['credit']
+
+function toPaymentMethod(method: SalePaymentMethod | undefined): PaymentMethod {
+  if (!method || method === 'credit') return 'cash'
+  return method as PaymentMethod
+}
 
 export async function recordSale(
   organizationId: string,
@@ -35,93 +42,22 @@ export async function recordSale(
     return { success: false, error: 'Cliente no encontrado' }
   }
 
-  let accountId: string
   const totalAmount = input.products.reduce((sum, p) => {
     const discount = (p.unit_price * (p.discount_percent || 0)) / 100
     return sum + (p.unit_price - discount) * p.quantity
   }, 0)
 
-  const { data: existingAccount } = await supabase
-    .from('client_accounts')
-    .select('id, balance')
-    .eq('client_id', input.client_id)
-    .eq('organization_id', organizationId)
-    .single()
+  const isCredit = input.payment_method === 'credit'
 
-  if (existingAccount) {
-    accountId = existingAccount.id
-    
-    const newBalance = existingAccount.balance + totalAmount
-    
-    if (newBalance > existingAccount.balance && existingAccount.balance > 0) {
-      return { success: false, error: 'Cliente tiene cuenta bloqueada por deuda vencida' }
-    }
-  } else {
-    const { data: newAccount, error: createError } = await supabase
-      .from('client_accounts')
-      .insert({
-        client_id: input.client_id,
-        organization_id: organizationId,
-        balance: 0,
-        total_purchased: 0,
-        total_paid: 0,
-        credit_limit: 0,
-      })
-      .select('id')
-      .single()
-
-    if (createError) {
-      return { success: false, error: createError.message }
-    }
-    accountId = newAccount.id
-  }
-
-  const { data: transaction, error: transactionError } = await supabase
-    .from('client_account_transactions')
-    .insert({
-      account_id: accountId,
-      organization_id: organizationId,
-      transaction_type: 'sale',
-      amount: totalAmount,
-      balance_after: 0,
-      payment_method: input.payment_method || null,
-      notes: input.notes || `Venta a ${client.name}`,
-      created_by: user.id,
-    })
-    .select('id')
-    .single()
-
-  if (transactionError) {
-    return { success: false, error: transactionError.message }
-  }
-
+  // --- Stock decrement (always) ---
   for (const product of input.products) {
-    const discount = (product.unit_price * (product.discount_percent || 0)) / 100
-    const totalPrice = (product.unit_price - discount) * product.quantity
-
-    const { error: saleError } = await supabase
-      .from('client_product_sales')
-      .insert({
-        transaction_id: transaction.id,
-        inventory_item_id: product.inventory_item_id,
-        product_name: '',
-        quantity: product.quantity,
-        unit_price: product.unit_price,
-        discount_percent: product.discount_percent || 0,
-        total_price: totalPrice,
-      })
-
-    if (saleError) {
-      console.error('Error inserting product sale:', saleError)
-    }
-
     if (product.inventory_item_id) {
       const { data: currentItem } = await supabase
         .from('inventory_items')
         .select('quantity')
         .eq('id', product.inventory_item_id)
         .single()
-      
+
       if (currentItem) {
         await supabase
           .from('inventory_items')
@@ -133,56 +69,138 @@ export async function recordSale(
     }
   }
 
-  const { data: updatedAccount } = await supabase
-    .from('client_accounts')
-    .select('balance')
-    .eq('id', accountId)
-    .single()
+  if (isCredit) {
+    // --- FLUJO CRÉDITO: cuenta + transacción + product_sales ---
+    let accountId: string
 
-  // Auto-registrar ingreso por venta de productos en caja (fire-and-forget)
-  const saleItems = input.products.map((p: any) => ({
-    item_id: p.inventory_item_id, quantity: p.quantity,
-    unit_price: p.unit_price, subtotal: (p.unit_price - (p.unit_price * (p.discount_percent || 0)) / 100) * p.quantity,
-  }))
+    const { data: existingAccount } = await supabase
+      .from('client_accounts')
+      .select('id, balance')
+      .eq('client_id', input.client_id)
+      .eq('organization_id', organizationId)
+      .single()
 
-  import('@/actions/cash-sessions/createEntryFromSource').then((m) => {
-    const today = getTodayDateColombia()
-    return m.createEntryFromSource({
+    if (existingAccount) {
+      accountId = existingAccount.id
+
+      const newBalance = existingAccount.balance + totalAmount
+
+      if (newBalance > existingAccount.balance && existingAccount.balance > 0) {
+        return { success: false, error: 'Cliente tiene cuenta bloqueada por deuda vencida' }
+      }
+    } else {
+      const { data: newAccount, error: createError } = await supabase
+        .from('client_accounts')
+        .insert({
+          client_id: input.client_id,
+          organization_id: organizationId,
+          balance: 0,
+          total_purchased: 0,
+          total_paid: 0,
+          credit_limit: 0,
+        })
+        .select('id')
+        .single()
+
+      if (createError) {
+        return { success: false, error: createError.message }
+      }
+      accountId = newAccount.id
+    }
+
+    const { data: transaction, error: transactionError } = await supabase
+      .from('client_account_transactions')
+      .insert({
+        account_id: accountId,
+        organization_id: organizationId,
+        transaction_type: 'sale',
+        amount: totalAmount,
+        balance_after: 0,
+        payment_method: input.payment_method || null,
+        notes: input.notes || `Venta a crédito - ${client.name}`,
+        created_by: user.id,
+      })
+      .select('id')
+      .single()
+
+    if (transactionError) {
+      return { success: false, error: transactionError.message }
+    }
+
+    for (const product of input.products) {
+      const discount = (product.unit_price * (product.discount_percent || 0)) / 100
+      const totalPrice = (product.unit_price - discount) * product.quantity
+
+      const { error: saleError } = await supabase
+        .from('client_product_sales')
+        .insert({
+          transaction_id: transaction.id,
+          inventory_item_id: product.inventory_item_id,
+          product_name: '',
+          quantity: product.quantity,
+          unit_price: product.unit_price,
+          discount_percent: product.discount_percent || 0,
+          total_price: totalPrice,
+        })
+
+      if (saleError) {
+        console.error('Error inserting product sale:', saleError)
+      }
+    }
+
+    const { data: updatedAccount } = await supabase
+      .from('client_accounts')
+      .select('balance')
+      .eq('id', accountId)
+      .single()
+
+    revalidatePath(`/clients/${input.client_id}/account`)
+    revalidatePath('/clients')
+
+    return {
+      success: true,
+      data: {
+        transaction_id: transaction.id,
+        total_amount: totalAmount,
+        new_balance: updatedAccount?.balance || 0,
+      },
+    }
+  }
+
+  // --- FLUJO CONTADO: stock ya descontado + crear entrada en caja ---
+  const paymentMethod = toPaymentMethod(input.payment_method)
+
+  import('@/actions/cash-sessions/createEntryFromSource').then((m) =>
+    m.createEntryFromSource({
       organization_id: organizationId,
       source_type: 'inventory_sale',
-      source_id: transaction.id,
-      entry_type: 'product_sale' as any,
+      source_id: null,
+      entry_type: 'product_sale',
       direction: 'in',
       amount: totalAmount,
-      payment_method: (input.payment_method as any) || 'cash',
-      title: 'Venta de productos',
+      payment_method: paymentMethod,
+      title: `Venta de productos${input.notes ? ' - ' + input.notes : ''}`,
       created_by: user.id,
       created_via: 'product_sale_hook',
-    }).catch((e: any) => console.error('[inventory] cash entry error:', e))
-  }).catch(() => {})
+    })
+  ).catch(console.error)
 
-  revalidatePath(`/clients/${input.client_id}/account`)
   revalidatePath('/clients')
+  revalidatePath('/caja')
 
   return {
     success: true,
     data: {
-      transaction_id: transaction.id,
+      transaction_id: '',
       total_amount: totalAmount,
-      new_balance: updatedAccount?.balance || 0,
+      new_balance: 0,
     },
   }
 }
 
 export async function recordPayment(
   organizationId: string,
-  input: {
-    client_id: string
-    amount: number
-    payment_method: string
-    payment_reference?: string
-    notes?: string
-  }
+  input: RecordPaymentInput
 ): Promise<{
   success: boolean
   data?: {
@@ -239,8 +257,25 @@ export async function recordPayment(
     return { success: false, error: transactionError.message }
   }
 
+  // Registrar ingreso en caja por pago de cuenta (fire-and-forget)
+  import('@/actions/cash-sessions/createEntryFromSource').then((m) =>
+    m.createEntryFromSource({
+      organization_id: organizationId,
+      source_type: 'client_account_payment',
+      source_id: transaction.id,
+      entry_type: 'account_payment',
+      direction: 'in',
+      amount: input.amount,
+      payment_method: input.payment_method,
+      title: `Pago de cuenta - ${client?.name || 'Cliente'}`,
+      created_by: user.id,
+      created_via: 'record_payment',
+    })
+  ).catch(console.error)
+
   revalidatePath(`/clients/${input.client_id}/account`)
   revalidatePath('/clients')
+  revalidatePath('/caja')
 
   return {
     success: true,

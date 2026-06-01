@@ -4,20 +4,29 @@ import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import type { InventoryItemWithStock } from '@/types/clientAccounts'
+import type { InventoryItemWithStock, SalePaymentMethod } from '@/types/clientAccounts'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 
 interface SaleModalProps {
   products: InventoryItemWithStock[]
-  onRecord: (products: { productId: string; quantity: number; price: number }[]) => Promise<void>
+  onRecord: (products: { productId: string; quantity: number; price: number }[], paymentMethod: SalePaymentMethod) => Promise<void>
   onClose: () => void
 }
+
+const PAYMENT_OPTIONS: { value: SalePaymentMethod; label: string }[] = [
+  { value: 'cash', label: 'Efectivo' },
+  { value: 'card', label: 'Tarjeta' },
+  { value: 'transfer', label: 'Transferencia' },
+  { value: 'qr', label: 'QR' },
+  { value: 'credit', label: 'Crédito (Fiado)' },
+]
 
 export function SaleModal({ products, onRecord, onClose }: SaleModalProps) {
   const COLORS = useThemeColors()
   const [selectedProducts, setSelectedProducts] = useState<{
     productId: string; quantity: number; price: number
   }[]>([])
+  const [paymentMethod, setPaymentMethod] = useState<SalePaymentMethod>('credit')
   const [loading, setLoading] = useState(false)
 
   const addProduct = (product: InventoryItemWithStock) => {
@@ -46,7 +55,7 @@ export function SaleModal({ products, onRecord, onClose }: SaleModalProps) {
 
   const handleSubmit = async () => {
     setLoading(true)
-    await onRecord(selectedProducts)
+    await onRecord(selectedProducts, paymentMethod)
     setLoading(false)
   }
 
@@ -95,9 +104,22 @@ export function SaleModal({ products, onRecord, onClose }: SaleModalProps) {
                 })}
               </div>
               <div className="mt-4 pt-4 border-t" style={{ borderColor: COLORS.border }}>
-                <div className="flex justify-between">
+                <div className="flex justify-between mb-3">
                   <span className="font-bold" style={{ color: COLORS.textPrimary }}>Total</span>
                   <span className="font-bold" style={{ color: COLORS.error }}>{formatCurrencyCOP(totalSale)}</span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: COLORS.textSecondary }}>Método de pago</label>
+                  <select
+                    value={paymentMethod}
+                    onChange={e => setPaymentMethod(e.target.value as SalePaymentMethod)}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none transition-all"
+                    style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}`, color: COLORS.textPrimary }}
+                  >
+                    {PAYMENT_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>

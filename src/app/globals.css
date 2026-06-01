@@ -141,6 +141,14 @@
     background-color: theme('colors.slate.500');
   }
 
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   @keyframes slideDownNotif {
     from {
       opacity: 0;
@@ -154,6 +162,21 @@
 
   .animate-slide-down-notif {
     animation: slideDownNotif 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
 }
