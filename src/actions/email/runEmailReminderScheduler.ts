@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { queueEmailMessage } from './queueEmailMessage'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
 
 export async function runEmailReminderScheduler(): Promise<{
   success: boolean
@@ -140,7 +141,7 @@ export async function runEmailReminderScheduler(): Promise<{
               minute: '2-digit',
             }),
             duration: `${duration} min`,
-            price: service?.price ? `${service.price}€` : undefined,
+            price: service?.price ? formatCurrencyCOP(service.price) : undefined,
           },
         })
 

@@ -3,7 +3,7 @@
 import { useMemo, useRef } from 'react'
 import { Calendar, Clock, FileText, AlertTriangle, Sparkles } from 'lucide-react'
 import { Spinner } from '@/components/ui'
-import { SlotGrid } from './SlotGrid'
+import { SlotGrid } from '@/components/shared/SlotGrid'
 import type { CalendarColors, Client, Employee, Service, TimeSlot, NewAppointmentData } from '@/types/calendar'
 import { formatDuration, formatDate } from '@/lib/utils/formatTime'
 
@@ -16,8 +16,6 @@ interface StepScheduleProps {
   selectedClient: Client | undefined
   selectedService: Service | undefined
   selectedEmployee: Employee | undefined
-  mornSlots: TimeSlot[]
-  aftSlots: TimeSlot[]
   onSetNewAppointmentData: (data: Partial<NewAppointmentData>) => void
   onFetchSlots: () => Promise<void>
 }
@@ -31,8 +29,6 @@ export function StepSchedule({
   selectedClient,
   selectedService,
   selectedEmployee,
-  mornSlots,
-  aftSlots,
   onSetNewAppointmentData,
   onFetchSlots,
 }: StepScheduleProps) {
@@ -161,32 +157,13 @@ export function StepSchedule({
 
           {availableSlots.length > 0 && (
             <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
-              {mornSlots.length > 0 && (
-                <SlotGrid
-                  COLORS={COLORS}
-                  slots={mornSlots}
-                  selectedTime={newAppointmentData.time}
-                  selectedService={selectedService}
-                  periodLabel="Mañana"
-                  periodBadge="Antes de 1 PM"
-                  gradientFrom="amber-400"
-                  gradientTo="orange-400"
-                  onSelect={(time) => onSetNewAppointmentData({ time })}
-                />
-              )}
-              {aftSlots.length > 0 && (
-                <SlotGrid
-                  COLORS={COLORS}
-                  slots={aftSlots}
-                  selectedTime={newAppointmentData.time}
-                  selectedService={selectedService}
-                  periodLabel="Tarde"
-                  periodBadge="Desde 1 PM"
-                  gradientFrom="indigo-400"
-                  gradientTo="purple-400"
-                  onSelect={(time) => onSetNewAppointmentData({ time })}
-                />
-              )}
+              <SlotGrid
+                slots={availableSlots}
+                selectedSlot={newAppointmentData.time}
+                colors={COLORS}
+                serviceDuration={selectedService?.duration}
+                onSelect={(time) => onSetNewAppointmentData({ time })}
+              />
               <div className="flex items-center justify-center gap-6 pt-3 border-t" style={{ borderColor: COLORS.border }}>
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.primary }} />

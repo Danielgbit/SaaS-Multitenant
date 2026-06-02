@@ -6,6 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { Database } from '@db/supabase'
 
 const UpdateWhatsAppSettingsSchema = z.object({
   organizationId: z.string().uuid(),
@@ -32,7 +33,7 @@ export async function updateWhatsAppSettings(
   const supabase = await createClient()
 
   try {
-    const updateData: Record<string, unknown> = {}
+    const updateData: Database['public']['Tables']['whatsapp_settings']['Update'] = {}
     
     if (webhookUrl !== undefined) {
       updateData.webhook_url = webhookUrl || null

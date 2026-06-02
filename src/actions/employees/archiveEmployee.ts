@@ -62,9 +62,6 @@ export async function archiveEmployee(
     .from('employees')
     .update({
       active: false,
-      archived_at: new Date().toISOString(),
-      archived_by: user.id,
-      archived_reason: reason ?? null,
     })
     .eq('id', employeeId)
 

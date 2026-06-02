@@ -268,8 +268,6 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     return `${weekDates[0].toLocaleDateString('es-ES', o)} - ${weekDates[6].toLocaleDateString('es-ES', o)}`
   }
 
-  const { morning: mornSlots, afternoon: aftSlots } = form.categorizeSlots(form.availableSlots)
-
   const handleCreate = async () => {
     await mutations.handleCreate()
     if (!mutations.isCreating) {
@@ -506,7 +504,6 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
           showEmployeeDropdown={form.showEmployeeDropdown}
           isCreating={mutations.isCreating}
           organizationId={organizationId}
-          categorizeSlots={form.categorizeSlots}
           onNextStep={form.nextStep}
           onPrevStep={form.prevStep}
           onClose={() => { modals.setShowNewAppointmentModal(false); form.resetNewForm() }}

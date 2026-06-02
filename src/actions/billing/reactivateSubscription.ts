@@ -56,7 +56,7 @@ export async function reactivateSubscription(
       .update({ 
         cancel_at_period_end: false,
         canceled_at: null,
-      } as Record<string, unknown>)
+      })
       .eq('organization_id', organizationId)
 
     revalidatePath('/dashboard/billing')

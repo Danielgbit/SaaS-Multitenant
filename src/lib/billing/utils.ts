@@ -1,3 +1,5 @@
+export const DEFAULT_CURRENCY = 'COP' as const
+
 export function formatCurrencyCOP(amount: number): string {
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
@@ -7,7 +9,7 @@ export function formatCurrencyCOP(amount: number): string {
   }).format(amount)
 }
 
-export function formatCurrency(amount: number, currency: string = 'EUR'): string {
+export function formatCurrency(amount: number, currency: string = DEFAULT_CURRENCY): string {
   if (currency.toUpperCase() === 'COP') {
     return formatCurrencyCOP(amount)
   }
@@ -17,7 +19,7 @@ export function formatCurrency(amount: number, currency: string = 'EUR'): string
   }).format(amount)
 }
 
-export function formatCurrencyFromCents(cents: number, currency: string = 'EUR'): string {
+export function formatCurrencyFromCents(cents: number, currency: string = DEFAULT_CURRENCY): string {
   return formatCurrency(cents / 100, currency)
 }
 

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { generateSlots } from '@/services/slots/generateSlots'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
@@ -311,7 +312,7 @@ export async function createPublicBooking(
               minute: '2-digit',
             }),
             duration: `${service?.duration || 30} min`,
-            price: service?.price ? `${service.price}€` : undefined,
+            price: service?.price ? formatCurrencyCOP(service.price) : undefined,
           },
         })
       }

@@ -5,6 +5,8 @@ import { CheckCircle2, Scissors, Calendar, User } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { createPublicBooking } from '@/actions/public/createPublicBooking'
 import { formatTime, formatDate as formatDateUtil, formatDuration } from '@/lib/utils/formatTime'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
+import type { TimeSlot } from '@/types/slots'
 import { StepService } from './booking/StepService'
 import { StepDateTime } from './booking/StepDateTime'
 import { StepClient } from './booking/StepClient'
@@ -13,7 +15,6 @@ import { BookingConfirmed } from './booking/BookingConfirmed'
 interface Service { id: string; name: string; duration: number; price: number }
 interface Employee { id: string; name: string }
 interface Organization { id: string; name: string; slug: string }
-interface TimeSlot { start_time: string; end_time: string; available: boolean; blockedReason?: string }
 
 type BookingStep = 'service' | 'datetime' | 'client' | 'confirmed'
 
@@ -149,7 +150,7 @@ export function BookingWizard({ organization, services, employees }: {
             {selectedService && (
               <div className="flex justify-between items-center mb-1">
                 <span className="text-sm font-medium" style={{ color: colors.textPrimary }}>{selectedService.name}</span>
-                <span className="text-sm font-semibold" style={{ color: colors.primary }}>{formatPrice(selectedService.price)}</span>
+                <span className="text-sm font-semibold" style={{ color: colors.primary }}>{formatCurrencyCOP(selectedService.price)}</span>
               </div>
             )}
             {selectedService && (
@@ -259,7 +260,7 @@ export function BookingWizard({ organization, services, employees }: {
                     <span className="text-sm ml-2" style={{ color: colors.textSecondary }}>{formatDuration(selectedService.duration)}</span>
                   </div>
                   <span className="text-sm font-semibold" style={{ color: colors.primary }}>
-                    {formatPrice(selectedService.price)}
+                    {formatCurrencyCOP(selectedService.price)}
                   </span>
                 </div>
               </div>
@@ -356,7 +357,7 @@ export function BookingWizard({ organization, services, employees }: {
                     style={{ borderTop: `1px solid ${colors.border}` }}
                   >
                     <span className="text-xs font-semibold uppercase" style={{ color: colors.textMuted }}>Total</span>
-                    <span className="text-lg font-bold" style={{ color: colors.primary }}>{formatPrice(selectedService.price)}</span>
+                    <span className="text-lg font-bold" style={{ color: colors.primary }}>{formatCurrencyCOP(selectedService.price)}</span>
                   </div>
                 )}
               </div>
@@ -368,8 +369,4 @@ export function BookingWizard({ organization, services, employees }: {
       </div>
     </div>
   )
-}
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(price)
 }

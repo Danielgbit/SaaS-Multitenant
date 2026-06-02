@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { Database } from '@db/supabase'
 
 const UpdateEmployeePayrollSchema = z.object({
   id: z.string().uuid(),
@@ -68,11 +69,10 @@ export async function updateEmployeePayroll(input: {
     return { success: false, error: 'No tienes permisos para actualizar este empleado' }
   }
 
-  const updateData: Record<string, any> = {}
+  const updateData: Database['public']['Tables']['employees']['Update'] = {}
 
   if (input.default_commission_rate !== undefined) {
     updateData.percentage = input.default_commission_rate
-    updateData.default_commission_rate = input.default_commission_rate
   }
   if (input.payment_type !== undefined) {
     updateData.payment_type = input.payment_type
@@ -82,7 +82,6 @@ export async function updateEmployeePayroll(input: {
   }
   if (input.base_salary !== undefined) {
     updateData.base_salary = input.base_salary
-    updateData.fixed_salary = input.base_salary
   }
   if (input.has_transport_subsidy !== undefined) {
     updateData.has_transport_subsidy = input.has_transport_subsidy

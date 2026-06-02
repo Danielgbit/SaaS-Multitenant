@@ -56,7 +56,7 @@ export async function cancelSubscription(
       .update({ 
         cancel_at_period_end: true,
         canceled_at: new Date().toISOString(),
-      } as Record<string, unknown>)
+      })
       .eq('organization_id', organizationId)
 
     revalidatePath('/dashboard/billing')

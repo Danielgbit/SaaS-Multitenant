@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { Database } from '@db/supabase'
 
 export async function approvePayrollPeriod(periodId: string): Promise<{
   success: boolean
@@ -98,13 +99,7 @@ export async function markPayrollPeriodAsPaid(
     return { success: false, error: 'Solo owners/admins pueden marcar períodos como pagados' }
   }
 
-  const updateData: Record<string, any> = { status: 'paid' }
-  if (paymentMethod) {
-    updateData.payment_method = paymentMethod
-  }
-  if (paymentReference) {
-    updateData.payment_reference = paymentReference
-  }
+  const updateData: Database['public']['Tables']['payroll_periods']['Update'] = { status: 'paid' }
 
   const { error } = await supabase
     .from('payroll_periods')

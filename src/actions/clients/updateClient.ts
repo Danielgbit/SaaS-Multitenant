@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
+import { Database } from '@db/supabase'
 
 const UpdateClientSchema = z.object({
   id: z.string().uuid('ID de cliente inválido'),
@@ -96,12 +97,11 @@ export async function updateClient(
     return { success: false, error: 'No tienes permisos para editar este cliente' }
   }
 
-  const updateData: Record<string, unknown> = {
+  const updateData: Database['public']['Tables']['clients']['Update'] = {
     name,
     email: email || null,
     phone: phone || null,
     notes: notes || null,
-    updated_at: new Date().toISOString(),
   }
 
   if (confirmation_method !== undefined) {

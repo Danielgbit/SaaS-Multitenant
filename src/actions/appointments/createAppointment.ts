@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { clientEnv } from '@/lib/env/client'
 import { generateConfirmationToken } from '@/lib/appointments/confirmation-links/tokens'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { queueWhatsAppMessage } from '@/actions/whatsapp/whatsApp'
 import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
@@ -144,7 +145,7 @@ export async function createAppointment(
             date: startDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }),
             time: startDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
             duration: `${service.duration} min`,
-            price: service.price ? `${service.price}€` : undefined,
+            price: service.price ? formatCurrencyCOP(service.price) : undefined,
           },
         })
       }

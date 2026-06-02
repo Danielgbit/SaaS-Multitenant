@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { UpdateEmployeeServiceInput } from '@/types/services'
+import { Database } from '@db/supabase'
 
 export async function updateEmployeeServiceCommission(
   input: UpdateEmployeeServiceInput
@@ -27,7 +28,7 @@ export async function updateEmployeeServiceCommission(
     return { success: false, error: 'No se encontró organización' }
   }
 
-  const updateData: Record<string, any> = {}
+  const updateData: Database['public']['Tables']['employee_services']['Update'] = {}
 
   if (input.duration_override !== undefined) {
     updateData.duration_override = input.duration_override

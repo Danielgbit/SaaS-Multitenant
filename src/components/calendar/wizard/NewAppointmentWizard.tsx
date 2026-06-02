@@ -28,7 +28,6 @@ interface NewAppointmentWizardProps {
   showEmployeeDropdown: boolean
   isCreating: boolean
   organizationId: string
-  categorizeSlots: (slots: TimeSlot[]) => { morning: TimeSlot[]; afternoon: TimeSlot[] }
   onNextStep: () => void
   onPrevStep: () => void
   onClose: () => void
@@ -64,7 +63,6 @@ export function NewAppointmentWizard({
   showEmployeeDropdown,
   isCreating,
   organizationId,
-  categorizeSlots,
   onNextStep,
   onPrevStep,
   onClose,
@@ -78,8 +76,6 @@ export function NewAppointmentWizard({
   onFetchSlots,
   onCreate
 }: NewAppointmentWizardProps) {
-  const { morning: mornSlots, afternoon: aftSlots } = categorizeSlots(availableSlots)
-
   const [direction, setDirection] = useState<'next' | 'prev'>('next')
 
   const modalRef = useRef<HTMLDivElement>(null)
@@ -252,8 +248,6 @@ export function NewAppointmentWizard({
                 selectedClient={selectedClient}
                 selectedService={selectedService}
                 selectedEmployee={selectedEmployee}
-                mornSlots={mornSlots}
-                aftSlots={aftSlots}
                 onSetNewAppointmentData={onSetNewAppointmentData}
                 onFetchSlots={onFetchSlots}
               />

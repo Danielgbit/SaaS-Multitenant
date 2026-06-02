@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Calendar } from 'lucide-react'
 import { formatDuration } from '@/lib/utils/formatTime'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
 import type { ThemeColors } from '@/hooks/useThemeColors'
 
 interface Service { id: string; name: string; duration: number; price: number }
@@ -60,7 +61,7 @@ export function StepService({ services, selectedService, onSelect, colors }: {
                     </p>
                   </div>
                   <span className="font-semibold" style={{ color: colors.primary }}>
-                    {formatPrice(service.price)}
+                    {formatCurrencyCOP(service.price)}
                   </span>
                 </div>
               </button>
@@ -70,8 +71,4 @@ export function StepService({ services, selectedService, onSelect, colors }: {
       )}
     </div>
   )
-}
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(price)
 }

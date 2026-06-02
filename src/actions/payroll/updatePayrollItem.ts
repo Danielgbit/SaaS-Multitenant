@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { Database } from '@db/supabase'
 
 const UpdatePayrollItemSchema = z.object({
   itemId: z.string().uuid('ID de item inválido'),
@@ -64,7 +65,7 @@ export async function updatePayrollItem(input: z.infer<typeof UpdatePayrollItemS
     return { success: false, error: 'Solo owners/admins pueden editar items' }
   }
 
-  const updateData: Record<string, any> = {}
+  const updateData: Database['public']['Tables']['payroll_items']['Update'] = {}
 
   if (changes.contract_type !== undefined) {
     updateData.contract_type = changes.contract_type
@@ -75,9 +76,7 @@ export async function updatePayrollItem(input: z.infer<typeof UpdatePayrollItemS
   if (changes.base_salary !== undefined) {
     updateData.base_salary = changes.base_salary
   }
-  if (changes.percentage !== undefined) {
-    updateData.percentage = changes.percentage
-  }
+
 
   if (Object.keys(updateData).length === 0) {
     return { success: true }

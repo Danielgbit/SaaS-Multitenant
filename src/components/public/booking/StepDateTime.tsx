@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatDuration } from '@/lib/utils/formatTime'
-import { SlotGrid } from './SlotGrid'
+import { SlotGrid } from '@/components/shared/SlotGrid'
 import type { ThemeColors } from '@/hooks/useThemeColors'
+import type { TimeSlot } from '@/types/slots'
 
 interface Service { id: string; name: string; duration: number; price: number }
 interface Employee { id: string; name: string }
-interface TimeSlot { start_time: string; end_time: string; available: boolean; blockedReason?: string }
 
 export function StepDateTime({
   selectedService, selectedEmployee, selectedDate, selectedSlot, availableSlots, loadingSlots,
@@ -128,6 +128,7 @@ export function StepDateTime({
               slots={availableSlots}
               selectedSlot={selectedSlot}
               colors={colors}
+              serviceDuration={selectedService?.duration}
               onSelect={onSelectSlot}
             />
           )}

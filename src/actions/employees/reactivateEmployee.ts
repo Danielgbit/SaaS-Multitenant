@@ -60,9 +60,6 @@ export async function reactivateEmployee(
     .from('employees')
     .update({
       active: true,
-      archived_at: null,
-      archived_by: null,
-      archived_reason: null,
     })
     .eq('id', employeeId)
 

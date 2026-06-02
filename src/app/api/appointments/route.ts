@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { generateSlots } from '@/services/slots/generateSlots'
+import { Database } from '@db/supabase'
 import {
   CreateAppointmentSchema,
   checkCreatePreconditions,
@@ -182,7 +183,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'No tienes permisos para editar esta cita.' }, { status: 403 })
     }
 
-    const updateData: Record<string, unknown> = {}
+    const updateData: Database['public']['Tables']['appointments']['Update'] = {}
     let warning: string | undefined
 
     if (employee_id && employee_id !== currentAppointment.employee_id) {

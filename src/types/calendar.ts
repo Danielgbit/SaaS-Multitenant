@@ -56,11 +56,7 @@ export interface CalendarViewProps {
   userRole?: string
 }
 
-export interface TimeSlot {
-  start_time: string
-  end_time: string
-  available: boolean
-}
+export type { TimeSlot } from '@/types/slots'
 
 export interface NewAppointmentData {
   clientId: string

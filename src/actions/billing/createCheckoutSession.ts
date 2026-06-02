@@ -78,7 +78,7 @@ export async function createCheckoutSession(input: {
 
       await supabase
         .from('subscriptions')
-        .update({ stripe_customer_id: customerId } as Record<string, unknown>)
+        .update({ stripe_customer_id: customerId })
         .eq('organization_id', organizationId)
     }
 

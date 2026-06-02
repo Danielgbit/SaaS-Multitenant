@@ -7,12 +7,8 @@ import { getSpaOverrideForDate } from '@/services/availability/getSpaOverrides'
 // TIPOS
 // =============================================================================
 
-export interface TimeSlot {
-  start_time: string // ISO string
-  end_time: string   // ISO string
-  available: boolean
-  blockedReason?: string // Razón por la que está bloqueado
-}
+export type { TimeSlot } from '@/types/slots'
+import type { TimeSlot } from '@/types/slots'
 
 export interface GenerateSlotsParams {
   employeeId: string

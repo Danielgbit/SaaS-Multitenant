@@ -1,5 +1,6 @@
 import { sendEmail } from '@/lib/resend'
 import { clientEnv } from '@/lib/env/client'
+import { Database } from '@db/supabase'
 
 type SupabaseClient = Awaited<ReturnType<typeof import('@/lib/supabase/service-role').createServiceRoleClient>>
 
@@ -148,7 +149,7 @@ export async function processCriticalNotificationAlerts(supabase: SupabaseClient
     }
 
     // Update delivery timestamps granularly
-    const updatePayload: Record<string, string | null> = {}
+    const updatePayload: Database['public']['Tables']['notification_alert_events']['Update'] = {}
     if (emailSentAt) updatePayload.email_sent_at = emailSentAt
     if (inAppSentAt) updatePayload.in_app_sent_at = inAppSentAt
 

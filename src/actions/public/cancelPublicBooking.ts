@@ -273,8 +273,6 @@ export async function cancelPublicBooking(
     .from('appointments')
     .update({
       status: 'cancelled',
-      cancelled_at: new Date().toISOString(),
-      cancellation_reason: cancellationReason || null,
     })
     .eq('id', appointment.id)
 

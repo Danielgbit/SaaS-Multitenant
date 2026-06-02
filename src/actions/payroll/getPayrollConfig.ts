@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { PayrollConfig } from '@/types/payroll'
+import { Database } from '@db/supabase'
 
 export async function getPayrollConfig(year: number): Promise<{
   success: boolean
@@ -60,8 +61,8 @@ export async function updatePayrollConfig(input: {
     return { success: false, error: 'Solo owners/admins pueden actualizar la config' }
   }
 
-  const updateData: Record<string, any> = {}
-  if (input.smmlv !== undefined) updateData.smlv = input.smmlv
+  const updateData: Database['public']['Tables']['payroll_config']['Update'] = {}
+  if (input.smmlv !== undefined) updateData.smmlv = input.smmlv
   if (input.transport_subsidy !== undefined) updateData.transport_subsidy = input.transport_subsidy
   if (input.health_rate !== undefined) updateData.health_rate = input.health_rate
   if (input.pension_rate !== undefined) updateData.pension_rate = input.pension_rate
