@@ -1,31 +1,47 @@
 'use client'
 
+import { useState } from 'react'
 import { User, Phone, Mail, CheckCircle2, ChevronLeft } from 'lucide-react'
 import { Spinner } from '@/components/ui'
-
-interface BookingColors {
-  primary: string; primaryLight: string; surface: string; surfaceSubtle: string
-  border: string; borderLight: string; textPrimary: string; textSecondary: string
-  textMuted: string; success: string; successLight: string; warning: string
-  warningLight: string; error: string; errorLight: string
-}
+import type { ThemeColors } from '@/hooks/useThemeColors'
 
 export function StepClient({
   clientName, clientPhone, clientEmail, clientNotes, isSubmitting, colors,
   onNameChange, onPhoneChange, onEmailChange, onNotesChange, onSubmit, onBack,
 }: {
   clientName: string; clientPhone: string; clientEmail: string; clientNotes: string
-  isSubmitting: boolean; colors: BookingColors
+  isSubmitting: boolean; colors: ThemeColors
   onNameChange: (v: string) => void; onPhoneChange: (v: string) => void
   onEmailChange: (v: string) => void; onNotesChange: (v: string) => void
   onSubmit: () => void; onBack: () => void
 }) {
+  const [attempted, setAttempted] = useState(false)
+  const [hoverConfirm, setHoverConfirm] = useState(false)
+  const nameEmpty = attempted && !clientName
+  const phoneEmpty = attempted && !clientPhone
   const canSubmit = !!clientName && !!clientPhone && !isSubmitting
 
+  const handleSubmit = () => {
+    if (!clientName || !clientPhone) {
+      setAttempted(true)
+      return
+    }
+    onSubmit()
+  }
+
+  const inputStyle = (hasError: boolean) => ({
+    borderRadius: colors.radius.sm,
+    border: `1px solid ${hasError ? colors.error : colors.border}`,
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
+    transition: colors.transition,
+    ['--tw-ring-color' as string]: colors.borderFocus,
+  })
+
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: colors.primary + '15' }}>
+    <div className="p-8">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-10 h-10 flex items-center justify-center" style={{ borderRadius: colors.radius.sm, backgroundColor: colors.primary + '15' }}>
           <User className="w-5 h-5" style={{ color: colors.primary }} />
         </div>
         <h2 className="text-xl font-semibold" style={{ color: colors.textPrimary }}>
@@ -33,57 +49,77 @@ export function StepClient({
         </h2>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>Nombre completo *</label>
+          <label htmlFor="client-name" className="block text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>Nombre completo *</label>
           <div className="relative">
-            <User className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: colors.textMuted }} />
-            <input type="text" value={clientName} onChange={e => onNameChange(e.target.value)}
+            <User className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: nameEmpty ? colors.error : colors.textMuted }} />
+            <input id="client-name" type="text" value={clientName} onChange={e => onNameChange(e.target.value)}
               placeholder="Tu nombre"
-              className="w-full pl-12 pr-4 py-3 rounded-xl"
-              style={{ border: `1px solid ${colors.border}`, backgroundColor: colors.surface, color: colors.textPrimary }} />
+              className="w-full pl-12 pr-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={inputStyle(nameEmpty)} />
           </div>
+          {nameEmpty && (
+            <p className="text-xs mt-1" style={{ color: colors.error }}>Este campo es requerido</p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>Teléfono *</label>
+          <label htmlFor="client-phone" className="block text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>Teléfono *</label>
           <div className="relative">
-            <Phone className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: colors.textMuted }} />
-            <input type="tel" value={clientPhone} onChange={e => onPhoneChange(e.target.value)}
+            <Phone className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: phoneEmpty ? colors.error : colors.textMuted }} />
+            <input id="client-phone" type="tel" value={clientPhone} onChange={e => onPhoneChange(e.target.value)}
               placeholder="Tu número de teléfono"
-              className="w-full pl-12 pr-4 py-3 rounded-xl"
-              style={{ border: `1px solid ${colors.border}`, backgroundColor: colors.surface, color: colors.textPrimary }} />
+              className="w-full pl-12 pr-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={inputStyle(phoneEmpty)} />
           </div>
+          {phoneEmpty && (
+            <p className="text-xs mt-1" style={{ color: colors.error }}>Este campo es requerido</p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>Email (opcional)</label>
+          <label htmlFor="client-email" className="block text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>Email (opcional)</label>
           <div className="relative">
             <Mail className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: colors.textMuted }} />
-            <input type="email" value={clientEmail} onChange={e => onEmailChange(e.target.value)}
+            <input id="client-email" type="email" value={clientEmail} onChange={e => onEmailChange(e.target.value)}
               placeholder="Tu correo electrónico"
-              className="w-full pl-12 pr-4 py-3 rounded-xl"
-              style={{ border: `1px solid ${colors.border}`, backgroundColor: colors.surface, color: colors.textPrimary }} />
+              className="w-full pl-12 pr-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={inputStyle(false)} />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>Notas (opcional)</label>
-          <textarea value={clientNotes} onChange={e => onNotesChange(e.target.value)}
+          <label htmlFor="client-notes" className="block text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>Notas (opcional)</label>
+          <textarea id="client-notes" value={clientNotes} onChange={e => onNotesChange(e.target.value)}
             placeholder="Alguna información adicional..." rows={2}
-            className="w-full px-4 py-3 rounded-xl resize-none"
-            style={{ border: `1px solid ${colors.border}`, backgroundColor: colors.surface, color: colors.textPrimary }} />
+            className="w-full px-4 py-3 resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            style={inputStyle(false)} />
         </div>
       </div>
 
-      <div className="flex gap-3 mt-6">
-        <button onClick={onBack} className="px-4 py-3 rounded-xl font-medium"
-          style={{ color: colors.textSecondary, backgroundColor: colors.surfaceSubtle }}>
+      <div className="flex gap-4 mt-8">
+        <button onClick={onBack} className="px-4 py-3 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          style={{ borderRadius: colors.radius.button, color: colors.textSecondary, backgroundColor: colors.surfaceSubtle, transition: colors.transition, ['--tw-ring-color' as string]: colors.borderFocus }}>
           <ChevronLeft className="w-4 h-4 inline mr-1" /> Atrás
         </button>
-        <button onClick={onSubmit} disabled={!canSubmit}
-          className="flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2"
-          style={{ backgroundColor: canSubmit ? colors.primary : colors.borderLight, color: canSubmit ? '#FFF' : colors.textMuted }}>
+        <button
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+          onMouseEnter={() => setHoverConfirm(true)}
+          onMouseLeave={() => setHoverConfirm(false)}
+          className="flex-1 py-3 font-medium flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          style={{
+            borderRadius: colors.radius.button,
+            backgroundColor: canSubmit ? colors.primary : colors.surfaceSubtle,
+            color: canSubmit ? colors.surface : colors.textSecondary,
+            cursor: canSubmit ? 'pointer' : 'not-allowed',
+            transition: colors.transition,
+            transform: hoverConfirm && canSubmit ? 'translateY(-1px)' : 'none',
+            boxShadow: hoverConfirm && canSubmit ? `0 4px 12px ${colors.primary}40` : 'none',
+            ['--tw-ring-color' as string]: colors.borderFocus,
+          }}
+        >
           {isSubmitting ? (
             <><Spinner size="sm" /> Reservando...</>
           ) : (

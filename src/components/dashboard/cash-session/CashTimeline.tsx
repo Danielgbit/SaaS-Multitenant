@@ -1,13 +1,13 @@
 'use client'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { Search, SearchX, X, ArrowUpRight, ArrowDownRight, CircleDot, Receipt, Package, Users } from 'lucide-react'
+import { Search, SearchX, X, ArrowUpRight, ArrowDownRight, CircleDot, Receipt, Package, Users, Banknote } from 'lucide-react'
 import { ENTRY_TYPE_LABELS, PAYMENT_METHOD_LABELS } from '@/types/cash-sessions'
 import { Badge } from '@/components/ui/Badge'
 import type { BadgeVariant } from '@/components/ui/Badge'
+import { formatTime12h } from '@/lib/utils/date-formatters'
 
 function fmt(n: number) { return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n) }
-function tm(i: string) { try { return new Date(i).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false }) } catch { return '' } }
 
 const GROUP_FILTERS = [
   { key: 'all', label: 'Todo', icon: <CircleDot className="w-3 h-3" /> },
@@ -23,6 +23,7 @@ function getEntryIcon(entryType: string) {
     case 'expense': return <ArrowDownRight className="w-3 h-3" />
     case 'payroll_expense': return <Users className="w-3 h-3" />
     case 'product_sale': return <Receipt className="w-3 h-3" />
+    case 'account_payment': return <Banknote className="w-3 h-3" />
     case 'inventory_purchase': return <Package className="w-3 h-3" />
     case 'inventory_out': return <Package className="w-3 h-3" />
     default: return <CircleDot className="w-3 h-3" />
@@ -35,6 +36,7 @@ function getEntryBadgeVariant(entryType: string): BadgeVariant {
     case 'expense': return 'error'
     case 'payroll_expense': return 'warning'
     case 'product_sale': return 'primary'
+    case 'account_payment': return 'success'
     case 'inventory_purchase': return 'info'
     case 'inventory_out': return 'info'
     case 'adjustment': return 'neutral'
@@ -219,7 +221,7 @@ export function CashTimeline({ entries, onVoid }: { entries: any[]; onVoid?: (en
                 onMouseLeave={(e) => { if (!isVoided) e.currentTarget.style.backgroundColor = COLORS.surface }}
               >
                 <div className="flex flex-col items-center gap-1 mt-0.5 w-10 lg:w-12 shrink-0">
-                  <span className="text-xs font-mono" style={{ color: COLORS.textMuted }}>{tm(e.created_at)}</span>
+                  <span className="text-xs font-mono" style={{ color: COLORS.textMuted }}>{formatTime12h(e.created_at)}</span>
                   <span className="text-lg leading-none" style={{ color: directionColor }}>
                     {e.direction === 'in' ? '↑' : e.direction === 'out' ? '↓' : '•'}
                   </span>

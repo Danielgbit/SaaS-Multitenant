@@ -44,7 +44,7 @@ export function ClientAccountDetailClient({
   const [mounted, setMounted] = useState(false)
   const [showSaleModal, setShowSaleModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [success, setSuccess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [expandedTransaction, setExpandedTransaction] = useState<string | null>(null)
 
@@ -138,13 +138,13 @@ export function ClientAccountDetailClient({
       </div>
 
       {/* Success/Error Messages */}
-      {success && (
+      {successMessage && (
         <div
           className="p-4 rounded-xl flex items-center gap-3"
           style={{ backgroundColor: COLORS.successLight }}
         >
           <CheckCircle2 className="w-5 h-5" style={{ color: COLORS.success }} />
-          <span style={{ color: COLORS.success }}>Operación realizada correctamente</span>
+          <span style={{ color: COLORS.success }}>{successMessage}</span>
         </div>
       )}
 
@@ -286,9 +286,9 @@ export function ClientAccountDetailClient({
               notes: isCredit ? 'Venta a crédito' : 'Venta de contado',
             })
             if (result.success) {
-              setSuccess(true)
+              setSuccessMessage(isCredit ? 'Venta a crédito registrada' : 'Venta registrada en caja')
               setShowSaleModal(false)
-              setTimeout(() => setSuccess(false), 3000)
+              setTimeout(() => setSuccessMessage(null), 3000)
             } else {
               setError(result.error || 'Error al registrar venta')
             }
@@ -309,9 +309,9 @@ export function ClientAccountDetailClient({
               payment_reference: reference || undefined,
             })
             if (result.success) {
-              setSuccess(true)
+              setSuccessMessage('Pago registrado en caja')
               setShowPaymentModal(false)
-              setTimeout(() => setSuccess(false), 3000)
+              setTimeout(() => setSuccessMessage(null), 3000)
             } else {
               setError(result.error || 'Error al registrar pago')
             }

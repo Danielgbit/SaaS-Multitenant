@@ -22,6 +22,7 @@ import { ConfirmModal } from './ConfirmModal'
 import { CashSessionAlertBanner } from './CashSessionAlertBanner'
 import { CashSessionFAB } from './CashSessionFAB'
 import { CashSessionSkeleton } from './CashSessionSkeleton'
+import { formatTime12h } from '@/lib/utils/date-formatters'
 import { MetricCard } from '@/components/ui/MetricCard'
 import { Badge } from '@/components/ui/Badge'
 import { PageContainer } from '@/components/ui/PageContainer'
@@ -34,7 +35,7 @@ function csvCell(value: unknown): string {
 function exportCashCSV(entries: any[]) {
   const headers = ['Hora', 'Tipo', 'Grupo', 'Titulo', 'Descripcion', 'Direccion', 'Monto', 'Metodo Pago', 'Origen']
   const rows = entries.map((e: any) => [
-    e.created_at ? new Date(e.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '',
+    e.created_at ? formatTime12h(e.created_at) : '',
     ENTRY_TYPE_LABELS[e.entry_type as keyof typeof ENTRY_TYPE_LABELS] || e.entry_type,
     e.entry_group || '',
     e.title,

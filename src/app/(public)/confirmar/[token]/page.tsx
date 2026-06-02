@@ -164,7 +164,7 @@ export default function ConfirmarPage() {
   if (viewState === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center" style={pageBg}>
-        <div className="text-center" style={{ color: '#FFF' }}>
+        <div className="text-center" style={{ color: colors.surface }}>
           <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin" />
           <p>Verificando tu confirmación...</p>
         </div>
@@ -259,7 +259,7 @@ export default function ConfirmarPage() {
       <div className="max-w-md mx-auto">
         <div className="rounded-2xl shadow-xl overflow-hidden" style={{ backgroundColor: colors.surface }}>
           <div className="p-6 text-center" style={{ background: colors.primaryGradient }}>
-            <h1 className="text-2xl font-bold" style={{ color: '#FFF' }}>Confirmar Asistencia</h1>
+            <h1 className="text-2xl font-bold" style={{ color: colors.surface }}>Confirmar Asistencia</h1>
             <p className="mt-1" style={{ color: 'rgba(255,255,255,0.8)' }}>{appointment.organizations?.name}</p>
           </div>
 
@@ -298,10 +298,10 @@ export default function ConfirmarPage() {
               <button
                 onClick={() => handleResponse('confirm')}
                 disabled={submitting}
-                className="w-full py-4 px-6 font-semibold rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-4 px-6 font-semibold rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 style={{
                   backgroundColor: submitting && action === 'confirm' ? colors.success : colors.success,
-                  color: '#FFF',
+                  color: colors.surface,
                   ['--tw-ring-color' as string]: colors.borderFocus,
                 }}
               >
@@ -316,7 +316,7 @@ export default function ConfirmarPage() {
               <button
                 onClick={() => handleResponse('cancel')}
                 disabled={submitting}
-                className="w-full py-4 px-6 font-semibold rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-4 px-6 font-semibold rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 style={{
                   backgroundColor: colors.surface,
                   border: `2px solid ${colors.border}`,
