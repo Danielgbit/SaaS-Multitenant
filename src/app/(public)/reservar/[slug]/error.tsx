@@ -1,5 +1,6 @@
 'use client'
 
+import { useThemeColors } from '@/hooks/useThemeColors'
 import { ErrorFallback } from '@/components/ui/ErrorFallback'
 
 export default function PublicBookingError({
@@ -9,8 +10,9 @@ export default function PublicBookingError({
   error: Error
   reset: () => void
 }) {
+  const colors = useThemeColors()
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FAFAF9' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.surfaceSubtle }}>
       <ErrorFallback
         title="Error al cargar la reserva"
         description={error.message || 'No pudimos cargar la información. Intenta de nuevo.'}

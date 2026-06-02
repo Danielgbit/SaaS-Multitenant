@@ -2,7 +2,7 @@
 
 > AUTO-GENERATED — DO NOT EDIT MANUALLY
 > Regenerar con: `pnpm docs:gen`
-> Generated: 2026-05-27
+> Generated: 2026-06-02
 
 | Route | Type |
 |-------|------|
@@ -39,6 +39,7 @@
 | `/api/whatsapp/scheduler` | API |
 | `/auth/callback` | Page |
 | `/billing` | Page |
+| `/caja` | Page |
 | `/calendar` | Page |
 | `/clients` | Page |
 | `/clients/accounts` | Page |

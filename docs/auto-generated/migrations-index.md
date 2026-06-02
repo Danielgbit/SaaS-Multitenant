@@ -2,9 +2,9 @@
 
 > AUTO-GENERATED — DO NOT EDIT MANUALLY
 > Regenerar con: `pnpm docs:gen`
-> Generated: 2026-05-27
+> Generated: 2026-06-02
 
-Total: 61 migrations
+Total: 63 migrations
 
 | File | Description |
 |------|-------------|
@@ -69,3 +69,5 @@ Total: 61 migrations
 | `20260531000001_protect_financial_events.sql` | Protect Financial Events |
 | `20260531000002_commission_accrued_trigger.sql` | Commission Accrued Trigger |
 | `20260531000003_backfill_appointment_payment_status.sql` | Backfill Appointment Payment Status |
+| `20260531000004_create_cash_operations.sql` | Create Cash Operations |
+| `20260601000001_release2_inventory_entries.sql` | Release2 Inventory Entries |
