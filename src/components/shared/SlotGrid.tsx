@@ -92,7 +92,7 @@ function SlotBlock({
         color: isSelected ? '#FFF' : colors.textPrimary,
         border: `1px solid ${isSelected ? colors.primary : colors.border}`,
         boxShadow: isSelected ? `0 4px 16px ${colors.primary}35` : 'none',
-        padding: '12px 14px',
+        padding: '10px 12px',
       }}
     >
       {isSelected && (
@@ -157,7 +157,7 @@ function SlotSection({
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-3 sticky top-0 z-10 pb-1" style={{ backgroundColor: colors.surface }}>
+      <div className="flex items-center gap-2 mb-2 sm:mb-3 sticky top-0 z-10 pb-1" style={{ backgroundColor: colors.surface }}>
         <div
           className="w-2.5 h-2.5 rounded-full"
           style={{ background: config.gradient }}
@@ -202,7 +202,7 @@ export function SlotGrid({
   const afternoon = slots.filter(s => parseInt(s.start_time.split('T')[1].slice(0, 2)) >= 13)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <SlotSection
         period="morning"
         slots={morning}

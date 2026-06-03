@@ -85,17 +85,17 @@ export function BookingWizard({ organization, services, employees }: {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen px-4 py-8 bg-gray-50">
+      <div className="min-h-screen px-4 py-8 bg-gray-50 dark:bg-[#151b1d]">
         <div className="max-w-4xl mx-auto">
-          <div className="rounded-[20px] bg-white shadow-md overflow-hidden">
+          <div className="rounded-[20px] bg-white dark:bg-slate-800 shadow-md overflow-hidden">
             <div className="h-24 bg-gradient-to-br from-teal-700 to-teal-800" />
             <div className="p-8 space-y-4">
-              <div className="h-8 bg-gray-100 rounded w-1/3" />
-              <div className="h-4 bg-gray-100 rounded w-2/3" />
+              <div className="h-8 bg-gray-100 dark:bg-slate-700 rounded w-1/3" />
+              <div className="h-4 bg-gray-100 dark:bg-slate-700 rounded w-2/3" />
               <div className="space-y-3 mt-8">
-                <div className="h-16 bg-gray-50 rounded-lg" />
-                <div className="h-16 bg-gray-50 rounded-lg" />
-                <div className="h-16 bg-gray-50 rounded-lg" />
+                <div className="h-16 bg-gray-50 dark:bg-slate-700/50 rounded-lg" />
+                <div className="h-16 bg-gray-50 dark:bg-slate-700/50 rounded-lg" />
+                <div className="h-16 bg-gray-50 dark:bg-slate-700/50 rounded-lg" />
               </div>
             </div>
           </div>
@@ -116,7 +116,7 @@ export function BookingWizard({ organization, services, employees }: {
   }
 
   return (
-    <div className="min-h-screen px-4 py-8" style={{ backgroundColor: colors.surfaceSubtle }}>
+    <div className="min-h-screen px-3 sm:px-4 py-4 sm:py-8" style={{ backgroundColor: colors.surfaceSubtle }}>
       <div className="max-w-4xl mx-auto">
         {/* Mobile: Organization Header (outside card) */}
         <div className="text-center mb-6 md:hidden">
@@ -131,7 +131,7 @@ export function BookingWizard({ organization, services, employees }: {
         {/* Mobile: Sticky Summary */}
         {(selectedService || selectedDate || selectedSlot) && (
           <div
-            className="md:hidden mb-6 p-4"
+            className="md:hidden mb-4 sm:mb-6 p-3 sm:p-4"
             style={{
               borderRadius: colors.radius.sm,
               backgroundColor: colors.surface,
@@ -206,7 +206,7 @@ export function BookingWizard({ organization, services, employees }: {
             </div>
 
             {/* Step Indicator */}
-            <div className="px-8 pt-8 pb-2">
+            <div className="px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 md:pt-8 pb-2">
                 <div className="flex items-center justify-between relative">
                   <div className="absolute top-4 left-0 right-0 h-0.5" style={{ backgroundColor: colors.border }} />
                   <div
@@ -240,7 +240,7 @@ export function BookingWizard({ organization, services, employees }: {
                           )}
                         </div>
                         <span
-                          className="text-xs mt-2 font-medium"
+                          className="text-xs mt-1 sm:mt-2 font-medium"
                           style={{ color: isActive ? colors.textPrimary : colors.textMuted }}
                         >
                           {stepLabels[s - 1]}
@@ -253,7 +253,7 @@ export function BookingWizard({ organization, services, employees }: {
 
             {/* Service Context Bar */}
             {step !== 'service' && selectedService && (
-              <div className="mx-8 mt-6 p-4" style={{ borderRadius: colors.radius.sm, backgroundColor: colors.primarySubtle, border: `1px solid ${colors.primary}20` }}>
+              <div className="mx-4 sm:mx-6 md:mx-8 mt-4 sm:mt-6 p-3 sm:p-4" style={{ borderRadius: colors.radius.sm, backgroundColor: colors.primarySubtle, border: `1px solid ${colors.primary}20` }}>
                 <div className="flex justify-between items-center">
                   <div>
                     <span className="text-sm font-medium" style={{ color: colors.textPrimary }}>{selectedService.name}</span>
@@ -268,7 +268,7 @@ export function BookingWizard({ organization, services, employees }: {
 
             {/* Error */}
             {error && (
-              <div className="mx-8 mt-6 p-4" style={{ backgroundColor: colors.errorLight, borderRadius: colors.radius.sm }}>
+              <div className="mx-4 sm:mx-6 md:mx-8 mt-4 sm:mt-6 p-3 sm:p-4" style={{ backgroundColor: colors.errorLight, borderRadius: colors.radius.sm }}>
                 <p className="text-sm font-medium" style={{ color: colors.error }}>{error}</p>
               </div>
             )}

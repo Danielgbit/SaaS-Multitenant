@@ -12,17 +12,9 @@ import { useThemeColors } from '@/hooks/useThemeColors'
 import { confirmByReception } from '@/actions/confirmations/confirmByReception'
 import { PaymentModal } from '@/components/dashboard/PaymentModal'
 import { Badge } from '@/components/ui/Badge'
+import { formatCurrencyCOP } from '@/lib/billing/utils'
 
 type FilterStatus = 'pending' | 'completed' | 'all'
-
-function formatCurrencyCOP(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
-}
 
 function getAvatarColor(name: string): string {
   const colors = ['#0F4C5C', '#16A34A', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#EF4444']

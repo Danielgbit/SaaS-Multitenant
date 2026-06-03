@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { Bell, Settings, Check, AlertCircle } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Bell, Settings, Check, AlertCircle, Copy, CheckCircle2, XCircle } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { updateBookingSettings } from '@/actions/settings/updateBookingSettings'
 import { updateOrganization } from '@/actions/settings/updateOrganization'
+import { checkSlugAvailability } from '@/actions/settings/checkSlugAvailability'
+import { slugify, validateSlug } from '@/lib/slugify'
 import { DataRetentionClient } from '@/components/dashboard/settings/DataRetentionClient'
 import { TIMEZONES, TABS, defaultBookingSettings } from './settingsConstants'
 import type { BookingSettings, OrganizationSettings } from './settingsConstants'
@@ -45,6 +47,70 @@ export default function SettingsClient({
     name: organization?.name || '',
     slug: organization?.slug || '',
   })
+
+  const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle')
+  const [slugEdited, setSlugEdited] = useState(false)
+  const [slugError, setSlugError] = useState<string | null>(null)
+
+  // Debounced slug availability check
+  const checkSlug = useCallback(async (slug: string) => {
+    if (!slug || slug.length < 3) {
+      setSlugStatus('idle')
+      return
+    }
+
+    // Validate format first
+    const error = validateSlug(slug)
+    if (error) {
+      setSlugError(error)
+      setSlugStatus('idle')
+      return
+    }
+
+    setSlugError(null)
+    setSlugStatus('checking')
+
+    try {
+      const available = await checkSlugAvailability(slug, organizationId)
+      setSlugStatus(available ? 'available' : 'taken')
+    } catch {
+      setSlugStatus('idle')
+    }
+  }, [organizationId])
+
+  // Effect for debounced slug check
+  useEffect(() => {
+    if (!slugEdited) return
+
+    const timer = setTimeout(() => {
+      checkSlug(orgSettings.slug)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [orgSettings.slug, slugEdited, checkSlug])
+
+  // Auto-generate slug from name when name changes (if slug wasn't manually edited)
+  const handleNameChange = (name: string) => {
+    setOrgSettings(prev => ({
+      ...prev,
+      name,
+      slug: slugEdited ? prev.slug : slugify(name),
+    }))
+  }
+
+  // Handle slug input change
+  const handleSlugChange = (value: string) => {
+    const sanitized = value.toLowerCase().replace(/[^a-z0-9-]/g, '')
+    setOrgSettings(prev => ({ ...prev, slug: sanitized }))
+    setSlugEdited(true)
+  }
+
+  // Copy slug to clipboard
+  const copySlug = () => {
+    navigator.clipboard.writeText(`pruegressy.com/reservar/${orgSettings.slug}`)
+    setMessage({ type: 'success', text: 'Link copiado al portapapeles' })
+    setTimeout(() => setMessage(null), 3000)
+  }
 
   async function handleSaveGeneral() {
     setSaving(true)
@@ -381,7 +447,7 @@ export default function SettingsClient({
                   <input
                     type="text"
                     value={orgSettings.name}
-                    onChange={(e) => setOrgSettings({ ...orgSettings, name: e.target.value })}
+                    onChange={(e) => handleNameChange(e.target.value)}
                     className={`w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                     style={{ 
                       borderColor: COLORS.border,
@@ -395,11 +461,11 @@ export default function SettingsClient({
                     className="block text-sm font-medium mb-2"
                     style={{ color: COLORS.textPrimary }}
                   >
-                    Slug (URL pública)
+                    Link público de reservas
                   </label>
                   <div className="flex">
                     <span 
-                      className="inline-flex items-center px-4 rounded-l-xl border border-r-0 text-sm"
+                      className="inline-flex items-center px-4 rounded-l-xl border border-r-0 text-sm whitespace-nowrap"
                       style={{ 
                         borderColor: COLORS.border,
                         backgroundColor: COLORS.surfaceSubtle,
@@ -411,7 +477,8 @@ export default function SettingsClient({
                     <input
                       type="text"
                       value={orgSettings.slug}
-                      onChange={(e) => setOrgSettings({ ...orgSettings, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                      onChange={(e) => handleSlugChange(e.target.value)}
+                      maxLength={50}
                       className={`flex-1 px-4 py-2.5 rounded-r-xl border bg-white dark:bg-slate-900 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                       style={{ 
                         borderColor: COLORS.border,
@@ -419,6 +486,47 @@ export default function SettingsClient({
                       }}
                     />
                   </div>
+
+                  {/* Slug status */}
+                  <div className="flex items-center gap-2 mt-2">
+                    {slugStatus === 'checking' && (
+                      <span className="text-xs" style={{ color: COLORS.textMuted }}>Verificando disponibilidad...</span>
+                    )}
+                    {slugStatus === 'available' && (
+                      <span className="text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Disponible
+                      </span>
+                    )}
+                    {slugStatus === 'taken' && (
+                      <span className="text-xs text-red-600 flex items-center gap-1">
+                        <XCircle className="w-3 h-3" /> Este slug ya está en uso
+                      </span>
+                    )}
+                    {slugError && (
+                      <span className="text-xs text-amber-600">{slugError}</span>
+                    )}
+                  </div>
+
+                  {/* Copy button */}
+                  {orgSettings.slug && (
+                    <button
+                      type="button"
+                      onClick={copySlug}
+                      className="text-xs mt-2 flex items-center gap-1 hover:underline"
+                      style={{ color: COLORS.primary }}
+                    >
+                      <Copy className="w-3 h-3" /> Copiar link
+                    </button>
+                  )}
+
+                  {/* Warning */}
+                  <p className="text-xs mt-2 p-2 rounded-lg" style={{ backgroundColor: COLORS.warningLight, color: COLORS.warning }}>
+                    ⚠️ Cambiar este enlace puede afectar clientes que tengan guardado el link anterior.
+                  </p>
+
+                  <p className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
+                    3-50 caracteres. Solo minúsculas, números y guiones.
+                  </p>
                 </div>
               </div>
 

@@ -32,7 +32,7 @@ export function StepDateTime({
   const [hoverContinue, setHoverContinue] = useState(false)
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 md:p-8">
       <div className="flex items-center gap-3 mb-8">
         <div className="w-10 h-10 flex items-center justify-center" style={{ borderRadius: colors.radius.sm, backgroundColor: colors.primary + '15' }}>
           <Calendar className="w-5 h-5" style={{ color: colors.primary }} />
@@ -43,7 +43,7 @@ export function StepDateTime({
       </div>
 
       {/* Selected Service Summary */}
-      <div className="mb-8 p-4" style={{ borderRadius: colors.radius.sm, backgroundColor: colors.surfaceSubtle }}>
+      <div className="mb-4 sm:mb-6 md:mb-8 p-3 sm:p-4" style={{ borderRadius: colors.radius.sm, backgroundColor: colors.surfaceSubtle }}>
         <div className="flex justify-between items-center">
           <span className="text-sm" style={{ color: colors.textSecondary }}>{selectedService?.name}</span>
           <span className="text-sm font-medium" style={{ color: colors.primary }}>{formatDuration(selectedService?.duration || 0)}</span>
@@ -51,7 +51,7 @@ export function StepDateTime({
       </div>
 
       {/* Employee Selection */}
-      <div className="mb-8">
+      <div className="mb-4 sm:mb-6 md:mb-8">
         <label className="block text-sm font-medium mb-3" style={{ color: colors.textPrimary }}>
           Selecciona profesional
         </label>
@@ -84,7 +84,7 @@ export function StepDateTime({
       </div>
 
       {/* Date Selection */}
-      <div className="mb-8">
+      <div className="mb-4 sm:mb-6 md:mb-8">
         <label htmlFor="booking-date" className="block text-sm font-medium mb-3" style={{ color: colors.textPrimary }}>
           Selecciona fecha
         </label>
@@ -101,7 +101,7 @@ export function StepDateTime({
 
       {/* Slots */}
       {selectedDate && selectedEmployee && (
-        <div className="mb-8">
+        <div className="mb-4 sm:mb-6 md:mb-8">
           {loadingSlots ? (
             <div className="grid grid-cols-2 gap-3">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -136,7 +136,7 @@ export function StepDateTime({
       )}
 
       {/* Actions */}
-      <div className="flex gap-4">
+      <div className="flex gap-3 sm:gap-4">
         <button onClick={onBack} className="px-4 py-3 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{ borderRadius: colors.radius.button, color: colors.textSecondary, backgroundColor: colors.surfaceSubtle, transition: colors.transition, ['--tw-ring-color' as string]: colors.borderFocus }}
         >
