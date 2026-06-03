@@ -1,16 +1,17 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { Command } from 'cmdk'
 import { useRouter } from 'next/navigation'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { dashboardRoutes, filterRoutesByRole } from '@/lib/navigation'
-import { Calendar, CheckCircle2, DollarSign, UserPlus, Sun, Moon, Users, Settings, LayoutDashboard } from 'lucide-react'
+import { QUICK_ACTIONS } from '@/lib/quickActions'
+import type { UserRole } from '@/types/user'
 
 interface CommandPaletteProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  role?: string | null
+  role?: UserRole | null
 }
 
 export function CommandPalette({ open, onOpenChange, role }: CommandPaletteProps) {
@@ -71,30 +72,20 @@ export function CommandPalette({ open, onOpenChange, role }: CommandPaletteProps
           </Command.Group>
 
           <Command.Group heading="Acciones rápidas" className="text-xs font-semibold px-2 py-1.5" style={{ color: COLORS.textMuted }}>
-            <Command.Item
-              onSelect={() => navigate('/calendar?new=true')}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-colors aria-selected:bg-slate-100 dark:aria-selected:bg-slate-700"
-              style={{ color: COLORS.textPrimary }}
-            >
-              <Calendar className="w-4 h-4" style={{ color: COLORS.textMuted }} />
-              Nueva cita
-            </Command.Item>
-            <Command.Item
-              onSelect={() => navigate('/clients?new=true')}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-colors aria-selected:bg-slate-100 dark:aria-selected:bg-slate-700"
-              style={{ color: COLORS.textPrimary }}
-            >
-              <UserPlus className="w-4 h-4" style={{ color: COLORS.textMuted }} />
-              Nuevo cliente
-            </Command.Item>
-            <Command.Item
-              onSelect={() => navigate('/confirmations/walkin')}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-colors aria-selected:bg-slate-100 dark:aria-selected:bg-slate-700"
-              style={{ color: COLORS.textPrimary }}
-            >
-              <CheckCircle2 className="w-4 h-4" style={{ color: COLORS.textMuted }} />
-              Confirmación sin cita
-            </Command.Item>
+            {QUICK_ACTIONS
+              .filter(action => !role || action.roles.includes(role as UserRole))
+              .map(action => (
+                <Command.Item
+                  key={action.id}
+                  onSelect={() => navigate(action.href)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-colors aria-selected:bg-slate-100 dark:aria-selected:bg-slate-700"
+                  style={{ color: COLORS.textPrimary }}
+                >
+                  <action.icon className="w-4 h-4" style={{ color: COLORS.textMuted }} />
+                  {action.label}
+                </Command.Item>
+              ))
+            }
           </Command.Group>
         </Command.List>
 

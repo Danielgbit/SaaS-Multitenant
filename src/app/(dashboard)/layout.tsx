@@ -4,6 +4,7 @@ import { QueryProvider } from '@/components/providers/QueryProvider'
 import { OrganizationProvider } from '@/components/providers/OrganizationProvider'
 import { AppointmentModalProvider } from '@/components/providers/AppointmentModalProvider'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
+import type { UserRole } from '@/types/user'
 
 export default async function DashboardLayout({
   children,
@@ -32,7 +33,7 @@ export default async function DashboardLayout({
   }
 
   const organizationId = orgMember?.organization_id ?? null
-  const role = orgMember?.role ?? null
+  const role = (orgMember?.role as UserRole) ?? null
 
   let organizationName: string | null = null
   if (organizationId) {

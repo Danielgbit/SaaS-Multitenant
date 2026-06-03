@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes'
 import { CollapsibleSidebar } from '@/components/dashboard/CollapsibleSidebar'
 import { Header } from '@/components/dashboard/Header'
 import { MobileNav } from '@/components/dashboard/MobileNav'
+import { PageBreadcrumb } from '@/components/dashboard/PageBreadcrumb'
 import { ConfirmBanner } from '@/components/dashboard/ConfirmBanner'
 import { ReminderBanner } from '@/components/dashboard/ReminderBanner'
 import { PageContainer } from '@/components/ui'
@@ -15,6 +16,7 @@ import { useAppointmentModal } from '@/components/providers/AppointmentModalProv
 import { CommandPalette } from '@/components/dashboard/command-palette/CommandPalette'
 import { SidebarSectionSkeleton } from './analytics/DashboardSkeletons'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { UserRole } from '@/types/user'
 
 const ConfirmationsPanel = dynamic(
   () => import('./ConfirmationsPanel').then(m => ({ default: m.ConfirmationsPanel })),
@@ -35,7 +37,7 @@ interface DashboardShellProps {
   children: React.ReactNode
   userId?: string | null
   userEmail?: string | null
-  role: string | null
+  role: UserRole | null
   organizationId: string | null
   organizationName?: string | null
 }
@@ -130,13 +132,18 @@ function DashboardShellContent({
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           <PageContainer>
             <Header
-              organizationConnected={!!organizationId}
-              organizationName={organizationName}
-              role={role}
-              userId={userId}
-              userEmail={userEmail}
+              user={{ id: userId || '', email: userEmail || '', role: role as UserRole }}
+              organization={{ name: organizationName || '', connected: !!organizationId }}
               onConfirmationsToggle={() => setConfirmationsPanelOpen(!confirmationsPanelOpen)}
+              onCommandPaletteOpen={() => setCommandPaletteOpen(true)}
             />
+
+            <div
+              className="px-4 md:px-6 lg:px-8 py-2"
+              style={{ borderBottom: `1px solid ${COLORS.border}` }}
+            >
+              <PageBreadcrumb />
+            </div>
 
             {role !== 'empleado' && organizationId && (
               <ConfirmBanner
