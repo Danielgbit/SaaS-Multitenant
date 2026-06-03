@@ -3,7 +3,7 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
+import { isValidPhone, getPhoneErrorMessage, normalizePhone, normalizeEmail } from '@/lib/validators/phone'
 import { devLog, devError } from '@/lib/logger'
 
 const CreateClientSchema = z.object({
@@ -33,7 +33,6 @@ export async function createClientAction(
   const { 
     organization_id, 
     name, 
-    phone, 
     email, 
     notes,
     confirmation_method,
@@ -41,8 +40,11 @@ export async function createClientAction(
     preferred_contact
   } = parsed.data
 
-  if (phone && !isValidPhone(phone)) {
-    const phoneError = getPhoneErrorMessage(phone)
+  const normalizedPhone = normalizePhone(parsed.data.phone ?? '')
+  const normalizedEmail = normalizeEmail(parsed.data.email ?? '')
+
+  if (normalizedPhone && !isValidPhone(normalizedPhone)) {
+    const phoneError = getPhoneErrorMessage(normalizedPhone)
     return { error: phoneError || 'El teléfono no es válido' }
   }
 
@@ -73,9 +75,9 @@ export async function createClientAction(
     .from('clients')
     .insert({
       organization_id,
-      name: name.trim(),
-      phone: phone || null,
-      email: email || null,
+      name,
+      phone: normalizedPhone || null,
+      email: normalizedEmail || null,
       notes: notes || null,
       confirmation_method,
       confirmations_enabled,

@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { createEmployeeSchema } from '@/schemas/employees/createEmployee.schema'
+import { CreateEmployeeSchema } from '@/schemas/employees/employee.schema'
+import { normalizePhone } from '@/lib/validators/phone'
 import { findByPhone } from '@/services/employees/findByPhone'
 import type { Employee } from '@/types/employees'
 
@@ -14,12 +15,11 @@ interface CreateEmployeeResult {
 }
 
 export async function createEmployee(
-  input: { name: string; phone?: string | null }
+  input: { name: string; phone?: string | null; email?: string | null }
 ): Promise<CreateEmployeeResult> {
   const supabase = await createClient()
 
-  // 1. Validar input con Zod
-  const parsed = createEmployeeSchema.safeParse(input)
+  const parsed = CreateEmployeeSchema.safeParse(input)
   if (!parsed.success) {
     return {
       success: false,
@@ -27,7 +27,6 @@ export async function createEmployee(
     }
   }
 
-  // 2. Verificar autenticación
   const {
     data: { user },
     error: authError,
@@ -37,7 +36,6 @@ export async function createEmployee(
     return { success: false, error: 'No autorizado' }
   }
 
-  // 3. Obtener organización del usuario
   const { data: orgMember, error: orgError } = await supabase
     .from('organization_members')
     .select('organization_id')
@@ -48,7 +46,6 @@ export async function createEmployee(
     return { success: false, error: 'No se encontró organización para este usuario' }
   }
 
-  // 4. Si hay teléfono, verificar si ya existe
   if (parsed.data.phone) {
     const { employee: existingEmployee, error: findError } = await findByPhone({
       phone: parsed.data.phone,
@@ -68,12 +65,15 @@ export async function createEmployee(
     }
   }
 
-  // 5. Insertar empleado
+  const normalizedPhone = normalizePhone(parsed.data.phone ?? '')
+  const email = parsed.data.email?.trim().toLowerCase() || null
+
   const { data: newEmployee, error: insertError } = await supabase
     .from('employees')
     .insert({
       name: parsed.data.name,
-      phone: parsed.data.phone?.trim() || null,
+      phone: normalizedPhone || null,
+      email: email || null,
       organization_id: orgMember.organization_id,
       active: true,
     })
@@ -81,15 +81,19 @@ export async function createEmployee(
     .single()
 
   if (insertError) {
-    console.error('Error al crear empleado:', insertError.message)
     return {
       success: false,
       error: 'No se pudo crear el empleado. Intenta de nuevo.',
     }
   }
 
-  // 6. Revalidar lista de empleados
   revalidatePath('/employees')
 
   return { success: true, employee: newEmployee as Employee }
+}
+
+export async function createEmployeeWithEmail(
+  input: { name: string; email?: string; phone?: string | null }
+): Promise<CreateEmployeeResult> {
+  return createEmployee(input)
 }

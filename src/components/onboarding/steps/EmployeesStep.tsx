@@ -48,7 +48,11 @@ export function EmployeesStep({ orgId, onNext, onSkip }: Props) {
       const { createEmployee } = await import('@/actions/employees/createEmployee')
 
       for (const emp of valid) {
-        const result = await createEmployee({ name: emp.name.trim(), phone: '' })
+        const result = await createEmployee({
+          name: emp.name.trim(),
+          email: emp.email.trim() || null,
+          phone: '',
+        })
         if (result.error) {
           setError(result.error)
           return

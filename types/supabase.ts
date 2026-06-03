@@ -1310,6 +1310,7 @@ export type Database = {
           contract_type: string | null
           created_at: string
           debt_warning_threshold: number | null
+          email: string | null
           employment_type: string | null
           force_transport_subsidy: boolean | null
           has_transport_subsidy: boolean | null
@@ -1330,6 +1331,7 @@ export type Database = {
           contract_type?: string | null
           created_at?: string
           debt_warning_threshold?: number | null
+          email?: string | null
           employment_type?: string | null
           force_transport_subsidy?: boolean | null
           has_transport_subsidy?: boolean | null
@@ -1350,6 +1352,7 @@ export type Database = {
           contract_type?: string | null
           created_at?: string
           debt_warning_threshold?: number | null
+          email?: string | null
           employment_type?: string | null
           force_transport_subsidy?: boolean | null
           has_transport_subsidy?: boolean | null

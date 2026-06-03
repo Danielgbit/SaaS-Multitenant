@@ -57,7 +57,14 @@ export function formatPhone(phone: string): string {
 }
 
 export function normalizePhone(phone: string): string {
-  return phone.replace(/\s/g, '').replace(/^0+/, '')
+  if (!phone) return ''
+  const cleaned = phone.replace(/[\s\-\(\)]/g, '')
+  return cleaned.replace(/^0+/, '')
+}
+
+export function normalizeEmail(email: string): string {
+  if (!email) return ''
+  return email.trim().toLowerCase()
 }
 
 export function getPhoneErrorMessage(phone: string): string | null {

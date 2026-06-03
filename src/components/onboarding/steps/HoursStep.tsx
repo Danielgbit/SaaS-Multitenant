@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Clock } from 'lucide-react'
 import { updateBookingSettings } from '@/actions/settings/updateBookingSettings'
+import { timeToMinutes } from '@/schemas/common'
 
 interface Props {
   orgId: string
@@ -41,6 +42,11 @@ export function HoursStep({ orgId, onNext, onSkip }: Props) {
 
     if (selectedDays.length === 0) {
       setError('Selecciona al menos un día operativo')
+      return
+    }
+
+    if (timeToMinutes(opening) >= timeToMinutes(closing)) {
+      setError('La hora de cierre debe ser posterior a la apertura')
       return
     }
 

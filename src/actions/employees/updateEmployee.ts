@@ -2,15 +2,17 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import type { UpdateEmployeeInput } from '@/types/employees'
+import { UpdateEmployeeSchema } from '@/schemas/employees/employee.schema'
+import { normalizePhone } from '@/lib/validators/phone'
 
-/**
- * Server Action: Actualiza nombre y teléfono de un empleado.
- * Verifica que el empleado pertenezca a la organización del usuario autenticado.
- */
 export async function updateEmployee(
-  input: UpdateEmployeeInput
+  input: { id: string; name: string; phone?: string | null }
 ): Promise<{ error?: string }> {
+  const parsed = UpdateEmployeeSchema.safeParse(input)
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || 'Datos inválidos' }
+  }
+
   const supabase = await createClient()
 
   const {
@@ -32,23 +34,16 @@ export async function updateEmployee(
     return { error: 'No se encontró organización.' }
   }
 
-  const name = input.name?.trim()
-  if (!name) {
-    return { error: 'El nombre es requerido.' }
-  }
-
-  // Actualizar solo si el empleado pertenece a la misma organización
   const { error: updateError } = await supabase
     .from('employees')
     .update({
-      name,
-      phone: input.phone?.trim() || null,
+      name: parsed.data.name,
+      phone: normalizePhone(parsed.data.phone ?? '') || null,
     })
-    .eq('id', input.id)
+    .eq('id', parsed.data.id)
     .eq('organization_id', orgMember.organization_id)
 
   if (updateError) {
-    console.error('Error al actualizar empleado:', updateError.message)
     return { error: 'No se pudo actualizar el empleado.' }
   }
 

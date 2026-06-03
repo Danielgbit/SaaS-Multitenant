@@ -2,13 +2,17 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import type { UpdateServiceInput } from '@/types/services'
+import { UpdateServiceSchema } from '@/schemas/services/service.schema'
 
-export async function updateService(input: UpdateServiceInput) {
+export async function updateService(input: { id: string; name: string; duration: number; price: number }) {
   try {
+    const parsed = UpdateServiceSchema.safeParse(input)
+    if (!parsed.success) {
+      return { error: parsed.error.issues[0]?.message || 'Datos inválidos' }
+    }
+
     const supabase = await createClient()
 
-    // 1. Obtener usuario actual
     const {
       data: { user },
       error: authError,
@@ -18,7 +22,6 @@ export async function updateService(input: UpdateServiceInput) {
       return { error: 'No autorizado. Inicia sesión nuevamente.' }
     }
 
-    // 2. Obtener organización del usuario
     const { data: orgMember, error: orgError } = await supabase
       .from('organization_members')
       .select('organization_id')
@@ -29,23 +32,20 @@ export async function updateService(input: UpdateServiceInput) {
       return { error: 'No se encontró tu organización.' }
     }
 
-    // 3. Actualizar asegurando que el servicio pertenece a la organización
     const { error: updateError } = await supabase
       .from('services')
       .update({
-        name: input.name.trim(),
-        duration: input.duration,
-        price: input.price,
+        name: parsed.data.name,
+        duration: parsed.data.duration,
+        price: parsed.data.price,
       })
-      .eq('id', input.id)
-      .eq('organization_id', orgMember.organization_id) // Seguridad RLS reforzada
+      .eq('id', parsed.data.id)
+      .eq('organization_id', orgMember.organization_id)
 
     if (updateError) {
-      console.error('Error updating service:', updateError)
       return { error: 'Ocurrió un error al actualizar el servicio.' }
     }
 
-    // 4. Revalidar
     revalidatePath('/services')
 
     return { error: null }

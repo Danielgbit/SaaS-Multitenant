@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
+import { isValidPhone, getPhoneErrorMessage, normalizePhone, normalizeEmail } from '@/lib/validators/phone'
 import { Database } from '@db/supabase'
 
 const UpdateClientSchema = z.object({
@@ -69,8 +69,6 @@ export async function updateClient(
   const { 
     id, 
     name, 
-    email, 
-    phone, 
     notes, 
     organization_id,
     confirmation_method,
@@ -78,8 +76,11 @@ export async function updateClient(
     preferred_contact
   } = parsed.data
 
-  if (phone && !isValidPhone(phone)) {
-    const phoneError = getPhoneErrorMessage(phone)
+  const normalizedPhone = normalizePhone(parsed.data.phone ?? '')
+  const normalizedEmail = normalizeEmail(parsed.data.email ?? '')
+
+  if (normalizedPhone && !isValidPhone(normalizedPhone)) {
+    const phoneError = getPhoneErrorMessage(normalizedPhone)
     return { success: false, fieldErrors: { phone: [phoneError || 'Teléfono inválido'] } }
   }
 
@@ -99,8 +100,8 @@ export async function updateClient(
 
   const updateData: Database['public']['Tables']['clients']['Update'] = {
     name,
-    email: email || null,
-    phone: phone || null,
+    email: normalizedEmail || null,
+    phone: normalizedPhone || null,
     notes: notes || null,
   }
 

@@ -93,6 +93,14 @@ export function RegisterForm() {
         showStrength
       />
 
+      <PasswordInput
+        name="confirmPassword"
+        id="confirmPassword"
+        label="Confirmar contraseña"
+        placeholder="Repite la contraseña"
+        required
+      />
+
       <button
         type="submit"
         disabled={isPending}
