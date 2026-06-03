@@ -7,6 +7,7 @@ import { playServiceReadySound } from '@/lib/sound/notification'
 import { toast } from 'sonner'
 import { captureError } from '@/lib/error-logger'
 import { realtimeManager } from '@/lib/realtime'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface PendingConfirmation {
   id: string
@@ -19,14 +20,14 @@ interface PendingConfirmation {
   notes: string | null
 }
 
-function getUrgencyLevel(completedAt: string | null): {
+function getUrgencyLevel(completedAt: string | null, isDark: boolean): {
   level: 'normal' | 'warning' | 'urgent' | 'critical'
   color: string
   bgColor: string
   label: string
 } {
   if (!completedAt) {
-    return { level: 'normal', color: '#22C55E', bgColor: '#22C55E/10', label: 'Reciente' }
+    return { level: 'normal', color: '#22C55E', bgColor: isDark ? '#064E3B' : '#D1FAE5', label: 'Reciente' }
   }
 
   const now = new Date().getTime()
@@ -34,18 +35,19 @@ function getUrgencyLevel(completedAt: string | null): {
   const diffMin = Math.floor((now - completed) / 60000)
 
   if (diffMin < 15) {
-    return { level: 'normal', color: '#22C55E', bgColor: '#22C55E/10', label: `${diffMin} min` }
+    return { level: 'normal', color: '#22C55E', bgColor: isDark ? '#064E3B' : '#D1FAE5', label: `${diffMin} min` }
   } else if (diffMin < 25) {
-    return { level: 'warning', color: '#EAB308', bgColor: '#EAB308/10', label: `${diffMin} min` }
+    return { level: 'warning', color: '#EAB308', bgColor: isDark ? '#78350F' : '#FEF3C7', label: `${diffMin} min` }
   } else if (diffMin < 40) {
-    return { level: 'urgent', color: '#F97316', bgColor: '#F97316/10', label: `${diffMin} min` }
+    return { level: 'urgent', color: '#F97316', bgColor: isDark ? '#7C2D12' : '#FFF7ED', label: `${diffMin} min` }
   } else {
-    return { level: 'critical', color: '#EF4444', bgColor: '#EF4444/10', label: `${diffMin} min` }
+    return { level: 'critical', color: '#EF4444', bgColor: isDark ? '#7F1D1D' : '#FEF2F2', label: `${diffMin} min` }
   }
 }
 
 function TimeBadge({ completedAt }: { completedAt: string | null }) {
-  const urgency = getUrgencyLevel(completedAt)
+  const COLORS = useThemeColors()
+  const urgency = getUrgencyLevel(completedAt, COLORS.isDark)
 
   return (
     <span

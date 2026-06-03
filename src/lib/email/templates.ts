@@ -11,6 +11,8 @@ export type EmailType =
 
 function getAccessDescription(role: string): string {
   switch (role) {
+    case 'owner':
+      return 'Propietario del negocio, acceso total e irrestricto'
     case 'admin':
       return 'Acceso completo al sistema, gestión del negocio y empleados'
     case 'staff':

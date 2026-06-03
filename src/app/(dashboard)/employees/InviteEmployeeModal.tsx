@@ -6,6 +6,7 @@ import { Spinner } from '@/components/ui'
 import { createInvitation } from '@/actions/invitations/createInvitation'
 import type { Employee } from '@/types/employees'
 import type { MemberRole } from '@/types/invitations'
+import { getRoleLabel } from '@/lib/rbac'
 import { SecurityConfirmationModal } from '@/components/dashboard/SecurityConfirmationModal'
 
 function RoleOption({ 
@@ -72,17 +73,11 @@ interface InviteEmployeeModalProps {
   onClose: () => void
 }
 
-function getRoleLabel(role: string): string {
-  switch (role) {
-    case 'admin': return 'Administrador'
-    case 'staff': return 'Asistente'
-    case 'empleado': return 'Empleado'
-    default: return role
-  }
-}
-
+// TODO: Centralizar getAccessDescription en rbac.ts para evitar
+// divergencia entre UI y emails.
 function getAccessDescription(role: string): string {
   switch (role) {
+    case 'owner': return 'Propietario del negocio, acceso total e irrestricto'
     case 'admin': return 'Acceso completo al sistema, gestión del negocio y empleados'
     case 'staff': return 'Gestiona la agenda, confirma citas e invita nuevos miembros al equipo'
     case 'empleado': return 'Accede a su propia agenda, confirma sus citas y gestiona a sus clientes'

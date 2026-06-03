@@ -7,7 +7,7 @@ import { X, MoreHorizontal, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getRoleLabel } from '@/lib/rbac'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { dashboardRoutes, filterRoutesByRole, groupRoutesByGroup, isRouteActive, type RouteDefinition } from '@/lib/navigation'
+import { dashboardRoutes, filterRoutesByRole, groupRoutesByGroup, isRouteActive, NAV_GROUP_LABELS, NAV_GROUP_ORDER, type RouteDefinition, type NavGroupId } from '@/lib/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface RouteWithActive extends RouteDefinition {
@@ -172,58 +172,52 @@ export function MobileNav({ isOpen, onClose, role, organizationName }: MobileNav
               </div>
               
               <nav className="flex-1 overflow-y-auto py-4 px-4 space-y-4" style={{ maxHeight: 'calc(85dvh - 180px)' }}>
-                {Object.entries(groupedRoutes).map(([group, routes]) => (
-                  <div key={group} className="space-y-1">
-                    <div 
-                      className="text-sidebar-label font-semibold px-3 py-2"
-                      style={{ color: COLORS.textMuted }}
-                    >
-                      {group}
+                {NAV_GROUP_ORDER.map((groupId) => {
+                  const routes = groupedRoutes[groupId]
+                  if (!routes || routes.length === 0) return null
+
+                  return (
+                    <div key={groupId} className="space-y-1">
+                      <div
+                        className="text-sidebar-label font-semibold px-3 py-2"
+                        style={{ color: COLORS.textMuted }}
+                      >
+                        {NAV_GROUP_LABELS[groupId]}
+                      </div>
+                      {routes.map((route: RouteWithActive) => {
+                        const Icon = route.icon
+                        const isActive = route.active ?? false
+
+                        return (
+                          <Link
+                            key={route.href}
+                            href={route.href}
+                            onClick={() => setSecondarySheetOpen(false)}
+                            aria-current={isActive ? 'page' : undefined}
+                            aria-label={route.label}
+                            className={`
+                              group flex items-center gap-3 px-3 py-3 rounded-xl min-h-[48px]
+                              transition-all duration-200 font-medium text-sm
+                              ${isActive
+                                ? ''
+                                : 'hover:opacity-80'
+                              }
+                            `}
+                            style={{
+                              color: isActive ? COLORS.primary : COLORS.textSecondary,
+                              backgroundColor: isActive ? COLORS.primarySubtle : 'transparent',
+                            }}
+                          >
+                            <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''}`} />
+                            <span className="flex items-center gap-2 flex-1">
+                              {route.label}
+                            </span>
+                          </Link>
+                        )
+                      })}
                     </div>
-                    {routes.map((route: RouteWithActive) => {
-                      const Icon = route.icon
-                      const isActive = route.active ?? false
-                      
-                      return (
-                        <Link
-                          key={route.href}
-                          href={route.href}
-                          onClick={() => setSecondarySheetOpen(false)}
-                          aria-current={isActive ? 'page' : undefined}
-                          aria-label={route.label}
-                          className={`
-                            group flex items-center gap-3 px-3 py-3 rounded-xl min-h-[48px]
-                            transition-all duration-200 font-medium text-sm
-                            ${isActive 
-                              ? '' 
-                              : 'hover:opacity-80'
-                            }
-                          `}
-                          style={{
-                            color: isActive ? COLORS.primary : COLORS.textSecondary,
-                            backgroundColor: isActive ? COLORS.primarySubtle : 'transparent',
-                          }}
-                        >
-                          <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''}`} />
-                          <span className="flex items-center gap-2 flex-1">
-                            {route.label}
-                            {route.badge && (
-                              <span 
-                                className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider"
-                                style={{ 
-                                  backgroundColor: COLORS.warningLight,
-                                  color: COLORS.warning
-                                }}
-                              >
-                                {route.badge}
-                              </span>
-                            )}
-                          </span>
-                        </Link>
-                      )
-                    })}
-                  </div>
-                ))}
+                  )
+                })}
               </nav>
               
               <div className="p-4" style={{ borderTop: `1px solid ${COLORS.border}` }}>

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { CreateSaleInput, SalePaymentMethod, RecordPaymentInput } from '@/types/clientAccounts'
 import { revalidatePath } from 'next/cache'
 import type { PaymentMethod } from '@/types/cash-sessions'
+import { createEntryFromSource } from '@/actions/cash-sessions/createEntryFromSource'
 
 const CREDIT_METHODS: SalePaymentMethod[] = ['credit']
 
@@ -170,20 +171,23 @@ export async function recordSale(
   // --- FLUJO CONTADO: stock ya descontado + crear entrada en caja ---
   const paymentMethod = toPaymentMethod(input.payment_method)
 
-  import('@/actions/cash-sessions/createEntryFromSource').then((m) =>
-    m.createEntryFromSource({
-      organization_id: organizationId,
-      source_type: 'inventory_sale',
-      source_id: null,
-      entry_type: 'product_sale',
-      direction: 'in',
-      amount: totalAmount,
-      payment_method: paymentMethod,
-      title: `Venta de productos${input.notes ? ' - ' + input.notes : ''}`,
-      created_by: user.id,
-      created_via: 'product_sale_hook',
-    })
-  ).catch(console.error)
+  const entryResult = await createEntryFromSource({
+    organization_id: organizationId,
+    source_type: 'inventory_sale',
+    source_id: null,
+    entry_type: 'product_sale',
+    direction: 'in',
+    amount: totalAmount,
+    payment_method: paymentMethod,
+    title: `Venta de productos${input.notes ? ' - ' + input.notes : ''}`,
+    created_by: user.id,
+    created_via: 'product_sale_hook',
+  })
+
+  if (!entryResult.success) {
+    console.error('[recordSale] Error al crear entry en caja:', entryResult.error)
+    return { success: false, error: 'Error al registrar en caja: ' + entryResult.error }
+  }
 
   revalidatePath('/clients')
   revalidatePath('/caja')
@@ -257,21 +261,24 @@ export async function recordPayment(
     return { success: false, error: transactionError.message }
   }
 
-  // Registrar ingreso en caja por pago de cuenta (fire-and-forget)
-  import('@/actions/cash-sessions/createEntryFromSource').then((m) =>
-    m.createEntryFromSource({
-      organization_id: organizationId,
-      source_type: 'client_account_payment',
-      source_id: transaction.id,
-      entry_type: 'account_payment',
-      direction: 'in',
-      amount: input.amount,
-      payment_method: input.payment_method,
-      title: `Pago de cuenta - ${client?.name || 'Cliente'}`,
-      created_by: user.id,
-      created_via: 'record_payment',
-    })
-  ).catch(console.error)
+  // Registrar ingreso en caja por pago de cuenta
+  const entryResult = await createEntryFromSource({
+    organization_id: organizationId,
+    source_type: 'client_account_payment',
+    source_id: transaction.id,
+    entry_type: 'account_payment',
+    direction: 'in',
+    amount: input.amount,
+    payment_method: input.payment_method,
+    title: `Pago de cuenta - ${client?.name || 'Cliente'}`,
+    created_by: user.id,
+    created_via: 'record_payment',
+  })
+
+  if (!entryResult.success) {
+    console.error('[recordPayment] Error al crear entry en caja:', entryResult.error)
+    return { success: false, error: 'Error al registrar en caja: ' + entryResult.error }
+  }
 
   revalidatePath(`/clients/${input.client_id}/account`)
   revalidatePath('/clients')

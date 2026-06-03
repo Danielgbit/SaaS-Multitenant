@@ -16,7 +16,10 @@ export interface Invitation {
 
 export type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'cancelled'
 
-export type MemberRole = 'admin' | 'staff' | 'empleado'
+// NOTE:
+// 'empleado' existe en TypeScript pero actualmente no forma parte
+// del ENUM role_type de Supabase. Mantener sincronizados ambos dominios.
+export type MemberRole = 'owner' | 'admin' | 'staff' | 'empleado'
 
 export type CreateInvitationInput = {
   employeeId: string

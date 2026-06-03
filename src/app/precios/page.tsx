@@ -35,32 +35,29 @@ export default async function PricingPage() {
   ]
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FAFAF9' }}>
+    <div className="min-h-screen bg-[#FAFAF9] dark:bg-[#151b1d]">
       {/* Header */}
-      <header className="border-b" style={{ borderColor: '#E8ECEE', backgroundColor: '#FFF' }}>
+      <header className="border-b border-[#E8ECEE] dark:border-slate-700 bg-white dark:bg-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-semibold font-heading" style={{ color: '#0F4C5C' }}>
+          <Link href="/" className="text-2xl font-semibold font-heading text-[#0F4C5C] dark:text-sky-400">
             Prügressy
           </Link>
           <nav className="flex items-center gap-3 sm:gap-6">
             <Link 
               href="/precios"
-              className="text-xs sm:text-sm font-medium"
-              style={{ color: '#0F4C5C' }}
+              className="text-xs sm:text-sm font-medium text-[#0F4C5C] dark:text-sky-400"
             >
               Precios
             </Link>
             <Link 
               href="/login"
-              className="text-xs sm:text-sm font-medium"
-              style={{ color: '#5A6B70' }}
+              className="text-xs sm:text-sm font-medium text-[#5A6B70] dark:text-slate-400"
             >
               Iniciar sesión
             </Link>
             <Link 
               href="/register"
-              className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium"
-              style={{ backgroundColor: '#0F4C5C', color: '#FFF' }}
+              className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium bg-[#0F4C5C] dark:bg-sky-600 text-white"
             >
               Empezar gratis
             </Link>
@@ -71,13 +68,13 @@ export default async function PricingPage() {
       {/* Hero */}
       <section className="py-16 md:py-24 px-4 text-center">
         <div className="max-w-3xl mx-auto">
-          <span className="inline-block px-4 py-1.5 rounded-full text-xs font-medium bg-[#0F4C5C]/10 text-[#0F4C5C] mb-6">
+          <span className="inline-block px-4 py-1.5 rounded-full text-xs font-medium bg-[#0F4C5C]/10 dark:bg-sky-400/10 text-[#0F4C5C] dark:text-sky-400 mb-6">
             🇨🇴 Diseñado para negocios colombianos
           </span>
-          <h1 className="text-4xl md:text-5xl font-semibold mb-4 text-slate-800 font-heading">
+          <h1 className="text-4xl md:text-5xl font-semibold mb-4 text-slate-800 dark:text-slate-100 font-heading">
             Planes para cada etapa de tu negocio
           </h1>
-          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
             Sin costos ocultos. WhatsApp incluido en todos los planes. 
             Prueba 30 días gratis.
           </p>
@@ -100,7 +97,7 @@ export default async function PricingPage() {
               >
                 {/* Popular Plan - Gradient Card */}
                 {isPopular ? (
-                  <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-[#0F4C5C]/20">
+                  <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-[#0F4C5C]/20 dark:shadow-sky-500/20">
                     <div className="absolute inset-0 bg-gradient-to-br from-[#0F4C5C] via-[#0C3E4A] to-[#0A2E38]" />
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-30" />
                     
@@ -201,54 +198,54 @@ export default async function PricingPage() {
                   </div>
                 ) : (
                   /* Basic Plan - Clean Card */
-                  <div className="h-full rounded-3xl bg-white border border-slate-200 overflow-hidden hover:shadow-xl hover:border-slate-300 transition-all duration-300">
+                  <div className="h-full rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300">
                     <div className="p-8">
                       <div className="flex items-center gap-3 mb-6">
-                        <div className="w-12 h-12 rounded-2xl bg-[#0F4C5C]/10 flex items-center justify-center">
-                          <Shield className="w-6 h-6 text-[#0F4C5C]" />
+                        <div className="w-12 h-12 rounded-2xl bg-[#0F4C5C]/10 dark:bg-sky-400/10 flex items-center justify-center">
+                          <Shield className="w-6 h-6 text-[#0F4C5C] dark:text-sky-400" />
                         </div>
-                        <h3 className="text-xl font-semibold text-slate-800">
+                        <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
                           {plan.name}
                         </h3>
                       </div>
 
                       <div className="mb-6">
                         <div className="flex items-baseline gap-2">
-                          <span className="text-5xl font-bold text-slate-800">
+                          <span className="text-5xl font-bold text-slate-800 dark:text-slate-100">
                             {formatCurrency(plan.price, currency)}
                           </span>
-                          <span className="text-slate-500">/mes</span>
+                          <span className="text-slate-500 dark:text-slate-400">/mes</span>
                         </div>
                       </div>
 
                       <ul className="space-y-3 mb-8">
-                        <li className="flex items-center gap-3 text-sm text-slate-600">
-                          <div className="w-5 h-5 rounded-lg bg-emerald-100 flex items-center justify-center">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                          <div className="w-5 h-5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <span><strong>{plan.max_employees}</strong> empleados</span>
                         </li>
-                        <li className="flex items-center gap-3 text-sm text-slate-600">
-                          <div className="w-5 h-5 rounded-lg bg-emerald-100 flex items-center justify-center">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                          <div className="w-5 h-5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <span><strong>{plan.max_services}</strong> servicios</span>
                         </li>
-                        <li className="flex items-center gap-3 text-sm text-slate-600">
-                          <div className="w-5 h-5 rounded-lg bg-emerald-100 flex items-center justify-center">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                          <div className="w-5 h-5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <span><strong>{plan.max_inventory_items}</strong> productos inventario</span>
                         </li>
-                        <li className="flex items-center gap-3 text-sm text-slate-600">
-                          <div className="w-5 h-5 rounded-lg bg-emerald-100 flex items-center justify-center">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                          <div className="w-5 h-5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <span><strong>WhatsApp Premium</strong> incluido</span>
                         </li>
-                        <li className="flex items-center gap-3 text-sm text-slate-600">
-                          <div className="w-5 h-5 rounded-lg bg-emerald-100 flex items-center justify-center">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                          <div className="w-5 h-5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <span><strong>Analytics completo</strong></span>
                         </li>

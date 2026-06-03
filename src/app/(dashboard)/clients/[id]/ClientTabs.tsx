@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useTheme } from 'next-themes'
+
 import { ArrowLeft, User, Calendar, FileText, Pencil, Trash2, Phone, Mail, MapPin, CalendarCheck2, Clock, CheckCircle2, XCircle, MessageCircle, BellOff } from 'lucide-react'
 import type { Database } from '@/../types/supabase'
 import { EditClientModal } from '../EditClientModal'

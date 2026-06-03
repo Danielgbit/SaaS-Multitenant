@@ -1,6 +1,7 @@
 'use client'
 
 import { CheckCircle2, XCircle, RefreshCw, AlertTriangle, Clock } from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface RetryAttempt {
   attemptNumber: number
@@ -51,25 +52,27 @@ function attemptIcon(result: string) {
 
 function attemptBg(result: string): string {
   switch (result) {
-    case 'success': return 'bg-green-50 border-green-200'
-    case 'failed': return 'bg-red-50 border-red-200'
-    case 'retrying': return 'bg-amber-50 border-amber-200'
-    case 'dead_lettered': return 'bg-purple-50 border-purple-200'
-    default: return 'bg-muted border-border'
+    case 'success': return 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800/40'
+    case 'failed': return 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/40'
+    case 'retrying': return 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/40'
+    case 'dead_lettered': return 'bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800/40'
+    default: return `bg-surfaceSubtle border-border`
   }
 }
 
 function attemptLabel(result: string): { label: string; color: string } {
   switch (result) {
-    case 'success': return { label: 'Entregado', color: 'text-green-700' }
-    case 'failed': return { label: 'Fallido', color: 'text-red-700' }
-    case 'retrying': return { label: 'Reintentando...', color: 'text-amber-700' }
-    case 'dead_lettered': return { label: 'Dead Letter', color: 'text-purple-700' }
+    case 'success': return { label: 'Entregado', color: 'text-green-700 dark:text-green-400' }
+    case 'failed': return { label: 'Fallido', color: 'text-red-700 dark:text-red-400' }
+    case 'retrying': return { label: 'Reintentando...', color: 'text-amber-700 dark:text-amber-400' }
+    case 'dead_lettered': return { label: 'Dead Letter', color: 'text-purple-700 dark:text-purple-400' }
     default: return { label: 'Desconocido', color: 'text-muted-foreground' }
   }
 }
 
 export function RetryTimeline({ attempts, maxAttempts }: RetryTimelineProps) {
+  const COLORS = useThemeColors()
+
   if (attempts.length === 0) {
     return (
       <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
@@ -91,7 +94,7 @@ export function RetryTimeline({ attempts, maxAttempts }: RetryTimelineProps) {
         {/* Vertical connector line */}
         <div
           className="absolute left-[18px] top-2 bottom-2 w-0.5"
-          style={{ backgroundColor: 'hsl(var(--border))' }}
+          style={{ backgroundColor: COLORS.border }}
         />
 
         <div className="space-y-4">
@@ -142,7 +145,7 @@ export function RetryTimeline({ attempts, maxAttempts }: RetryTimelineProps) {
 
         {/* Max attempts indicator */}
         {attempts.length > 0 && attempts[attempts.length - 1].result === 'failed' && (
-          <div className="mt-3 rounded-lg border border-dashed border-purple-300 bg-purple-50 p-2 text-center text-xs text-purple-700">
+          <div className="mt-3 rounded-lg border border-dashed border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/30 p-2 text-center text-xs text-purple-700 dark:text-purple-400">
             Límite de {maxAttempts} intentos alcanzado — notificación movida a Dead Letter
           </div>
         )}

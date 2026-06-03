@@ -115,7 +115,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
   ]
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: COLORS.isDark ? '#0F172A' : '#FAFAF9' }}>
+    <div className="min-h-screen" style={{ backgroundColor: COLORS.surface }}>
       {/* Header */}
       <div className="px-8 pt-8 pb-6">
         <div className="max-w-6xl mx-auto">
@@ -382,7 +382,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                           </p>
                           <div className="space-y-1.5">
                             {conf.services.map((service: any, idx: number) => (
-                              <div key={idx} className="flex items-center justify-between px-3.5 py-2.5 rounded-xl" style={{ backgroundColor: COLORS.isDark ? '#0F172A' : '#F8FAFC' }}>
+                              <div key={idx} className="flex items-center justify-between px-3.5 py-2.5 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
                                 <div className="flex items-center gap-2.5">
                                   <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: `${COLORS.success}18` }}>
                                     <Check className="w-3.5 h-3.5" style={{ color: COLORS.success }} />
@@ -402,7 +402,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
 
                       {/* Notes */}
                       {conf.notes && (
-                        <div className="flex items-start gap-2 px-3.5 py-2 rounded-xl mb-4" style={{ backgroundColor: COLORS.isDark ? '#0F172A' : '#F8FAFC' }}>
+                        <div className="flex items-start gap-2 px-3.5 py-2 rounded-xl mb-4" style={{ backgroundColor: COLORS.surfaceSubtle }}>
                           <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: COLORS.textMuted }} />
                           <p className="text-xs italic" style={{ color: COLORS.textSecondary }}>{conf.notes}</p>
                         </div>
@@ -419,7 +419,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                           </button>
                           <button type="button" onClick={() => handleNotPerformed(conf.id)} disabled={processing === conf.id}
                             className="flex-1 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-                            style={{ backgroundColor: COLORS.isDark ? '#0F172A' : '#F1F5F9', color: COLORS.textSecondary }}>
+                            style={{ backgroundColor: COLORS.surfaceHover, color: COLORS.textSecondary }}>
                             <X className="w-4 h-4" />
                             No realizado
                           </button>

@@ -7,6 +7,11 @@ export type RoleLabel = {
 }
 
 export const ROLE_LABELS: Record<MemberRole, RoleLabel> = {
+  owner: {
+    value: 'owner',
+    label: 'Propietario',
+    description: 'Propietario del negocio',
+  },
   admin: {
     value: 'admin',
     label: 'Administrador',
@@ -15,7 +20,7 @@ export const ROLE_LABELS: Record<MemberRole, RoleLabel> = {
   staff: {
     value: 'staff',
     label: 'Asistente',
-    description: 'Agenda, confirmaciones e invitaciones',
+    description: 'Gestiona agenda, confirmaciones e invitaciones',
   },
   empleado: {
     value: 'empleado',

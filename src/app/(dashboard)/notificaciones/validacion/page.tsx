@@ -151,25 +151,25 @@ export default async function ValidationPage() {
           title="Total comparaciones"
           value={data.kpi.total}
           icon={<ShieldCheck className="w-5 h-5" />}
-          iconColor="hsl(var(--primary))"
+          iconColor="#0F4C5C"
         />
         <MetricCard
           title="Matches"
           value={data.kpi.matches}
           icon={<CheckCircle2 className="w-5 h-5" />}
-          iconColor="hsl(var(--success))"
+          iconColor="#16A34A"
         />
         <MetricCard
           title="Drifts"
           value={data.kpi.drifts}
           icon={<AlertTriangle className="w-5 h-5" />}
-          iconColor="hsl(var(--warning))"
+          iconColor="#D97706"
         />
         <MetricCard
           title="Drifts críticos"
           value={data.kpi.critical}
           icon={<XCircle className="w-5 h-5" />}
-          iconColor="hsl(var(--error))"
+          iconColor="#DC2626"
         />
       </div>
 
@@ -182,11 +182,11 @@ export default async function ValidationPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+        <div className="rounded-xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[700px] whitespace-nowrap">
             <thead>
-              <tr className="border-b" style={{ borderColor: 'hsl(var(--border))', backgroundColor: 'hsl(var(--muted) / 0.3)' }}>
+              <tr className="border-b border-border bg-muted/30">
                 <th className="text-left font-medium px-4 py-3 text-muted-foreground">Fecha</th>
                 <th className="text-left font-medium px-4 py-3 text-muted-foreground">Severidad</th>
                 <th className="text-left font-medium px-4 py-3 text-muted-foreground">Score</th>
@@ -200,8 +200,7 @@ export default async function ValidationPage() {
               {data.logs.map((log: any) => (
                 <tr
                   key={log.id}
-                  className="border-b last:border-b-0 hover:bg-muted/30 transition-colors"
-                  style={{ borderColor: 'hsl(var(--border) / 0.5)' }}
+                  className="border-b last:border-b-0 border-border/50 hover:bg-muted/30 transition-colors"
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
                     {formatRelativeTime(log.created_at)}
@@ -233,7 +232,7 @@ export default async function ValidationPage() {
                         <span className="group-open:hidden">View JSON</span>
                         <span className="hidden group-open:inline">Hide</span>
                       </summary>
-                      <pre className="mt-2 p-3 rounded-lg text-xs overflow-x-auto max-h-48 overflow-y-auto" style={{ backgroundColor: 'hsl(var(--muted))', fontSize: '11px' }}>
+                      <pre className="mt-2 p-3 rounded-lg text-xs overflow-x-auto max-h-48 overflow-y-auto bg-muted" style={{ fontSize: '11px' }}>
                         {JSON.stringify({
                           drift_types: log.drift_types,
                           drift_score: log.drift_score,

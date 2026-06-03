@@ -2,29 +2,30 @@
 
 import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts'
 import { motion } from 'framer-motion'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface QueueChartProps {
   hourlyStats: { hour: string; count: number }[]
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label, COLORS }: any) {
   if (active && payload && payload.length) {
     return (
       <div
         className="rounded-xl border p-3 shadow-lg"
         style={{
-          backgroundColor: 'hsl(var(--background) / 0.85)',
+          backgroundColor: COLORS.surfaceGlass,
           backdropFilter: 'blur(6px)',
-          borderColor: 'hsl(var(--border))',
+          borderColor: COLORS.border,
         }}
       >
-        <p className="text-xs font-medium mb-0.5" style={{ color: 'hsl(var(--text-secondary))' }}>
+        <p className="text-xs font-medium mb-0.5" style={{ color: COLORS.textSecondary }}>
           {label}
         </p>
-        <p className="font-mono text-lg font-bold tracking-tight" style={{ color: 'hsl(var(--primary))' }}>
+        <p className="font-mono text-lg font-bold tracking-tight" style={{ color: COLORS.primary }}>
           {payload[0].value}
         </p>
-        <p className="text-[11px] font-mono mt-0.5" style={{ color: 'hsl(var(--text-muted))' }}>
+        <p className="text-[11px] font-mono mt-0.5" style={{ color: COLORS.textMuted }}>
           eventos en esta hora
         </p>
       </div>
@@ -34,6 +35,7 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export function QueueChart({ hourlyStats }: QueueChartProps) {
+  const COLORS = useThemeColors()
   const data = hourlyStats.map((item) => ({
     hour: new Date(item.hour).toLocaleString('es-CO', {
       month: 'short',
@@ -53,18 +55,18 @@ export function QueueChart({ hourlyStats }: QueueChartProps) {
         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
         className="rounded-xl border bg-background/70 backdrop-blur-[6px] p-4"
         style={{
-          borderColor: 'hsl(var(--border))',
+          borderColor: COLORS.border,
         }}
       >
-        <h3 className="mb-4 font-semibold text-sm" style={{ color: 'hsl(var(--text-primary))' }}>
+        <h3 className="mb-4 font-semibold text-sm" style={{ color: COLORS.textPrimary }}>
           Eventos por Hora (últimas 24h)
         </h3>
         <div className="h-[200px] flex items-center justify-center">
           <div className="text-center space-y-2">
-            <p className="text-sm font-medium" style={{ color: 'hsl(var(--text-secondary))' }}>
+            <p className="text-sm font-medium" style={{ color: COLORS.textSecondary }}>
               Sin datos
             </p>
-            <p className="text-xs" style={{ color: 'hsl(var(--text-muted))' }}>
+            <p className="text-xs" style={{ color: COLORS.textMuted }}>
               No hay eventos en las últimas 24 horas
             </p>
           </div>
@@ -80,10 +82,10 @@ export function QueueChart({ hourlyStats }: QueueChartProps) {
       transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
       className="rounded-xl border bg-background/70 backdrop-blur-[6px] p-4"
       style={{
-        borderColor: 'hsl(var(--border))',
+        borderColor: COLORS.border,
       }}
     >
-      <h3 className="mb-4 font-semibold text-sm" style={{ color: 'hsl(var(--text-primary))' }}>
+      <h3 className="mb-4 font-semibold text-sm" style={{ color: COLORS.textPrimary }}>
         Eventos por Hora (últimas 24h)
       </h3>
       <div className="h-[200px]">
@@ -91,33 +93,33 @@ export function QueueChart({ hourlyStats }: QueueChartProps) {
           <BarChart data={data}>
             <defs>
               <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={1} />
-                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                <stop offset="0%" stopColor={COLORS.primary} stopOpacity={1} />
+                <stop offset="100%" stopColor={COLORS.primary} stopOpacity={0.4} />
               </linearGradient>
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="hsl(var(--border))"
+              stroke={COLORS.border}
               strokeOpacity={0.3}
               vertical={false}
             />
             <XAxis
               dataKey="hour"
-              tick={{ fontSize: 10, fill: 'hsl(var(--text-muted))' }}
+              tick={{ fontSize: 10, fill: COLORS.textMuted }}
               angle={-45}
               textAnchor="end"
               height={60}
               tickLine={false}
-              axisLine={{ stroke: 'hsl(var(--border))', strokeWidth: 1, strokeOpacity: 0.5 }}
+              axisLine={{ stroke: COLORS.border, strokeWidth: 1, strokeOpacity: 0.5 }}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: 'hsl(var(--text-muted))' }}
+              tick={{ fontSize: 10, fill: COLORS.textMuted }}
               tickLine={false}
-              axisLine={{ stroke: 'hsl(var(--border))', strokeWidth: 1, strokeOpacity: 0.5 }}
+              axisLine={{ stroke: COLORS.border, strokeWidth: 1, strokeOpacity: 0.5 }}
             />
             <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ fill: 'hsl(var(--muted) / 0.3)' }}
+              content={<CustomTooltip COLORS={COLORS} />}
+              cursor={{ fill: COLORS.surfaceSubtle }}
             />
             <Bar
               dataKey="count"

@@ -91,7 +91,7 @@ export default async function MessagesSearchPage({
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[700px] whitespace-nowrap">
             <thead>
-              <tr className="border-b" style={{ borderColor: 'hsl(var(--border))', backgroundColor: 'hsl(var(--muted) / 0.3)' }}>
+              <tr className="border-b border-border bg-muted/30">
                 <th className="text-left font-medium px-4 py-3 text-muted-foreground">Fecha</th>
                 <th className="text-left font-medium px-4 py-3 text-muted-foreground">Estado</th>
                 <th className="text-left font-medium px-4 py-3 text-muted-foreground">Canal</th>
@@ -105,8 +105,7 @@ export default async function MessagesSearchPage({
               {results.results.map((r) => (
                 <tr
                   key={`${r.type}-${r.id}`}
-                  className="border-b last:border-b-0 hover:bg-muted/30 transition-colors"
-                  style={{ borderColor: 'hsl(var(--border) / 0.5)' }}
+                  className="border-b last:border-b-0 border-border/50 hover:bg-muted/30 transition-colors"
                 >
                   <td className="px-4 py-3 whitespace-nowrap text-xs text-muted-foreground">
                     {relativeTime(r.createdAt)}
@@ -142,7 +141,7 @@ export default async function MessagesSearchPage({
             </tbody>
           </table>
           </div>
-          <div className="px-4 py-2 text-xs text-muted-foreground border-t" style={{ borderColor: 'hsl(var(--border))' }}>
+          <div className="px-4 py-2 text-xs text-muted-foreground border-t border-border">
             {results.total} resultado(s) · Mostrando hasta 50
           </div>
         </div>

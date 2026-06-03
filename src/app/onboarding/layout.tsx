@@ -14,7 +14,7 @@ export default async function OnboardingLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A]">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#151b1d]">
       <div className="mx-auto max-w-3xl px-4 py-8">
         {children}
       </div>

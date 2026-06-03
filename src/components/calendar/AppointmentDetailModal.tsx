@@ -151,7 +151,7 @@ export function AppointmentDetailModal({
           {userRole !== 'empleado' && appointment.status !== 'cancelled' && appointment.status !== 'completed' && appointment.status !== 'confirmed' && (
             <button onClick={onConfirmAppointment} disabled={updatingStatus}
               className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:brightness-110 cursor-pointer"
-              style={{ backgroundColor: '#10B981', color: '#FFF' }}>
+              style={{ backgroundColor: COLORS.success, color: '#FFF' }}>
               Confirmar
             </button>
           )}
@@ -159,7 +159,7 @@ export function AppointmentDetailModal({
           {userRole !== 'empleado' && appointment.status === 'confirmed' && appointment.confirmation_status !== 'completed' && (
             <button onClick={onAdminConfirmService} disabled={updatingStatus}
               className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:brightness-110 cursor-pointer"
-              style={{ backgroundColor: '#F59E0B', color: '#FFF' }}>
+              style={{ backgroundColor: COLORS.warning, color: '#FFF' }}>
               Confirmar Servicio
             </button>
           )}
@@ -179,7 +179,7 @@ export function AppointmentDetailModal({
             <>
               <button onClick={onDelete}
                 className="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
-                style={{ color: '#EF4444', backgroundColor: 'transparent', border: '1px solid #EF444440' }}>
+                style={{ color: COLORS.error, backgroundColor: 'transparent', border: `1px solid ${COLORS.error}30` }}>
                 Cancelar
               </button>
               <button onClick={onEdit}

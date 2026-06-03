@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { Copy, Check, ChevronDown, ChevronRight } from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface Tab {
   label: string
@@ -71,6 +72,7 @@ export function RawWebhookViewer({
   const [copied, setCopied] = useState(false)
   const [activeTab, setActiveTab] = useState(0)
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
+  const COLORS = useThemeColors()
 
   const hasData = data !== null && data !== undefined
   const providerLabel = hasData ? detectProvider(data) : null
@@ -110,12 +112,12 @@ export function RawWebhookViewer({
   }
 
   return (
-    <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+    <div className="rounded-lg border overflow-hidden" style={{ borderColor: COLORS.border }}>
       {/* Header */}
       <div
         className="flex items-center justify-between px-4 py-2 cursor-pointer select-none hover:bg-muted/30 transition-colors"
         onClick={() => setCollapsed(!collapsed)}
-        style={{ borderBottom: collapsed ? 'none' : '1px solid hsl(var(--border))' }}
+        style={{ borderBottom: collapsed ? 'none' : `1px solid ${COLORS.border}` }}
       >
         <div className="flex items-center gap-2 min-w-0">
           {collapsed ? (
@@ -130,8 +132,8 @@ export function RawWebhookViewer({
             <span
               className="rounded px-1.5 py-0.5 text-xs font-mono shrink-0"
               style={{
-                backgroundColor: 'hsl(var(--primary) / 0.1)',
-                color: 'hsl(var(--primary))',
+                backgroundColor: COLORS.primarySubtle,
+                color: COLORS.primary,
               }}
             >
               {providerLabel}
@@ -168,7 +170,7 @@ export function RawWebhookViewer({
           {hasTabs && tabs && tabs.length > 0 && (
             <div
               className="flex gap-0 px-4 pt-2"
-              style={{ borderBottom: '1px solid hsl(var(--border))' }}
+              style={{ borderBottom: `1px solid ${COLORS.border}` }}
             >
               {tabs.map((tab, i) => (
                 <button
@@ -179,12 +181,12 @@ export function RawWebhookViewer({
                   }}
                   className="px-3 py-1.5 text-xs font-medium transition-colors rounded-t-md"
                   style={{
-                    color: activeTab === i ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
-                    backgroundColor: activeTab === i ? 'hsl(var(--muted))' : 'transparent',
+                    color: activeTab === i ? COLORS.textPrimary : COLORS.textMuted,
+                    backgroundColor: activeTab === i ? COLORS.surfaceSubtle : 'transparent',
                     border: activeTab === i
-                      ? '1px solid hsl(var(--border))'
+                      ? `1px solid ${COLORS.border}`
                       : '1px solid transparent',
-                    borderBottom: activeTab === i ? '1px solid hsl(var(--muted))' : 'none',
+                    borderBottom: activeTab === i ? `1px solid ${COLORS.surfaceSubtle}` : 'none',
                     marginBottom: activeTab === i ? '-1px' : '0',
                   }}
                 >
@@ -200,7 +202,7 @@ export function RawWebhookViewer({
             style={{
               maxHeight: height !== 'auto' ? height : 'none',
               padding: '12px 16px',
-              backgroundColor: 'hsl(var(--muted) / 0.3)',
+              backgroundColor: COLORS.surfaceSubtle,
             }}
           >
             <pre

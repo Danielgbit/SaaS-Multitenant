@@ -5,11 +5,35 @@ import {
   Scissors, Clock, Package, MessageSquare, Mail, CreditCard, Settings, Smile, DollarSign,
 } from 'lucide-react'
 
+export const NAV_GROUPS = {
+  MAIN: 'main',
+  STAFF: 'staff',
+  TEAM: 'team',
+  BUSINESS: 'business',
+  COMMS: 'communications',
+  SYSTEM: 'system',
+} as const
+
+export type NavGroupId = typeof NAV_GROUPS[keyof typeof NAV_GROUPS]
+
+export const NAV_GROUP_LABELS: Record<NavGroupId, string> = {
+  main: 'Principal',
+  staff: 'Personal',
+  team: 'Equipo',
+  business: 'Negocio',
+  communications: 'Comunicaciones',
+  system: 'Sistema',
+}
+
+export const NAV_GROUP_ORDER: NavGroupId[] = [
+  'main', 'staff', 'team', 'business', 'communications', 'system',
+]
+
 export interface RouteDefinition {
   href: string
   label: string
   icon: LucideIcon
-  group: string
+  group: NavGroupId
   hideForStaff?: boolean
   hideForEmpleado?: boolean
   showOnlyForEmpleado?: boolean
@@ -22,33 +46,33 @@ export const dashboardRoutes: RouteDefinition[] = [
     href: '/dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
-    group: 'Operaciones',
+    group: NAV_GROUPS.MAIN,
     activeMatch: ['/dashboard', '/'],
   },
   {
     href: '/caja',
     label: 'Caja del Día',
     icon: DollarSign,
-    group: 'Operaciones',
+    group: NAV_GROUPS.MAIN,
     hideForEmpleado: true,
   },
   {
     href: '/calendar',
     label: 'Agenda',
     icon: CalendarDays,
-    group: 'Operaciones',
+    group: NAV_GROUPS.MAIN,
   },
   {
     href: '/confirmations',
     label: 'Confirmaciones',
     icon: CheckCircle,
-    group: 'Operaciones',
+    group: NAV_GROUPS.MAIN,
   },
   {
     href: '/notificaciones',
     label: 'Notificaciones',
     icon: Bell,
-    group: 'Operaciones',
+    group: NAV_GROUPS.BUSINESS,
     activeMatch: [
       '/notificaciones',
       '/notificaciones/messages',
@@ -60,20 +84,19 @@ export const dashboardRoutes: RouteDefinition[] = [
     href: '/notificaciones/validacion',
     label: 'Validación V2',
     icon: ShieldCheck,
-    group: 'Operaciones',
-    badge: 'Beta',
+    group: NAV_GROUPS.COMMS,
   },
   {
     href: '/notificaciones/messages',
     label: 'Inspector',
     icon: FileSearch,
-    group: 'Operaciones',
+    group: NAV_GROUPS.COMMS,
   },
   {
     href: '/employees',
     label: 'Equipo',
     icon: Users,
-    group: 'Gestión',
+    group: NAV_GROUPS.TEAM,
     hideForStaff: true,
     hideForEmpleado: true,
   },
@@ -81,7 +104,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     href: '/payroll',
     label: 'Nómina',
     icon: Receipt,
-    group: 'Gestión',
+    group: NAV_GROUPS.TEAM,
     hideForStaff: true,
     hideForEmpleado: true,
   },
@@ -89,42 +112,42 @@ export const dashboardRoutes: RouteDefinition[] = [
     href: '/payroll/mi',
     label: 'Mi Nómina',
     icon: WalletCards,
-    group: 'Gestión',
+    group: NAV_GROUPS.STAFF,
     showOnlyForEmpleado: true,
   },
   {
     href: '/mi',
     label: 'Mi Espacio',
     icon: Smile,
-    group: 'Gestión',
+    group: NAV_GROUPS.STAFF,
     showOnlyForEmpleado: true,
   },
   {
     href: '/clients',
     label: 'Clientes',
     icon: UserCircle,
-    group: 'Gestión',
+    group: NAV_GROUPS.TEAM,
     hideForEmpleado: true,
   },
   {
     href: '/clients/accounts',
     label: 'Cuentas por Cobrar',
     icon: Wallet,
-    group: 'Gestión',
+    group: NAV_GROUPS.BUSINESS,
     hideForEmpleado: true,
   },
   {
     href: '/services',
     label: 'Servicios',
     icon: Scissors,
-    group: 'Gestión',
+    group: NAV_GROUPS.TEAM,
     hideForEmpleado: true,
   },
   {
     href: '/horarios',
     label: 'Horarios',
     icon: Clock,
-    group: 'Configuración',
+    group: NAV_GROUPS.BUSINESS,
     hideForStaff: true,
     hideForEmpleado: true,
   },
@@ -132,7 +155,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     href: '/inventory',
     label: 'Inventario',
     icon: Package,
-    group: 'Gestión',
+    group: NAV_GROUPS.BUSINESS,
     hideForStaff: true,
     hideForEmpleado: true,
   },
@@ -140,7 +163,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     href: '/whatsapp',
     label: 'WhatsApp',
     icon: MessageSquare,
-    group: 'Integraciones',
+    group: NAV_GROUPS.COMMS,
     hideForStaff: true,
     hideForEmpleado: true,
   },
@@ -148,7 +171,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     href: '/email',
     label: 'Email',
     icon: Mail,
-    group: 'Integraciones',
+    group: NAV_GROUPS.COMMS,
     hideForStaff: true,
     hideForEmpleado: true,
   },
@@ -156,7 +179,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     href: '/billing',
     label: 'Facturación',
     icon: CreditCard,
-    group: 'Sistema',
+    group: NAV_GROUPS.SYSTEM,
     hideForStaff: true,
     hideForEmpleado: true,
   },
@@ -164,7 +187,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     href: '/settings',
     label: 'Ajustes',
     icon: Settings,
-    group: 'Sistema',
+    group: NAV_GROUPS.SYSTEM,
     hideForStaff: true,
     hideForEmpleado: true,
   },
@@ -185,11 +208,11 @@ export function filterRoutesByRole(routes: RouteDefinition[], role: string | nul
   })
 }
 
-export function groupRoutesByGroup<T extends RouteDefinition>(routes: T[]): Record<string, T[]> {
-  const grouped: Record<string, T[]> = {}
+export function groupRoutesByGroup<T extends RouteDefinition>(routes: T[]): Record<NavGroupId, T[]> {
+  const grouped = {} as Record<NavGroupId, T[]>
   for (const route of routes) {
     if (!grouped[route.group]) {
-      grouped[route.group] = []
+      grouped[route.group] = [] as T[]
     }
     grouped[route.group].push(route)
   }

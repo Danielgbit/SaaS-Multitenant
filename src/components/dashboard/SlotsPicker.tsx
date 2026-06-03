@@ -266,8 +266,8 @@ const COLORS = useThemeColors()
           className="flex items-start gap-3 p-4"
           style={{ 
             borderRadius: COLORS.radius.lg,
-            backgroundColor: '#FEF2F2',
-            border: `1px solid #FECACA`
+            backgroundColor: COLORS.errorLight,
+            border: `1px solid ${COLORS.error}30`
           }}
         >
           <XCircle 
@@ -289,8 +289,8 @@ const COLORS = useThemeColors()
           className="flex items-start gap-3 p-4 animate-fade-in"
           style={{ 
             borderRadius: COLORS.radius.lg,
-            backgroundColor: '#ECFDF5',
-            border: `1px solid #A7F3D0`
+            backgroundColor: COLORS.successLight,
+            border: `1px solid ${COLORS.success}30`
           }}
         >
           <CheckCircle2 
@@ -345,8 +345,8 @@ const COLORS = useThemeColors()
                     style={{
                       borderRadius: COLORS.radius.md,
                       padding: '10px 8px',
-                      backgroundColor: '#F1F5F9',
-                      color: '#94A3B8',
+                      backgroundColor: COLORS.surfaceHover,
+                      color: COLORS.textMuted,
                       cursor: 'not-allowed',
                       textDecoration: 'line-through',
                       textAlign: 'center',
@@ -387,9 +387,9 @@ const COLORS = useThemeColors()
                           color: COLORS.textPrimary,
                           border: `1px solid ${COLORS.border}`
                         }
-                      : { 
-                          backgroundColor: '#F1F5F9', 
-                          color: '#94A3B8',
+                      : {
+                          backgroundColor: COLORS.surfaceHover,
+                          color: COLORS.textMuted,
                           cursor: 'not-allowed',
                           textDecoration: 'line-through'
                         })

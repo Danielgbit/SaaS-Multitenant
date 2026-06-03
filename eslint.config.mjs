@@ -34,6 +34,18 @@ const eslintConfig = defineConfig([
       "react-hooks/static-components": "warn",
     },
   },
+  // Theme guardrail — detect hardcoded hex colors in inline styles
+  {
+    rules: {
+      "no-restricted-syntax": [
+        "warn",
+        {
+          selector: `Property[key.name=/^(color|backgroundColor|borderColor|borderLeftColor|borderRightColor|borderTopColor|borderBottomColor)$/][value.type='Literal'][value.value=/^#[0-9A-Fa-f]{6}$/]`,
+          message: "Hardcoded hex color in inline style. Use COLORS.* tokens or Tailwind dark: classes."
+        }
+      ]
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

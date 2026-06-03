@@ -117,7 +117,7 @@ export function EmployeeConfirmations({
             </div>
 
             <button type="button" onClick={() => router.push('/confirmations/walkin')}
-              style={{  borderRadius: '10px', backgroundColor: '#FFFFFF', color: COLORS.primary, padding: '14px 28px' }}
+              style={{  borderRadius: '10px', backgroundColor: COLORS.surface, color: COLORS.primary, padding: '14px 28px' }}
               className="font-semibold hover:shadow-lg transition-all duration-200 flex items-center gap-2 cursor-pointer">
               <Sparkles className="w-5 h-5" />
               Nuevo Walk-in
@@ -216,7 +216,7 @@ export function EmployeeConfirmations({
                     {/* Header */}
                     <div className="px-6 py-4 flex items-center justify-between"
                       style={{ background: isScheduled 
-                        ? (COLORS.isDark ? 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)' : 'linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%)')
+                        ? (COLORS.isDark ? 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)' : `linear-gradient(135deg, ${COLORS.surfaceHover} 0%, ${COLORS.border} 100%)`)
                         : COLORS.warningLight }}>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center"

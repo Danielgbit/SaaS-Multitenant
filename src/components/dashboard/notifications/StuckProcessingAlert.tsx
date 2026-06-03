@@ -6,6 +6,7 @@ import { AlertTriangle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Spinner } from '@/components/ui'
 import { requeueStuckNotificationAction } from '@/actions/admin/requeueStuckNotifications'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface StuckProcessingAlertProps {
   stuckItems: Array<{
@@ -18,6 +19,7 @@ interface StuckProcessingAlertProps {
 
 export function StuckProcessingAlert({ stuckItems }: StuckProcessingAlertProps) {
   const router = useRouter()
+  const COLORS = useThemeColors()
   const [isPending, startTransition] = useTransition()
   const [requeuingId, setRequeuingId] = useState<string | null>(null)
 
@@ -43,19 +45,19 @@ export function StuckProcessingAlert({ stuckItems }: StuckProcessingAlertProps) 
       transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
       className="rounded-xl border border-l-4 p-4 shadow-sm"
       style={{
-        borderColor: 'hsl(var(--border))',
-        borderLeftColor: 'hsl(var(--error))',
-        backgroundColor: 'hsl(var(--error) / 0.05)',
-        boxShadow: '0 1px 2px hsl(var(--error) / 0.1)',
+        borderColor: COLORS.border,
+        borderLeftColor: COLORS.error,
+        backgroundColor: COLORS.errorLight,
+        boxShadow: `0 1px 2px ${COLORS.error}1A`,
       }}
     >
       <div className="flex items-start gap-3">
-        <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: 'hsl(var(--error))' }} />
+        <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: COLORS.error }} />
         <div className="flex-1">
-          <h3 className="font-semibold text-sm" style={{ color: 'hsl(var(--error))' }}>
+          <h3 className="font-semibold text-sm" style={{ color: COLORS.error }}>
             {stuckItems.length} item(s) atascado(s) en procesamiento
           </h3>
-          <p className="mt-1 text-sm" style={{ color: 'hsl(var(--text-secondary))' }}>
+          <p className="mt-1 text-sm" style={{ color: COLORS.textSecondary }}>
             Estos items llevan más de 5 minutos en estado &quot;processing&quot;. Puede ser un worker muerto o timeout.
           </p>
           <div className="mt-3 space-y-2">
@@ -66,10 +68,10 @@ export function StuckProcessingAlert({ stuckItems }: StuckProcessingAlertProps) 
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.12 }}
                 className="flex items-center justify-between rounded-lg bg-background px-3 py-2 border"
-                style={{ borderColor: 'hsl(var(--border))' }}
+                style={{ borderColor: COLORS.border }}
               >
                 <div className="text-sm">
-                  <span className="font-mono text-xs" style={{ color: 'hsl(var(--text-muted))' }}>
+                  <span className="font-mono text-xs" style={{ color: COLORS.textMuted }}>
                     {item.id.slice(0, 8)}...
                   </span>
                   {item.trace_id && (
@@ -83,7 +85,7 @@ export function StuckProcessingAlert({ stuckItems }: StuckProcessingAlertProps) 
                   disabled={isPending && requeuingId === item.id}
                   className="rounded-lg px-3 py-1 text-sm font-medium transition-colors disabled:opacity-50"
                   style={{
-                    backgroundColor: 'hsl(var(--error))',
+                    backgroundColor: COLORS.error,
                     color: 'white',
                   }}
                 >

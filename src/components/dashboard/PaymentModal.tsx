@@ -202,7 +202,7 @@ export function PaymentModal({
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200/60 dark:border-slate-700/60" style={{ backgroundColor: COLORS.isDark ? '#1E293B' : '#F8FAFC' }}>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200/60 dark:border-slate-700/60" style={{ backgroundColor: COLORS.surfaceSubtle }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primaryLight }}>
               <DollarSign className="w-5 h-5 text-white" />
@@ -235,7 +235,7 @@ export function PaymentModal({
           )}
 
           {/* Summary */}
-          <div className="space-y-3 rounded-xl p-4" style={{ backgroundColor: COLORS.isDark ? '#0F172A' : '#F8FAFC' }}>
+          <div className="space-y-3 rounded-xl p-4" style={{ backgroundColor: COLORS.surfaceSubtle }}>
             <div className="flex justify-between text-sm">
               <span style={{ color: COLORS.textSecondary }}>Cliente</span>
               <span className="font-medium" style={{ color: COLORS.textPrimary }}>{clientName}</span>
@@ -284,7 +284,7 @@ export function PaymentModal({
                   className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   style={{
                     borderColor: selectedMethod === code ? COLORS.accentTeal : 'transparent',
-                    backgroundColor: selectedMethod === code ? COLORS.accentTealLight : COLORS.isDark ? '#0F172A' : '#F8FAFC',
+                    backgroundColor: selectedMethod === code ? COLORS.accentTealLight : COLORS.surfaceSubtle,
                     boxShadow: selectedMethod === code ? COLORS.shadow.tealMd : 'none',
                   }}
                 >
@@ -311,7 +311,7 @@ export function PaymentModal({
                 Ajustar precio
               </button>
               {showAdjustPrice && (
-                <div className="mt-3 p-4 rounded-xl" style={{ backgroundColor: COLORS.isDark ? '#0F172A' : '#F8FAFC' }}>
+                <div className="mt-3 p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
                   <div className="flex items-center gap-2 mb-3">
                     <button
                       type="button"
@@ -375,7 +375,7 @@ export function PaymentModal({
               disabled={isPending}
               rows={2}
               className="w-full px-3 py-2 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 disabled:opacity-50"
-              style={{ backgroundColor: COLORS.isDark ? '#0F172A' : '#F8FAFC', borderColor: COLORS.border, color: COLORS.textPrimary, border: `1px solid ${COLORS.border}` }}
+              style={{ backgroundColor: COLORS.surfaceSubtle, borderColor: COLORS.border, color: COLORS.textPrimary, border: `1px solid ${COLORS.border}` }}
               placeholder="Solo visible para staff..."
               maxLength={500}
             />

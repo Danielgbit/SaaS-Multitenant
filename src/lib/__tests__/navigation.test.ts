@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { dashboardRoutes, filterRoutesByRole } from '@/lib/navigation'
+import { dashboardRoutes, filterRoutesByRole, NAV_GROUPS, NAV_GROUP_ORDER } from '@/lib/navigation'
 
 describe('dashboardRoutes', () => {
   it('contiene todas las rutas esperadas', () => {
@@ -11,10 +11,24 @@ describe('dashboardRoutes', () => {
     expect(hrefs).toContain('/settings')
   })
 
-  it('define /horarios como ruta de configuración', () => {
+  it('define /horarios como ruta de negocio', () => {
     const horarios = dashboardRoutes.find(r => r.href === '/horarios')
     expect(horarios).toBeDefined()
-    expect(horarios!.group).toBe('Configuración')
+    expect(horarios!.group).toBe('business')
+  })
+
+  it('todas las rutas tienen un grupo válido', () => {
+    for (const route of dashboardRoutes) {
+      expect(Object.values(NAV_GROUPS)).toContain(route.group)
+    }
+  })
+})
+
+describe('NAV_GROUP_ORDER', () => {
+  it('contiene todos los NAV_GROUPS en orden correcto', () => {
+    expect(NAV_GROUP_ORDER).toEqual([
+      'main', 'staff', 'team', 'business', 'communications', 'system',
+    ])
   })
 })
 

@@ -92,10 +92,10 @@ export function SecurityConfirmationModal({
       >
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-black/10 transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           aria-label="Cerrar"
         >
-          <X className="w-5 h-5 text-slate-500" />
+          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         
         <div className="p-6">
@@ -103,30 +103,30 @@ export function SecurityConfirmationModal({
             <div 
               className={`
                 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
-                ${isEscalation ? 'bg-red-100' : isDegradation ? 'bg-blue-100' : 'bg-amber-100'}
+                ${isEscalation ? 'bg-red-100 dark:bg-red-900/30' : isDegradation ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-amber-100 dark:bg-amber-900/30'}
               `}
             >
               <Icon 
-                className={`w-6 h-6 ${isEscalation ? 'text-red-500' : isDegradation ? 'text-blue-500' : 'text-amber-500'}`} 
+                className={`w-6 h-6 ${isEscalation ? 'text-red-500 dark:text-red-400' : isDegradation ? 'text-blue-500 dark:text-blue-400' : 'text-amber-500 dark:text-amber-400'}`} 
               />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                 {getHeaderText()}
               </h2>
-              <p className="text-sm text-slate-600 mt-1">
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                 {getSubtext()}
               </p>
             </div>
           </div>
           
           <div className="mb-6">
-            <p className="text-sm font-medium text-slate-700 mb-2">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Esta persona tendrá acceso a:
             </p>
             <ul className="space-y-2">
               {config.permissions.map((perm, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm text-slate-600">
+                <li key={idx} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                   <Check className={`w-4 h-4 ${config.iconColor} mt-0.5 flex-shrink-0`} />
                   {perm}
                 </li>
@@ -136,7 +136,7 @@ export function SecurityConfirmationModal({
           
           {config.requiresTextConfirmation && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Escribe &quot;CONFIRMAR&quot; para proceder:
               </label>
               <input
@@ -147,9 +147,10 @@ export function SecurityConfirmationModal({
                 placeholder="CONFIRMAR"
                 className="
                   w-full px-4 py-3 rounded-xl
-                  border-2 border-slate-200
-                  text-slate-900 placeholder-slate-400
-                  focus:outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100
+                  border-2 border-slate-200 dark:border-slate-600
+                  bg-white dark:bg-slate-800
+                  text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
+                  focus:outline-none focus:border-red-300 dark:focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:focus:ring-red-900/30
                   transition-all
                 "
               />
@@ -157,8 +158,8 @@ export function SecurityConfirmationModal({
           )}
           
           {isEscalation && role === 'admin' && (
-            <div className="mb-6 p-3 rounded-xl bg-red-100 border border-red-200">
-              <p className="text-sm text-red-700 font-medium">
+            <div className="mb-6 p-3 rounded-xl bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40">
+              <p className="text-sm text-red-700 dark:text-red-400 font-medium">
                 ⚠️ Este es el máximo nivel de acceso. Un error podría comprometer la seguridad de todos los datos.
               </p>
             </div>
@@ -170,9 +171,9 @@ export function SecurityConfirmationModal({
             onClick={onCancel}
             className="
               flex-1 px-4 py-3 rounded-xl
-              border-2 border-slate-200
-              text-slate-700 font-medium
-              hover:bg-slate-100 transition-colors
+              border-2 border-slate-200 dark:border-slate-600
+              text-slate-700 dark:text-slate-300 font-medium
+              hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors
             "
           >
             Cancelar
@@ -185,9 +186,9 @@ export function SecurityConfirmationModal({
               transition-all flex items-center justify-center gap-2
               ${canConfirm
                 ? isEscalation
-                  ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-200'
-                  : 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-200'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-200 dark:shadow-red-900/30'
+                  : 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-200 dark:shadow-amber-900/30'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed'
               }
             `}
           >

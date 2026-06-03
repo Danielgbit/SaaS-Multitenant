@@ -1,4 +1,7 @@
-export { getClientAccounts, getClientAccountsSummary, getAllClientsWithCreditInfo } from './getClientAccounts'
+﻿export { getClientAccounts, getClientAccountsSummary, getAllClientsWithCreditInfo } from './getClientAccounts'
 export { getClientAccountDetail, getClientDiscounts } from './getClientAccountDetail'
 export { recordSale, recordPayment } from './recordTransaction'
+export { recordAdjustment } from './recordAdjustment'
+export { updateAdjustment } from './updateAdjustment'
+export { voidTransaction } from './voidTransaction'
 export { getInventoryProducts, getInventoryCategories, updateInventoryStock } from './getInventoryProducts'

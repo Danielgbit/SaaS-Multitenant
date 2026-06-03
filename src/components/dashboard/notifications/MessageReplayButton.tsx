@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { RotateCcw, ExternalLink, CheckCircle2 } from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface MessageReplayButtonProps {
   messageId: string
@@ -17,6 +18,7 @@ export function MessageReplayButton({ messageId, currentStatus }: MessageReplayB
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [newQueueItemId, setNewQueueItemId] = useState<string | null>(null)
+  const COLORS = useThemeColors()
 
   if (!REPLAYABLE_STATUSES.includes(currentStatus)) {
     return null
@@ -63,7 +65,7 @@ export function MessageReplayButton({ messageId, currentStatus }: MessageReplayB
         <Link
           href={`/notificaciones/messages/${newQueueItemId}`}
           className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm text-primary hover:bg-muted/30 transition-colors"
-          style={{ borderColor: 'hsl(var(--border))' }}
+          style={{ borderColor: COLORS.border }}
         >
           Ver nuevo envío
           <ExternalLink className="w-3.5 h-3.5" />

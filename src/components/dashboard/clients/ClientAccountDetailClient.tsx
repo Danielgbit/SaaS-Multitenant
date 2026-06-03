@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ShoppingCart, DollarSign, CheckCircle2, AlertTriangle, Clock, ChevronUp, ChevronDown } from 'lucide-react'
+import { ArrowLeft, ShoppingCart, DollarSign, CheckCircle2, AlertTriangle, Clock, ChevronUp, ChevronDown, FileText, Ban, Pencil } from 'lucide-react'
 import { Spinner } from '@/components/ui'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import type { ClientAccountTransactionWithDetails, InventoryItemWithStock } from '@/types/clientAccounts'
 import { AccountSummaryCards } from './AccountSummaryCards'
 import { SaleModal } from './SaleModal'
 import { PaymentModal } from './PaymentModal'
+import { AdjustmentModal } from './AdjustmentModal'
+import { EditAdjustmentModal } from './EditAdjustmentModal'
 
 interface ClientAccountDetailClientProps {
   client: {
@@ -44,6 +47,10 @@ export function ClientAccountDetailClient({
   const [mounted, setMounted] = useState(false)
   const [showSaleModal, setShowSaleModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [showAdjustmentModal, setShowAdjustmentModal] = useState(false)
+  const [voidTarget, setVoidTarget] = useState<{ id: string; type: string; amount: number } | null>(null)
+  const [voidReason, setVoidReason] = useState('')
+  const [editTarget, setEditTarget] = useState<{ id: string; description: string; reference: string | null } | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [expandedTransaction, setExpandedTransaction] = useState<string | null>(null)
@@ -66,6 +73,8 @@ export function ClientAccountDetailClient({
         return <ShoppingCart className="w-4 h-4" style={{ color: COLORS.error }} />
       case 'payment':
         return <CheckCircle2 className="w-4 h-4" style={{ color: COLORS.success }} />
+      case 'adjustment':
+        return <FileText className="w-4 h-4" style={{ color: COLORS.warning }} />
       default:
         return <DollarSign className="w-4 h-4" style={{ color: COLORS.textMuted }} />
     }
@@ -117,10 +126,10 @@ export function ClientAccountDetailClient({
       />
 
       {/* Action Buttons */}
-      <div className="flex gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <button
           onClick={() => setShowSaleModal(true)}
-          className="flex-1 py-4 rounded-xl font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2"
+          className="py-4 rounded-xl font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2"
           style={{ backgroundColor: COLORS.primary }}
         >
           <ShoppingCart className="w-5 h-5" />
@@ -129,11 +138,19 @@ export function ClientAccountDetailClient({
         <button
           onClick={() => setShowPaymentModal(true)}
           disabled={account.balance <= 0}
-          className="flex-1 py-4 rounded-xl font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
+          className="py-4 rounded-xl font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
           style={{ backgroundColor: COLORS.success }}
         >
           <DollarSign className="w-5 h-5" />
           Registrar Pago
+        </button>
+        <button
+          onClick={() => setShowAdjustmentModal(true)}
+          className="py-4 rounded-xl font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2"
+          style={{ backgroundColor: COLORS.warning }}
+        >
+          <FileText className="w-5 h-5" />
+          Agregar Cargo
         </button>
       </div>
 
@@ -193,12 +210,21 @@ export function ClientAccountDetailClient({
                     )
                   }
                   className="w-full flex items-center justify-between p-4"
+                  style={{ opacity: transaction.is_voided ? 0.5 : 1 }}
                 >
                   <div className="flex items-center gap-3">
                     {getTransactionIcon(transaction.transaction_type)}
                     <div className="text-left">
                       <p className="font-medium" style={{ color: COLORS.textPrimary }}>
-                        {transaction.transaction_type === 'sale' ? 'Venta' : 'Pago'}
+                        {transaction.transaction_type === 'sale' ? 'Venta' :
+                         transaction.transaction_type === 'payment' ? 'Pago' :
+                         transaction.transaction_type === 'adjustment' ? 'Ajuste' :
+                         transaction.transaction_type}
+                        {transaction.is_voided && (
+                          <span className="ml-2 text-xs font-normal px-2 py-0.5 rounded-full" style={{ backgroundColor: COLORS.errorLight, color: COLORS.error }}>
+                            Anulado
+                          </span>
+                        )}
                       </p>
                       <p className="text-xs" style={{ color: COLORS.textMuted }}>
                         {new Date(transaction.created_at).toLocaleDateString('es-ES', {
@@ -218,7 +244,9 @@ export function ClientAccountDetailClient({
                         color:
                           transaction.transaction_type === 'sale'
                             ? COLORS.error
-                            : COLORS.success,
+                            : transaction.transaction_type === 'adjustment'
+                              ? COLORS.warning
+                              : COLORS.success,
                       }}
                     >
                       {transaction.transaction_type === 'sale' ? '-' : '+'}
@@ -262,6 +290,25 @@ export function ClientAccountDetailClient({
                         <div className="pt-2">
                           <p style={{ color: COLORS.textMuted }}>Notas:</p>
                           <p style={{ color: COLORS.textSecondary }}>{transaction.notes}</p>
+                        </div>
+                      )}
+                      {!transaction.is_voided && (
+                        <div className="pt-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setVoidTarget({
+                                id: transaction.id,
+                                type: transaction.transaction_type,
+                                amount: transaction.amount,
+                              })
+                            }}
+                            className="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
+                            style={{ color: COLORS.error, backgroundColor: COLORS.errorLight }}
+                          >
+                            <Ban className="w-4 h-4" />
+                            Anular transacción
+                          </button>
                         </div>
                       )}
                     </div>
@@ -317,6 +364,99 @@ export function ClientAccountDetailClient({
             }
           }}
           onClose={() => setShowPaymentModal(false)}
+        />
+      )}
+
+      {showAdjustmentModal && (
+        <AdjustmentModal
+          onRecord={async (amount, description, reference) => {
+            const { recordAdjustment } = await import('@/actions/clientAccounts/recordAdjustment')
+            const result = await recordAdjustment(organizationId, {
+              client_id: client.id,
+              amount,
+              description,
+              reference: reference || undefined,
+            })
+            if (result.success) {
+              setSuccessMessage('Cargo registrado en caja')
+              setShowAdjustmentModal(false)
+              setTimeout(() => setSuccessMessage(null), 3000)
+            } else {
+              setError(result.error || 'Error al registrar cargo')
+            }
+          }}
+          onClose={() => setShowAdjustmentModal(false)}
+        />
+      )}
+
+      <ConfirmModal
+        isOpen={!!voidTarget}
+        onClose={() => {
+          setVoidTarget(null)
+          setVoidReason('')
+        }}
+        onConfirm={async () => {
+          if (!voidTarget) return
+          const { voidTransaction } = await import('@/actions/clientAccounts/voidTransaction')
+          const result = await voidTransaction(organizationId, {
+            transaction_id: voidTarget.id,
+            reason: voidReason,
+          })
+          if (result.success) {
+            setSuccessMessage('Transacción anulada')
+            setVoidTarget(null)
+            setVoidReason('')
+            setTimeout(() => setSuccessMessage(null), 3000)
+          } else {
+            setError(result.error || 'Error al anular')
+          }
+        }}
+        title="Anular transacción"
+        description={
+          voidTarget
+            ? `¿Estás seguro de anular esta ${voidTarget.type === 'sale' ? 'venta' : voidTarget.type === 'payment' ? 'pago' : 'ajuste'} de ${formatCurrencyCOP(voidTarget.amount)}? Esta acción no se puede deshacer.`
+            : ''
+        }
+        confirmText="Anular"
+        variant="danger"
+        extraContent={
+          <div>
+            <label className="block text-sm font-medium mb-1 text-left" style={{ color: COLORS.textSecondary }}>
+              Motivo de anulación *
+            </label>
+            <input
+              type="text"
+              value={voidReason}
+              onChange={(e) => setVoidReason(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border text-sm"
+              style={{ borderColor: COLORS.border, color: COLORS.textPrimary }}
+              placeholder="Ej: Error en el monto, venta duplicada, etc."
+            />
+          </div>
+        }
+        confirmDisabled={!voidReason.trim()}
+      />
+
+      {editTarget && (
+        <EditAdjustmentModal
+          currentDescription={editTarget.description}
+          currentReference={editTarget.reference}
+          onSave={async (description, reference) => {
+            const { updateAdjustment } = await import('@/actions/clientAccounts/updateAdjustment')
+            const result = await updateAdjustment(organizationId, {
+              transaction_id: editTarget.id,
+              description,
+              reference: reference || undefined,
+            })
+            if (result.success) {
+              setSuccessMessage('Ajuste actualizado')
+              setEditTarget(null)
+              setTimeout(() => setSuccessMessage(null), 3000)
+            } else {
+              setError(result.error || 'Error al actualizar')
+            }
+          }}
+          onClose={() => setEditTarget(null)}
         />
       )}
     </div>

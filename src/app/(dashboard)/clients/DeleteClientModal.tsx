@@ -68,7 +68,7 @@ export function DeleteClientModal({
         <div className="p-6 text-center">
           <div 
             className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
-            style={{ backgroundColor: '#FEF2F2' }}
+            style={{ backgroundColor: COLORS.errorLight }}
           >
             <AlertTriangle className="w-7 h-7" style={{ color: COLORS.error }} />
           </div>
@@ -99,7 +99,7 @@ export function DeleteClientModal({
           {state.error && (
             <div 
               className="p-3 rounded-lg mb-4 text-sm text-center"
-              style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', color: COLORS.error }}
+              style={{ backgroundColor: COLORS.errorLight, border: `1px solid ${COLORS.error}30`, color: COLORS.error }}
             >
               {state.error}
             </div>

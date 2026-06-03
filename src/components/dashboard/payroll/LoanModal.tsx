@@ -319,8 +319,8 @@ export function LoanModal({
                     <span
                       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity"
                       style={{
-                        backgroundColor: COLORS.isDark ? '#1E293B' : '#0F172A',
-                        color: '#fff',
+                        backgroundColor: COLORS.isDark ? '#334155' : COLORS.surfaceSubtle,
+                        color: '#FFFFFF',
                       }}
                     >
                       0% = sin interés

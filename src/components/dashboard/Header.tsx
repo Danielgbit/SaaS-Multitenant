@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { PageBreadcrumb } from './PageBreadcrumb'
 import { UserAvatar } from './UserAvatar'
+import { getRoleLabel } from '@/lib/rbac'
 
 interface HeaderProps {
   organizationConnected: boolean
@@ -199,7 +200,7 @@ export function Header ({
                   {role && (
                     <div className="px-4 py-3" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
                       <p className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
-                        {role === 'admin' ? 'Administrador' : role === 'staff' ? 'Asistente' : role === 'empleado' ? 'Empleado' : 'Owner'}
+                        {role ? getRoleLabel(role) : 'Rol'}
                       </p>
                       <p className="text-xs mt-0.5" style={{ color: COLORS.textMuted }}>
                         {organizationName || 'Organización'}

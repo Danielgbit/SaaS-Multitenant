@@ -222,8 +222,8 @@ export function InventoryFormModal({
               <div 
                 className="absolute left-0 top-full mt-2 w-48 p-3 rounded-lg text-xs z-10 shadow-lg"
                 style={{ 
-                  backgroundColor: '#1E293B', 
-                  color: '#FFFFFF',
+                  backgroundColor: COLORS.surfaceSubtle, 
+                  color: COLORS.textPrimary,
                                 zIndex: 50
                 }}
               >

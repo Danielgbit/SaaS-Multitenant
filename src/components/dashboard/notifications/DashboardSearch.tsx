@@ -5,9 +5,11 @@ import { SearchInput } from './SearchInput'
 import { FileSearch } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 export function DashboardSearch() {
   const router = useRouter()
+  const COLORS = useThemeColors()
 
   return (
     <motion.div
@@ -29,7 +31,7 @@ export function DashboardSearch() {
       <Link
         href="/notificaciones/messages"
         className="rounded-xl border px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors inline-flex items-center gap-1.5 shrink-0"
-        style={{ borderColor: 'hsl(var(--border))' }}
+        style={{ borderColor: COLORS.border }}
       >
         <FileSearch className="w-4 h-4" />
         Inspector

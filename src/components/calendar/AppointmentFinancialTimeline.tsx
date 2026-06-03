@@ -1,17 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { DollarSign, TrendingUp, RotateCcw, AlertCircle, CheckCircle2, Clock } from 'lucide-react'
 import { getAppointmentFinancialStatus, type AppointmentFinancialStatus } from '@/actions/financial/getAppointmentFinancialStatus'
 import { formatFinancialAmount } from '@/types/financial'
 import { Spinner } from '@/components/ui'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
-const STATUS_CONFIG = {
-  unpaid: { label: 'Sin cobrar', color: '#94A3B8', bg: '#F1F5F9', icon: Clock },
-  partial: { label: 'Pago parcial', color: '#D97706', bg: '#FEF3C7', icon: AlertCircle },
-  paid: { label: 'Pagado', color: '#16A34A', bg: '#D1FAE5', icon: CheckCircle2 },
-  refunded: { label: 'Reembolsado', color: '#DC2626', bg: '#FEE2E2', icon: RotateCcw },
-  credited: { label: 'Abonado', color: '#0F4C5C', bg: '#E2E8F0', icon: DollarSign },
+function getStatusConfig(COLORS: ReturnType<typeof useThemeColors>) {
+  return {
+    unpaid: { label: 'Sin cobrar', color: COLORS.textMuted, bg: COLORS.surfaceHover, icon: Clock },
+    partial: { label: 'Pago parcial', color: COLORS.warning, bg: COLORS.warningLight || '#FEF3C7', icon: AlertCircle },
+    paid: { label: 'Pagado', color: COLORS.success, bg: COLORS.successLight || '#D1FAE5', icon: CheckCircle2 },
+    refunded: { label: 'Reembolsado', color: COLORS.error, bg: COLORS.errorLight || '#FEE2E2', icon: RotateCcw },
+    credited: { label: 'Abonado', color: COLORS.primary, bg: COLORS.surfaceSubtle, icon: DollarSign },
+  }
 }
 
 const EVENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -49,6 +52,8 @@ export function AppointmentFinancialTimeline({
 }) {
   const [data, setData] = useState<AppointmentFinancialStatus | null>(null)
   const [loading, setLoading] = useState(true)
+  const COLORS = useThemeColors()
+  const statusConfig = useMemo(() => getStatusConfig(COLORS), [COLORS])
 
   useEffect(() => {
     getAppointmentFinancialStatus(appointmentId, organizationId)
@@ -66,38 +71,38 @@ export function AppointmentFinancialTimeline({
 
   if (!data || data.events.length === 0) {
     return (
-      <div className="rounded-xl p-4 text-center" style={{ backgroundColor: '#F8FAFC' }}>
-        <p className="text-sm" style={{ color: '#94A3B8' }}>Sin movimientos financieros</p>
+      <div className="rounded-xl p-4 text-center" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+        <p className="text-sm" style={{ color: COLORS.textMuted }}>Sin movimientos financieros</p>
       </div>
     )
   }
 
-  const statusConfig = STATUS_CONFIG[data.paymentStatus]
+  const currentStatus = statusConfig[data.paymentStatus as keyof typeof statusConfig]
 
   return (
     <div className="space-y-4">
       {/* Summary */}
-      <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: '#F8FAFC' }}>
+      <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle }}>
         <div className="flex items-center gap-3">
-          {statusConfig && (() => {
-            const Icon = statusConfig.icon
+          {currentStatus && (() => {
+            const Icon = currentStatus.icon
             return (
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: statusConfig.bg }}>
-                <Icon className="w-5 h-5" style={{ color: statusConfig.color }} />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: currentStatus.bg }}>
+                <Icon className="w-5 h-5" style={{ color: currentStatus.color }} />
               </div>
             )
           })()}
           <div>
-            <p className="text-sm font-medium" style={{ color: '#0F172A' }}>
-              {statusConfig?.label || data.paymentStatus}
+            <p className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
+              {currentStatus?.label || data.paymentStatus}
             </p>
-            <p className="text-xs" style={{ color: '#64748B' }}>
+            <p className="text-xs" style={{ color: COLORS.textMuted }}>
               {data.amountPaid > 0 ? `${formatFinancialAmount(data.amountPaid)} cobrados` : 'Sin cobros'}
             </p>
           </div>
         </div>
         {data.amountPending > 0 && (
-          <span className="text-sm font-semibold" style={{ color: '#D97706' }}>
+          <span className="text-sm font-semibold" style={{ color: COLORS.warning }}>
             {formatFinancialAmount(data.amountPending)} pendientes
           </span>
         )}
@@ -116,19 +121,19 @@ export function AppointmentFinancialTimeline({
             <div key={event.id} className="flex gap-3 relative">
               {/* Line */}
               {!isLast && (
-                <div className="absolute left-[15px] top-8 bottom-0 w-0.5" style={{ backgroundColor: '#E2E8F0' }} />
+                <div className="absolute left-[15px] top-8 bottom-0 w-0.5" style={{ backgroundColor: COLORS.border }} />
               )}
 
               {/* Icon */}
               <div className="relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                style={{ backgroundColor: event.amount >= 0 ? '#D1FAE5' : '#FEE2E2' }}>
-                <Icon className="w-4 h-4 text-emerald-600" />
+                style={{ backgroundColor: event.amount >= 0 ? (COLORS.successLight || '#D1FAE5') : (COLORS.errorLight || '#FEE2E2') }}>
+                <Icon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </div>
 
               {/* Content */}
               <div className="flex-1 pb-4 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium" style={{ color: '#0F172A' }}>
+                  <span className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
                     {EVENT_LABELS[event.event_type] || event.event_type}
                   </span>
                   <span className={`text-sm font-semibold shrink-0 ${event.amount >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
@@ -136,13 +141,13 @@ export function AppointmentFinancialTimeline({
                   </span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs" style={{ color: '#64748B' }}>
+                  <span className="text-xs" style={{ color: COLORS.textMuted }}>
                     {formatDateTime(event.occurred_at)}
                   </span>
                   {(event.metadata as Record<string, string>)?.payment_method && (
                     <>
-                      <span style={{ color: '#CBD5E1' }}>·</span>
-                      <span className="text-xs capitalize" style={{ color: '#64748B' }}>
+                      <span style={{ color: COLORS.textMuted }}>·</span>
+                      <span className="text-xs capitalize" style={{ color: COLORS.textMuted }}>
                         {(event.metadata as Record<string, string>).payment_method}
                       </span>
                     </>

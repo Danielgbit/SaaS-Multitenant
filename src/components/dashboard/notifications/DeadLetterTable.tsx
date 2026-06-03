@@ -104,10 +104,10 @@ export function DeadLetterTable({ deadLetters }: DeadLetterTableProps) {
                   <span
                     className={`rounded px-2 py-1 text-xs ${
                       dl.replay_status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
                         : dl.replay_status === 'replayed'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                     }`}
                   >
                     {dl.replay_status}
@@ -156,7 +156,7 @@ export function DeadLetterTable({ deadLetters }: DeadLetterTableProps) {
                         <button
                           onClick={() => handleDiscard(dl.id)}
                           disabled={isPending && actionId === dl.id}
-                          className="rounded bg-gray-600 p-1 text-white hover:bg-gray-700 disabled:opacity-50"
+                          className="rounded bg-gray-600 dark:bg-gray-500 p-1 text-white hover:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
                           title="Descartar"
                         >
                           <Trash2 className="h-4 w-4" />

@@ -48,7 +48,7 @@ function formatDate(dateStr?: string) {
 
 function InfoRow({ label, value, mono }: { label: string; value: string | undefined | null; mono?: boolean }) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b last:border-b-0" style={{ borderColor: 'hsl(var(--border) / 0.5)' }}>
+    <div className="flex items-center justify-between py-1.5 border-b last:border-b-0 border-border/50">
       <span className="text-xs text-muted-foreground">{label}</span>
       <span className={`text-xs ${mono ? 'font-mono' : ''} max-w-[300px] truncate text-right`} title={value || ''}>
         {value || '—'}
@@ -60,7 +60,7 @@ function InfoRow({ label, value, mono }: { label: string; value: string | undefi
 function IdCopy({ id, label }: { id: string | undefined | null; label: string }) {
   if (!id) return <InfoRow label={label} value={null} mono />
   return (
-    <div className="flex items-center justify-between py-1.5 border-b last:border-b-0" style={{ borderColor: 'hsl(var(--border) / 0.5)' }}>
+    <div className="flex items-center justify-between py-1.5 border-b last:border-b-0 border-border/50">
       <span className="text-xs text-muted-foreground">{label}</span>
       <div className="flex items-center gap-1 max-w-[300px]">
         <span className="text-xs font-mono truncate" title={id}>
@@ -120,7 +120,7 @@ function DeliveryTimeline({ events }: { events: NotificationEvent[] }) {
 
   return (
     <div className="relative">
-      <div className="absolute left-[18px] top-2 bottom-2 w-0.5" style={{ backgroundColor: 'hsl(var(--border))' }} />
+      <div className="absolute left-[18px] top-2 bottom-2 w-0.5 bg-border" />
       <div className="space-y-3">
         {events.map((event, idx) => (
           <div key={event.id} className="relative flex items-start gap-3">
@@ -244,7 +244,7 @@ export default async function MessageInspectorPage({
       </div>
 
       {/* Section 2: General Info */}
-      <div className="rounded-xl border p-4" style={{ borderColor: 'hsl(var(--border))' }}>
+      <div className="rounded-xl border border-border p-4">
         <h3 className="font-semibold mb-3">Información General</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
           <div>
@@ -318,7 +318,7 @@ export default async function MessageInspectorPage({
       </div>
 
       {/* Section 5: Delivery Timeline */}
-      <div className="rounded-xl border p-4" style={{ borderColor: 'hsl(var(--border))' }}>
+      <div className="rounded-xl border border-border p-4">
         <h3 className="font-semibold mb-3">Delivery Timeline</h3>
         <DeliveryTimeline events={events} />
       </div>
@@ -356,12 +356,12 @@ export default async function MessageInspectorPage({
       )}
 
       {/* Section 8: Debug Section */}
-      <details className="rounded-xl border" style={{ borderColor: 'hsl(var(--border))' }}>
+      <details className="rounded-xl border border-border">
         <summary className="cursor-pointer px-4 py-3 font-semibold text-sm hover:bg-muted/30 transition-colors list-none flex items-center gap-2">
           <span>Debug & Metadata</span>
           <span className="text-xs text-muted-foreground font-normal">(IDs técnicos, latencias, config)</span>
         </summary>
-        <div className="px-4 pb-4 border-t" style={{ borderColor: 'hsl(var(--border))' }}>
+        <div className="px-4 pb-4 border-t border-border">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 mt-3">
             <div>
               <InfoRow label="Message ID" value={msg?.id} mono />

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTheme } from 'next-themes'
+
 import Link from 'next/link'
 import { UserCircle, Phone, Mail, Calendar, Pencil, Trash2, CheckCircle2 } from 'lucide-react'
 import type { Database } from '@/../types/supabase'

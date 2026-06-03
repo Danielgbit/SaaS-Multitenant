@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, X } from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface SearchInputProps {
   placeholder?: string
@@ -19,6 +20,7 @@ export function SearchInput({
   const [value, setValue] = useState(defaultValue)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const COLORS = useThemeColors()
 
   const handleSearch = useCallback(
     (term: string) => {
@@ -75,7 +77,7 @@ export function SearchInput({
         onChange={handleChange}
         placeholder={placeholder}
         className="w-full rounded-xl border bg-background/70 backdrop-blur-[6px] pl-10 pr-10 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-        style={{ borderColor: 'hsl(var(--border))' }}
+        style={{ borderColor: COLORS.border }}
       />
       {value && (
         <button

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { setupAppointmentsRealtime } from '@/components/providers/AppointmentRealtimeProvider'
-import { useTheme } from 'next-themes'
+
 import { useRouter } from 'next/navigation'
 import {
   Calendar,

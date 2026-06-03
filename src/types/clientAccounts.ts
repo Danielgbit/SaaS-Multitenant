@@ -43,6 +43,11 @@ export type ClientAccountTransaction = {
   related_transaction_id: string | null
   created_by: string | null
   created_at: string
+  is_voided: boolean
+  voided_by: string | null
+  voided_at: string | null
+  edited_by: string | null
+  edited_at: string | null
 }
 
 export type ClientAccountTransactionWithDetails = ClientAccountTransaction & {
@@ -135,6 +140,13 @@ export type RecordPaymentInput = {
   payment_method: Exclude<SalePaymentMethod, 'credit'>
   payment_reference?: string
   notes?: string
+}
+
+export type RecordAdjustmentInput = {
+  client_id: string
+  amount: number
+  description: string
+  reference?: string
 }
 
 export type AccountSummary = {
