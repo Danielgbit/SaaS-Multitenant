@@ -5,6 +5,9 @@ import { createClient } from '@/lib/supabase/server'
 import { CreateEmployeeSchema } from '@/schemas/employees/employee.schema'
 import { normalizePhone } from '@/lib/validators/phone'
 import { findByPhone } from '@/services/employees/findByPhone'
+import { createEmployeeLimiter } from '@/lib/rate-limiter'
+import { headers } from 'next/headers'
+import { getClientIp } from '@/lib/network/get-client-ip'
 import type { Employee } from '@/types/employees'
 
 interface CreateEmployeeResult {
@@ -45,6 +48,16 @@ export async function createEmployee(
   if (orgError || !orgMember) {
     return { success: false, error: 'No se encontró organización para este usuario' }
   }
+
+  const headerStore = await headers()
+  const ip = getClientIp(headerStore)
+  const rateKey = `createEmployee:${orgMember.organization_id}:${user.id}`
+  const rateCheck = createEmployeeLimiter.check(rateKey)
+  if (!rateCheck.allowed) {
+    createEmployeeLimiter.hit(rateKey, { ip, route: 'createEmployee', userId: user.id, organizationId: orgMember.organization_id })
+    return { success: false, error: 'Demasiados intentos. Intenta nuevamente en unos minutos.' }
+  }
+  createEmployeeLimiter.hit(rateKey, { ip, route: 'createEmployee', userId: user.id, organizationId: orgMember.organization_id })
 
   if (parsed.data.phone) {
     const { employee: existingEmployee, error: findError } = await findByPhone({

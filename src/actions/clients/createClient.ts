@@ -5,6 +5,9 @@ import { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { isValidPhone, getPhoneErrorMessage, normalizePhone, normalizeEmail } from '@/lib/validators/phone'
 import { devLog, devError } from '@/lib/logger'
+import { headers } from 'next/headers'
+import { serverActionLimiter } from '@/lib/rate-limiter'
+import { getClientIp } from '@/lib/network/get-client-ip'
 
 const CreateClientSchema = z.object({
   organization_id: z.string().uuid('ID de organización inválido'),
@@ -70,6 +73,16 @@ export async function createClientAction(
   if (orgError || !orgMember) {
     return { error: 'No perteneces a esta organización.' }
   }
+
+  const headerStore = await headers()
+  const ip = getClientIp(headerStore)
+  const rateKey = `createClient:${orgMember.organization_id}:${user.id}`
+  const rateCheck = serverActionLimiter.check(rateKey)
+  if (!rateCheck.allowed) {
+    serverActionLimiter.hit(rateKey, { ip, route: 'createClient', userId: user.id, organizationId: orgMember.organization_id })
+    return { error: 'Demasiados intentos. Intenta nuevamente en unos minutos.' }
+  }
+  serverActionLimiter.hit(rateKey, { ip, route: 'createClient', userId: user.id, organizationId: orgMember.organization_id })
 
   const { data: client, error: insertError } = await supabase
     .from('clients')

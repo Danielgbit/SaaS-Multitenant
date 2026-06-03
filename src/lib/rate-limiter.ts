@@ -3,6 +3,7 @@ type LogEntry = {
   ip: string
   route: string
   userId?: string
+  organizationId?: string
   timestamp: string
 }
 
@@ -53,7 +54,7 @@ export function createRateLimiter(config: RateLimitConfig) {
       }
     },
 
-    hit(key: string, meta?: { ip?: string; route?: string; userId?: string }): void {
+    hit(key: string, meta?: { ip?: string; route?: string; userId?: string; organizationId?: string }): void {
       const now = Date.now()
       const timestamps = hits.get(key) || []
       timestamps.push(now)
@@ -80,3 +81,5 @@ export const authLimiter = createRateLimiter({ maxRequests: 5, windowMs: 60_000 
 export const registerLimiter = createRateLimiter({ maxRequests: 3, windowMs: 300_000 })
 export const webhookLimiter = createRateLimiter({ maxRequests: 60, windowMs: 60_000 })
 export const serverActionLimiter = createRateLimiter({ maxRequests: 30, windowMs: 60_000 })
+export const createEmployeeLimiter = createRateLimiter({ maxRequests: 20, windowMs: 600_000 })
+export const createInvitationLimiter = createRateLimiter({ maxRequests: 10, windowMs: 3_600_000 })

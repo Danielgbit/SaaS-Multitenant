@@ -4,6 +4,9 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { clientEnv } from '@/lib/env/client'
 import { z } from 'zod'
+import { createInvitationLimiter } from '@/lib/rate-limiter'
+import { headers } from 'next/headers'
+import { getClientIp } from '@/lib/network/get-client-ip'
 import type { CreateInvitationInput, MemberRole } from '@/types/invitations'
 
 const CreateInvitationSchema = z.object({
@@ -47,6 +50,16 @@ export async function createInvitation(
   if (!['owner', 'admin'].includes(orgMember.role)) {
     return { error: 'No tienes permisos para invitar empleados.' }
   }
+
+  const headerStore = await headers()
+  const ip = getClientIp(headerStore)
+  const rateKey = `createInvitation:${orgMember.organization_id}:${user.id}`
+  const rateCheck = createInvitationLimiter.check(rateKey)
+  if (!rateCheck.allowed) {
+    createInvitationLimiter.hit(rateKey, { ip, route: 'createInvitation', userId: user.id, organizationId: orgMember.organization_id })
+    return { error: 'Demasiados intentos. Intenta nuevamente en unos minutos.' }
+  }
+  createInvitationLimiter.hit(rateKey, { ip, route: 'createInvitation', userId: user.id, organizationId: orgMember.organization_id })
 
   const { data: employee, error: employeeError } = await supabase
     .from('employees')
