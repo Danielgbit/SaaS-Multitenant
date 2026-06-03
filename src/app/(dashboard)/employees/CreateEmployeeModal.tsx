@@ -5,6 +5,7 @@ import { X, UserPlus, Phone, AlertTriangle, RotateCcw } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { createEmployee } from '@/actions/employees/createEmployee'
 import { toggleEmployeeStatus } from '@/actions/employees/toggleEmployeeStatus'
+import { validateEmployeeFields } from '@/components/employees/utils/validation'
 import type { Employee } from '@/types/employees'
 
 interface CreateEmployeeModalProps {
@@ -21,18 +22,34 @@ interface FormState {
 export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProps) {
   const [isPending, startTransition] = useTransition()
   const [state, setState] = useState<FormState>({ success: false })
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
 
   const showDuplicateWarning = !!state.duplicateEmployee
 
+  function clearFieldError(field: string) {
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      })
+    }
+  }
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    
-    const formData = new FormData(e.currentTarget)
-    const name = formData.get('name') as string
-    const phone = formData.get('phone') as string
+
+    const errors = validateEmployeeFields(name, phone)
+    setFieldErrors(errors)
+    setTouched({ name: true, phone: true })
+
+    if (Object.keys(errors).length > 0) return
 
     startTransition(async () => {
-      const result = await createEmployee({ name, phone: phone || null })
+      const result = await createEmployee({ name: name.trim(), phone: phone.trim() || null })
       setState(result)
       if (result.success && !result.error) {
         onClose()
@@ -51,6 +68,10 @@ export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProp
 
   function handleClose() {
     setState({ success: false })
+    setFieldErrors({})
+    setTouched({})
+    setName('')
+    setPhone('')
     onClose()
   }
 
@@ -155,9 +176,19 @@ export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProp
                   name="name"
                   type="text"
                   required
+                  value={name}
+                  onChange={(e) => { setName(e.target.value); clearFieldError('name') }}
+                  onBlur={() => setTouched(prev => ({ ...prev, name: true }))}
                   placeholder="Ej. María Pérez"
-                  className="w-full pl-12 pr-4 min-h-[48px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent transition-all duration-200 shadow-sm"
+                  className={`w-full pl-12 pr-4 min-h-[48px] rounded-xl border text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent transition-all duration-200 shadow-sm ${
+                    touched.name && fieldErrors.name
+                      ? 'border-red-400 dark:border-red-500'
+                      : 'border-slate-200 dark:border-slate-700'
+                  } bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100`}
                 />
+                {touched.name && fieldErrors.name && (
+                  <p className="text-xs text-red-500 mt-1">{fieldErrors.name}</p>
+                )}
               </div>
             </div>
 
@@ -178,9 +209,19 @@ export function CreateEmployeeModal({ isOpen, onClose }: CreateEmployeeModalProp
                   id="create-employee-phone"
                   name="phone"
                   type="tel"
+                  value={phone}
+                  onChange={(e) => { setPhone(e.target.value); clearFieldError('phone') }}
+                  onBlur={() => setTouched(prev => ({ ...prev, phone: true }))}
                   placeholder="+57 300 123 4567"
-                  className="w-full pl-12 pr-4 min-h-[48px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent transition-all duration-200 shadow-sm"
+                  className={`w-full pl-12 pr-4 min-h-[48px] rounded-xl border text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent transition-all duration-200 shadow-sm ${
+                    touched.phone && fieldErrors.phone
+                      ? 'border-red-400 dark:border-red-500'
+                      : 'border-slate-200 dark:border-slate-700'
+                  } bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100`}
                 />
+                {touched.phone && fieldErrors.phone && (
+                  <p className="text-xs text-red-500 mt-1">{fieldErrors.phone}</p>
+                )}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 ml-1">
                 Útil para notificaciones de WhatsApp en el futuro.

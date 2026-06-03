@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { User, Phone, Mail, CheckCircle2, ChevronLeft } from 'lucide-react'
 import { Spinner } from '@/components/ui'
+import { colombianNameSchema, emailSchema } from '@/schemas/common'
+import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
 import type { ThemeColors } from '@/hooks/useThemeColors'
 
 export function StepClient({
@@ -17,15 +19,49 @@ export function StepClient({
 }) {
   const [attempted, setAttempted] = useState(false)
   const [hoverConfirm, setHoverConfirm] = useState(false)
-  const nameEmpty = attempted && !clientName
-  const phoneEmpty = attempted && !clientPhone
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+  function clearFieldError(field: string) {
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      })
+    }
+  }
+
+  function validate(): boolean {
+    const errors: Record<string, string> = {}
+
+    const nameResult = colombianNameSchema.safeParse(clientName)
+    if (!nameResult.success) {
+      errors.name = nameResult.error.issues[0]?.message || 'Nombre inválido'
+    }
+
+    const normalizedPhone = clientPhone.trim()
+    if (!normalizedPhone) {
+      errors.phone = 'El teléfono es requerido'
+    } else if (!isValidPhone(normalizedPhone)) {
+      errors.phone = getPhoneErrorMessage(normalizedPhone) || 'Teléfono inválido'
+    }
+
+    if (clientEmail.trim()) {
+      const emailResult = emailSchema.safeParse(clientEmail)
+      if (!emailResult.success) {
+        errors.email = 'Ingresa un email válido'
+      }
+    }
+
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const canSubmit = !!clientName && !!clientPhone && !isSubmitting
 
   const handleSubmit = () => {
-    if (!clientName || !clientPhone) {
-      setAttempted(true)
-      return
-    }
+    setAttempted(true)
+    if (!validate()) return
     onSubmit()
   }
 
@@ -53,40 +89,46 @@ export function StepClient({
         <div>
           <label htmlFor="client-name" className="block text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>Nombre completo *</label>
           <div className="relative">
-            <User className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: nameEmpty ? colors.error : colors.textMuted }} />
-            <input id="client-name" type="text" value={clientName} onChange={e => onNameChange(e.target.value)}
+            <User className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: attempted && fieldErrors.name ? colors.error : colors.textMuted }} />
+            <input id="client-name" type="text" value={clientName} onChange={e => { onNameChange(e.target.value); clearFieldError('name') }}
+              onBlur={() => attempted && validate()}
               placeholder="Tu nombre"
               className="w-full pl-12 pr-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={inputStyle(nameEmpty)} />
+              style={inputStyle(!!(attempted && fieldErrors.name))} />
           </div>
-          {nameEmpty && (
-            <p className="text-xs mt-1" style={{ color: colors.error }}>Este campo es requerido</p>
+          {attempted && fieldErrors.name && (
+            <p className="text-xs mt-1" style={{ color: colors.error }}>{fieldErrors.name}</p>
           )}
         </div>
 
         <div>
           <label htmlFor="client-phone" className="block text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>Teléfono *</label>
           <div className="relative">
-            <Phone className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: phoneEmpty ? colors.error : colors.textMuted }} />
-            <input id="client-phone" type="tel" value={clientPhone} onChange={e => onPhoneChange(e.target.value)}
+            <Phone className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: attempted && fieldErrors.phone ? colors.error : colors.textMuted }} />
+            <input id="client-phone" type="tel" value={clientPhone} onChange={e => { onPhoneChange(e.target.value); clearFieldError('phone') }}
+              onBlur={() => attempted && validate()}
               placeholder="Tu número de teléfono"
               className="w-full pl-12 pr-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={inputStyle(phoneEmpty)} />
+              style={inputStyle(!!(attempted && fieldErrors.phone))} />
           </div>
-          {phoneEmpty && (
-            <p className="text-xs mt-1" style={{ color: colors.error }}>Este campo es requerido</p>
+          {attempted && fieldErrors.phone && (
+            <p className="text-xs mt-1" style={{ color: colors.error }}>{fieldErrors.phone}</p>
           )}
         </div>
 
         <div>
           <label htmlFor="client-email" className="block text-sm font-medium mb-2" style={{ color: colors.textPrimary }}>Email (opcional)</label>
           <div className="relative">
-            <Mail className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: colors.textMuted }} />
-            <input id="client-email" type="email" value={clientEmail} onChange={e => onEmailChange(e.target.value)}
+            <Mail className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2" style={{ color: attempted && fieldErrors.email ? colors.error : colors.textMuted }} />
+            <input id="client-email" type="email" value={clientEmail} onChange={e => { onEmailChange(e.target.value); clearFieldError('email') }}
+              onBlur={() => attempted && validate()}
               placeholder="Tu correo electrónico"
               className="w-full pl-12 pr-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={inputStyle(false)} />
+              style={inputStyle(!!(attempted && fieldErrors.email))} />
           </div>
+          {attempted && fieldErrors.email && (
+            <p className="text-xs mt-1" style={{ color: colors.error }}>{fieldErrors.email}</p>
+          )}
         </div>
 
         <div>
@@ -105,7 +147,7 @@ export function StepClient({
         </button>
         <button
           onClick={handleSubmit}
-          disabled={!canSubmit}
+          disabled={isSubmitting || !canSubmit}
           onMouseEnter={() => setHoverConfirm(true)}
           onMouseLeave={() => setHoverConfirm(false)}
           className="flex-1 py-3 font-medium flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"

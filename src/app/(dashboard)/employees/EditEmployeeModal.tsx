@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { X, PencilLine, Phone, AlertTriangle, UserX } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { updateEmployee } from '@/actions/employees/updateEmployee'
+import { validateEmployeeFields } from '@/components/employees/utils/validation'
 import type { Employee } from '@/types/employees'
 
 interface EditEmployeeModalProps {
@@ -17,18 +18,36 @@ export function EditEmployeeModal({ employee, onClose, onDelete }: EditEmployeeM
   const [name, setName] = useState(employee?.name ?? '')
   const [phone, setPhone] = useState(employee?.phone ?? '')
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
 
   if (!employee) return null
+
+  function clearFieldError(field: string) {
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      })
+    }
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
 
+    const errors = validateEmployeeFields(name, phone)
+    setFieldErrors(errors)
+    setTouched({ name: true, phone: true })
+
+    if (Object.keys(errors).length > 0) return
+
     startTransition(async () => {
       const result = await updateEmployee({
         id: employee!.id,
-        name,
-        phone: phone || null,
+        name: name.trim(),
+        phone: phone.trim() || null,
       })
 
       if (!result.error) {
@@ -104,9 +123,17 @@ export function EditEmployeeModal({ employee, onClose, onDelete }: EditEmployeeM
                   type="text"
                   required
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-12 pr-4 min-h-[48px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent transition-all duration-200 shadow-sm"
+                  onChange={(e) => { setName(e.target.value); clearFieldError('name') }}
+                  onBlur={() => setTouched(prev => ({ ...prev, name: true }))}
+                  className={`w-full pl-12 pr-4 min-h-[48px] rounded-xl border text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent transition-all duration-200 shadow-sm ${
+                    touched.name && fieldErrors.name
+                      ? 'border-red-400 dark:border-red-500'
+                      : 'border-slate-200 dark:border-slate-700'
+                  } bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100`}
                 />
+                {touched.name && fieldErrors.name && (
+                  <p className="text-xs text-red-500 mt-1">{fieldErrors.name}</p>
+                )}
               </div>
             </div>
 
@@ -126,9 +153,17 @@ export function EditEmployeeModal({ employee, onClose, onDelete }: EditEmployeeM
                   id="edit-employee-phone"
                   type="tel"
                   value={phone ?? ''}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-12 pr-4 min-h-[48px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent transition-all duration-200 shadow-sm"
+                  onChange={(e) => { setPhone(e.target.value); clearFieldError('phone') }}
+                  onBlur={() => setTouched(prev => ({ ...prev, phone: true }))}
+                  className={`w-full pl-12 pr-4 min-h-[48px] rounded-xl border text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent transition-all duration-200 shadow-sm ${
+                    touched.phone && fieldErrors.phone
+                      ? 'border-red-400 dark:border-red-500'
+                      : 'border-slate-200 dark:border-slate-700'
+                  } bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100`}
                 />
+                {touched.phone && fieldErrors.phone && (
+                  <p className="text-xs text-red-500 mt-1">{fieldErrors.phone}</p>
+                )}
               </div>
             </div>
           </div>

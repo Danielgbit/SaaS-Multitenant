@@ -6,6 +6,7 @@ import { Check, AlertCircle, HelpCircle, UserCircle, PhoneCall, MessageCircle, U
 import { Spinner } from '@/components/ui'
 import type { ConfirmationMethod } from '@/types/clients'
 import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
+import { colombianNameSchema } from '@/schemas/common'
 import { createClient as createClientAction } from '@/actions/clients/createClient'
 import { updateClient } from '@/actions/clients/updateClient'
 
@@ -565,10 +566,9 @@ export function EditClientModal({
   const validateForm = () => {
     const errors: Record<string, string> = {}
     
-    if (!name.trim()) {
-      errors.name = 'El nombre es requerido'
-    } else if (name.trim().length < 2) {
-      errors.name = 'El nombre debe tener al menos 2 caracteres'
+    const nameResult = colombianNameSchema.safeParse(name)
+    if (!nameResult.success) {
+      errors.name = nameResult.error.issues[0]?.message || 'Nombre inválido'
     }
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
