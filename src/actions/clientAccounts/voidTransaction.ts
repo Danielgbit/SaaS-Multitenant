@@ -3,6 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { voidEntry } from '@/actions/operation-entries/voidEntry'
+import { captureError } from '@/lib/error-logger'
+import { recordInventoryMovement } from '@/actions/inventory/recordInventoryMovement'
+import type { Database } from '@db/supabase'
 
 interface VoidTransactionInput {
   transaction_id: string
@@ -28,7 +31,7 @@ export async function voidTransaction(
   }
 
   // Fetch the transaction
-  const { data: transaction, error: fetchError } = await (supabase as any)
+  const { data: transaction, error: fetchError } = await supabase
     .from('client_account_transactions')
     .select('id, account_id, transaction_type, amount, is_voided, organization_id')
     .eq('id', input.transaction_id)
@@ -59,20 +62,21 @@ export async function voidTransaction(
   }
 
   // Mark as voided (trigger handles balance recalculation)
-  const { error: voidError } = await (supabase as any)
+  const voidPayload: Database['public']['Tables']['client_account_transactions']['Update'] = {
+    is_voided: true,
+    voided_by: user.id,
+    voided_at: new Date().toISOString(),
+  }
+  const { error: voidError } = await supabase
     .from('client_account_transactions')
-    .update({
-      is_voided: true,
-      voided_by: user.id,
-      voided_at: new Date().toISOString(),
-    })
+    .update(voidPayload)
     .eq('id', input.transaction_id)
 
   if (voidError) {
     return { success: false, error: 'Error al anular: ' + voidError.message }
   }
 
-  // Restore stock for sales
+  // Restore stock for sales via atomic RPC
   if (transaction.transaction_type === 'sale') {
     const { data: productSales } = await supabase
       .from('client_product_sales')
@@ -82,27 +86,42 @@ export async function voidTransaction(
     if (productSales && productSales.length > 0) {
       for (const sale of productSales) {
         if (sale.inventory_item_id) {
-          const { data: item } = await supabase
-            .from('inventory_items')
-            .select('quantity')
-            .eq('id', sale.inventory_item_id)
-            .single()
+          const { data: rpcRaw, error: rpcError } = await supabase.rpc('inventory_increment_stock', {
+            p_item_id: sale.inventory_item_id,
+            p_quantity: sale.quantity,
+            p_organization_id: organizationId,
+          })
 
-          if (item) {
-            await supabase
-              .from('inventory_items')
-              .update({ quantity: item.quantity + sale.quantity })
-              .eq('id', sale.inventory_item_id)
+          const rpcResult = Array.isArray(rpcRaw) ? rpcRaw[0] : rpcRaw
+          if (rpcError || !rpcResult?.success) {
+            captureError('inventory_void_restore_failed', new Error(rpcError?.message || rpcResult?.error || 'unknown'), {
+              transactionId: input.transaction_id,
+              itemId: sale.inventory_item_id,
+              quantity: sale.quantity,
+              organizationId,
+            })
+          } else {
+            await recordInventoryMovement({
+              inventoryItemId: sale.inventory_item_id,
+              organizationId,
+              movementType: 'void',
+              quantityChange: sale.quantity,
+              quantityBefore: rpcResult.quantity_before,
+              quantityAfter: rpcResult.quantity_after,
+              sourceOperationId: input.transaction_id,
+              referenceType: 'transaction',
+              referenceId: input.transaction_id,
+              reason: input.reason,
+              createdBy: user.id,
+            })
           }
         }
       }
     }
   }
 
-  // Void related operation_entries (fire-and-forget, best effort)
-  // Search for both source_types: payments/adjustments use 'client_account_payment',
-  // sales (contado) use 'inventory_sale'
-  const { data: relatedEntries } = await (supabase as any)
+  // Void related operation_entries
+  const { data: relatedEntries } = await supabase
     .from('operation_entries')
     .select('id')
     .or('source_type.eq.client_account_payment,source_type.eq.inventory_sale')
@@ -111,9 +130,13 @@ export async function voidTransaction(
 
   if (relatedEntries && relatedEntries.length > 0) {
     for (const entry of relatedEntries) {
-      await voidEntry({ entry_id: entry.id, reason: input.reason }).catch(() => {
-        // Best effort - don't fail the whole operation
-      })
+      const voidResult = await voidEntry({ entry_id: entry.id, reason: input.reason })
+      if (voidResult.error) {
+        captureError('inventory_void_entry_failed', new Error(voidResult.error), {
+          transactionId: input.transaction_id,
+          entryId: entry.id,
+        })
+      }
     }
   }
 

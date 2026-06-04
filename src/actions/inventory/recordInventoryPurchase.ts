@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
 import type { PaymentMethod } from '@/types/cash-sessions'
+import type { Database } from '@db/supabase'
 
 export async function recordInventoryPurchase(input: {
   item_id: string
@@ -42,18 +43,36 @@ export async function recordInventoryPurchase(input: {
 
   const totalCost = input.quantity * input.unit_cost
 
-  // Incrementar stock
-  const { error: stockError } = await supabase
-    .from('inventory_items')
-    .update({ quantity: item.quantity + input.quantity, updated_at: new Date().toISOString() })
-    .eq('id', input.item_id)
+  // Incrementar stock via RPC
+  const { data: rpcRaw, error: rpcError } = await supabase.rpc('inventory_increment_stock', {
+    p_item_id: input.item_id,
+    p_quantity: input.quantity,
+    p_organization_id: item.organization_id,
+  })
 
-  if (stockError) return { success: false, error: 'Error al actualizar stock.' }
+  const rpcResult = Array.isArray(rpcRaw) ? rpcRaw[0] : rpcRaw
+
+  if (rpcError || !rpcResult?.success) {
+    return { success: false, error: 'Error al actualizar stock.' }
+  }
+
+  // Auditar movimiento
+  const { recordInventoryMovement } = await import('./recordInventoryMovement')
+  await recordInventoryMovement({
+    inventoryItemId: input.item_id,
+    organizationId: item.organization_id,
+    movementType: 'purchase',
+    quantityChange: input.quantity,
+    quantityBefore: rpcResult.quantity_before,
+    quantityAfter: rpcResult.quantity_after,
+    metadata: { unit_cost: input.unit_cost, total_cost: totalCost, payment_status: input.payment_status },
+    createdBy: user.id,
+  })
 
   // Si es pagado, crear movimiento de caja
   if (input.payment_status === 'paid') {
     const today = getTodayDateColombia()
-    const { data: session } = await (supabase as any)
+    const { data: session } = await supabase
       .from('cash_sessions')
       .select('id')
       .eq('organization_id', item.organization_id)
@@ -62,7 +81,7 @@ export async function recordInventoryPurchase(input: {
       .maybeSingle()
 
     if (session) {
-      await (supabase as any).from('operation_entries').insert({
+      const entry: Database['public']['Tables']['operation_entries']['Insert'] = {
         cash_session_id: session.id,
         entry_type: 'inventory_purchase',
         entry_group: 'inventory',
@@ -77,7 +96,8 @@ export async function recordInventoryPurchase(input: {
         source_id: input.item_id,
         created_by: user.id,
         metadata: { quantity: input.quantity, unit_cost: input.unit_cost, payment_status: input.payment_status },
-      })
+      }
+      await supabase.from('operation_entries').insert(entry)
     }
   }
 

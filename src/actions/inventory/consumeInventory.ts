@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
+import type { Database } from '@db/supabase'
 
 export async function consumeInventory(input: {
   item_id: string
@@ -34,20 +35,40 @@ export async function consumeInventory(input: {
   }
 
   if (input.quantity <= 0) return { success: false, error: 'Cantidad debe ser > 0.' }
-  if (item.quantity < input.quantity) return { success: false, error: 'Stock insuficiente.' }
 
-  const newQuantity = item.quantity - input.quantity
+  // Atomic decrement via RPC
+  const { data: rpcRaw, error: rpcError } = await supabase.rpc('inventory_decrement_stock', {
+    p_item_id: input.item_id,
+    p_quantity: input.quantity,
+    p_organization_id: item.organization_id,
+  })
 
-  const { error: stockError } = await supabase
-    .from('inventory_items')
-    .update({ quantity: newQuantity, updated_at: new Date().toISOString() })
-    .eq('id', input.item_id)
+  const rpcResult = Array.isArray(rpcRaw) ? rpcRaw[0] : rpcRaw
 
-  if (stockError) return { success: false, error: 'Error al actualizar stock.' }
+  if (rpcError || !rpcResult?.success) {
+    const msg = rpcResult?.error === 'insufficient_stock'
+      ? 'Stock insuficiente.'
+      : 'Error al actualizar stock.'
+    return { success: false, error: msg }
+  }
+
+  // Auditar movimiento
+  const { recordInventoryMovement } = await import('./recordInventoryMovement')
+  await recordInventoryMovement({
+    inventoryItemId: input.item_id,
+    organizationId: item.organization_id,
+    movementType: 'consumption',
+    quantityChange: -input.quantity,
+    quantityBefore: rpcResult.quantity_before,
+    quantityAfter: rpcResult.quantity_after,
+    reason: input.notes || undefined,
+    metadata: { estimated_cost: input.estimated_cost || null },
+    createdBy: user.id,
+  })
 
   // Registrar consumo interno en caja (informativo, NO afecta expected_cash)
   const today = getTodayDateColombia()
-  const { data: session } = await (supabase as any)
+  const { data: session } = await supabase
     .from('cash_sessions')
     .select('id')
     .eq('organization_id', item.organization_id)
@@ -56,7 +77,7 @@ export async function consumeInventory(input: {
     .maybeSingle()
 
   if (session) {
-    await (supabase as any).from('operation_entries').insert({
+    const entry: Database['public']['Tables']['operation_entries']['Insert'] = {
       cash_session_id: session.id,
       entry_type: 'inventory_out',
       entry_group: 'inventory',
@@ -73,9 +94,10 @@ export async function consumeInventory(input: {
       metadata: {
         quantity: input.quantity,
         estimated_cost: input.estimated_cost || null,
-        remaining_stock: newQuantity,
+        remaining_stock: rpcResult.quantity_after,
       },
-    })
+    }
+    await supabase.from('operation_entries').insert(entry)
   }
 
   revalidatePath('/inventory')
