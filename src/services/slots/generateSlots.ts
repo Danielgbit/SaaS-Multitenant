@@ -515,8 +515,8 @@ export async function generateSlots({
   // actualStartMinutes < actualEndMinutes en UTC normalizado
   // Y la comparación es al revés: el empleado trabaja desde actualStartMinutes
   // HASTA medianoche Y desde medianoche HASTA actualEndMinutes
-  let actualStartMinutes = Math.max(effectiveStartMinutes, spaStartMinutes)
-  let actualEndMinutes = Math.min(effectiveEndMinutes, spaEndMinutes)
+  const actualStartMinutes = Math.max(effectiveStartMinutes, spaStartMinutes)
+  const actualEndMinutes = Math.min(effectiveEndMinutes, spaEndMinutes)
 
   // Si actualStartMinutes > actualEndMinutes, significa que el rango cruza medianoche
   // En ese caso, ajustamos para que el loop funcione correctamente:

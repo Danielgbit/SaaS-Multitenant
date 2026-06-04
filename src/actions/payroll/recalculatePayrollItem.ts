@@ -119,7 +119,7 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
     }
   }
 
-  let baseSalary = it.base_salary ?? item.employee?.base_salary ?? 0
+  const baseSalary = it.base_salary ?? item.employee?.base_salary ?? 0
   let healthDeduction = 0
   let pensionDeduction = 0
   let transportSubsidy = 0

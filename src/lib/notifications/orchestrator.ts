@@ -184,7 +184,7 @@ export async function NotificationOrchestrator(
           continue
         }
 
-        let templateId = rule.template_id || ''
+        const templateId = rule.template_id || ''
         const renderedBody = template?.body || ''
         const renderedSubject = template?.subject
 

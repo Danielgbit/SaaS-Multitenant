@@ -89,11 +89,11 @@ const COLORS = useThemeColors()
   // Efecto: cargar slots cuando cambie la fecha
   // biome-ignore lint/correctness/useExhaustiveDependencies: selectedDate es el trigger
   // biome-ignore lint/correctness/useHookRules: hook personalizado
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  /* eslint-disable react-hooks/exhaustive-deps */
+   
+   
   /* eslint-disable @typescript-eslint/no-unused-vars */
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  /* eslint-disable react-hooks/rules-of-hooks */
+   
+   
   
   // Selector de fecha cambia - cargar slots
   // biome-ignore lint/correctness/useExhaustiveDependencies: dependencias intencionales

@@ -32,8 +32,8 @@ export async function POST(
     const organizationId = message.organization_id
 
     let originalQueueItemId: string | null = message.queue_item_id
-    let originalTraceId: string | null = message.trace_id
-    let originalProviderMessageId: string | null = message.provider_message_id
+    const originalTraceId: string | null = message.trace_id
+    const originalProviderMessageId: string | null = message.provider_message_id
 
     if (!originalQueueItemId) {
       const { data: qi } = await (supabase as any)

@@ -2,8 +2,13 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { requirePlatformAdmin } from '@/lib/auth/platform-auth'
+import { logAudit } from '@/lib/audit'
+import { AdminAuditAction } from '@/lib/audit/types'
+import { adminActionLimiter } from '@/lib/rate-limiter'
+import { headers } from 'next/headers'
+import { getClientIp } from '@/lib/network/get-client-ip'
 
 const createCodeSchema = z.object({
   code: z.string().min(3).max(50).toUpperCase(),
@@ -34,6 +39,14 @@ export async function createCode(
     return { error: 'No tienes permisos de admin' }
   }
 
+  const headerStore = await headers()
+  const ip = getClientIp(headerStore)
+  const rateKey = `admin:createCode:${user.id}`
+  const rateCheck = adminActionLimiter.check(rateKey)
+  if (!rateCheck.allowed) {
+    return { error: 'Demasiadas operaciones. Intenta de nuevo en unos segundos.' }
+  }
+
   const rawData = {
     code: formData.get('code'),
     name: formData.get('name'),
@@ -60,6 +73,8 @@ export async function createCode(
     return { error: 'Este código ya existe' }
   }
 
+  adminActionLimiter.hit(rateKey, { ip, route: 'createCode', userId: user.id })
+
   const { data: newCode, error } = await supabase
     .from('promo_codes')
     .insert({
@@ -77,6 +92,24 @@ export async function createCode(
 
   if (error) {
     return { error: 'Error al crear código' }
+  }
+
+  try {
+    await logAudit({
+      adminUserId: user.id,
+      action: AdminAuditAction.CREATE_PROMO_CODE,
+      entityType: 'promo_code',
+      entityId: newCode.id,
+      metadata: { code: validated.data.code, type: validated.data.type },
+    })
+  } catch (auditError) {
+    console.error('[createCode] audit error:', auditError)
+  }
+
+  try {
+    revalidateTag('platform-metrics', 'max')
+  } catch (e) {
+    console.warn('[createCode] revalidateTag error:', e)
   }
 
   revalidatePath('/admin/promo-codes')

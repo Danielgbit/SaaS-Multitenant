@@ -27,14 +27,6 @@ function getInitials(name: string): string {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
-function getTimeUrgency(completedAt: string | null | undefined) {
-  if (!completedAt) return { color: '#16A34A', bg: 'rgba(22, 163, 74, 0.12)', label: 'Reciente', pulse: false }
-  const diffMin = Math.floor((Date.now() - new Date(completedAt).getTime()) / 60000)
-  if (diffMin < 10) return { color: '#16A34A', bg: 'rgba(22, 163, 74, 0.12)', label: `${diffMin} min`, pulse: false }
-  if (diffMin < 25) return { color: '#D97706', bg: 'rgba(217, 119, 6, 0.12)', label: `${diffMin} min`, pulse: false }
-  return { color: '#DC2626', bg: 'rgba(220, 38, 38, 0.12)', label: `${diffMin} min`, pulse: true }
-}
-
 function formatTime(dateString: string): string {
   return new Date(dateString).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
@@ -61,6 +53,14 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [payingConf, setPayingConf] = useState<any | null>(null)
   const COLORS = useThemeColors()
+
+  function getTimeUrgency(completedAt: string | null | undefined, now: number) {
+    if (!completedAt) return { color: COLORS.success, bg: 'rgba(22, 163, 74, 0.12)', label: 'Reciente', pulse: false }
+    const diffMin = Math.floor((now - new Date(completedAt).getTime()) / 60000)
+    if (diffMin < 10) return { color: COLORS.success, bg: 'rgba(22, 163, 74, 0.12)', label: `${diffMin} min`, pulse: false }
+    if (diffMin < 25) return { color: COLORS.warning, bg: 'rgba(217, 119, 6, 0.12)', label: `${diffMin} min`, pulse: false }
+    return { color: COLORS.error, bg: 'rgba(220, 38, 38, 0.12)', label: `${diffMin} min`, pulse: true }
+  }
 
   const filteredConfirmations = confirmations.filter(c => {
     if (filter === 'pending') return c.status === 'pending_reception'
@@ -287,7 +287,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                 const isNotPerformed = conf.status === 'not_performed'
                 const isSuccess = showSuccess === conf.id
 
-                const urgency = getTimeUrgency(conf.completed_at)
+                const urgency = getTimeUrgency(conf.completed_at, Date.now())
                 const borderColor = isPending ? COLORS.primary : isComplete ? COLORS.success : isNoShow ? COLORS.error : COLORS.textMuted
 
                 return (
@@ -434,7 +434,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                               className="flex-1 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                               style={{
                                 backgroundColor: COLORS.primary,
-                                color: '#FFFFFF',
+                                color: COLORS.textOnPrimary,
                                 boxShadow: `0 4px 12px ${COLORS.primary}30`,
                               }}>
                               {processing === conf.id ? (

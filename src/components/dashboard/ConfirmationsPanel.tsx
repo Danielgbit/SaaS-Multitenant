@@ -102,7 +102,7 @@ function ConfirmationCard({
         <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${colors.border}` }}>
           <button onClick={() => onPay(confirmation)}
             className="flex-1 h-9 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-            style={{ backgroundColor: colors.primary, color: '#FFFFFF' }}>
+            style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
             <CreditCard className="w-4 h-4" />
             Cobrar
           </button>

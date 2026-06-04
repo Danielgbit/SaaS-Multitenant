@@ -20,34 +20,35 @@ interface PendingConfirmation {
   notes: string | null
 }
 
-function getUrgencyLevel(completedAt: string | null, isDark: boolean): {
-  level: 'normal' | 'warning' | 'urgent' | 'critical'
-  color: string
-  bgColor: string
-  label: string
-} {
-  if (!completedAt) {
-    return { level: 'normal', color: '#22C55E', bgColor: isDark ? '#064E3B' : '#D1FAE5', label: 'Reciente' }
-  }
-
-  const now = new Date().getTime()
-  const completed = new Date(completedAt).getTime()
-  const diffMin = Math.floor((now - completed) / 60000)
-
-  if (diffMin < 15) {
-    return { level: 'normal', color: '#22C55E', bgColor: isDark ? '#064E3B' : '#D1FAE5', label: `${diffMin} min` }
-  } else if (diffMin < 25) {
-    return { level: 'warning', color: '#EAB308', bgColor: isDark ? '#78350F' : '#FEF3C7', label: `${diffMin} min` }
-  } else if (diffMin < 40) {
-    return { level: 'urgent', color: '#F97316', bgColor: isDark ? '#7C2D12' : '#FFF7ED', label: `${diffMin} min` }
-  } else {
-    return { level: 'critical', color: '#EF4444', bgColor: isDark ? '#7F1D1D' : '#FEF2F2', label: `${diffMin} min` }
-  }
-}
-
 function TimeBadge({ completedAt }: { completedAt: string | null }) {
   const COLORS = useThemeColors()
-  const urgency = getUrgencyLevel(completedAt, COLORS.isDark)
+
+  function getUrgencyLevel(completedAt: string | null): {
+    level: 'normal' | 'warning' | 'urgent' | 'critical'
+    color: string
+    bgColor: string
+    label: string
+  } {
+    if (!completedAt) {
+      return { level: 'normal', color: COLORS.success, bgColor: COLORS.successLight || '#D1FAE5', label: 'Reciente' }
+    }
+
+    const now = new Date().getTime()
+    const completed = new Date(completedAt).getTime()
+    const diffMin = Math.floor((now - completed) / 60000)
+
+    if (diffMin < 15) {
+      return { level: 'normal', color: COLORS.success, bgColor: COLORS.successLight || '#D1FAE5', label: `${diffMin} min` }
+    } else if (diffMin < 25) {
+      return { level: 'warning', color: COLORS.warning, bgColor: COLORS.warningLight || '#FEF3C7', label: `${diffMin} min` }
+    } else if (diffMin < 40) {
+      return { level: 'urgent', color: '#F97316', bgColor: COLORS.isDark ? '#7C2D12' : '#FFF7ED', label: `${diffMin} min` }
+    } else {
+      return { level: 'critical', color: COLORS.error, bgColor: COLORS.errorLight || '#FEE2F2', label: `${diffMin} min` }
+    }
+  }
+
+  const urgency = getUrgencyLevel(completedAt)
 
   return (
     <span

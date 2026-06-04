@@ -83,3 +83,4 @@ export const webhookLimiter = createRateLimiter({ maxRequests: 60, windowMs: 60_
 export const serverActionLimiter = createRateLimiter({ maxRequests: 30, windowMs: 60_000 })
 export const createEmployeeLimiter = createRateLimiter({ maxRequests: 20, windowMs: 600_000 })
 export const createInvitationLimiter = createRateLimiter({ maxRequests: 10, windowMs: 3_600_000 })
+export const adminActionLimiter = createRateLimiter({ maxRequests: 60, windowMs: 60_000 })
