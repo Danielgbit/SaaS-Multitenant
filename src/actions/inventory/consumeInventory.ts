@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
 import type { Database } from '@db/supabase'
+import { recordInventoryMovement } from '@/lib/inventory/inventory-movement'
 
 export async function consumeInventory(input: {
   item_id: string
@@ -53,7 +54,6 @@ export async function consumeInventory(input: {
   }
 
   // Auditar movimiento
-  const { recordInventoryMovement } = await import('./recordInventoryMovement')
   await recordInventoryMovement({
     inventoryItemId: input.item_id,
     organizationId: item.organization_id,

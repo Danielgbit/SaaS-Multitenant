@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { voidEntry } from '@/actions/operation-entries/voidEntry'
 import { captureError } from '@/lib/error-logger'
-import { recordInventoryMovement } from '@/actions/inventory/recordInventoryMovement'
+import { recordInventoryMovement } from '@/lib/inventory/inventory-movement'
+import * as inventoryService from '@/lib/inventory/inventory-service'
 import type { Database } from '@db/supabase'
 
 interface VoidTransactionInput {
@@ -101,18 +102,17 @@ export async function voidTransaction(
               organizationId,
             })
           } else {
-            await recordInventoryMovement({
-              inventoryItemId: sale.inventory_item_id,
-              organizationId,
+            await inventoryService.restore({
+              item_id: sale.inventory_item_id,
+              quantity: sale.quantity,
+              organization_id: organizationId,
+              created_by: user.id,
+              recordMovement: true,
               movementType: 'void',
-              quantityChange: sale.quantity,
-              quantityBefore: rpcResult.quantity_before,
-              quantityAfter: rpcResult.quantity_after,
               sourceOperationId: input.transaction_id,
               referenceType: 'transaction',
               referenceId: input.transaction_id,
               reason: input.reason,
-              createdBy: user.id,
             })
           }
         }

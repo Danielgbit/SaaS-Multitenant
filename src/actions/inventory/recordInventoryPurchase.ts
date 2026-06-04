@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
 import type { PaymentMethod } from '@/types/cash-sessions'
 import type { Database } from '@db/supabase'
+import { recordInventoryMovement } from '@/lib/inventory/inventory-movement'
 
 export async function recordInventoryPurchase(input: {
   item_id: string
@@ -57,7 +58,6 @@ export async function recordInventoryPurchase(input: {
   }
 
   // Auditar movimiento
-  const { recordInventoryMovement } = await import('./recordInventoryMovement')
   await recordInventoryMovement({
     inventoryItemId: input.item_id,
     organizationId: item.organization_id,
