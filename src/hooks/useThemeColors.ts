@@ -1,3 +1,21 @@
+/**
+ * 🔒 DESIGN SYSTEM LOCK v1
+ *
+ * Este archivo es la fuente única de verdad del sistema de colores.
+ *
+ * ❗ PROHIBIDO:
+ * - Agregar nuevos tokens sin migración formal
+ * - Reintroducir hex hardcoded en UI
+ *
+ * 🟡 Tokens deprecated (no usar en nuevos componentes):
+ * - danger, dangerLight
+ * - amber, amberLight
+ * - gold, goldLight
+ * - glass
+ *
+ * 🟢 Fuente oficial: useThemeColors()
+ */
+
 import { useMemo } from 'react'
 import { useTheme } from 'next-themes'
 
@@ -48,6 +66,7 @@ export interface ThemeColors {
   headerTextMuted: string
   whatsapp: string
   whatsappLight: string
+  textOnPrimary: string
   isDark: boolean
 }
 
@@ -142,6 +161,7 @@ export function useThemeColors(): ThemeColors {
     headerTextMuted: isDark ? '#94A3B8' : '#475569',
     whatsapp: isDark ? '#25D366' : '#0F4C5C',
     whatsappLight: isDark ? '#25D36615' : '#0F4C5C10',
+    textOnPrimary: isDark ? '#0F172A' : '#FFFFFF',
     isDark,
   }), [isDark])
 }

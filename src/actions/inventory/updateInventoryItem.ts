@@ -18,7 +18,7 @@ const UpdateInventoryItemSchema = z.object({
   unit: z.string().max(20),
 })
 
-type UpdateInventoryItemInput = z.infer<typeof UpdateInventoryItemSchema>
+export type UpdateInventoryItemInput = z.infer<typeof UpdateInventoryItemSchema>
 
 export async function updateInventoryItem(
   input: UpdateInventoryItemInput

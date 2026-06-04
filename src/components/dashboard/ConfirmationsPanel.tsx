@@ -50,9 +50,9 @@ function ConfirmationCard({
     <div
       className="rounded-xl border transition-all duration-200 hover:shadow-md"
       style={{
-        backgroundColor: isNeedsReview ? '#FEF3C7' : colors.surface,
-        borderColor: isNeedsReview ? '#D97706' : colors.border,
-        borderLeft: isNeedsReview ? '3px solid #D97706' : `3px solid ${colors.primary}`,
+        backgroundColor: isNeedsReview ? colors.warningLight : colors.surface,
+        borderColor: isNeedsReview ? colors.warning : colors.border,
+        borderLeft: isNeedsReview ? `3px solid ${colors.warning}` : `3px solid ${colors.primary}`,
       }}
     >
       <div className="p-4">
@@ -63,7 +63,7 @@ function ConfirmationCard({
                 {confirmation.clients?.name || 'Cliente'}
               </span>
               {isNeedsReview && (
-                <AlertTriangle className="w-4 h-4 flex-shrink-0" style={{ color: '#D97706' }} />
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" style={{ color: colors.warning }} />
               )}
             </div>
             <p className="text-xs mt-0.5" style={{ color: colors.textSecondary }}>
@@ -85,7 +85,7 @@ function ConfirmationCard({
             ${(confirmation.price_adjustment || 0).toLocaleString('es-CO')}
           </span>
           {isUrgent && (
-            <span className="flex items-center gap-1 animate-pulse" style={{ color: '#DC2626' }}>
+            <span className="flex items-center gap-1 animate-pulse" style={{ color: colors.error }}>
               <AlertTriangle className="w-3.5 h-3.5" />
               Urgente
             </span>
@@ -93,7 +93,7 @@ function ConfirmationCard({
         </div>
 
         {confirmation.notes && (
-          <p className="text-xs flex items-start gap-1 mt-2 p-2 rounded-lg" style={{ backgroundColor: colors.isDark ? '#0F172A' : '#F8FAFC' }}>
+          <p className="text-xs flex items-start gap-1 mt-2 p-2 rounded-lg" style={{ backgroundColor: colors.surfaceSubtle }}>
             <Info className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: colors.textMuted }} />
             <span style={{ color: colors.textSecondary }}>{confirmation.notes}</span>
           </p>

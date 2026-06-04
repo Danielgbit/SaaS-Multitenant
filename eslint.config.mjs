@@ -41,7 +41,7 @@ const eslintConfig = defineConfig([
         "warn",
         {
           selector: `Property[key.name=/^(color|backgroundColor|borderColor|borderLeftColor|borderRightColor|borderTopColor|borderBottomColor)$/][value.type='Literal'][value.value=/^#[0-9A-Fa-f]{6}$/]`,
-          message: "Hardcoded hex color in inline style. Use COLORS.* tokens or Tailwind dark: classes."
+          message: "Hardcoded hex in inline style. Use COLORS tokens."
         }
       ]
     },

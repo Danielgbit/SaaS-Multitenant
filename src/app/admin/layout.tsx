@@ -1,28 +1,12 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { AdminNav } from '@/components/admin/AdminNav'
+import { requirePlatformAdmin } from '@/lib/auth/platform-auth'
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role, organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (orgMember?.role !== 'owner_saas') {
-    redirect('/dashboard')
-  }
+  const user = await requirePlatformAdmin()
 
   return (
     <div className="min-h-screen bg-[#FAFAF9] dark:bg-[#151b1d]">

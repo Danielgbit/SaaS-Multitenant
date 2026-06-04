@@ -18,7 +18,7 @@ const CreateInventoryItemSchema = z.object({
   unit: z.string().max(20).default('pieza'),
 })
 
-type CreateInventoryItemInput = z.infer<typeof CreateInventoryItemSchema>
+export type CreateInventoryItemInput = z.infer<typeof CreateInventoryItemSchema>
 
 async function getPlanLimit(supabase: any, organizationId: string): Promise<number> {
   const { data: subscription } = await supabase

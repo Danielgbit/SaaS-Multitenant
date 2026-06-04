@@ -87,10 +87,18 @@ export async function proxy(request: NextRequest) {
   const isEmpleado = role === 'empleado'
 
   if (pathname.startsWith('/admin')) {
-    if (!BYPASS_ADMIN_AUTH && role !== 'owner_saas') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
-      return NextResponse.redirect(url)
+    if (!BYPASS_ADMIN_AUTH) {
+      const { data: platformAdmin } = await supabase
+        .from('platform_admins')
+        .select('is_active')
+        .eq('user_id', user.id)
+        .single()
+
+      if (!platformAdmin?.is_active) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard'
+        return NextResponse.redirect(url)
+      }
     }
   }
 

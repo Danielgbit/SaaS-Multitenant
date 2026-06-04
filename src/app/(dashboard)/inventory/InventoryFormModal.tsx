@@ -5,8 +5,8 @@ import { X, Package, Tag, DollarSign, Boxes, AlertCircle, CheckCircle, HelpCircl
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
-import { createInventoryItem } from '@/actions/inventory/createInventoryItem'
-import { updateInventoryItem } from '@/actions/inventory/updateInventoryItem'
+import { createInventoryItem, type CreateInventoryItemInput } from '@/actions/inventory/createInventoryItem'
+import { updateInventoryItem, type UpdateInventoryItemInput } from '@/actions/inventory/updateInventoryItem'
 
 interface InventoryFormModalProps {
   item: InventoryItem | null
@@ -139,8 +139,8 @@ export function InventoryFormModal({
     }
 
     const result = item
-      ? await updateInventoryItem(data as any)
-      : await createInventoryItem(data as any)
+      ? await updateInventoryItem(data as UpdateInventoryItemInput)
+      : await createInventoryItem(data as CreateInventoryItemInput)
 
     setIsSubmitting(false)
 

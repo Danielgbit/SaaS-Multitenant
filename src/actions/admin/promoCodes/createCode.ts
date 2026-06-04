@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
+import { requirePlatformAdmin } from '@/lib/auth/platform-auth'
 
 const createCodeSchema = z.object({
   code: z.string().min(3).max(50).toUpperCase(),
@@ -25,19 +26,11 @@ export async function createCode(
   formData: FormData
 ): Promise<CreateCodeState> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    return { error: 'No autenticado' }
-  }
-
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .single()
-
-  if (orgMember?.role !== 'owner_saas') {
+  let user
+  try {
+    user = await requirePlatformAdmin()
+  } catch {
     return { error: 'No tienes permisos de admin' }
   }
 
