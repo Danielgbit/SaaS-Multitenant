@@ -1,48 +1,53 @@
 stages:
+  - install
   - lint
   - typecheck
   - quality
   - build
 
-lint:
-  stage: lint
+default:
   image: node:20
   cache:
-    key: $CI_COMMIT_REF_SLUG
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+
+install:
+  stage: install
+  script:
+    - npm ci --cache .npm --prefer-offline
+  artifacts:
     paths:
       - node_modules/
+    expire_in: 1h
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+lint:
+  stage: lint
+  needs: [install]
   script:
-    - npm install
     - npm run lint
-  allow_failure: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "main"'
 
 typecheck:
   stage: typecheck
-  image: node:20
-  cache:
-    key: $CI_COMMIT_REF_SLUG
-    paths:
-      - node_modules/
+  needs: [install]
   script:
-    - npm install
     - npx tsc --noEmit
-  allow_failure: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "main"'
 
 quality:
   stage: quality
-  image: node:20
-  cache:
-    key: $CI_COMMIT_REF_SLUG
-    paths:
-      - node_modules/
+  needs: [install]
   script:
-    - npm install
     - npm test
     - npm run docs:gen
   rules:
@@ -51,13 +56,8 @@ quality:
 
 build:
   stage: build
-  image: node:20
-  cache:
-    key: $CI_COMMIT_REF_SLUG
-    paths:
-      - node_modules/
+  needs: [install]
   script:
-    - npm install
     - npm run build
   variables:
     NEXT_PUBLIC_SUPABASE_URL: $NEXT_PUBLIC_SUPABASE_URL

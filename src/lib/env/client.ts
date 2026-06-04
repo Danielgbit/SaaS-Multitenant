@@ -1,4 +1,4 @@
-import { CLIENT_ENV_KEYS, clientSchema, type ClientEnv } from './schema'
+import { clientSchema, type ClientEnv } from './schema'
 
 const EMPTY_CLIENT_ENV: ClientEnv = {
   NEXT_PUBLIC_SUPABASE_URL: '',

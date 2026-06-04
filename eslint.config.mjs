@@ -53,6 +53,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Auto-generated Supabase types — ESLint cannot parse the binary format
+    "types/supabase.ts",
   ]),
 ]);
 

@@ -23,6 +23,8 @@ function createMockSupabase(role = 'owner') {
       if (table === 'organization_members') {
         return {
           select: vi.fn().mockReturnThis(),
+          insert: vi.fn().mockReturnThis(),
+          update: vi.fn().mockReturnThis(),
           eq: vi.fn().mockReturnThis(),
           single: vi.fn().mockResolvedValue({ data: { role }, error: null }),
         }
