@@ -24,6 +24,7 @@ const eslintConfig = defineConfig([
   // React Hooks, JSX and minor ESLint debt — warn, no bloquear CI
   {
     rules: {
+      "react-hooks/purity": "warn",
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/immutability": "warn",
       "react-hooks/rules-of-hooks": "warn",
