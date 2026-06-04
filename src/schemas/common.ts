@@ -33,3 +33,34 @@ export function timeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number)
   return h * 60 + m
 }
+
+export const HHMM_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/
+
+export function coercePositiveNumber(ctx: { message: string }) {
+  return z.preprocess(
+    (v) => {
+      if (v === '' || v === undefined || v === null) return undefined
+      const n = Number(v)
+      return Number.isNaN(n) ? undefined : n
+    },
+    z.number().positive(ctx.message)
+  )
+}
+
+export function coerceMinNumber(min: number, ctx: { message: string }) {
+  return z.preprocess(
+    (v) => {
+      if (v === '' || v === undefined || v === null) return undefined
+      const n = Number(v)
+      return Number.isNaN(n) ? undefined : n
+    },
+    z.number().min(min, ctx.message)
+  )
+}
+
+export function isValidDateString(v: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false
+  const [year, month, day] = v.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+}

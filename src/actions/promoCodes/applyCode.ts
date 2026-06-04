@@ -2,7 +2,12 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
 import { validateCode } from './validateCode'
+
+const ApplyCodeSchema = z.object({
+  code: z.string().trim().min(1, 'Código requerido').max(50).transform(v => v.toUpperCase()),
+})
 
 export type ApplyCodeState = {
   success?: boolean
@@ -31,7 +36,12 @@ export async function applyCode(
     return { error: 'No tienes organización' }
   }
 
-  const code = formData.get('code') as string
+  const rawCode = { code: formData.get('code') as string }
+  const parsed = ApplyCodeSchema.safeParse(rawCode)
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || 'Código inválido' }
+  }
+  const code = parsed.data.code
   const { valid, error, promoCode } = await validateCode(code)
 
   if (!valid || !promoCode) {

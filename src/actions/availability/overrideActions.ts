@@ -2,36 +2,57 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { z } from 'zod'
+import { HHMM_REGEX, timeToMinutes, isValidDateString } from '@/schemas/common'
 
-export interface CreateOverrideInput {
-  employee_id: string
-  date: string // YYYY-MM-DD
-  start_time?: string // HH:MM
-  end_time?: string // HH:MM
-  is_day_off?: boolean
-  reason?: string
-  break_start?: string // HH:MM
-  break_end?: string // HH:MM
-}
-
-export interface UpdateOverrideInput {
-  id: string
-  start_time?: string
-  end_time?: string
-  is_day_off?: boolean
-  reason?: string
-}
+const CreateOverrideSchema = z.object({
+  employee_id: z.string().uuid(),
+  date: z.string().refine(isValidDateString, 'Fecha inválida'),
+  start_time: z.string().regex(HHMM_REGEX).optional(),
+  end_time: z.string().regex(HHMM_REGEX).optional(),
+  is_day_off: z.boolean().optional(),
+  reason: z.string().max(500).optional(),
+  break_start: z.string().regex(HHMM_REGEX).optional(),
+  break_end: z.string().regex(HHMM_REGEX).optional(),
+}).superRefine((d, ctx) => {
+  if (d.is_day_off) {
+    if (d.start_time || d.end_time) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['start_time'], message: 'Día libre no debe tener horario' })
+    }
+    return
+  }
+  if (!d.start_time || !d.end_time) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['start_time'], message: 'Horario requerido' })
+    return
+  }
+  if (timeToMinutes(d.start_time) >= timeToMinutes(d.end_time)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['end_time'], message: 'Inicio debe ser menor que fin' })
+  }
+  if (d.break_start || d.break_end) {
+    if (!d.break_start || !d.break_end) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['break_end'], message: 'Ambos campos de descanso requeridos' })
+      return
+    }
+    if (timeToMinutes(d.break_start) >= timeToMinutes(d.break_end)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['break_end'], message: 'Inicio de descanso debe ser menor que fin' })
+    }
+  }
+})
 
 /**
  * Server Action: Crea o actualiza un override de disponibilidad para una fecha específica.
  * Usa UPSERT para manejar el caso de UNIQUE constraint.
  */
 export async function createOverride(
-  input: CreateOverrideInput
+  input: { employee_id: string; date: string; start_time?: string; end_time?: string; is_day_off?: boolean; reason?: string; break_start?: string; break_end?: string }
 ): Promise<{ error?: string; success?: boolean; data?: unknown }> {
+  const parsed = CreateOverrideSchema.safeParse(input)
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || 'Datos inválidos' }
+  }
+
   const supabase = await createClient()
 
-  // 1. Verificar usuario autenticado
   const {
     data: { user },
     error: authError,
@@ -41,7 +62,6 @@ export async function createOverride(
     return { error: 'No autorizado.' }
   }
 
-  // 2. Verificar que el empleado pertenece a la organización del usuario
   const { data: orgMember, error: orgError } = await supabase
     .from('organization_members')
     .select('organization_id, role')
@@ -52,16 +72,14 @@ export async function createOverride(
     return { error: 'No se encontró organización para este usuario.' }
   }
 
-  // 3. Verificar permisos (owner, admin, assistant)
   if (!['owner', 'admin', 'assistant'].includes(orgMember.role)) {
     return { error: 'No tienes permisos para crear overrides.' }
   }
 
-  // 4. Verificar que el empleado pertenece a la organización
   const { data: employee, error: empError } = await supabase
     .from('employees')
     .select('id, organization_id')
-    .eq('id', input.employee_id)
+    .eq('id', parsed.data.employee_id)
     .eq('organization_id', orgMember.organization_id)
     .single()
 
@@ -69,59 +87,21 @@ export async function createOverride(
     return { error: 'El empleado no pertenece a tu organización.' }
   }
 
-  // 5. Validaciones
-  const { date, start_time, end_time, is_day_off, reason, break_start, break_end } = input
-
-  // Validar fecha
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-  if (!dateRegex.test(date)) {
-    return { error: 'El formato de fecha debe ser YYYY-MM-DD.' }
-  }
-
-  // Si no es día libre, validar horarios
-  if (!is_day_off) {
-    if (!start_time && !end_time) {
-      return { error: 'Debes proporcionar start_time o end_time, o marcar como día libre.' }
-    }
-
-    if (start_time && end_time) {
-      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
-      if (!timeRegex.test(start_time) || !timeRegex.test(end_time)) {
-        return { error: 'El formato de hora debe ser HH:MM (ejemplo: 09:00).' }
-      }
-      if (start_time >= end_time) {
-        return { error: 'La hora de inicio debe ser menor que la hora de fin.' }
-      }
-    }
-  }
-
-  // Validar break times
-  if (break_start || break_end) {
-    if (!break_start || !break_end) {
-      return { error: 'Debes proporcionar hora de inicio y fin del descanso.' }
-    }
-    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
-    if (!timeRegex.test(break_start) || !timeRegex.test(break_end)) {
-      return { error: 'El formato de hora del descanso debe ser HH:MM (ejemplo: 13:00).' }
-    }
-    if (break_start >= break_end) {
-      return { error: 'La hora de inicio del descanso debe ser menor que la hora de fin.' }
-    }
-  }
+  const { employee_id, date, start_time, end_time, is_day_off, reason, break_start, break_end } = parsed.data
 
   // 6. Insertar o actualizar (UPSERT)
   const { data, error: upsertError } = await supabase
     .from('employee_availability_overrides')
     .upsert(
       {
-        employee_id: input.employee_id,
-        date: input.date,
-        start_time: input.start_time || null,
-        end_time: input.end_time || null,
-        is_day_off: input.is_day_off || false,
-        reason: input.reason || null,
-        break_start: input.break_start || null,
-        break_end: input.break_end || null,
+        employee_id,
+        date,
+        start_time: start_time || null,
+        end_time: end_time || null,
+        is_day_off: is_day_off || false,
+        reason: reason || null,
+        break_start: break_start || null,
+        break_end: break_end || null,
         created_by: user.id,
       },
       {

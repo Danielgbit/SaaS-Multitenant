@@ -1,24 +1,42 @@
 'use server'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import type { CreateManualEntryInput, EntryType } from '@/types/cash-sessions'
+import { z } from 'zod'
+import { coercePositiveNumber } from '@/schemas/common'
 
-const VALID_TYPES: EntryType[] = ['expense', 'note', 'break', 'adjustment']
+const ManualEntrySchema = z.object({
+  cash_session_id: z.string().uuid(),
+  entry_type: z.enum(['expense', 'note', 'break', 'adjustment']),
+  created_via: z.enum(['manual', 'system', 'payroll']).default('manual'),
+  direction: z.enum(['in', 'out']),
+  title: z.string().min(1, 'Título requerido').max(200),
+  description: z.string().max(500).optional().nullable(),
+  amount: coercePositiveNumber({ message: 'Monto debe ser > 0' }),
+  payment_method: z.string().max(50).optional().nullable(),
+})
 
-export async function createManualEntry(input: CreateManualEntryInput) {
+export async function createManualEntry(input: { cash_session_id: string; entry_type: string; created_via?: string; direction: string; title: string; description?: string | null; amount: number; payment_method?: string | null }) {
+  const parsed = ManualEntrySchema.safeParse(input)
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || 'Datos inválidos' }
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado.' }
-  const { data: session } = await (supabase as any).from('cash_sessions').select('organization_id, status').eq('id', input.cash_session_id).single()
+
+  const { data: session } = await supabase.from('cash_sessions').select('organization_id, status').eq('id', parsed.data.cash_session_id).single()
   if (!session) return { error: 'Sesion no encontrada.' }
   if (session.status !== 'open') return { error: 'Caja cerrada.' }
+
   const { data: member } = await supabase.from('organization_members').select('role').eq('user_id', user.id).eq('organization_id', session.organization_id).single()
   if (!member || !['owner', 'admin', 'staff'].includes(member.role)) return { error: 'Sin permiso.' }
-  if (!VALID_TYPES.includes(input.entry_type)) return { error: 'Tipo invalido.' }
-  const { data: entry, error } = await (supabase as any).from('operation_entries').insert({
-    cash_session_id: input.cash_session_id, entry_type: input.entry_type, entry_status: 'active',
-    created_via: input.created_via || 'manual', direction: input.direction, title: input.title,
-    description: input.description || null, amount: input.amount, payment_method: input.payment_method || null,
+
+  const { cash_session_id, entry_type, created_via, direction, title, description, amount, payment_method } = parsed.data
+  const { data: entry, error } = await supabase.from('operation_entries').insert({
+    cash_session_id, entry_type, entry_status: 'active',
+    created_via, direction, title,
+    description: description || null, amount, payment_method: payment_method || null,
     source_type: 'manual', created_by: user.id,
   }).select('id').single()
   if (error) return { error: 'Error al registrar.' }
