@@ -46,7 +46,7 @@ if (isValidateMode) {
 
 interface ValidationResult {
   id: string
-  severity: 'ERROR' | 'WARN'
+  severity: 'ERROR' | 'WARN' | 'PASS'
   message: string
 }
 
@@ -63,7 +63,7 @@ function runValidate(): number {
 
   // Sort: ERRORs first, then WARNs, then PASS
   const sortOrder = { ERROR: 0, WARN: 1, PASS: 2 }
-  results.sort((a, b) => sortOrder[a.severity as keyof typeof sortOrder] - sortOrder[b.severity as keyof typeof sortOrder])
+  results.sort((a, b) => sortOrder[a.severity] - sortOrder[b.severity as keyof typeof sortOrder])
 
   const errors = results.filter(r => r.severity === 'ERROR')
   const warns = results.filter(r => r.severity === 'WARN')
