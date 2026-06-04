@@ -88,9 +88,9 @@ Cada documento tiene un **STATUS** que indica su relación con la realidad del c
 
 | Documento | STATUS | Descripción |
 |-----------|--------|-------------|
-| `docs/governance/ARCHITECTURE_GOVERNANCE.md` | ⚠️ PENDING | Políticas de frontend, patrones permitidos/prohibidos (por crear) |
+| `docs/governance/ARCHITECTURE_GOVERNANCE.md` | CURRENT | Políticas de frontend, patrones permitidos/prohibidos |
 | `docs/governance/ARCHITECTURE_SNAPSHOT.md` | CURRENT | Historial de enforcement y estado por módulo |
-| `docs/governance/OPERATIONAL_VISUAL_SYSTEMS.md` | ⚠️ PENDING | Registro OVS — sistemas visuales operacionales (por crear) |
+| `docs/governance/OPERATIONAL_VISUAL_SYSTEMS.md` | CURRENT | Registro OVS — sistemas visuales operacionales |
 | `docs/governance/WARN-TAXONOMY-v1.md` | CURRENT | Taxonomía de clasificación WARN para architecture guard |
 | `docs/governance/README-WARN-REVIEW.md` | CURRENT | Guía de revisión de WARN entries |
 | `docs/governance/DB-MIGRATIONS.md` | CURRENT | Convención de nomenclatura y reglas para migrations |
@@ -137,6 +137,7 @@ Cada documento tiene un **STATUS** que indica su relación con la realidad del c
 | `docs/decisions/002-notification-provider-architecture.md` | ACCEPTED | Arquitectura de notificaciones multicanal v2 |
 | `docs/decisions/003-proxy-middleware-consolidation.md` | ACCEPTED | Proxy middleware vs Next.js middleware |
 | `docs/decisions/004-why-no-domain-events-yet.md` | ACCEPTED | Por qué no se ha implementado event-driven aún |
+| `docs/decisions/005-system-inventory-authority.md` | ACCEPTED | Adoptar SYSTEM_INVENTORY.md como referencia canónica de arquitectura observada |
 
 ---
 

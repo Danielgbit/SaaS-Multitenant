@@ -337,7 +337,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                 style={{ 
                   
                   background: COLORS.primaryGradient,
-                  color: '#FFFFFF',
+                  color: COLORS.textOnPrimary,
                 }}
               >
                 Continuar
@@ -462,7 +462,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                 style={{ 
                   
                   background: COLORS.primaryGradient,
-                  color: '#FFFFFF',
+                  color: COLORS.textOnPrimary,
                 }}
               >
                 Continuar
@@ -567,7 +567,7 @@ export function WalkinForm({ services, organizationId, employeeId }: WalkinFormP
                 style={{ 
                   
                   background: COLORS.primaryGradient,
-                  color: '#FFFFFF',
+                  color: COLORS.textOnPrimary,
                 }}
               >
                 {submitting ? (

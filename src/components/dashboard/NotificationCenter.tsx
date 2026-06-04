@@ -79,26 +79,6 @@ function formatTimeAgo(dateString: string): string {
   return date.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })
 }
 
-function getUrgencyLevel(unreadCount: number, oldestUnreadAt: number | null): {
-  color: string
-  animate: boolean
-} {
-  if (unreadCount === 0) {
-    return { color: '#EF4444', animate: false }
-  }
-  if (!oldestUnreadAt) {
-    return { color: '#EF4444', animate: false }
-  }
-
-  const now = new Date().getTime()
-  const diffMin = Math.floor((now - oldestUnreadAt) / 60000)
-
-  if (diffMin < 5) return { color: '#22C55E', animate: false }
-  if (diffMin < 15) return { color: '#EAB308', animate: false }
-  if (diffMin < 25) return { color: '#F97316', animate: false }
-  return { color: '#EF4444', animate: true }
-}
-
 function filterNotifications(notifications: Notification[], tab: FilterTab): Notification[] {
   switch (tab) {
     case 'unread':
@@ -194,6 +174,26 @@ export function NotificationCenter({
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const COLORS = useThemeColors()
+
+  function getUrgencyLevel(unreadCount: number, oldestUnreadAt: number | null): {
+    color: string
+    animate: boolean
+  } {
+    if (unreadCount === 0) {
+      return { color: COLORS.error, animate: false }
+    }
+    if (!oldestUnreadAt) {
+      return { color: COLORS.error, animate: false }
+    }
+
+    const now = new Date().getTime()
+    const diffMin = Math.floor((now - oldestUnreadAt) / 60000)
+
+    if (diffMin < 5) return { color: COLORS.success, animate: false }
+    if (diffMin < 15) return { color: COLORS.warning, animate: false }
+    if (diffMin < 25) return { color: '#F97316', animate: false }
+    return { color: COLORS.error, animate: true }
+  }
 
   const urgency = getUrgencyLevel(unreadCount, oldestUnreadAt)
 

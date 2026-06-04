@@ -313,7 +313,7 @@ export function EmployeeConfirmations({
                           style={{ 
                             
                             backgroundColor: COLORS.primary,
-                            color: '#FFFFFF',
+                            color: COLORS.textOnPrimary,
                             boxShadow: `0 4px 12px ${COLORS.primary}30`,
                           }}>
                           {submitting === conf.id ? (

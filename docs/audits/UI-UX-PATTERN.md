@@ -362,6 +362,6 @@ e.currentTarget.style.boxShadow = '0 4px 24px rgba(15, 76, 92, 0.08)'
 ## Recursos
 
 - **Icons**: Lucide React
-- **Fonts**: next/font/google (Cormorant Garamond, Plus Jakarta Sans)
+- **Fonts**: next/font/google (Poppins, Manrope)
 - **Framework**: Next.js + Tailwind CSS
 - **Theme**: next-themes para dark mode
