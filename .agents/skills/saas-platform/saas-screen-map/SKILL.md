@@ -5,201 +5,207 @@ description: Reference for the entire screen architecture, routing map, and UI c
 
 # Mapa de Pantallas (Screen Map) del SaaS
 
-Esta skill documenta la arquitectura de navegación, las rutas del sistema y la jerarquía visual de componentes. **Consúltala siempre que debas crear nuevas páginas (routes), diseñar Layouts, componer interfaces o vincular botones con sus respectivas Server Actions.**
+Esta skill documenta la arquitectura de navegación, las rutas del sistema y la jerarquía visual de componentes. Consúltala siempre que debas crear nuevas páginas, diseñar Layouts, componer interfaces o vincular botones con sus respectivas Server Actions.
 
-El SaaS cuenta con **3 tipos principales de interfaces**:
-1. `Auth` (Autenticación)
-2. `Dashboard` (Gestión interna del negocio)
-3. `Booking público` (Cara visible para los clientes)
+El SaaS cuenta con **4 tipos principales de interfaces**:
 
----
-
-## 🗺️ Mapa Visual Completo de Navegación
-
-```text
-AUTH
-├─ Login
-└─ Register
-
-ONBOARDING
-└─ Business Setup
-
-DASHBOARD
-├─ Overview
-├─ Calendar
-├─ Clients
-├─ Services
-├─ Employees
-├─ Automation
-└─ Billing
-
-EMPLOYEE
-└─ My Schedule
-
-PUBLIC
-└─ Booking Page
-```
+1. **Auth** (Login, Register, Password Reset)
+2. **Onboarding** (Setup inicial del negocio)
+3. **Dashboard** (Gestión interna — ~30 páginas)
+4. **Público** (Booking, confirmación, invitación)
 
 ---
 
-## 🖥️ Detalle por Pantallas y Componentes
+## Rutas Reales (desde `src/app/`)
 
-### 1️⃣ AUTH (Autenticación)
+### Auth `(auth)`
 
-**Pantalla: Login**
-*   **User Actions disponibles:** `login`, `reset_password`
-*   **Componentes Clave:**
-    *   `LoginForm`
-    *   `EmailInput`
-    *   `PasswordInput`
-    *   `SubmitButton`
-    *   `ForgotPasswordLink`
+| Ruta | Pantalla |
+|------|----------|
+| `/login` | Login |
+| `/register` | Register |
+| `/forgot-password` | Recuperar contraseña |
+| `/reset-password` | Resetear contraseña |
 
-**Pantalla: Register**
-*   **User Actions disponibles:** `register_account`, `create_organization`
-*   **Componentes Clave:**
-    *   `RegisterForm`
-    *   `BusinessNameInput`
-    *   `EmailInput`
-    *   `PasswordInput`
-    *   `SubmitButton`
+### Public `(public)`
 
----
+| Ruta | Pantalla |
+|------|----------|
+| `/reservar/[slug]` | Booking público (wizard 3 pasos) |
+| `/confirmar/[token]` | Confirmación de cita vía link |
+| `/invite/[token]` | Aceptar invitación de empleado |
+| `/help/special-days` | Help: días especiales |
 
-### 2️⃣ ONBOARDING
+### Dashboard `(dashboard)`
 
-**Pantalla: Business Setup**
-*   **User Actions disponibles:** `complete_onboarding`, `create_initial_services`, `create_initial_employees`, `set_business_hours`
-*   **Componentes Clave:**
-    *   `BusinessInfoForm`
-    *   `ServiceSetup`
-    *   `EmployeeSetup`
-    *   `BusinessHoursSetup`
+| Ruta | Pantalla | Roles |
+|------|----------|-------|
+| `/dashboard` | Overview analítico (KPIs, tendencias) | owner, admin, staff |
+| `/calendar` | Calendario semanal de citas | owner, admin, staff, empleado |
+| `/clients` | Lista de clientes + búsqueda | owner, admin, staff |
+| `/clients/[id]` | Detalle de cliente + historial | owner, admin, staff |
+| `/clients/[id]/account` | Cuenta/crédito del cliente | owner, admin, staff |
+| `/clients/accounts` | Vista general cuentas por cobrar | owner, admin |
+| `/employees` | Gestión de empleados | owner, admin |
+| `/employees/[id]` | Detalle de empleado | owner, admin |
+| `/employees/[id]/availability` | Disponibilidad de empleado | owner, admin |
+| `/services` | Catálogo de servicios | owner, admin, staff |
+| `/confirmations` | Panel de confirmaciones (recepción) | owner, admin, staff, empleado |
+| `/confirmations/walkin` | Confirmación walk-in | owner, admin, staff |
+| `/payroll` | Nómina general | owner, admin |
+| `/payroll/new` | Nueva liquidación | owner, admin |
+| `/payroll/[employeeId]` | Nómina por empleado | owner, admin |
+| `/payroll/mi` | Mi nómina (vista empleado) | empleado |
+| `/payroll/history` | Historial de nómina | owner, admin |
+| `/payroll/period/[periodId]` | Detalle de período | owner, admin |
+| `/payroll/settings` | Configuración de nómina | owner, admin |
+| `/caja` | Caja del día (cash register) | owner, admin, staff |
+| `/horarios` | Gestión de horarios/availability | owner, admin |
+| `/inventory` | Inventario / stock | owner, admin |
+| `/debts` | Deudas / cuentas por cobrar | owner, admin |
+| `/whatsapp` | Configuración WhatsApp | owner, admin |
+| `/email` | Configuración email | owner, admin |
+| `/notificaciones` | Centro de notificaciones | owner, admin, staff |
+| `/notificaciones/messages` | Historial de mensajes | owner, admin |
+| `/notificaciones/messages/[id]` | Detalle de mensaje | owner, admin |
+| `/notificaciones/dead-letter` | Cola dead-letter | owner, admin |
+| `/notificaciones/validacion` | Validación shadow mode | owner, admin |
+| `/settings` | Ajustes de organización | owner, admin |
+| `/settings/data-retention` | Retención de datos / purga | owner, admin |
+| `/billing` | Facturación / Stripe | owner, admin |
+| `/mi` | Mi perfil / espacio personal | owner, admin, staff, empleado |
 
----
+### Admin global
 
-### 3️⃣ DASHBOARD (Gestión de Negocio)
+| Ruta | Pantalla |
+|------|----------|
+| `/admin` | Admin dashboard |
+| `/admin/organizations` | Lista de organizaciones |
+| `/admin/organizations/[id]` | Detalle de organización |
+| `/admin/users` | Usuarios del sistema |
+| `/admin/metrics` | Métricas del sistema |
+| `/admin/promo-codes` | Códigos promocionales |
+| `/admin/promo-codes/new` | Crear código promocional |
+| `/admin/system/notifications` | Sistema de notificaciones admin |
 
-**Pantalla: Dashboard Overview**
-*   **User Actions disponibles:** `view_daily_appointments`, `view_metrics`
-*   **Componentes Clave:**
-    *   `TodayAppointmentsCard`
-    *   `RevenueTodayCard`
-    *   `UpcomingAppointmentsList`
-    *   `QuickActionsPanel`
+### Otras
 
----
-
-### 4️⃣ CALENDAR (Pantalla Principal del Staff/Owner)
-
-**Ruta esperada:** `/dashboard/calendar`
-*   **User Actions disponibles:** `view_calendar_week`, `filter_calendar_by_employee`, `create_appointment_from_slot`, `drag_and_drop_appointment`, `open_appointment_details`
-*   **Componentes Clave:**
-    *   `CalendarView`
-    *   `EmployeeFilter`
-    *   `AppointmentCard`
-    *   `CreateAppointmentModal`
-    *   `AppointmentDetailsModal`
-
----
-
-### 5️⃣ CREATE APPOINTMENT MODAL (Componente Global)
-
-*   **User Actions disponibles:** `create_appointment`, `assign_service`, `assign_employee`, `assign_client`
-*   **Componentes Clave (Internos):**
-    *   `ClientSearchInput`
-    *   `ServiceSelector`
-    *   `EmployeeSelector`
-    *   `DateTimeSelector`
-    *   `ConfirmButton`
-
----
-
-### 6️⃣ CLIENTS (Clientes)
-
-**Ruta esperada:** `/dashboard/clients`
-*   **User Actions disponibles:** `create_client`, `edit_client`, `search_client_by_phone`, `view_client_history`
-*   **Componentes Clave:**
-    *   `ClientTable`
-    *   `ClientSearchBar`
-    *   `CreateClientModal`
-    *   `ClientProfileModal`
+| Ruta | Pantalla |
+|------|----------|
+| `/onboarding` | Setup inicial post-registro |
+| `/precios` | Página de precios/planes |
+| `/dev/typography` | Guía tipográfica (dev-only) |
 
 ---
 
-### 7️⃣ SERVICES (Servicios)
+## Layouts
 
-**Ruta esperada:** `/dashboard/services`
-*   **User Actions disponibles:** `create_service`, `edit_service`, `activate_service`, `deactivate_service`
-*   **Componentes Clave:**
-    *   `ServiceTable`
-    *   `CreateServiceModal`
-    *   `EditServiceModal`
-    *   `ServiceCard`
-
----
-
-### 8️⃣ EMPLOYEES (Empleados)
-
-**Ruta esperada:** `/dashboard/employees`
-*   **User Actions disponibles:** `create_employee`, `edit_employee`, `set_employee_availability`, `invite_employee`
-*   **Componentes Clave:**
-    *   `EmployeeTable`
-    *   `CreateEmployeeModal`
-    *   `EmployeeAvailabilityEditor`
-    *   `InviteEmployeeModal`
+| Layout | Archivo | Rol |
+|--------|---------|-----|
+| Root | `src/app/layout.tsx` | Poppins+Manrope, ThemeProvider, Toaster |
+| Dashboard | `src/app/(dashboard)/layout.tsx` | Auth check, OrgProvider, QueryProvider, DashboardShell |
+| Admin | `src/app/admin/layout.tsx` | Admin shell |
+| Admin system | `src/app/admin/system/layout.tsx` | Admin system shell |
+| Onboarding | `src/app/onboarding/layout.tsx` | Onboarding shell |
 
 ---
 
-### 9️⃣ EMPLOYEE DASHBOARD (Panel exclusivo del Empleado)
+## Componentes por Pantalla
 
-**Ruta esperada:** `/dashboard/my-schedule`
-*   **User Actions disponibles:** `view_personal_schedule`, `view_next_appointment`, `mark_appointment_completed`, `mark_appointment_no_show`
-*   **Componentes Clave:**
-    *   `TodaySchedule`
-    *   `NextAppointmentCard`
-    *   `CompleteAppointmentButton`
-    *   `ClientInfoCard`
+### AUTH
+
+**Login** (`/login`): `LoginForm`, `ThemeToggle`
+**Register** (`/register`): `RegisterForm`, `ThemeToggle`
+**Forgot Password** (`/forgot-password`): `ForgotPasswordForm`
+**Reset Password** (`/reset-password`): `ResetPasswordForm`
+
+### ONBOARDING
+
+**Business Setup** (`/onboarding`): `BusinessInfoForm`, `ServiceSetup`, `EmployeeSetup`, `BusinessHoursSetup`
+
+### DASHBOARD — Generales
+
+**Dashboard Overview** (`/dashboard`): `MetricCard`, `Chart`, `TodayPulse`, `QuickActions`, `UpcomingAppointmentsList`
+
+**Calendar** (`/calendar`): `CalendarView`, `AppointmentCard`, `AppointmentDetailModal`, `EditAppointmentModal`, `CalendarToolbar`, `CalendarFooter`, `CreateAppointmentWizard`
+
+**Navegación**: `DashboardShell`, `CollapsibleSidebar`, `Header`, `MobileNav`, `CommandPalette`, `NotificationCenter`
+
+### DASHBOARD — Clientes
+
+**Clients list** (`/clients`): `ClientTable`, `ClientSearchBar`, `CreateClientModal`, `ClientActions`
+**Client detail** (`/clients/[id]`): `ClientProfileCard`, `AppointmentHistory`, `AccountBalanceCard`
+**Client account** (`/clients/[id]/account`): `TransactionList`, `RecordPaymentForm`, `AdjustmentForm`
+**Accounts overview** (`/clients/accounts`): `AccountsTable`, `AccountFilters`
+
+### DASHBOARD — Empleados
+
+**Employees list** (`/employees`): `EmployeeTable`, `CreateEmployeeModal`, `InviteEmployeeModal`
+**Employee detail** (`/employees/[id]`): `EmployeeProfileCard`, `PayrollSummaryCard`, `ServiceAssignment`
+**Availability** (`/employees/[id]/availability`): `AvailabilityCalendar`, `OverrideForm`
+
+### DASHBOARD — Servicios
+
+**Services** (`/services`): `ServiceList`, `CreateServiceModal`, `EditServiceModal`, `ToggleServiceStatus`
+
+### DASHBOARD — Confirmaciones
+
+**Confirmations** (`/confirmations`): `ConfirmBanner`, `PendingServicesPanel`, `PaymentModal`, `AdjustPriceModal`, `MarkCompletedModal`
+**Walk-in** (`/confirmations/walkin`): `WalkinForm`, `ServiceSelector`, `PaymentModal`
+
+### DASHBOARD — Payroll
+
+**Payroll** (`/payroll`): `PayrollDashboard`, `PayrollTable`, `CreatePayrollPeriodModal`
+**Employee payroll** (`/payroll/[employeeId]`): `PayrollItemDetail`, `CommissionBreakdown`, `LoanDeductions`
+**Mi nómina** (`/payroll/mi`): `EmployeePayrollView`, `ReceiptList`, `LoanStatus`
+**New period** (`/payroll/new`): `PayrollPeriodForm`, `EmployeeSelector`
+**Period detail** (`/payroll/period/[periodId]`): `PeriodSummary`, `PayrollItemsTable`
+**Settings** (`/payroll/settings`): `PayrollConfigForm`, `PayrollSettingsForm`
+
+### DASHBOARD — Caja
+
+**Caja** (`/caja`): `CashSessionPanel`, `OpenSessionForm`, `OperationEntryList`, `CloseSessionForm`, `PaymentAudit`
+
+### DASHBOARD — Horarios
+
+**Horarios** (`/horarios`): `AvailabilityGrid`, `BulkAvailabilityForm`, `SpecialDaysManager`
+
+### DASHBOARD — Inventario
+
+**Inventory** (`/inventory`): `InventoryTable`, `CreateItemModal`, `EditItemModal`, `AdjustStockModal`, `ConsumeModal`, `LowStockAlerts`
+
+### DASHBOARD — Notificaciones
+
+**Notificaciones** (`/notificaciones`): `NotificationList`, `AutomationRulesEditor`, `TemplateEditor`, `ProviderConfig`
+**Messages** (`/notificaciones/messages`): `MessageHistoryTable`, `MessageFilters`
+**Dead letter** (`/notificaciones/dead-letter`): `DeadLetterQueue`, `ReplayButton`, `DiscardButton`
+**Validación** (`/notificaciones/validacion`): `ShadowValidationPanel`, `DriftSummary`, `ComparisonDetail`
+
+### DASHBOARD — Configuración
+
+**Settings** (`/settings`): `OrganizationForm`, `BookingSettingsForm`, `IntegrationStatusCards`, `SlugEditor`
+**Data retention** (`/settings/data-retention`): `DataRetentionToggle`, `RetentionDaysSelector`, `ManualPurgeButton`
+
+### DASHBOARD — Otros
+
+**WhatsApp** (`/whatsapp`): `WhatsAppSettingsForm`, `TemplateManager`, `LogViewer`, `ActivationRequest`
+**Email** (`/email`): `EmailSettingsForm`, `TemplatePreview`, `LogViewer`
+**Billing** (`/billing`): `CurrentPlanCard`, `PricingTable`, `PaymentHistoryTable`, `UpgradeButton`
+**Debts** (`/debts`): `DebtsTable`, `DebtFilters`, `PaymentForm`
+**Mi** (`/mi`): `MyProfileForm`, `MyAvailabilityEditor`, `MyMetrics`
+
+### PUBLIC
+
+**Booking** (`/reservar/[slug]`): `ServiceSelector`, `EmployeeSelector`, `SlotGrid`, `ClientBookingForm`, `BookingConfirmation`
+**Confirmar** (`/confirmar/[token]`): `ConfirmationPage`, `CancellationPage`
+**Invite** (`/invite/[token]`): `AcceptInvitationForm`, `PasswordInput`, `InviteErrorPage`
+**Help** (`/help/special-days`): `SpecialDaysGuide`
 
 ---
 
-### 🔟 BOOKING PÚBLICO (Vista del Cliente Final)
+## Cómo usar este Screen Map
 
-**Ruta esperada:** `/reservar/[slug]`
-*   **User Actions disponibles:** `view_public_services`, `select_service`, `select_employee`, `select_slot`, `create_public_booking`
-*   **Componentes Clave:**
-    *   `ServiceSelector`
-    *   `EmployeeSelector`
-    *   `AvailableSlotsGrid`
-    *   `ClientBookingForm`
-    *   `BookingConfirmation`
-
----
-
-### 1️⃣1️⃣ AUTOMATION SETTINGS (Configuración de WhatsApp)
-
-**Ruta esperada:** `/dashboard/automation`
-*   **User Actions disponibles:** `edit_whatsapp_templates`, `enable_reminders`, `disable_reminders`
-*   **Componentes Clave:**
-    *   `TemplateEditor`
-    *   `ReminderToggle`
-    *   `AutomationSettingsCard`
-
----
-
-### 1️⃣2️⃣ BILLING (Facturación)
-
-**Ruta esperada:** `/dashboard/billing`
-*   **User Actions disponibles:** `view_current_plan`, `change_plan`, `cancel_subscription`, `view_payment_history`
-*   **Componentes Clave:**
-    *   `CurrentPlanCard`
-    *   `PricingTable`
-    *   `PaymentHistoryTable`
-    *   `UpgradePlanButton`
----
-
-## 🚀 Cómo usar este Screen Map en el Código
-
-1. **Estructura de Carpetas:** Este mapa debe dictar la estructura de la carpeta `app/` en Next.js (ej. `app/(dashboard)/dashboard/calendar/page.tsx`).
-2. **Jerarquía UI:** Al construir una pantalla, asegúrate de incluir y aislar los *Componentes Clave* listados.
-3. **Conexión Lógica:** Cada componente interactivo dentro de estas pantallas debe tener sus eventos (`onClick`, `onSubmit`) ligados a las *User Actions* documentadas en la skill `saas-user-actions`.
+1. **Routing:** Las rutas son planas bajo `(dashboard)` — sin prefijo `/dashboard/`. Ej: `app/(dashboard)/calendar/page.tsx`.
+2. **Jerarquía UI:** Cada pantalla lista sus componentes clave. Usarlos como entrada para composición.
+3. **Conexión lógica:** Los eventos interactivos se vinculan a Server Actions documentadas en la skill `saas-user-actions`.
+4. **Visibilidad por rol:** La navegación se filtra por rol via `src/lib/navigation.ts` (propiedades `hideForStaff`, `hideForEmpleado`, `showOnlyForEmpleado`).

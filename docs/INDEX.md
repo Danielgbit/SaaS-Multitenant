@@ -42,29 +42,32 @@ Cada documento tiene un **STATUS** que indica su relación con la realidad del c
 | `docs/architecture/CURRENT/ENVIRONMENT.md` | CURRENT | Referencia completa de variables de entorno |
 | `docs/architecture/CURRENT/CRON-JOBS.md` | CURRENT | Todos los endpoints cron programados |
 | `docs/architecture/CURRENT/DATABASE.md` | CURRENT | Schema de base de datos, entidades, relaciones, RLS, legacy tables |
+| `docs/architecture/CURRENT/SYSTEM_INVENTORY.md` | CURRENT | Métricas verificadas, tabla de tablas, reference counts, drift detectado |
 
 ### Future — Propuestas y Planes
 
+> **Nota:** Estos archivos están ubicados en `src/docs/architecture/` (no en `docs/architecture/FUTURE/`).
+
 | Documento | STATUS | Descripción |
 |-----------|--------|-------------|
-| `docs/architecture/FUTURE/README.md` | PROPOSAL | Architecture Handbook — visión event-driven |
-| `docs/architecture/FUTURE/01-domain-overview.md` | PROPOSAL | Análisis de arquitectura event-driven |
-| `docs/architecture/FUTURE/02-domain-events.md` | PROPOSAL | Catálogo de 22 eventos de dominio |
-| `docs/architecture/FUTURE/03-state-ownership.md` | PROPOSAL | Single Writer Principle |
-| `docs/architecture/FUTURE/04-transition-authority.md` | PROPOSAL | Permisos de transición de estado |
-| `docs/architecture/FUTURE/05-domain-invariants.md` | PROPOSAL | Invariantes HARD y SOFT |
-| `docs/architecture/FUTURE/06-state-machines.md` | PROPOSAL | Máquinas de estado determinísticas |
-| `docs/architecture/FUTURE/07-orchestrator-architecture.md` | PROPOSAL | Arquitectura de orquestadores |
-| `docs/architecture/FUTURE/08-event-classification.md` | PROPOSAL | Clasificación de eventos |
-| `docs/architecture/FUTURE/09-replay-and-idempotency.md` | PROPOSAL | Replay e idempotencia |
-| `docs/architecture/FUTURE/10-failure-classification.md` | PROPOSAL | Taxonomía de fallos |
-| `docs/architecture/FUTURE/11-source-of-truth.md` | PROPOSAL | Fuente de verdad |
-| `docs/architecture/FUTURE/12-cron-architecture.md` | PROPOSAL | Arquitectura de cron detectors |
-| `docs/architecture/FUTURE/13-payroll-architecture.md` | PROPOSAL | Desacoplamiento de nómina |
-| `docs/architecture/FUTURE/14-observability.md` | PROPOSAL | Observabilidad y tracing |
-| `docs/architecture/FUTURE/15-event-replay-operations.md` | PROPOSAL | Procedimientos operativos de replay |
-| `docs/architecture/FUTURE/16-folder-structure.md` | PROPOSAL | Estructura de carpetas objetivo |
-| `docs/architecture/FUTURE/17-migration-strategy.md` | PROPOSAL | Estrategia de migración Strangler Fig |
+| `src/docs/architecture/README.md` | PROPOSAL | Architecture Handbook — visión event-driven |
+| `src/docs/architecture/01-domain-overview.md` | PROPOSAL | Análisis de arquitectura event-driven |
+| `src/docs/architecture/02-domain-events.md` | PROPOSAL | Catálogo de 22 eventos de dominio |
+| `src/docs/architecture/03-state-ownership.md` | PROPOSAL | Single Writer Principle |
+| `src/docs/architecture/04-transition-authority.md` | PROPOSAL | Permisos de transición de estado |
+| `src/docs/architecture/05-domain-invariants.md` | PROPOSAL | Invariantes HARD y SOFT |
+| `src/docs/architecture/06-state-machines.md` | PROPOSAL | Máquinas de estado determinísticas |
+| `src/docs/architecture/07-orchestrator-architecture.md` | PROPOSAL | Arquitectura de orquestadores |
+| `src/docs/architecture/08-event-classification.md` | PROPOSAL | Clasificación de eventos |
+| `src/docs/architecture/09-replay-and-idempotency.md` | PROPOSAL | Replay e idempotencia |
+| `src/docs/architecture/10-failure-classification.md` | PROPOSAL | Taxonomía de fallos |
+| `src/docs/architecture/11-source-of-truth.md` | PROPOSAL | Fuente de verdad |
+| `src/docs/architecture/12-cron-architecture.md` | PROPOSAL | Arquitectura de cron detectors |
+| `src/docs/architecture/13-payroll-architecture.md` | PROPOSAL | Desacoplamiento de nómina |
+| `src/docs/architecture/14-observability.md` | PROPOSAL | Observabilidad y tracing |
+| `src/docs/architecture/15-event-replay-operations.md` | PROPOSAL | Procedimientos operativos de replay |
+| `src/docs/architecture/16-folder-structure.md` | PROPOSAL | Estructura de carpetas objetivo |
+| `src/docs/architecture/17-migration-strategy.md` | PROPOSAL | Estrategia de migración Strangler Fig |
 
 ---
 
@@ -85,9 +88,9 @@ Cada documento tiene un **STATUS** que indica su relación con la realidad del c
 
 | Documento | STATUS | Descripción |
 |-----------|--------|-------------|
-| `docs/governance/ARCHITECTURE_GOVERNANCE.md` | CURRENT | Políticas de frontend, patrones permitidos/prohibidos |
+| `docs/governance/ARCHITECTURE_GOVERNANCE.md` | ⚠️ PENDING | Políticas de frontend, patrones permitidos/prohibidos (por crear) |
 | `docs/governance/ARCHITECTURE_SNAPSHOT.md` | CURRENT | Historial de enforcement y estado por módulo |
-| `docs/governance/OPERATIONAL_VISUAL_SYSTEMS.md` | CURRENT | Registro OVS — sistemas visuales operacionales |
+| `docs/governance/OPERATIONAL_VISUAL_SYSTEMS.md` | ⚠️ PENDING | Registro OVS — sistemas visuales operacionales (por crear) |
 | `docs/governance/WARN-TAXONOMY-v1.md` | CURRENT | Taxonomía de clasificación WARN para architecture guard |
 | `docs/governance/README-WARN-REVIEW.md` | CURRENT | Guía de revisión de WARN entries |
 | `docs/governance/DB-MIGRATIONS.md` | CURRENT | Convención de nomenclatura y reglas para migrations |

@@ -28,6 +28,7 @@ El sistema define quién puede ejecutar acciones basado en los siguientes roles:
 *   `login`
 *   `logout`
 *   `reset_password`
+*   `send_password_reset_email`
 
 ### 2️⃣ ORGANIZATION (Organización)
 **Actores:** Solo Owner / Admin.
@@ -105,8 +106,79 @@ El sistema define quién puede ejecutar acciones basado en los siguientes roles:
 *   `view_client_details`
 *   `mark_appointment_completed`
 *   `mark_appointment_no_show`
+*   `get_my_history`
+*   `get_my_metrics`
+*   `update_my_profile`
+*   `set_my_availability`
 
-### 1️⃣1️⃣ PUBLIC BOOKING (Reservas Públicas)
+### 1️⃣1️⃣ CONFIRMACIONES (Post-Servicio)
+**Actores:** Owner / Admin / Staff / Employee (propias).
+*   `mark_appointment_completed` — empleado marca "Listo"
+*   `confirm_service_collection` — recepcionista cobra
+*   `confirm_by_reception`
+*   `adjust_price`
+*   `cancel_confirmation`
+*   `mark_manually`
+*   `view_confirmation_logs`
+*   `create_walkin_confirmation`
+
+### 1️⃣2️⃣ PAYROLL (Nómina)
+**Actores:** Owner / Admin.
+*   `create_payroll_period`
+*   `calculate_employee_payroll`
+*   `manage_payroll_period` (approve/pay)
+*   `recalculate_payroll_item`
+*   `update_payroll_item`
+*   `generate_payroll_receipt`
+*   `send_payroll_receipt_email`
+*   `view_payroll_dashboard`
+*   `view_payroll_settings`
+*   `create_employee_loan`
+*   `get_pending_loans`
+**Actores:** Employee.
+*   `view_my_payroll`
+
+### 1️⃣3️⃣ FINANCIAL EVENTS
+**Actores:** Sistema (triggers de BD).
+*   `record_financial_event_from_confirmation`
+*   `record_financial_event_from_transaction`
+*   `record_financial_event_from_payroll`
+*   `materialize_appointment_payment_status`
+**Actores:** Owner / Admin.
+*   `view_appointment_financial_status`
+*   `record_appointment_payment`
+*   `record_commission_accrual`
+
+### 1️⃣4️⃣ CASH SESSIONS (Caja)
+**Actores:** Owner / Admin / Staff.
+*   `open_cash_session`
+*   `close_cash_session`
+*   `create_operation_entry`
+*   `pay_employee_from_cash`
+*   `void_operation_entry`
+*   `audit_payments`
+*   `view_session_history`
+
+### 1️⃣5️⃣ CLIENT ACCOUNTS (Cuentas por Cobrar)
+**Actores:** Owner / Admin / Staff.
+*   `record_client_transaction`
+*   `record_client_adjustment`
+*   `void_client_transaction`
+*   `update_adjustment`
+*   `view_client_account_detail`
+*   `view_client_accounts_overview`
+
+### 1️⃣6️⃣ INVENTORY (Inventario)
+**Actores:** Owner / Admin.
+*   `create_inventory_item`
+*   `edit_inventory_item`
+*   `adjust_stock`
+*   `consume_inventory`
+*   `record_inventory_purchase`
+*   `delete_inventory_item`
+*   `view_low_stock_alerts`
+
+### 1️⃣7️⃣ PUBLIC BOOKING (Reservas Públicas)
 **Actores:** Cliente final.
 *   `view_public_services`
 *   `view_available_slots`
@@ -116,7 +188,25 @@ El sistema define quién puede ejecutar acciones basado en los siguientes roles:
 *   `cancel_public_booking`
 *   `confirm_booking`
 
-### 1️⃣2️⃣ AUTOMATIZACIÓN WHATSAPP
+### 1️⃣8️⃣ NOTIFICACIONES V2 (Multicanal)
+**Actores:** Owner / Admin.
+*   `configure_automation_rules`
+*   `edit_message_templates`
+*   `configure_notification_providers`
+*   `view_notification_queue`
+*   `view_notification_messages`
+*   `replay_dead_letter`
+*   `discard_dead_letter`
+*   `requeue_stuck_notifications`
+**Actores:** Sistema.
+*   `process_notification_queue`
+*   `evaluate_automation_rules`
+*   `resolve_channel_provider`
+*   `send_whatsapp_message`
+*   `send_email_message`
+*   `send_in_app_notification`
+
+### 1️⃣9️⃣ WHATSAPP (Legacy V1)
 **Actores:** Sistema.
 *   `send_appointment_confirmation`
 *   `send_24h_reminder`
@@ -129,7 +219,7 @@ El sistema define quién puede ejecutar acciones basado en los siguientes roles:
 *   `enable_reminders`
 *   `disable_reminders`
 
-### 1️⃣3️⃣ BILLING (Facturación)
+### 2️⃣0️⃣ BILLING (Facturación)
 **Actores:** Owner.
 *   `view_current_plan`
 *   `change_plan`
@@ -141,7 +231,7 @@ El sistema define quién puede ejecutar acciones basado en los siguientes roles:
 *   `update_subscription_status`
 *   `process_webhook_payment`
 
-### 1️⃣4️⃣ ANALYTICS (Métricas)
+### 2️⃣1️⃣ ANALYTICS (Métricas)
 **Actores:** Owner / Admin.
 *   `view_daily_appointments`
 *   `view_daily_revenue`
@@ -151,21 +241,40 @@ El sistema define quién puede ejecutar acciones basado en los siguientes roles:
 *   `view_cancellation_rate`
 *   `view_no_show_rate`
 
-### 1️⃣5️⃣ SETTINGS (Configuración General)
+### 2️⃣2️⃣ SETTINGS (Configuración General)
 **Actores:** Owner / Admin.
 *   `update_business_settings`
 *   `configure_public_booking`
 *   `configure_automation_settings`
 *   `configure_business_hours`
+*   `update_data_retention`
+*   `trigger_manual_purge`
+*   `check_slug_availability`
 
-### 1️⃣6️⃣ SISTEMA (Acciones Automáticas Core)
+### 2️⃣3️⃣ PROMO CODES
+**Actores:** Sistema.
+*   `validate_promo_code`
+*   `apply_promo_code`
+
+### 2️⃣4️⃣ ONBOARDING
+**Actores:** Owner.
+*   `get_onboarding_state`
+*   `complete_onboarding`
+
+### 2️⃣5️⃣ SISTEMA (Acciones Automáticas Core)
 **Actores:** Sistema.
 *   `create_organization_on_signup`
 *   `create_owner_profile`
 *   `create_trial_subscription`
 *   `generate_available_slots`
 *   `validate_appointment_overlap`
-*   `process_whatsapp_queue`
+*   `process_notification_queue`
+*   `process_reminder_cron`
+*   `process_purge_cron`
+*   `process_shadow_validation`
+*   `evaluate_worker_alerts`
+*   `upsert_worker_heartbeat`
+*   `handle_stripe_webhook`
 *   `log_system_events`
 
 ---

@@ -224,14 +224,13 @@ export const getOrganizationSummary = unstable_cache(
       }
     }
 
-    const userEmailMap = new Map<string, string>()
-    try {
-      const { data: usersData } = await (admin.auth as any).admin.listUsers()
-      for (const u of (usersData?.users || [])) {
-        userEmailMap.set(u.id, u.email || '')
-      }
-    } catch {
-    }
+    const { data: allProfiles } = await admin
+      .from('user_profiles')
+      .select('id, email')
+
+    const userEmailMap = new Map<string, string>(
+      (allProfiles || []).map(p => [p.id, p.email])
+    )
 
     return (orgs || []).map(org => {
       const sub = (org.subscriptions as any)?.[0]

@@ -365,7 +365,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:shadow-lg cursor-pointer"
             style={{ 
               background: COLORS.primaryGradient,
-              color: '#FFFFFF',
+              color: COLORS.textOnPrimary,
             }}
           >
             <Plus className="w-4 h-4" />
@@ -421,7 +421,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
               className="px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
               style={{ 
                 background: COLORS.primaryGradient,
-                color: '#FFFFFF',
+                color: COLORS.textOnPrimary,
               }}
             >
               Ver todos los productos

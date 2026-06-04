@@ -141,13 +141,15 @@ export function DashboardClient({
 
       {/* Header with gradient - Admin/Owner/Staff */}
       <div
-          className="relative overflow-hidden rounded-2xl p-6 md:p-8"
+          className="relative rounded-2xl p-6 md:p-8"
           style={{
             background: `linear-gradient(135deg, ${COLORS.gradientFrom} 0%, ${COLORS.gradientTo} 100%)`,
           }}
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          </div>
 
           <div className="relative flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="flex items-center gap-4">

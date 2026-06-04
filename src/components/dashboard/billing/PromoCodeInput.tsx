@@ -305,7 +305,7 @@ function ApplyButton() {
       className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
       style={{
         backgroundColor: pending ? COLORS.primaryLight : COLORS.primary,
-        color: '#FFFFFF',
+        color: COLORS.textOnPrimary,
       }}
     >
       {pending ? (

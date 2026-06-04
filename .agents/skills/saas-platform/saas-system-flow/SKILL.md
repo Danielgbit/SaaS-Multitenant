@@ -196,7 +196,7 @@ Se crea appointment (status: confirmed)
 ↓
 Se crean appointment_services
 ↓
-Si integración WhatsApp activa → Crear mensaje en cola
+Si hay automation rules activas → Encolar en notification_queue
 ↓
 Actualizar UI del calendario
 ```
@@ -209,7 +209,7 @@ appointments
 appointment_services
 employees
 services
-whatsapp_messages (si está activa la integración)
+notification_queue (si hay automation rules activas)
 ```
 
 ### Estados de Appointment
@@ -409,7 +409,9 @@ Sistema actualiza:
 ↓
 SUPABASE REALTIME dispara evento
 ↓
-Se crea notification en la tabla notifications
+Se inserta confirmation_log (acción: created)
+↓
+Se notifica vía notification_queue / Realtime según automation rules
 ↓
 PANEL DE RECEPCIÓN recibe actualización en tiempo real
 ↓
@@ -472,18 +474,15 @@ notes
 created_at
 ```
 
-### notifications - Alertas en Tiempo Real
+### confirmation_logs - Tabla de Confirmación (historial completo)
 
-```
-id, organization_id (fk)
-type (confirmation_reminder|confirmation_needed|appointment_created|etc)
-appointment_id (fk, nullable)
-payload (jsonb) - { appointment_id, action, urgency, tiempo_transcurrido }
-read_at
-created_at
-```
+Ver schema en la tabla descrita arriba. Cada confirmación tiene `confirmation_logs` con trazabilidad completa.
 
-Supabase Realtime subscribe a `notifications` para organization.
+### Sistema de Notificaciones In-App (V2)
+
+Las alertas en tiempo real se manejan via `notification_queue` + Supabase Realtime. Ver módulo de Notificaciones V2 para arquitectura completa.
+
+**Legacy:** La tabla `notifications` (V1) todavía existe pero está siendo reemplazada por el sistema V2.
 
 ---
 
@@ -560,7 +559,7 @@ payments (jsonb) - historial de abonos
     → paid_at: NOW()
 ```
 
-### Tablas de Payroll
+### Tablas de Payroll (V2 — Activo)
 
 ```
 organization_payroll_settings
@@ -568,30 +567,47 @@ organization_payroll_settings
 ├── day_of_month (1-28)
 └── cutoff_day
 
-payroll_receipts
-├── id, organization_id (fk), employee_id (fk)
-├── period_start, period_end
-├── total_services (cantidad de servicios)
-├── total_revenue (suma de revenues)
-├── total_commission (suma de comisiones)
-├── total_loans_deducted (suma de deducciones)
-├── net_pay (total_commission - total_loans_deducted + fixed_salary)
-├── status (draft|finalized|paid)
-├── generated_at, paid_at
+payroll_periods                          ← Modelo V2 (activo)
+├── organization_id (fk)
+├── period (YYYY-MM)
+├── status (draft|approved|paid)
+├── total_revenue, total_commission
+├── total_employee_deductions
+├── net_pay_total
+├── paid_at
 
-payroll_receipt_services
-├── receipt_id (fk)
-├── service_name
-├── appointment_date
-├── revenue
-├── commission_rate_used
-└── commission_amount
+payroll_items                            ← Por empleado por período
+├── payroll_period_id (fk)
+├── employee_id (fk)
+├── payment_type (commission|fixed_salary|mixed)
+├── contract_type
+├── base_salary, commission_total
+├── total_loans_deducted
+├── net_pay
+├── has_transport_subsidy
+├── status (draft|approved|paid)
 
-payroll_receipt_loans
-├── receipt_id (fk)
+period_commissions                       ← Detalle por servicio
+├── payroll_item_id (fk)
+├── appointment_id (fk)
+├── service_id (fk)
+├── revenue, commission_rate
+├── commission_amount
+├── service_date
+
+payroll_item_loans                       ← Deducciones de préstamos
+├── payroll_item_id (fk)
 ├── loan_id (fk)
 └── amount_deducted
+
+employee_loans                           ← Préstamos a empleados
+├── employee_id (fk)
+├── amount, interest_rate
+├── status (active|paid|cancelled)
+├── payments (jsonb)
 ```
+
+**Legacy (V1 — en migración):** `payroll_receipts`, `payroll_receipt_services`, `payroll_receipt_loans` — coexisten pero no son el modelo activo.
 
 ### Página "Mi Nómina" del Empleado
 
@@ -729,61 +745,82 @@ organization
 
 ---
 
-# 14. Automatización de WhatsApp (N8N)
+# 14. Automatización de Notificaciones (V2 — Multicanal)
 
-WhatsApp es una integración **opcional**.
+Las notificaciones usan una **arquitectura de canales** (channel adapter pattern) con cola unificada.
 
-### Estados de Integración
+### Arquitectura
 
 ```
-integrations.status = disabled (default al crear org)
-                 = pending (durante configuración)
-                 = active (cuando N8N está conectado)
-                 = suspended (si hay problemas)
+Appointment Event → Automation Rules (trigger → canal → template)
+                              ↓
+                    NotificationOrchestrator
+                              ↓
+                     Channel Factory
+                    /        |        \
+              WhatsApp    Email     In-App
+           (Wasender/   (Resend)  (Realtime)
+              n8n)
 ```
 
-### Flujo de Mensajes
+### Notification Queue (V2 activo)
+
+La cola unificada `notification_queue` reemplaza a `whatsapp_messages` y `email_logs` (V1 legacy).
 
 ```
 Appointment creada/actualizada
 ↓
-Verificar si integrations.whatsapp status = 'active'
+Automation rules matching (trigger_event, is_enabled)
 ↓
-Si activo → INSERT into whatsapp_messages:
+INSERT into notification_queue:
   organization_id, appointment_id
-  phone (del cliente)
-  message (template con variables)
+  channel (whatsapp|email|in_app)
+  template_id (fk → message_templates)
+  template_variables (jsonb)
+  recipient (phone/email)
   status: 'pending'
-  scheduled_at (para recordatorios)
+  scheduled_at
 ↓
-N8N polls: SELECT * FROM whatsapp_messages WHERE status = 'pending'
+Cron process-notifications claims batch vía SKIP LOCKED
 ↓
-N8N envía mensaje vía WhatsApp Business API
+Channel factory resuelve provider activo por canal
 ↓
-N8N webhook actualiza status: 'sent' o 'failed'
+Provider envía (Wasender API / Resend API / Realtime)
 ↓
-Si failed → error_message registrado
+Status actualizado: sent | failed
+↓
+Si failed → retry 5min → 20min → 45min → dead_letter
 ```
 
-### Tabla whatsapp_messages
+### Tablas V2 activas
 
 ```
-id, organization_id (fk), appointment_id (fk, nullable)
-phone, message
-status (pending|processing|sent|failed)
-scheduled_at, sent_at
-error_message (si falló)
-created_at
+notification_queue          → Cola unificada con claim atómico
+notification_providers      → Credenciales por canal por org
+message_templates           → Templates versionables por canal y tipo
+automation_rules            → Reglas trigger → canal → template
+notification_messages       → Historial de mensajes (inbound/outbound)
+notification_events         → Timeline de eventos (observabilidad)
+notification_conversations  → Hilos por cliente
+dead_letter_notifications   → Fallos permanentes (replayable)
+notification_inbound_events → Eventos entrantes (replay-safe)
 ```
 
-### Tipos de Mensajes
+### Proveedores de WhatsApp
 
-| Tipo | Trigger | Timing |
-|------|---------|--------|
-| Confirmación | Appointment creada (público) | Inmediato |
-| Recordatorio | Appointment confirmada | 24h antes |
-| Recordatorio | Appointment confirmada | 2h antes |
-| Cambio | Appointment modificada/cancelada | Inmediato |
+| Provider | Estado |
+|----------|--------|
+| Wasender | Configurable |
+| n8n | Configurable |
+| Mock | Dev/testing |
+
+### Tipos de Mensajes (definidos en automation_rules)
+
+Los triggers y timings se configuran por organización via automation_rules. No hay tipos fijos.
+
+### Legacy
+
+Las tablas `whatsapp_messages`, `email_logs`, `whatsapp_settings`, `email_settings` son V1 legacy. El código activo usa V2 exclusivamente para nuevas funcionalidades.
 
 ---
 
@@ -791,31 +828,27 @@ created_at
 
 Sistema de emails transaccionales con templates HTML premium.
 
-### email_logs
+Los emails se envían a través del canal `email` de la arquitectura V2.
 
-```
-id, organization_id (fk), appointment_id (fk, nullable)
-to, subject
-status (sent|failed|delivered|opened)
-provider_message_id (de Resend)
-error_message (si falló)
-created_at
-```
+### Canales V2
 
-### Templates de Email
-
-| Template | Trigger | Contenido |
-|----------|---------|-----------|
-| Confirmación inicial | Booking público completado | Detalle de cita, instrucciones |
-| Confirmación interna | Cita creada desde dashboard | Para staff/recepción |
-| Recordatorio | 24h antes de cita | Fecha, hora, servicio |
-| Cancellation | Cita cancelada | Información de cancelación |
+| Componente | Descripción |
+|-----------|-------------|
+| `notification_providers` | Configuración Resend por org (channel = 'email') |
+| `message_templates` | Templates HTML premium (confirmación, recordatorio, etc.) |
+| `notification_queue` | Cola de envío, procesada por cron |
+| Provider | `src/lib/notifications/channels/email-resend.channel.ts` |
 
 ### Configuración por Organización
 
 ```
-integrations.config: { resend_api_key, from_email, from_name }
+notification_providers (channel = 'email'):
+  config: { resend_api_key, from_email, from_name }
 ```
+
+### Legacy
+
+La tabla `email_logs` (V1) coexiste pero no es el mecanismo activo para nuevos envíos.
 
 ---
 
@@ -1178,63 +1211,69 @@ created_at
 
 ---
 
-# 23. API Routes Principales
+# 23. API Routes (25 endpoints)
 
 | Ruta | Método | Propósito |
 |------|--------|-----------|
 | `/api/slots` | GET | Calcular slots disponibles (bypassNotice query param) |
-| `/api/appointments` | POST | Crear cita (internal) |
-| `/api/appointments/[id]` | PATCH | Actualizar cita (drag, status) |
-| `/api/appointments/[id]/confirm` | POST | Confirmar con método de pago |
-| `/api/employees/[id]/availability` | GET/POST | Gestionar disponibilidad |
-| `/api/payroll/generate` | POST | Generar receipt para empleado |
-| `/api/stripe/create-checkout` | POST | Iniciar Stripe Checkout |
-| `/api/stripe/create-portal` | POST | Crear Stripe Customer Portal session |
-| `/api/stripe/webhook` | POST | Manejar eventos de Stripe |
-| `/api/integrations/whatsapp/send` | POST | Enviar mensaje WhatsApp manual |
-| `/reservar/[slug]` | GET/POST | Página pública de reservas |
+| `/api/appointments` | POST | Crear cita |
+| `/api/appointments/check-completed` | GET | Verificar citas completadas |
+| `/api/confirmations/respond` | POST | Responder confirmación vía token |
+| `/api/email/scheduler` | POST | Scheduler de emails |
+| `/api/whatsapp/scheduler` | POST | Scheduler de WhatsApp |
+| `/api/notifications` | GET/POST | CRUD notificaciones in-app |
+| `/api/notifications/mark-read` | POST | Marcar notificación leída |
+| `/api/notifications/mark-all-read` | POST | Marcar todas leídas |
+| `/api/notifications/stats` | GET | Estadísticas de notificaciones |
+| `/api/notifications/health` | GET | Health check del sistema |
+| `/api/notifications/cutover-checklist` | GET | Checklist de migración V1→V2 |
+| `/api/notifications/seed-v2` | POST | Sembrar datos V2 |
+| `/api/notifications/messages` | GET | Historial de mensajes |
+| `/api/notifications/messages/[id]` | GET | Detalle de mensaje |
+| `/api/notifications/messages/[id]/replay` | POST | Replay de mensaje |
+| `/api/notifications/dead-letter/discard` | POST | Descartar dead letter |
+| `/api/notifications/dead-letter/replay` | POST | Replay dead letter |
+| `/api/notifications/stuck/requeue` | POST | Re-encolar stuck |
+| `/api/webhooks/notifications` | POST | Webhook entrante de notificaciones |
+| `/api/webhooks/stripe` | POST | Webhook de Stripe |
+| **CRON** | | |
+| `/api/cron/check-reminders` | POST | Recordatorios + auto-completado |
+| `/api/cron/process-notifications` | POST | Procesar cola de notificaciones |
+| `/api/cron/purge-appointments` | POST | Purga de citas antiguas |
+| `/api/cron/shadow-notifications` | POST | Validación shadow mode |
 
 ---
 
-# 24. Server Actions (Patrón)
+# 24. Server Actions (26 módulos, ~150 archivos)
 
 ```
 src/actions/
-├── auth/
-│   ├── login.ts
-│   ├── register.ts
-│   └── logout.ts
-├── appointments/
-│   ├── create.ts
-│   ├── update.ts
-│   ├── confirm.ts
-│   └── delete.ts
-├── employees/
-│   ├── create.ts
-│   ├── update.ts
-│   ├── invite.ts
-│   └── updateAvailability.ts
-├── services/
-│   ├── create.ts
-│   └── update.ts
-├── clients/
-│   ├── create.ts
-│   └── update.ts
-├── payroll/
-│   ├── generateReceipt.ts
-│   ├── finalizeReceipt.ts
-│   └── markAsPaid.ts
-├── loans/
-│   ├── create.ts
-│   └── addPayment.ts
-├── inventory/
-│   ├── create.ts
-│   └── update.ts
-├── settings/
-│   ├── updateBooking.ts
-│   └── updateOrganization.ts
-└── integrations/
-    └── updateStatus.ts
+├── admin/                  # Discard dead letter, health, org status, promo codes, requeue
+├── analytics/              # Trends, performance, insights, stats, alerts, today pulse
+├── appointments/           # createAppointment, updateAppointment, deleteAppointment, purge
+├── auth/                   # index, resetPassword, sendPasswordResetEmail
+├── availability/           # deleteAvailability, overrideActions, setAvailability, spaOverrides
+├── billing/                # cancelSubscription, createCheckoutSession, createPortalSession
+├── cash-sessions/          # openSession, closeSession, auditPayments, createEntryFromSource
+├── clientAccounts/         # getAccounts, recordTransaction, recordAdjustment, voidTransaction
+├── clients/                # createClient, updateClient, deleteClient
+├── confirmations/          # markCompleted, confirmService, confirmByReception, adjustPrice, etc.
+├── cron/                   # runCheckReminders
+├── email/                  # getEmailLogs, getEmailSettings, queueEmailMessage, updateSettings
+├── employee/               # getMyHistory, getMyMetrics, getMyUpcoming, setMyAvailability
+├── employees/              # create, update, archive, reactivate, toggleStatus, payroll, service
+├── financial/              # getAppointmentFinancialStatus, recordPayment, recordCommission
+├── inventory/              # createItem, updateItem, adjustStock, consumeInventory, etc.
+├── invitations/            # create, accept, resend, revoke, setupPassword, updateMemberRole
+├── notifications/          # automations, providers, queue, templates, v2-feature-flag
+├── onboarding/             # getOnboardingState
+├── operation-entries/      # createManualEntry, payEmployee, voidEntry
+├── payroll/                # 15 archivos: createPeriod, calculatePayroll, generateReceipt, etc.
+├── promoCodes/             # applyCode, validateCode
+├── public/                 # createPublicBooking, cancelPublicBooking
+├── services/               # createService, updateService, toggleServiceStatus, updateCommission
+├── settings/               # updateOrganization, updateBookingSettings, checkSlugAvailability
+└── whatsapp/               # getWhatsAppSettings, sendReminder, testWebhook, etc. (V1 legacy)
 ```
 
 ---
@@ -1275,39 +1314,56 @@ USING (
 
 # 26. Cron Jobs y Workers
 
-| Job | Frecuencia | Propósito |
-|-----|------------|-----------|
-| WhatsApp message sender | Cada 1 min | Procesar messages con status=pending |
-| Appointment reminders | Cada 3 min | Enviar recordatorios 24h y 2h antes |
-| Subscription checker | Diario | Verificar suscripciones trial que expiran |
-| Data retention purge | Diario | Eliminar datos según política de retención |
-| Payroll auto-generate | Fin de período | (Opcional) Generar drafts automáticamente |
+| Job | Endpoint | Frecuencia | Propósito |
+|-----|----------|------------|-----------|
+| Reminders | `POST /api/cron/check-reminders` | 3 min | Recordatorios, auto-completado, needs_review |
+| Notifications | `POST /api/cron/process-notifications` | 5 min | Procesar notification_queue (batch 50, SKIP LOCKED) |
+| Purge data | `POST /api/cron/purge-appointments` | Diario 2 AM | Purga según política de retención |
+| Shadow validation | `POST /api/cron/shadow-notifications` | 5 min | Procesar semillas shadow mode |
+
+Endpoint de email y WhatsApp scheduler se ejecutan via los cron check-reminders y process-notifications.
 
 ---
 
-# 27. Variables de Entorno Requeridas
+# 27. Variables de Entorno Requeridas (20 activas)
 
 ```env
-# Supabase
+# Supabase (3)
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 
-# Stripe
+# Stripe (3)
 STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_PRICE_BASIC_MONTHLY=
+STRIPE_PRICE_PRO_MONTHLY=
 
-# Resend
+# Resend (2)
 RESEND_API_KEY=
+RESEND_FROM_EMAIL=
 
-# N8N Webhook (para WhatsApp)
-N8N_WEBHOOK_URL=
-N8N_API_KEY=
+# Cron (1)
+CRON_SECRET=
 
-# App
-NEXT_PUBLIC_APP_URL=
+# App (1)
+NEXT_PUBLIC_BASE_URL=
+
+# Dev bypass (2 — solo local)
+BYPASS_SUBSCRIPTION_CHECK=true
+BYPASS_ADMIN_AUTH=true
+
+# Shadow mode (7)
+SHADOW_MODE_ENABLED=true
+SHADOW_MODE_FLOWS=service:complete,appointment:cancel
+SHADOW_MODE=observe_only
+SHADOW_NOTIFICATION_ENABLED=true
+SHADOW_NOTIFICATION_MODE=observe_only
+SHADOW_BATCH_SIZE=20
+SHADOW_PROCESSING_TIMEOUT_MIN=5
+SHADOW_SCHEDULING_TOLERANCE_SEC=60
 ```
+
+Ver `docs/architecture/CURRENT/ENVIRONMENT.md` y `.env.example` para detalle completo.
 
 ---
 
@@ -1349,6 +1405,6 @@ NEXT_PUBLIC_APP_URL=
 
 ---
 
-**Última actualización:** Mayo 2026
-**Versión:** 2.0
+**Última actualización:** Junio 2026
+**Versión:** 2.1
 **Proyecto:** SaaS Prügressy - Wellness & Health

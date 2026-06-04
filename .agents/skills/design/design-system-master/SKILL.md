@@ -61,7 +61,7 @@ Evitar interfaces saturadas.
 ## Fuentes
 
 **Display / Encabezados:**
-`Cormorant Garamond`
+`Poppins` (weights 600, 700)
 
 Uso:
 - h1, h2, h3
@@ -69,7 +69,7 @@ Uso:
 - títulos de secciones en dashboard
 
 **Body / UI / Dashboard:**
-`Plus Jakarta Sans`
+`Manrope`
 
 Uso:
 - párrafos

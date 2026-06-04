@@ -126,7 +126,7 @@ export function DeleteInventoryModal({
             <h2 
               className="text-xl font-bold text-center font-heading"
               style={{ 
-                color: '#FFFFFF' 
+                color: COLORS.textOnPrimary 
               }}
             >
               {isDeleted ? 'Producto eliminado' : 'Eliminar producto'}
@@ -250,7 +250,7 @@ export function DeleteInventoryModal({
               style={{ 
 
                 background: COLORS.primaryGradient,
-                color: '#FFFFFF',
+                color: COLORS.textOnPrimary,
               }}
             >
               Aceptar

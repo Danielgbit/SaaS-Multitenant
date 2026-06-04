@@ -1,135 +1,99 @@
 ---
 name: saas-user-flow
-description: Documents the complete user flow and journey across the four primary roles of the SaaS platform (Owner, Staff, Employee, Client). Use this skill whenever you are designing screens, implementing routing, defining user permissions, or building features to ensure they align with the standard product architecture and booking lifecycle.
+description: Documents the complete user flow and journey across the four primary roles of the SaaS platform (Owner, Admin, Staff, Employee, Client). Use this skill whenever you are designing screens, implementing routing, defining user permissions, or building features to ensure they align with the standard product architecture and booking lifecycle.
 ---
 
-# Arquitectura de User Flow del SaaS
+# User Flow del SaaS
 
-Esta skill contiene el mapa completo del flujo de usuarios dentro de la plataforma. **Consúltala siempre que debas crear nuevas pantallas, flujos de autenticación, o implementar lógica de negocio relacionada con reservas y roles.**
+## Actores del Sistema
 
-## 🧠 Actores del Sistema
-
-La plataforma cuenta con **4 tipos de actores**:
-
-1. **Owner** (Dueño del negocio)
-2. **Staff / Recepcionista**
-3. **Employee** (Empleado que presta el servicio)
-4. **Cliente final** (No requiere cuenta)
+| Rol | Descripción |
+|-----|-------------|
+| **Owner** | Dueño del negocio (máximo privilegio) |
+| **Admin** | Administrador delegado (todo excepto eliminar org) |
+| **Staff** | Recepcionista (agenda, clientes, confirmaciones) |
+| **Employee** | Empleado que presta servicios (solo su agenda) |
+| **Cliente** | Público sin cuenta (reserva vía booking público) |
 
 ---
 
-## 🗺️ Mapa Completo del User Flow (Resumen)
+## Mapa de Flujos por Rol
 
-```text
-OWNER
-│
-├─ Register
-├─ Onboarding
-├─ Configure employees
-├─ Configure services
-├─ Invite employees
-└─ Manage calendar
+### Owner
 
-STAFF
-│
-├─ Login
-├─ Calendar
-├─ Create appointment
-└─ Manage clients
+```
+Registro → Onboarding → Dashboard
+                           ├── Configurar empleados, servicios, horarios
+                           ├── Operación diaria: calendario, clientes, payroll
+                           ├── Facturación: planes, Stripe
+                           └── Invitar empleados al sistema
+```
 
-EMPLOYEE
-│
-├─ Receive invite
-├─ Login
-├─ View personal agenda
-└─ Complete appointments
+### Admin
 
-CLIENT
-│
-├─ Open booking page
-├─ Select service
-├─ Select slot
-└─ Confirm booking
+```
+Login → Dashboard
+          ├── Calendario (crear/editar/reagendar citas)
+          ├── Clientes (CRUD, cuentas de crédito)
+          ├── Empleados (CRUD, disponibilidad, invitaciones)
+          ├── Servicios (CRUD, comisiones)
+          ├── Confirmaciones (panel de recepción)
+          ├── Payroll (períodos, liquidaciones, préstamos)
+          ├── Caja (abrir/cerrar sesión, operaciones)
+          ├── Inventario (stock, ajustes, consumos)
+          ├── Configuración (org, booking, data retention)
+          └── Notificaciones (automation rules, templates, providers)
+```
+
+### Staff
+
+```
+Login → Dashboard
+          ├── Calendario (crear/editar citas)
+          ├── Clientes (CRUD, vista historial)
+          ├── Confirmaciones (panel de recepción, cobro)
+          ├── Caja (operaciones del día)
+          └── Servicios (solo lectura)
+```
+
+### Employee
+
+```
+Invitación → Registro → Login → Mi espacio
+                                   ├── Agenda personal del día
+                                   ├── Marcar "Listo" en citas completadas
+                                   ├── Mi nómina (/payroll/mi)
+                                   └── Mi disponibilidad
+```
+
+### Cliente (sin cuenta)
+
+```
+/reservar/[slug] → Seleccionar servicio → Seleccionar empleado
+                → Elegir horario → Ingresar datos → Confirmar
 ```
 
 ---
 
-## 🚀 Flujos Detallados por Rol
+## Flujos de Sistema (Automáticos)
 
-### 1️⃣ Owner (Dueño del Negocio)
-
-**Registro:**
-`Landing` → `Crear cuenta` → `Crear organización` → `Entrar al dashboard`
-
-**Onboarding inicial (Primera vez):**
-`Dashboard vacío` → `Crear empleados` → `Crear servicios` → `Configurar horarios` → `Sistema listo`
-
-**Uso diario:**
-`Login` → `Dashboard` → `Calendario` → `Crear / editar citas` → `Ver clientes` → `Ver métricas`
-
-**Billing (Solo Owner):**
-`Dashboard` → `Billing` → `Elegir plan` → `Checkout pago` → `Activar plan`
+| Flujo | Descripción |
+|-------|-------------|
+| **Registro** | Trigger `handle_new_user` crea org + owner + booking_settings + integrations + payroll_settings |
+| **Recordatorios** | Cron 3min evalúa próximas citas, notifica vía notification_queue según automation rules |
+| **Procesar cola** | Cron 5min procesa notification_queue con SKIP LOCKED, resuelve channel provider, envía |
+| **Purga** | Cron diario elimina citas terminales >= auto_retention_days |
+| **Shadow mode** | Cron 5min valida equivalencia V1 vs V2 sin impacto producción |
 
 ---
 
-### 2️⃣ Staff / Recepcionista
+## Pantallas Derivadas
 
-Este rol gestiona la agenda general.
+Ver skill `saas-screen-map` para el mapa completo de rutas y componentes.
 
-**Flujo general:**
-`Login` → `Calendario` → `Buscar cliente` → `Crear cita` → `Confirmar horario`
-
-**Crear cita:**
-`Calendario` → `Click en horario` → `Seleccionar cliente` → `Seleccionar servicio` → `Seleccionar empleado` → `Confirmar cita`
-
-**Editar cita:**
-`Click cita` → `Editar` → `Reagendar / cancelar` → `Guardar cambios`
-
----
-
-### 3️⃣ Employee (Empleado)
-
-Tiene un **dashboard simplificado**. Está vinculado mediante `employees.user_id`.
-
-**Invitación y Registro:**
-`Owner crea empleado` → `Click "Invitar al sistema"` → `Enviar invitación` → `Empleado recibe link` → `Crear cuenta` → `Sistema vincula user con employee`
-
-**Flujo diario:**
-`Login` → `Agenda del día` → `Ver próxima cita` → `Ver datos cliente` → `Marcar completada`
-
----
-
-### 4️⃣ Cliente Final
-
-Este rol **no tiene cuenta** en el sistema.
-
-**Reserva Pública:**
-`Cliente entra a /reservar/[slug]` → `Ver servicios` → `Elegir servicio` → `Elegir empleado` → `Ver horarios disponibles` → `Seleccionar horario` → `Ingresar datos` → `Confirmar reserva`
-
----
-
-## ⚙️ Flujos de Sistema y Automatizaciones
-
-**Confirmación Automática:**
-`Crear cita` → `Sistema envía WhatsApp` → `Cliente confirma` → `Cita confirmada`
-
-**Cancelación o Reagendamiento:**
-Puede originarse desde el `dashboard` (Owner/Staff), por el `cliente` o mediante `whatsapp`.
-`Editar cita` → `Cambiar horario` → `Validar disponibilidad` → `Guardar cambios`
-
----
-
-## 📱 Pantallas Derivadas del Flujo
-
-De la arquitectura expuesta, las pantallas principales del SaaS que deben existir son:
-
-- `Auth` (Login, Registro e Invitación)
-- `Dashboard` (Vista principal para Owner y Staff)
-- `Calendar` (Calendario general interactivo)
-- `Create Appointment Modal`
-- `Clients` (Gestión de la base de datos de clientes)
-- `Services` (Configuración del catálogo de servicios)
-- `Employees` (Gestión del personal y horarios)
-- `Invite Employee` (Flujo de invitación al sistema)
-- `Booking Page` (Página pública de reservas para el cliente)
-- `Billing` (Pagos y suscripción del negocio)
+Pantallas principales:
+- Auth: `/login`, `/register`, `/forgot-password`, `/reset-password`
+- Onboarding: `/onboarding`
+- Dashboard: `/calendar`, `/clients`, `/employees`, `/services`, `/confirmations`, `/payroll`, `/caja`, `/inventory`, `/settings`, `/billing`, `/notificaciones`, `/mi`
+- Público: `/reservar/[slug]`, `/invite/[token]`, `/confirmar/[token]`
+- Admin global: `/admin/organizations`, `/admin/users`, `/admin/metrics`

@@ -71,7 +71,7 @@ export function CurrentPlanCard({ subscription, organizationId }: CurrentPlanCar
               </button>
             )}
             {isTrial && (
-              <button onClick={() => window.location.replace('/dashboard/billing?portal=true')} className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer" style={{ background: COLORS.primaryGradient, color: '#FFFFFF' }}>
+              <button onClick={() => window.location.replace('/dashboard/billing?portal=true')} className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer" style={{ background: COLORS.primaryGradient, color: COLORS.textOnPrimary }}>
                 Configurar pago
               </button>
             )}
@@ -94,7 +94,7 @@ export function CurrentPlanCard({ subscription, organizationId }: CurrentPlanCar
             <div className="flex-1">
               <p className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>Tu suscripción se cancelara al final del período</p>
               <p className="text-xs mt-0.5 mb-3" style={{ color: COLORS.textSecondary }}>Puedes reactivarla en cualquier momento sin perder tu información.</p>
-              <button onClick={async () => { await reactivateSubscription({ organizationId }); window.location.reload() }} className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer" style={{ background: COLORS.primaryGradient, color: '#FFFFFF' }}>
+              <button onClick={async () => { await reactivateSubscription({ organizationId }); window.location.reload() }} className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer" style={{ background: COLORS.primaryGradient, color: COLORS.textOnPrimary }}>
                 Reactivar suscripción
               </button>
             </div>

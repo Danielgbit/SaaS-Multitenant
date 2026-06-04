@@ -305,7 +305,7 @@ export function InventoryFormModal({
               <h2 
                 className="text-xl font-bold font-heading"
                 style={{ 
-                  color: '#FFFFFF' 
+                  color: COLORS.textOnPrimary 
                 }}
               >
                 {item ? 'Editar producto' : 'Nuevo producto'}
@@ -595,7 +595,7 @@ export function InventoryFormModal({
               className="flex-1 py-3.5 px-4 rounded-xl font-medium transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               style={{ 
                             background: COLORS.primaryGradient,
-                color: '#FFFFFF',
+                  color: COLORS.textOnPrimary,
               }}
             >
               {isSubmitting ? (
