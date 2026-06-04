@@ -2,9 +2,9 @@
 
 > AUTO-GENERATED — DO NOT EDIT MANUALLY
 > Regenerar con: `pnpm docs:gen`
-> Generated: 2026-06-02
+> Generated: 2026-06-04
 
-Total: 63 migrations
+Total: 73 migrations
 
 | File | Description |
 |------|-------------|
@@ -71,3 +71,13 @@ Total: 63 migrations
 | `20260531000003_backfill_appointment_payment_status.sql` | Backfill Appointment Payment Status |
 | `20260531000004_create_cash_operations.sql` | Create Cash Operations |
 | `20260601000001_release2_inventory_entries.sql` | Release2 Inventory Entries |
+| `20260603000000_fix_payment_caja_constraints.sql` | Fix Payment Caja Constraints |
+| `20260603000001_trigger_adjustment_support.sql` | Trigger Adjustment Support |
+| `20260603000002_void_transaction_support.sql` | Void Transaction Support |
+| `20260603000003_edit_audit_columns.sql` | Edit Audit Columns |
+| `20260603120000_add_slug_functions.sql` | Add Slug Functions |
+| `20260603120001_update_trigger_slug.sql` | Update Trigger Slug |
+| `20260603130000_fix_slugify_lowercase.sql` | Fix Slugify Lowercase |
+| `20260603140000_add_email_to_employees.sql` | Add Email To Employees |
+| `20260603150000_create_platform_admins_and_org_status.sql` | Create Platform Admins And Org Status |
+| `20260604000000_create_user_profiles.sql` | Create User Profiles |

@@ -311,7 +311,7 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                 onClick={handleBulkRetry}
                 disabled={bulkLoading}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                style={{ backgroundColor: COLORS.primary, color: '#FFFFFF' }}
+                style={{ backgroundColor: COLORS.primary, color: COLORS.textOnPrimary }}
               >
                 {bulkLoading ? <Spinner size="sm" className="w-3 h-3" /> : <RotateCcw className="w-3 h-3" />}
                 Reintentar

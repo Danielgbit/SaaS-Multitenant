@@ -2,16 +2,19 @@
 
 > AUTO-GENERATED — DO NOT EDIT MANUALLY
 > Regenerar con: `pnpm docs:gen`
-> Generated: 2026-06-02
+> Generated: 2026-06-04
 
 | Route | Type |
 |-------|------|
 | `/` | Page |
 | `/admin` | Page |
+| `/admin/metrics` | Page |
 | `/admin/organizations` | Page |
+| `/admin/organizations/{id}` | Page |
 | `/admin/promo-codes` | Page |
 | `/admin/promo-codes/new` | Page |
 | `/admin/system/notifications` | Page |
+| `/admin/users` | Page |
 | `/api/appointments` | API |
 | `/api/appointments/check-completed` | API |
 | `/api/confirmations/respond` | API |
@@ -82,4 +85,5 @@
 | `/services` | Page |
 | `/settings` | Page |
 | `/settings/data-retention` | Page |
+| `/suspended` | Page |
 | `/whatsapp` | Page |

@@ -437,7 +437,7 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
               <li key={index} className="flex items-start gap-3">
                 <div
                   className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
-                  style={{ backgroundColor: COLORS.primary, color: '#FFFFFF' }}
+                  style={{ backgroundColor: COLORS.primary, color: COLORS.textOnPrimary }}
                 >
                   {index + 1}
                 </div>
@@ -459,7 +459,7 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
               <li key={index} className="flex items-start gap-3">
                 <div
                   className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
-                  style={{ backgroundColor: COLORS.primary, color: '#FFFFFF' }}
+                  style={{ backgroundColor: COLORS.primary, color: COLORS.textOnPrimary }}
                 >
                   {index + 1}
                 </div>

@@ -2,7 +2,7 @@
 
 > AUTO-GENERATED — DO NOT EDIT MANUALLY
 > Regenerar con: `pnpm docs:gen`
-> Generated: 2026-06-02
+> Generated: 2026-06-04
 
 | Endpoint | Route File |
 |----------|------------|

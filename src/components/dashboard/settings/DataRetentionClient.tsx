@@ -166,7 +166,7 @@ export function DataRetentionClient({
           className="w-full py-3 px-4 font-medium rounded-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
           style={{
             background: COLORS.primaryGradient,
-            color: '#FFFFFF',
+            color: COLORS.textOnPrimary,
           }}
         >
           {saving ? <Spinner size="sm" className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
