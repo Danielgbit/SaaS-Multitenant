@@ -378,7 +378,7 @@ const COLORS = useThemeColors()
                     ...(isSelected
                       ? { 
                           backgroundColor: COLORS.primary, 
-                          color: '#FFFFFF',
+                          color: COLORS.textOnPrimary,
                           boxShadow: `0 4px 12px ${COLORS.primary}40`
                         }
                       : isAvailable
@@ -431,7 +431,7 @@ const COLORS = useThemeColors()
             borderRadius: COLORS.radius.md,
             padding: '14px 24px',
             backgroundColor: COLORS.primary,
-            color: '#FFFFFF',
+            color: COLORS.textOnPrimary,
             transition: 'all 0.2s ease',
             boxShadow: `0 4px 14px ${COLORS.primary}30`,
           }}

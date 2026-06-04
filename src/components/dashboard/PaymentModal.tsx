@@ -398,7 +398,7 @@ export function PaymentModal({
           </button>
           <button type="button" onClick={handleSubmit} disabled={isPending || !selectedMethod}
             className="flex-1 h-12 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            style={{ backgroundColor: COLORS.primary, color: '#FFFFFF', boxShadow: COLORS.shadow.tealMd }}>
+            style={{ backgroundColor: COLORS.primary, color: COLORS.textOnPrimary, boxShadow: COLORS.shadow.tealMd }}>
             {isPending ? (
               <><Spinner size="sm" /> Procesando...</>
             ) : (
