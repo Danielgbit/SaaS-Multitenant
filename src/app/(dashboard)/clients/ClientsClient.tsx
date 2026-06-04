@@ -94,7 +94,7 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
               onClick={() => setIsCreating(true)}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-lg cursor-pointer"
               style={{
-                backgroundColor: '#FFFFFF',
+                backgroundColor: COLORS.surface,
                 color: COLORS.primary,
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
@@ -224,7 +224,7 @@ export function ClientsClient({ clients, organizationId }: ClientsClientProps) {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.02] cursor-pointer"
               style={{
                 backgroundColor: COLORS.primary,
-                color: '#FFFFFF'
+                color: COLORS.textOnPrimary
               }}
             >
               <Plus className="w-4 h-4" />

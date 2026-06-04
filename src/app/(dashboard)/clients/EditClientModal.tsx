@@ -689,7 +689,7 @@ export function EditClientModal({
               <div>
                 <h2 
                   style={{ 
-                    color: '#FFFFFF',
+                    color: COLORS.textOnPrimary,
                   }}
                   className="text-2xl font-semibold font-heading"
                 >
@@ -851,7 +851,7 @@ export function EditClientModal({
                 borderRadius: COLORS.radius.md,
                 padding: '14px 24px',
                 backgroundColor: COLORS.primary,
-                color: '#FFFFFF',
+                color: COLORS.textOnPrimary,
                 fontSize: '14px',
                 fontWeight: '600',
                 opacity: isLoading ? 0.7 : 1,

@@ -24,8 +24,8 @@ Process:
 1. read diff
 2. create conventional commit
 3. commit
-4. push to gitlab
-5. push to origin
+4. push to origin
+5. push to gitlab
 
 Commit format:
 type: short message (max 72 chars)

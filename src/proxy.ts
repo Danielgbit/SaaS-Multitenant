@@ -76,16 +76,7 @@ export async function proxy(request: NextRequest) {
   const BYPASS_ADMIN_AUTH =
     process.env.BYPASS_ADMIN_AUTH === 'true' && hostname === 'localhost'
 
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role, organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  const role = orgMember?.role
-  const isStaff = role === 'staff'
-  const isEmpleado = role === 'empleado'
-
+  // Admin check first — no org queries needed
   if (pathname.startsWith('/admin')) {
     if (!BYPASS_ADMIN_AUTH) {
       const { data: platformAdmin } = await supabase
@@ -99,6 +90,33 @@ export async function proxy(request: NextRequest) {
         url.pathname = '/dashboard'
         return NextResponse.redirect(url)
       }
+    }
+    return supabaseResponse
+  }
+
+  // Org queries only for non-admin users
+  const { data: orgMember } = await supabase
+    .from('organization_members')
+    .select('role, organization_id')
+    .eq('user_id', user.id)
+    .single()
+
+  const role = orgMember?.role
+  const isStaff = role === 'staff'
+  const isEmpleado = role === 'empleado'
+
+  // Suspended organization check (allow access to suspended page itself)
+  if (orgMember?.organization_id && !pathname.startsWith('/dashboard/suspended')) {
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('status')
+      .eq('id', orgMember.organization_id)
+      .single()
+
+    if (org?.status === 'suspended') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard/suspended'
+      return NextResponse.redirect(url)
     }
   }
 

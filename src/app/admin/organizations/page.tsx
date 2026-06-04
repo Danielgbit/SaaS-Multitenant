@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { getOrganizationSummary } from '@/lib/admin/queries'
+import Link from 'next/link'
 import { BuildingIcon } from 'lucide-react'
 
 export const metadata = {
@@ -40,26 +41,24 @@ function StatusBadge({ status }: { status: string | null }) {
   )
 }
 
-export default async function OrganizationsPage() {
-  const supabase = await createClient()
+function OrgStatusBadge({ status }: { status: string }) {
+  const config: Record<string, { label: string; className: string }> = {
+    active: { label: 'Activo', className: 'bg-[#16A34A]/10 text-[#16A34A]' },
+    suspended: { label: 'Suspendido', className: 'bg-[#DC2626]/10 text-[#DC2626]' },
+    maintenance: { label: 'Mantenimiento', className: 'bg-[#F59E0B]/10 text-[#F59E0B]' },
+  }
 
-  const { data: organizations } = await supabase
-    .from('organizations')
-    .select(
-      `
-      id,
-      name,
-      created_at,
-      subscriptions (
-        status,
-        trial_ends_at,
-        plans (
-          name
-        )
-      )
-    `
-    )
-    .order('created_at', { ascending: false })
+  const { label, className } = config[status] ?? { label: status, className: 'bg-slate-100 text-[#475569]' }
+
+  return (
+    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${className}`}>
+      {label}
+    </span>
+  )
+}
+
+export default async function OrganizationsPage() {
+  const organizations = await getOrganizationSummary()
 
   return (
     <div className="space-y-6">
@@ -85,10 +84,19 @@ export default async function OrganizationsPage() {
                     Plan
                   </th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-[#475569] dark:text-slate-400">
-                    Estado
+                    Estado Org
+                  </th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-[#475569] dark:text-slate-400">
+                    Suscripción
                   </th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-[#475569] dark:text-slate-400">
                     Trial expira
+                  </th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-[#475569] dark:text-slate-400">
+                    Owner
+                  </th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-[#475569] dark:text-slate-400">
+                    Miembros
                   </th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-[#475569] dark:text-slate-400">
                     Registrado
@@ -96,41 +104,50 @@ export default async function OrganizationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E2E8F0] dark:divide-slate-700">
-                {organizations.map((org) => {
-                  const subscription = (org.subscriptions as any)?.[0]
-                  const status = subscription?.status ?? null
-                  const trialEndsAt = subscription?.trial_ends_at
-
-                  return (
-                    <tr
-                      key={org.id}
-                      className="hover:bg-[#FAFAF9] dark:hover:bg-slate-900/50 transition-colors"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-[#0F4C5C]/10 flex items-center justify-center">
-                            <BuildingIcon className="w-4 h-4 text-[#0F4C5C]" />
-                          </div>
+                {organizations.map((org) => (
+                  <tr
+                    key={org.id}
+                    className="hover:bg-[#FAFAF9] dark:hover:bg-slate-900/50 transition-colors"
+                  >
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/admin/organizations/${org.id}`}
+                        className="flex items-center gap-3 hover:text-[#0F4C5C] dark:hover:text-[#38BDF8] transition-colors"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-[#0F4C5C]/10 flex items-center justify-center">
+                          <BuildingIcon className="w-4 h-4 text-[#0F4C5C]" />
+                        </div>
+                        <div>
                           <span className="font-medium text-[#0F172A] dark:text-white">
                             {org.name}
                           </span>
+                          <p className="text-xs text-[#94A3B8]">{org.slug}</p>
                         </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-[#475569] dark:text-slate-400">
-                        {subscription?.plans?.name || '—'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={status} />
-                      </td>
-                      <td className="px-4 py-3 text-sm text-[#475569] dark:text-slate-400">
-                        {trialEndsAt ? formatDate(trialEndsAt) : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-[#475569] dark:text-slate-400">
-                        {formatDate(org.created_at)}
-                      </td>
-                    </tr>
-                  )
-                })}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-[#475569] dark:text-slate-400">
+                      {org.planName || '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <OrgStatusBadge status={org.status} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={org.subscriptionStatus} />
+                    </td>
+                    <td className="px-4 py-3 text-sm text-[#475569] dark:text-slate-400">
+                      {org.trialEndsAt ? formatDate(org.trialEndsAt) : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-[#475569] dark:text-slate-400">
+                      {org.ownerEmail || '—'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-[#475569] dark:text-slate-400 text-center">
+                      {org.memberCount}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-[#475569] dark:text-slate-400">
+                      {formatDate(org.createdAt)}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

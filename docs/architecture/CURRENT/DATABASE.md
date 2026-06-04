@@ -1,14 +1,15 @@
 # Database Schema
 
 > STATUS: CURRENT IMPLEMENTATION
-> Source of truth: `supabase/migrations/` (44 migrations)
-> Last updated: 2026-05-27
+> Source of truth: `supabase/migrations/` (73 migrations)
+> Last updated: 2026-06-04
+> System Inventory: `docs/architecture/CURRENT/SYSTEM_INVENTORY.md`
 
 ---
 
 ## 1. Overview
 
-Base de datos PostgreSQL en Supabase. Esquema multi-tenant con 44 migraciones aplicadas secuencialmente. Toda entidad de negocio está scoped por `organization_id` y aislada via Row Level Security.
+Base de datos PostgreSQL en Supabase. Esquema multi-tenant con 73 migraciones aplicadas secuencialmente (69 tablas públicas). Toda entidad de negocio está scoped por `organization_id` y aislada via Row Level Security.
 
 ### Principios Arquitectónicos
 
@@ -26,7 +27,7 @@ organizations ──┬── organization_members ── auth.users
                 │
                 ├── booking_settings       [1:1]
                 ├── integrations           [por tipo]
-                └── ~30 tablas de negocio  [por organization_id]
+                 └── ~60 tablas de negocio  [por organization_id]
 ```
 
 El tenant root es `organizations`. Toda tabla de negocio tiene `organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE` (o accede indirectamente vía FK a una tabla padre que sí lo tiene).
@@ -274,12 +275,17 @@ Core system:
 
 | Trigger | Tabla | Evento | Acción |
 |---------|-------|--------|--------|
-| `on_auth_user_created` | `auth.users` | INSERT | Crea organización, owner member, booking settings e integration |
+| `on_auth_user_created` | `auth.users` | INSERT | Crea organización, owner member, booking settings, integration, payroll settings |
+| `on_auth_user_created_profile` | `auth.users` | INSERT | Crea `user_profiles` |
+| `on_auth_user_email_changed` | `auth.users` | UPDATE | Sincroniza email en `user_profiles` |
 | `trg_update_client_account_balance` | `client_account_transactions` | INSERT | Recalcula saldo, is_over_limit, is_at_warning_threshold |
 | `trg_financial_event_from_confirmation_log` | `confirmation_logs` | INSERT | Crea `financial_events` desde confirmaciones |
 | `trg_financial_event_from_client_transaction` | `client_account_transactions` | INSERT | Crea `financial_events` desde transacciones de clientes |
 | `trg_financial_events_from_paid_period` | `payroll_periods` | UPDATE status | Crea `commission_settled` cuando período se paga |
+| `trg_commission_accrued_from_confirmation_log` | `confirmation_logs` | INSERT | Accrual de comisión desde confirmación |
 | `trg_materialize_appointment_payment_status` | `financial_events` | INSERT | Deriva `appointments.payment_status` |
+| `trg_prevent_financial_events_mutation` | `financial_events` | DELETE | Protege append-only de financial_events |
+| `handle_void_client_account_transaction` | `client_account_transactions` | AFTER | Reversión de transacción |
 
 ---
 
@@ -288,14 +294,15 @@ Core system:
 | Tabla | Reemplazada por | Notas |
 |-------|-----------------|-------|
 | `whatsapp_settings` | `notification_providers` | Migrada |
-| `whatsapp_messages` | `notification_queue` | V1 queue |
+| `whatsapp_messages` | `notification_queue` | V1 queue (3 refs en código) |
 | `whatsapp_logs` | `notification_messages` | V2 observability |
 | `email_settings` | `notification_providers` | Migrada |
 | `email_logs` | `notification_messages` | V2 observability |
-| `payroll_receipts` | `payroll_periods` + `payroll_items` | V1 payroll |
+| `payroll_receipts` | `payroll_periods` + `payroll_items` | V1 payroll (1 ref en código) |
 | `payroll_receipt_services` | `period_commissions` | V1 payroll detail |
 | `payroll_receipt_loans` | `payroll_item_loans` | V1 payroll loans |
 | `notifications` (V1 in-app) | `notification_events` + `notification_queue` | V2 cubre in-app |
+| `shadow_validation_logs` | — (Phase 2A deprecada) | Sin referencias en código activo |
 
 ---
 
@@ -307,6 +314,8 @@ Core system:
 - **`NUMERIC(10,0)` en servicios** — Precios multiplicados por 1000 (COP). Puede causar confusión en cálculos directos
 - **RLS aplicada retroactivamente** — Algunas tablas V1 payroll no tenían RLS hasta migración tardía (`20260527000000`)
 - **`financial_events` es reciente** — Los datos históricos no están poblados. Solo eventos posteriores a la creación de la tabla
+- **`role_type` enum no incluye `empleado`** — El rol existe solo en TypeScript, no como constraint DB
+- **`shadow_validation_logs` sin código activo** — Phase 2A deprecada, tabla huérfana sin lectores
 
 ---
 
@@ -318,9 +327,15 @@ npx supabase db push          # Aplica pendientes
 npx supabase migration list   # Ver estado
 ```
 
-44 migraciones secuenciales. No saltarse ninguna. Aplicar siempre en orden.
+73 migraciones secuenciales. No saltarse ninguna. Aplicar siempre en orden.
+
+```bash
+# Ver inventario completo de migraciones
+Get-ChildItem supabase/migrations/ | Sort-Object Name
+```
 
 Reglas:
 - Migración nueva → si altera entidades core, actualizar este documento
 - No eliminar migraciones ya aplicadas en producción
 - Usar `COMMENT ON` para documentar tablas y columnas nuevas
+- Ver `docs/architecture/CURRENT/SYSTEM_INVENTORY.md` para el inventario completo del sistema

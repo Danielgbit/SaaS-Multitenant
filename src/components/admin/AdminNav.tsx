@@ -6,6 +6,8 @@ import {
   TicketIcon,
   BuildingIcon,
   HomeIcon,
+  TrendingUp,
+  Users,
   LogOut,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -31,15 +33,27 @@ export function AdminNav({ userEmail }: AdminNavProps) {
       exact: true,
     },
     {
-      href: '/admin/promo-codes',
-      label: 'Códigos',
-      icon: TicketIcon,
+      href: '/admin/metrics',
+      label: 'Métricas',
+      icon: TrendingUp,
       exact: false,
     },
     {
       href: '/admin/organizations',
       label: 'Organizaciones',
       icon: BuildingIcon,
+      exact: false,
+    },
+    {
+      href: '/admin/users',
+      label: 'Usuarios',
+      icon: Users,
+      exact: false,
+    },
+    {
+      href: '/admin/promo-codes',
+      label: 'Códigos',
+      icon: TicketIcon,
       exact: false,
     },
   ]

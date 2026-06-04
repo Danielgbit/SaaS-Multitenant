@@ -125,7 +125,7 @@ export function DeleteClientModal({
                 borderRadius: COLORS.radius.md,
                 padding: '12px 20px',
                 backgroundColor: COLORS.error,
-                color: '#FFFFFF',
+                color: COLORS.textOnPrimary,
               }}
               className="flex-1 font-medium transition-colors hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
             >

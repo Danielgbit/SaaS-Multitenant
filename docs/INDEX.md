@@ -1,6 +1,6 @@
 # Índice de Documentación — Prügressy
 
-> Última actualización: 2026-05-27
+> Última actualización: 2026-06-04
 > Este índice es el punto de entrada a toda la documentación del proyecto.
 > Los documentos están organizados por tipo y precedencia (CURRENT = implementado, PROPOSAL = plan futuro).
 
@@ -23,7 +23,8 @@ Cada documento tiene un **STATUS** que indica su relación con la realidad del c
 | Documento | STATUS | Descripción |
 |-----------|--------|-------------|
 | `README.md` (raíz) | CURRENT | Qué es Prügressy, stack, setup rápido |
-| `.env.example` (raíz) | CURRENT | Variables de entorno documentadas |
+| `.env.example` (raíz) | CURRENT | Variables de entorno documentadas (20 activas) |
+| `docs/architecture/CURRENT/SYSTEM_INVENTORY.md` | CURRENT | Inventario completo del sistema (rutas, BD, actions, cron, etc.) |
 | `docs/setup/SETUP.md` | CURRENT | Setup paso a paso con checklist de verificación |
 | `docs/architecture/CURRENT/ENVIRONMENT.md` | CURRENT | Referencia completa de variables de entorno |
 | `docs/architecture/CURRENT/DATABASE.md` | CURRENT | Schema de base de datos, entidades, RLS |

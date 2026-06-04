@@ -2,7 +2,7 @@
 
 > STATUS: CURRENT IMPLEMENTATION
 > Source of truth: `src/app/`, `src/actions/`, `src/lib/`, `src/components/`
-> Last updated: 2026-05-27
+> Last updated: 2026-06-04
 
 ---
 
@@ -45,34 +45,37 @@ Plataforma SaaS B2B para gestión de citas, empleados, nómina y confirmaciones 
 
 ```
 src/
-├── actions/              # Server Actions (mutaciones — 21 módulos)
+├── actions/              # Server Actions (mutaciones — 26 módulos)
 ├── app/                  # Next.js App Router
 │   ├── (auth)/           # login, register, forgot-password, reset-password
-│   ├── (dashboard)/      # calendar, clients, employees, payroll, confirmations, etc.
+│   ├── (dashboard)/      # 17 páginas: calendar, clients, employees, payroll, etc.
 │   ├── (public)/         # reservar, invite, help, confirmar
-│   ├── api/              # API Routes (cron, webhooks, slots, appointments)
-│   └── admin/            # Rutas administrativas
+│   ├── api/              # 25 API Routes (cron, webhooks, slots, appointments)
+│   └── admin/            # Rutas administrativas globales
 ├── components/
-│   ├── ui/               # Primitivas canónicas (Card, Badge, Skeleton, Spinner, EmptyState)
-│   └── dashboard/        # Componentes de dominio
-├── lib/                  # Utilidades compartidas + notificaciones + shadow
-├── hooks/                # Custom hooks (useThemeColors, useRealtimeInvalidation, etc.)
+│   ├── ui/               # 10 primitivas canónicas (Card, Badge, Skeleton, etc.)
+│   └── .../              # Componentes por feature
+├── lib/                  # 23 subdirectorios (supabase, notifications, calendar, etc.)
+├── hooks/                # 11 custom hooks
+├── schemas/              # Validación Zod
 ├── services/             # Data fetching
-└── types/                # TypeScript types
+└── types/                # TypeScript types + DB generated types
 ```
+
+Ver `docs/architecture/CURRENT/SYSTEM_INVENTORY.md` para el inventario completo.
 
 ---
 
 ## Base de Datos
 
-44 migraciones en `supabase/migrations/`. Esquema multi-tenant con RLS.
+73 migraciones en `supabase/migrations/`. 69 tablas públicas. Esquema multi-tenant con RLS en 53 tablas.
 
-### Entidades Core
+### Entidades Core (69 tablas en total)
 
 | Tabla | Propósito |
 |-------|-----------|
 | `organizations` | Tenant raíz |
-| `organization_members` | RBAC pivot (roles: owner, admin, staff, empleado) |
+| `organization_members` | RBAC pivot (roles: owner, admin, staff) |
 | `employees` | Empleados (user_id nullable — invitación) |
 | `clients` | Clientes con cuenta de crédito |
 | `services` | Servicios ofrecidos (precio COP × 1000) |
@@ -80,9 +83,9 @@ src/
 
 ### Módulos
 
-Payroll (V2 activo), Notificaciones (V2 multicanal), Confirmaciones (flujo A+B), Facturación (Stripe), Inventario, Cuentas por Cobrar, Invitaciones, Promo Codes, Shadow Mode.
+Payroll V2, Notificaciones V2 multicanal, Confirmaciones (flujo A+B), Facturación (Stripe), Inventario, Cuentas por Cobrar, Caja diaria (cash sessions), Invitaciones, Promo Codes, Financial Events (capa append-only), Shadow Mode.
 
-Ver `docs/architecture/CURRENT/DATABASE.md` para detalle completo.
+Ver `docs/architecture/CURRENT/DATABASE.md` y `docs/architecture/CURRENT/SYSTEM_INVENTORY.md`.
 
 ---
 
@@ -140,10 +143,8 @@ Ver `docs/architecture/CURRENT/CRON-JOBS.md`.
 
 - **Primitivas:** `Card`, `Badge`, `Skeleton`, `Spinner`, `EmptyState`, `MetricCard`, `ConfirmModal` en `src/components/ui/`
 - **Colors:** `useThemeColors()` como única fuente
-- **Tipografía:** Cormorant Garamond (headings) + Plus Jakarta Sans (body)
+- **Tipografía:** Poppins (headings, weights 600/700) + Manrope (body)
 - **Architecture Guard:** `scripts/architecture-guard.ts` — drift detection automatizado
-
-Ver `docs/governance/ARCHITECTURE_GOVERNANCE.md`.
 
 ---
 
@@ -151,19 +152,18 @@ Ver `docs/governance/ARCHITECTURE_GOVERNANCE.md`.
 
 | Servicio | Estado | Propósito |
 |----------|--------|-----------|
-| Stripe | ⚠️ Parcial | Suscripciones, checkout, webhooks parciales |
-| Resend | ✅ | Emails transaccionales |
-| N8N | ⚠️ Setup | Middleware WhatsApp |
-| WhatsApp Cloud API | 📅 Pendiente | Envío real de mensajes |
+| Stripe | ⚠️ Parcial | Suscripciones, checkout, webhooks |
+| Resend | ✅ | Emails transaccionales (templates premium) |
+| N8N / Wasender | ⚠️ Configurable | Proveedores de WhatsApp (channel adapter pattern) |
 
 ---
 
 ## Documentación Relacionada
 
+- System Inventory: `docs/architecture/CURRENT/SYSTEM_INVENTORY.md`
 - Setup: `docs/setup/SETUP.md`
 - Variables: `docs/architecture/CURRENT/ENVIRONMENT.md`
 - Base de datos: `docs/architecture/CURRENT/DATABASE.md`
 - Cron: `docs/architecture/CURRENT/CRON-JOBS.md`
 - Módulos: `docs/modules/`
 - Governance: `docs/governance/`
-- Arquitectura futura: `docs/architecture/FUTURE/`
