@@ -111,7 +111,10 @@ const LIGHT_SHADOWS = {
 
 export function useThemeColors(): ThemeColors {
   const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
+  const isDark =
+    typeof document !== 'undefined'
+      ? document.documentElement.classList.contains('dark')
+      : false
 
   return useMemo(() => ({
     primary: isDark ? '#38BDF8' : '#0F4C5C',

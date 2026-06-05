@@ -9,7 +9,6 @@ export async function toggleServiceStatus(serviceId: string, newState: boolean) 
     const supabase = await createClient()
 
     // 1. Obtener usuario actual
-    const {
     const access = await requireCurrentOrganization()
     if (!access.success) return { error: access.error }
 
