@@ -78,10 +78,10 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
     setConfirmTarget(null)
   }
 
-  const inputClass = "w-full px-3 py-2 rounded-lg border border-slate-600/50 bg-slate-700/50 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/40 focus:border-[#38BDF8] placeholder:text-slate-500 transition-all duration-200"
+  const inputClass = "w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]/40 dark:focus:ring-[#38BDF8]/40 focus:border-[#0F4C5C] dark:focus:border-[#38BDF8] placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all duration-200"
 
   return (
-    <section className="mb-8 p-5 sm:p-6 bg-slate-800/80 rounded-2xl border border-slate-700/50 shadow-xl backdrop-blur-sm">
+    <section className="mb-8 p-5 sm:p-6 bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-xl backdrop-blur-sm">
       {/* Header */}
       <div className="flex items-start sm:items-center justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
@@ -89,10 +89,10 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
             <Calendar className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="font-display text-lg sm:text-xl font-semibold text-white">
+            <h2 className="font-display text-lg sm:text-xl font-semibold text-slate-900 dark:text-white">
               Horarios Excepcionales
             </h2>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               Cambios de horario puntuales por fecha específica
             </p>
           </div>
@@ -102,8 +102,8 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
       {/* Employee list */}
       {employees.length === 0 ? (
         <div className="text-center py-10">
-          <Calendar className="w-12 h-12 mx-auto text-slate-600 mb-4" />
-          <p className="text-slate-400">No hay empleados registrados.</p>
+          <Calendar className="w-12 h-12 mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+          <p className="text-slate-600 dark:text-slate-400">No hay empleados registrados.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -122,7 +122,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
             return (
               <div
                 key={employee.id}
-                className="border border-slate-600/30 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md"
+                className="border border-slate-200 dark:border-slate-600/30 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md"
               >
                 {/* ── Header ── */}
                 <button
@@ -132,7 +132,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                       [employee.id]: !prev[employee.id],
                     }))
                   }
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-slate-700/80 hover:bg-slate-700 transition-all duration-200 cursor-pointer"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-slate-50 dark:bg-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200 cursor-pointer"
                   aria-expanded={isExpanded}
                 >
                   <div className="flex items-center gap-3 sm:gap-4">
@@ -142,11 +142,11 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                       </span>
                     </div>
                     <div className="text-left min-w-0">
-                      <p className="font-semibold text-white text-sm sm:text-base">
+                      <p className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base">
                         {employee.name}
                       </p>
                       {!isExpanded && (
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                           {summary}
                         </p>
                       )}
@@ -155,7 +155,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
 
                   <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                     {hasOverrides && (
-                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/15 text-amber-400">
+                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400">
                         +{scheduleOverrides.length}
                       </span>
                     )}
@@ -191,7 +191,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                       }}
                       role="button"
                       tabIndex={-1}
-                      className="w-7 h-7 rounded-full flex items-center justify-center bg-slate-600/50 hover:bg-amber-500/20 transition-all duration-200 cursor-pointer"
+                      className="w-7 h-7 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-600/50 hover:bg-amber-50 dark:hover:bg-amber-500/20 transition-all duration-200 cursor-pointer"
                       aria-label="Agregar horario excepcional"
                     >
                       <Plus className="w-3.5 h-3.5 text-slate-400" />
@@ -199,12 +199,12 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                     <div
                       className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
                         isExpanded
-                          ? 'bg-amber-500/20'
-                          : 'bg-slate-600/50'
+                          ? 'bg-amber-50 dark:bg-amber-500/20'
+                          : 'bg-slate-100 dark:bg-slate-600/50'
                       }`}
                     >
                       {isExpanded ? (
-                        <ChevronUp className="w-4 h-4 text-amber-400" />
+                        <ChevronUp className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       ) : (
                         <ChevronDown className="w-4 h-4 text-slate-400" />
                       )}
@@ -243,7 +243,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                         <button
                           type="button"
                           onClick={() => setQuickOverrideEmpId(null)}
-                          className="w-7 h-7 rounded-full flex items-center justify-center bg-slate-700/60 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all duration-200 cursor-pointer flex-shrink-0"
+                          className="w-7 h-7 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-700/60 hover:bg-red-50 dark:hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all duration-200 cursor-pointer flex-shrink-0"
                           aria-label="Cerrar"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -297,7 +297,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                             borderColor: 'rgba(251, 191, 36, 0.1)',
                           }}
                         >
-                          <label className="block text-xs font-semibold text-slate-300 mb-2.5">
+                          <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2.5">
                             ¿Qué día?
                           </label>
                           <div className="flex flex-wrap gap-1.5">
@@ -328,7 +328,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                                   className={`px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer ${
                                     isSelected
                                       ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20 -translate-y-0.5'
-                                      : 'bg-slate-700/60 text-slate-300 hover:bg-slate-600 hover:text-white active:scale-95'
+                                      : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-slate-900 dark:hover:text-white active:scale-95'
                                   }`}
                                 >
                                   {wd.short}
@@ -339,7 +339,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
 
                           {overrideForms[`quick:${employee.id}`]?.date && !showDatePicker && (
                             <div className="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-amber-500/10">
-                              <span className="text-body-xs text-slate-400">
+                              <span className="text-body-xs text-slate-600 dark:text-slate-400">
                                 → {new Date(overrideForms[`quick:${employee.id}`]!.date + 'T00:00:00').toLocaleDateString('es-ES', {
                                   day: 'numeric',
                                   month: 'long',
@@ -488,12 +488,12 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
 
                 {/* ── Body expandido ── */}
                 {isExpanded && (
-                  <div className="border-t border-slate-600/30 bg-slate-700/50">
+                  <div className="border-t border-slate-200 dark:border-slate-600/30 bg-white dark:bg-slate-700/50">
                     <div className="p-4 sm:p-5">
                       {/* Overrides */}
                       <div className="mt-2">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                          <span className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                             Excepciones de horario
                           </span>
                           <button
@@ -512,7 +512,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                         </div>
 
                         {overrideForms[employee.id] && (
-                          <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-slate-700/30 border border-slate-600/20 mb-3">
+                          <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-200 dark:border-slate-600/20 mb-3">
                             <input
                               type="date"
                               required
@@ -572,14 +572,14 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                             {scheduleOverrides.map((o) => (
                               <div
                                 key={o.id}
-                                className="flex items-center justify-between px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20"
+                                className="flex items-center justify-between px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20"
                               >
                                 <div className="flex items-center gap-2 min-w-0">
                                   <Calendar className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                                  <span className="text-xs text-slate-300">
+                                  <span className="text-xs text-slate-600 dark:text-slate-300">
                                     {new Date(o.date + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                                   </span>
-                                  <span className="text-xs text-slate-400">
+                                  <span className="text-xs text-slate-600 dark:text-slate-400">
                                     {o.start_time?.slice(0, 5)} - {o.end_time?.slice(0, 5)}
                                   </span>
                                   {o.reason && <span className="text-xs text-slate-500">· {o.reason}</span>}
@@ -601,7 +601,7 @@ function ScheduleExceptionsSection({ organizationId, employees }: ScheduleExcept
                         )}
 
                         {!hasOverrides && !overrideForms[employee.id] && (
-                          <p className="text-sm text-slate-500 text-center py-4">
+                          <p className="text-sm text-slate-600 dark:text-slate-500 text-center py-4">
                             Sin excepciones de horario programadas.
                           </p>
                         )}

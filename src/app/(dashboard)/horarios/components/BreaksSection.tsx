@@ -171,10 +171,10 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
     }
   }
 
-  const inputClass = "w-full px-3 py-2 rounded-lg border border-slate-600/50 bg-slate-700/50 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/40 focus:border-[#38BDF8] placeholder:text-slate-500 transition-all duration-200"
+  const inputClass = "w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]/40 dark:focus:ring-[#38BDF8]/40 focus:border-[#0F4C5C] dark:focus:border-[#38BDF8] placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all duration-200"
 
   return (
-    <section className="mb-8 p-5 sm:p-6 bg-slate-800/80 rounded-2xl border border-slate-700/50 shadow-xl backdrop-blur-sm">
+    <section className="mb-8 p-5 sm:p-6 bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-xl backdrop-blur-sm">
       {/* Header */}
       <div className="flex items-start sm:items-center justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
@@ -182,10 +182,10 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
             <Coffee className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="font-display text-lg sm:text-xl font-semibold text-white">
+            <h2 className="font-display text-lg sm:text-xl font-semibold text-slate-900 dark:text-white">
               Descansos
             </h2>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               Configura los horarios de descanso de tu equipo (almuerzo, pausas)
             </p>
           </div>
@@ -193,7 +193,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
         {!showCreateForm && (
           <button
             onClick={openCreateForm}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#38BDF8] text-white font-medium text-sm hover:bg-[#38BDF8]/90 hover:shadow-lg hover:shadow-[#38BDF8]/20 transition-all duration-200 cursor-pointer flex-shrink-0"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0F4C5C] dark:bg-[#38BDF8] text-white font-medium text-sm hover:bg-[#0C3E4A] dark:hover:bg-[#38BDF8]/90 hover:shadow-lg hover:shadow-[#38BDF8]/20 transition-all duration-200 cursor-pointer flex-shrink-0"
           >
             <Plus className="w-4 h-4" />
             Crear descanso
@@ -203,14 +203,14 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
 
       {/* ── Formulario de creación ── */}
       {showCreateForm && (
-        <div className="mb-6 p-5 bg-slate-700/50 rounded-xl border border-slate-600/30">
+        <div className="mb-6 p-5 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600/30">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-semibold text-white">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
               {editEmployeeId ? 'Editar descanso' : 'Nuevo descanso'}
             </h3>
             <button
               onClick={closeCreateForm}
-              className="p-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -219,7 +219,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
           <form onSubmit={handleCreateBreaks} className="space-y-4">
             {/* Employee */}
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">Empleado</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Empleado</label>
               <select
                 required
                 disabled={!!editEmployeeId}
@@ -243,12 +243,12 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
             {createForm.employeeId && (
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-medium text-slate-300">Días</label>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Días</label>
                   {getSelectedEmployeeAvailability().length > 0 && (
                     <button
                       type="button"
                       onClick={toggleAllDays}
-                      className="text-xs text-[#38BDF8] hover:text-[#38BDF8]/80 transition-colors cursor-pointer"
+                      className="text-xs text-[#0F4C5C] dark:text-[#38BDF8] hover:text-[#0C3E4A] dark:hover:text-[#38BDF8]/80 transition-colors cursor-pointer"
                     >
                       {getSelectedEmployeeAvailability().every((a) => createForm.days.includes(a.day_of_week))
                         ? 'Deseleccionar todos'
@@ -272,8 +272,8 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                           onClick={() => toggleDay(av.day_of_week)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer ${
                             selected
-                              ? 'bg-[#38BDF8] text-white shadow-sm'
-                              : 'bg-slate-600/50 text-slate-300 hover:bg-slate-600'
+                              ? 'bg-[#0F4C5C] dark:bg-[#38BDF8] text-white shadow-sm'
+                              : 'bg-slate-100 dark:bg-slate-600/50 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
                           }`}
                         >
                           {day?.short || av.day_of_week}
@@ -288,7 +288,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
             {/* Time + Reason */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Inicio</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Inicio</label>
                 <input
                   type="time"
                   required
@@ -298,7 +298,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Fin</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Fin</label>
                 <input
                   type="time"
                   required
@@ -308,7 +308,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Motivo</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Motivo</label>
                 <input
                   type="text"
                   value={createForm.reason}
@@ -338,7 +338,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
               <button
                 type="submit"
                 disabled={isCreating || createForm.days.length === 0 || !createForm.employeeId}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#38BDF8] text-white font-medium text-sm hover:bg-[#38BDF8]/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0F4C5C] dark:bg-[#38BDF8] text-white font-medium text-sm hover:bg-[#0C3E4A] dark:hover:bg-[#38BDF8]/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isCreating ? (
                   <Spinner size="sm" />
@@ -350,7 +350,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
               <button
                 type="button"
                 onClick={closeCreateForm}
-                className="px-5 py-2.5 rounded-xl border border-slate-600/50 text-slate-300 font-medium text-sm hover:bg-slate-700/50 transition-all duration-200 cursor-pointer"
+                className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600/50 text-slate-600 dark:text-slate-300 font-medium text-sm hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-200 cursor-pointer"
               >
                 Cancelar
               </button>
@@ -362,8 +362,8 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
       {/* ── Lista de empleados ── */}
       {employees.length === 0 ? (
         <div className="text-center py-10">
-          <Coffee className="w-12 h-12 mx-auto text-slate-600 mb-4" />
-          <p className="text-slate-400">No hay empleados registrados.</p>
+          <Coffee className="w-12 h-12 mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+          <p className="text-slate-600 dark:text-slate-400">No hay empleados registrados.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -390,7 +390,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
             return (
               <div
                 key={employee.id}
-                className="border border-slate-600/30 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md"
+                className="border border-slate-200 dark:border-slate-600/30 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md"
               >
                 {/* ── Header (siempre visible) ── */}
                 <button
@@ -400,7 +400,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                       [employee.id]: !prev[employee.id],
                     }))
                   }
-                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-slate-700/80 hover:bg-slate-700 transition-all duration-200 cursor-pointer"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-slate-50 dark:bg-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200 cursor-pointer"
                   aria-expanded={isExpanded}
                 >
                   <div className="flex items-center gap-3 sm:gap-4">
@@ -410,16 +410,16 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                       </span>
                     </div>
                     <div className="text-left min-w-0">
-                      <p className="font-semibold text-white text-sm sm:text-base">
+                      <p className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base">
                         {employee.name}
                       </p>
                       {!isExpanded && (
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                           {summary}
                           {hasBreaks && (
                             <button
                               onClick={(e) => { e.stopPropagation(); openEditForm(employee) }}
-                              className="text-body-xs font-semibold px-2 py-0.5 rounded-full bg-[#38BDF8]/15 text-[#38BDF8] hover:bg-[#38BDF8]/25 ml-2 transition-all duration-200 cursor-pointer"
+                              className="text-body-xs font-semibold px-2 py-0.5 rounded-full bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/15 text-[#0F4C5C] dark:text-[#38BDF8] hover:bg-[#0F4C5C]/20 dark:hover:bg-[#38BDF8]/25 ml-2 transition-all duration-200 cursor-pointer"
                             >
                               Editar
                             </button>
@@ -433,12 +433,12 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                     <div
                       className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
                         isExpanded
-                          ? 'bg-[#38BDF8]/20'
-                          : 'bg-slate-600/50'
+                          ? 'bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/20'
+                          : 'bg-slate-100 dark:bg-slate-600/50'
                       }`}
                     >
                       {isExpanded ? (
-                        <ChevronUp className="w-4 h-4 text-[#38BDF8]" />
+                        <ChevronUp className="w-4 h-4 text-[#0F4C5C] dark:text-[#38BDF8]" />
                       ) : (
                         <ChevronDown className="w-4 h-4 text-slate-400" />
                       )}
@@ -448,7 +448,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
 
                 {/* ── Body expandido ── */}
                 {isExpanded && (
-                  <div className="border-t border-slate-600/30 bg-slate-700/50">
+                  <div className="border-t border-slate-200 dark:border-slate-600/30 bg-white dark:bg-slate-700/50">
                     <div className="p-4 sm:p-5">
                       {employee.availability.length === 0 ? (
                         <p className="text-sm text-slate-500 text-center py-4">
@@ -470,7 +470,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                   e.preventDefault()
                                   handleSaveBreak(employee.id, av.day_of_week, new FormData(e.currentTarget))
                                 }}
-                                className={`p-3 rounded-lg bg-slate-700/60 border transition-all duration-200 ${hasBreak ? 'border-l-2 border-[#38BDF8]/40 border-slate-600/40' : 'border-slate-600/30'}`}
+                                className={`p-3 rounded-lg bg-slate-50 dark:bg-slate-700/60 border transition-all duration-200 ${hasBreak ? 'border-l-2 border-[#0F4C5C]/40 dark:border-[#38BDF8]/40 border-slate-200 dark:border-slate-600/40' : 'border-slate-200 dark:border-slate-600/30'}`}
                               >
                                 <input type="hidden" name="start_time" value={av.start_time} />
                                 <input type="hidden" name="end_time" value={av.end_time} />
@@ -479,13 +479,13 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                 {/* LINE 1: Day label + toggle */}
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-sm font-semibold text-white w-12">{day?.short}</span>
-                                    <span className="text-caption text-slate-500 bg-slate-600/30 px-1.5 py-0.5 rounded whitespace-nowrap">Cada semana</span>
-                                    <span className="text-xs text-slate-400 hidden sm:inline">{av.start_time.slice(0, 5)}-{av.end_time.slice(0, 5)}</span>
+                                    <span className="text-sm font-semibold text-slate-900 dark:text-white w-12">{day?.short}</span>
+                                    <span className="text-caption text-slate-500 bg-slate-100 dark:bg-slate-600/30 px-1.5 py-0.5 rounded whitespace-nowrap">Cada semana</span>
+                                    <span className="text-xs text-slate-600 dark:text-slate-400 hidden sm:inline">{av.start_time.slice(0, 5)}-{av.end_time.slice(0, 5)}</span>
                                   </div>
 
                                   <div className="flex items-center gap-3">
-                                    <span className={`text-xs font-medium transition-colors duration-200 ${hasBreak ? 'text-[#38BDF8]' : 'text-slate-500'}`}>
+                                    <span className={`text-xs font-medium transition-colors duration-200 ${hasBreak ? 'text-[#0F4C5C] dark:text-[#38BDF8]' : 'text-slate-500'}`}>
                                       {hasBreak ? 'Descanso activado' : 'Descanso'}
                                     </span>
                                     <button
@@ -511,7 +511,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                           }
                                         })
                                       }}
-                                      className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 cursor-pointer flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/40"
+                                      className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 cursor-pointer flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]/40 dark:focus:ring-[#38BDF8]/40"
                                       style={{ backgroundColor: hasBreak ? '#38BDF8' : '#475569' }}
                                       aria-label={hasBreak ? 'Desactivar descanso' : 'Activar descanso'}
                                     >
@@ -525,7 +525,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                 </div>
 
                                 {/* LINE 2: Controls (visible only when toggle ON) */}
-                                <div className={`break-controls mt-3 pt-3 border-t border-slate-600/30 ${hasBreak ? 'flex' : 'hidden'} flex-col sm:flex-row sm:items-center gap-2 sm:gap-3`}>
+                                <div className={`break-controls mt-3 pt-3 border-t border-slate-200 dark:border-slate-600/30 ${hasBreak ? 'flex' : 'hidden'} flex-col sm:flex-row sm:items-center gap-2 sm:gap-3`}>
                                   <div className="flex items-center gap-2 flex-1">
                                     <input
                                       type="time"
@@ -534,7 +534,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                       disabled={!hasBreak}
                                       className={`${inputClass} break-toggle-input w-28 ${!hasBreak ? 'opacity-40' : ''}`}
                                     />
-                                    <span className="text-slate-500 text-xs flex-shrink-0">→</span>
+                                    <span className="text-slate-400 dark:text-slate-500 text-xs flex-shrink-0">→</span>
                                     <input
                                       type="time"
                                       name="break_end"
