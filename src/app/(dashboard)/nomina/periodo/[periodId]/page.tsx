@@ -32,7 +32,7 @@ export default async function PeriodDetailPage({
   if (!orgMember) redirect('/calendar')
 
   if (orgMember.role === 'empleado') {
-    redirect('/payroll/mi')
+    redirect('/nomina/mi')
   }
 
   const [periodResult, itemsResult, receiptsResult] = await Promise.all([
@@ -42,13 +42,13 @@ export default async function PeriodDetailPage({
   ])
 
   if (!periodResult.success || !periodResult.data) {
-    redirect('/payroll')
+    redirect('/nomina')
   }
 
   const period = periodResult.data
 
   if (period.organization_id !== orgMember.organization_id) {
-    redirect('/payroll')
+    redirect('/nomina')
   }
 
   const receipts = receiptsResult.data?.filter(

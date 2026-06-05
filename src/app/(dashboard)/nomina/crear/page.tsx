@@ -23,7 +23,7 @@ export default async function NewPayrollPeriodPage() {
   if (!orgMember) redirect('/calendar')
 
   if (orgMember.role === 'empleado') {
-    redirect('/payroll/mi')
+    redirect('/nomina/mi')
   }
 
   // Get existing periods to check for duplicates

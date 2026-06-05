@@ -48,7 +48,7 @@ async function PayrollContent() {
   if (!orgMember) redirect('/calendar')
 
   if (orgMember.role === 'empleado') {
-    redirect('/payroll/mi')
+    redirect('/nomina/mi')
   }
 
   const dashboardResult = await getPayrollDashboard(orgMember.organization_id)

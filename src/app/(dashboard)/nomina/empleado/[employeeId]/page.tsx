@@ -57,11 +57,11 @@ export default async function EmployeePayrollPage({
     .single()
 
   if (!employee) {
-    redirect('/payroll')
+    redirect('/nomina')
   }
 
   if (orgMember.role === 'empleado' && employee.user_id !== user.id) {
-    redirect('/payroll/mi')
+    redirect('/nomina/mi')
   }
 
   const defaultPeriod = getDefaultPeriod()

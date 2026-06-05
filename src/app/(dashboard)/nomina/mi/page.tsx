@@ -43,7 +43,7 @@ export default async function MyPayrollPage() {
   if (!orgMember) redirect('/calendar')
 
   if (!['empleado'].includes(orgMember.role)) {
-    redirect('/payroll')
+    redirect('/nomina')
   }
 
   const { data: employee } = await (supabase as any)
