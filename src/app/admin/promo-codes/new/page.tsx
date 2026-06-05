@@ -33,7 +33,7 @@ export default function NewPromoCodePage() {
       <div className="mb-6">
         <Link
           href="/admin/promo-codes"
-          className="inline-flex items-center gap-2 text-sm text-[#475569] hover:text-[#0F172A] transition-colors cursor-pointer"
+          className="inline-flex items-center gap-2 text-sm text-[#475569] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-white transition-colors cursor-pointer"
         >
           <ArrowLeftIcon className="w-4 h-4" />
           Volver a códigos
@@ -59,7 +59,7 @@ export default function NewPromoCodePage() {
                 minLength={3}
                 maxLength={50}
                 placeholder="Ej: PRUEBA30"
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm font-mono uppercase bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] focus:border-transparent"
+                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm font-mono uppercase bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent"
               />
             </div>
 
@@ -74,7 +74,7 @@ export default function NewPromoCodePage() {
                 required
                 maxLength={255}
                 placeholder="Ej: Demo cliente XYZ"
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] focus:border-transparent"
+                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent"
               />
             </div>
           </div>
@@ -87,14 +87,14 @@ export default function NewPromoCodePage() {
               {CODE_TYPES.map((type) => (
                 <label
                   key={type.value}
-                  className="flex items-start gap-3 p-3 border border-[#E2E8F0] dark:border-slate-600 rounded-lg cursor-pointer hover:bg-[#FAFAF9] dark:hover:bg-slate-900 transition-colors has-[:checked]:border-[#0F4C5C] has-[:checked]:bg-[#0F4C5C]/5"
+                  className="flex items-start gap-3 p-3 border border-[#E2E8F0] dark:border-slate-600 rounded-lg cursor-pointer hover:bg-[#FAFAF9] dark:hover:bg-slate-900 transition-colors has-[:checked]:border-[#0F4C5C] dark:has-[:checked]:border-[#38BDF8] has-[:checked]:bg-[#0F4C5C]/5 dark:has-[:checked]:bg-[#38BDF8]/10"
                 >
                   <input
                     type="radio"
                     name="type"
                     value={type.value}
                     required
-                    className="mt-1 w-4 h-4 text-[#0F4C5C] cursor-pointer"
+                    className="mt-1 w-4 h-4 text-[#0F4C5C] dark:text-[#38BDF8] cursor-pointer"
                   />
                   <div>
                     <p className="text-sm font-medium text-[#0F172A] dark:text-white">{type.label}</p>
@@ -119,7 +119,7 @@ export default function NewPromoCodePage() {
                 required
                 min={1}
                 placeholder="Ej: 30"
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] focus:border-transparent"
+                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent"
               />
             </div>
 
@@ -133,7 +133,7 @@ export default function NewPromoCodePage() {
                 name="maxUses"
                 min={1}
                 placeholder="Ej: 10"
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] focus:border-transparent"
+                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent"
               />
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function NewPromoCodePage() {
                 type="datetime-local"
                 id="expiresAt"
                 name="expiresAt"
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] focus:border-transparent"
+                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent"
               />
             </div>
 
@@ -159,7 +159,7 @@ export default function NewPromoCodePage() {
                 type="datetime-local"
                 id="validUntil"
                 name="validUntil"
-                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] focus:border-transparent"
+                className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8] focus:border-transparent"
               />
             </div>
           </div>
@@ -173,14 +173,14 @@ export default function NewPromoCodePage() {
           <div className="flex justify-end gap-3 pt-4 border-t border-[#E2E8F0] dark:border-slate-700">
             <Link
               href="/admin/promo-codes"
-              className="px-4 py-2 text-sm font-medium text-[#475569] hover:text-[#0F172A] transition-colors cursor-pointer"
+              className="px-4 py-2 text-sm font-medium text-[#475569] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-white transition-colors cursor-pointer"
             >
               Cancelar
             </Link>
             <button
               type="submit"
               disabled={pending}
-              className="px-4 py-2 bg-[#0F4C5C] text-white rounded-md text-sm font-medium hover:bg-[#0C3E4A] transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-2"
+              className="px-4 py-2 bg-[#0F4C5C] dark:bg-[#38BDF8] text-white dark:text-[#0F172A] rounded-md text-sm font-medium hover:bg-[#0C3E4A] dark:hover:bg-[#0EA5E9] transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-2"
             >
               {pending ? 'Creando...' : 'Crear código'}
             </button>

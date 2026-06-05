@@ -110,7 +110,7 @@ export default async function AdminPage() {
       {/* Workers */}
       <section>
         <div className="flex items-center gap-3 mb-4">
-          <Activity className="w-5 h-5 text-[#0F4C5C]" />
+          <Activity className="w-5 h-5 text-[#0F4C5C] dark:text-[#38BDF8]" />
           <h2 className="text-xl font-semibold text-[#0F172A] dark:text-white font-heading">
             Workers
           </h2>
@@ -159,12 +159,12 @@ export default async function AdminPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <span className={`font-mono text-xs ${(w.queue_depth || 0) > 50 ? 'text-red-600' : 'text-[#475569] dark:text-slate-400'}`}>
+                        <span className={`font-mono text-xs ${(w.queue_depth || 0) > 50 ? 'text-red-600 dark:text-red-400' : 'text-[#475569] dark:text-slate-400'}`}>
                           {w.queue_depth ?? '—'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <span className={`font-mono text-xs ${(w.dlq_depth || 0) > 5 ? 'text-amber-600' : 'text-[#475569] dark:text-slate-400'}`}>
+                        <span className={`font-mono text-xs ${(w.dlq_depth || 0) > 5 ? 'text-amber-600 dark:text-amber-400' : 'text-[#475569] dark:text-slate-400'}`}>
                           {w.dlq_depth ?? '—'}
                         </span>
                       </td>
@@ -188,7 +188,7 @@ export default async function AdminPage() {
       {alerts.length > 0 && (
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <AlertTriangle className="w-5 h-5 text-amber-500" />
+            <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400" />
             <h2 className="text-xl font-semibold text-[#0F172A] dark:text-white font-heading">
               Alertas Activas
             </h2>
@@ -198,7 +198,7 @@ export default async function AdminPage() {
             <div className="divide-y divide-[#E2E8F0] dark:divide-slate-700">
               {alerts.map((a: any) => (
                 <div key={a.id} className="px-4 py-3 flex items-start gap-3 hover:bg-[#FAFAF9] dark:hover:bg-slate-700/30">
-                  <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${a.severity === 'error' ? 'text-red-500' : 'text-amber-500'}`} />
+                  <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${a.severity === 'error' ? 'text-red-500 dark:text-red-400' : 'text-amber-500 dark:text-amber-400'}`} />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-[#0F172A] dark:text-white">
                       [{a.alert_code}] {a.worker_name}
@@ -206,7 +206,7 @@ export default async function AdminPage() {
                     {a.message && (
                       <p className="text-xs text-[#475569] dark:text-slate-400 mt-0.5 line-clamp-2">{a.message}</p>
                     )}
-                    <p className="text-[11px] text-[#94A3B8] mt-1">
+                    <p className="text-[11px] text-[#94A3B8] dark:text-slate-500 mt-1">
                       {a.created_at ? new Date(a.created_at).toLocaleString('es-CO') : ''}
                       {a.severity === 'error' ? ' · Sin resolver' : ''}
                     </p>
@@ -237,8 +237,8 @@ function StatCard({
       href={href}
       className="bg-white dark:bg-slate-800 rounded-lg p-6 border border-[#E2E8F0] dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-start gap-4"
     >
-      <div className="w-12 h-12 rounded-lg bg-[#0F4C5C]/10 flex items-center justify-center">
-        <Icon className="w-6 h-6 text-[#0F4C5C]" />
+      <div className="w-12 h-12 rounded-lg bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center">
+        <Icon className="w-6 h-6 text-[#0F4C5C] dark:text-[#38BDF8]" />
       </div>
       <div>
         <p className="text-sm text-[#475569] dark:text-slate-400">{label}</p>
@@ -266,8 +266,8 @@ function ActionCard({
       href={href}
       className="bg-white dark:bg-slate-800 rounded-lg p-6 border border-[#E2E8F0] dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-start gap-4"
     >
-      <div className="w-12 h-12 rounded-lg bg-[#0F4C5C]/10 flex items-center justify-center">
-        <Icon className="w-6 h-6 text-[#0F4C5C]" />
+      <div className="w-12 h-12 rounded-lg bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center">
+        <Icon className="w-6 h-6 text-[#0F4C5C] dark:text-[#38BDF8]" />
       </div>
       <div>
         <h3 className="font-medium text-[#0F172A] dark:text-white">{title}</h3>

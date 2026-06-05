@@ -2,9 +2,9 @@ import { WorkerHealth } from '@/types/admin/notifications'
 import { Activity } from 'lucide-react'
 
 const STATUS_CONFIG: Record<string, { label: string; className: string; dot: string }> = {
-  healthy: { label: 'Healthy', className: 'bg-[#16A34A]/10 text-[#16A34A]', dot: 'bg-[#16A34A]' },
-  warning: { label: 'Warning', className: 'bg-[#F59E0B]/10 text-[#F59E0B]', dot: 'bg-[#F59E0B]' },
-  error: { label: 'Error', className: 'bg-[#DC2626]/10 text-[#DC2626]', dot: 'bg-[#DC2626]' },
+  healthy: { label: 'Healthy', className: 'bg-[#16A34A]/10 dark:bg-emerald-400/10 text-[#16A34A] dark:text-emerald-400', dot: 'bg-[#16A34A] dark:bg-emerald-400' },
+  warning: { label: 'Warning', className: 'bg-[#F59E0B]/10 dark:bg-amber-400/10 text-[#F59E0B] dark:text-amber-400', dot: 'bg-[#F59E0B] dark:bg-amber-400' },
+  error: { label: 'Error', className: 'bg-[#DC2626]/10 dark:bg-red-400/10 text-[#DC2626] dark:text-red-400', dot: 'bg-[#DC2626] dark:bg-red-400' },
 }
 
 function formatRelative(dateStr?: string | null): string {
@@ -28,7 +28,7 @@ export function WorkersTable({ workers }: { workers: WorkerHealth[] }) {
   if (workers.length === 0) {
     return (
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-[#E2E8F0] dark:border-slate-700 p-12 text-center">
-        <Activity className="w-12 h-12 mx-auto text-[#94A3B8]" />
+        <Activity className="w-12 h-12 mx-auto text-[#94A3B8] dark:text-slate-500" />
         <h3 className="mt-4 text-lg font-medium text-[#0F172A] dark:text-white">No workers registered</h3>
         <p className="text-[#475569] dark:text-slate-400 mt-2">Workers will appear after the first cron run</p>
       </div>
@@ -77,26 +77,26 @@ export function WorkersTable({ workers }: { workers: WorkerHealth[] }) {
                   <td className="px-4 py-3 text-right">
                     <span className={`text-sm font-medium ${
                       successRate(worker.processed_count, worker.success_count) === '100%'
-                        ? 'text-[#16A34A]'
+                        ? 'text-[#16A34A] dark:text-emerald-400'
                         : successRate(worker.processed_count, worker.success_count) === '—'
-                        ? 'text-[#475569]'
+                        ? 'text-[#475569] dark:text-slate-400'
                         : successRate(worker.processed_count, worker.success_count).includes('0%')
-                        ? 'text-[#DC2626]'
-                        : 'text-[#F59E0B]'
+                        ? 'text-[#DC2626] dark:text-red-400'
+                        : 'text-[#F59E0B] dark:text-amber-400'
                     }`}>
                       {successRate(worker.processed_count, worker.success_count)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span className={`text-sm font-mono ${
-                      worker.queue_depth > 50 ? 'text-[#F59E0B]' : 'text-[#475569] dark:text-slate-400'
+                      worker.queue_depth > 50 ? 'text-[#F59E0B] dark:text-amber-400' : 'text-[#475569] dark:text-slate-400'
                     }`}>
                       {worker.queue_depth.toLocaleString()}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span className={`text-sm font-mono ${
-                      worker.dlq_depth > 5 ? 'text-[#DC2626]' : 'text-[#475569] dark:text-slate-400'
+                      worker.dlq_depth > 5 ? 'text-[#DC2626] dark:text-red-400' : 'text-[#475569] dark:text-slate-400'
                     }`}>
                       {worker.dlq_depth.toLocaleString()}
                     </span>
@@ -107,7 +107,7 @@ export function WorkersTable({ workers }: { workers: WorkerHealth[] }) {
                         {Math.round(worker.last_latency_ms)}ms
                       </span>
                     ) : (
-                      <span className="text-sm text-[#94A3B8]">—</span>
+                      <span className="text-sm text-[#94A3B8] dark:text-slate-500">—</span>
                     )}
                   </td>
                 </tr>

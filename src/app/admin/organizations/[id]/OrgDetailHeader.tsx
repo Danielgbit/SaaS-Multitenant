@@ -14,9 +14,9 @@ interface OrgDetailHeaderProps {
 }
 
 const STATUS_CONFIG: Record<OrganizationStatus, { label: string; className: string }> = {
-  active: { label: 'Activo', className: 'bg-[#16A34A]/10 text-[#16A34A]' },
-  suspended: { label: 'Suspendido', className: 'bg-[#DC2626]/10 text-[#DC2626]' },
-  maintenance: { label: 'Mantenimiento', className: 'bg-[#F59E0B]/10 text-[#F59E0B]' },
+  active: { label: 'Activo', className: 'bg-[#16A34A]/10 dark:bg-emerald-400/10 text-[#16A34A] dark:text-emerald-400' },
+  suspended: { label: 'Suspendido', className: 'bg-[#DC2626]/10 dark:bg-red-400/10 text-[#DC2626] dark:text-red-400' },
+  maintenance: { label: 'Mantenimiento', className: 'bg-[#F59E0B]/10 dark:bg-amber-400/10 text-[#F59E0B] dark:text-amber-400' },
 }
 
 function formatDate(dateString: string) {
@@ -58,8 +58,8 @@ export function OrgDetailHeader({ org }: OrgDetailHeaderProps) {
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-[#E2E8F0] dark:border-slate-700 p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#0F4C5C]/10 flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-[#0F4C5C]" />
+            <div className="w-12 h-12 rounded-xl bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center">
+              <Building2 className="w-6 h-6 text-[#0F4C5C] dark:text-[#38BDF8]" />
             </div>
             <div>
               <h1 className="text-2xl font-semibold text-[#0F172A] dark:text-white font-heading">
@@ -79,7 +79,7 @@ export function OrgDetailHeader({ org }: OrgDetailHeaderProps) {
             {org.status === 'active' && (
               <button
                 onClick={() => setSuspendModalOpen(true)}
-                className="px-4 py-2 text-sm font-medium text-[#DC2626] border border-[#DC2626] rounded-lg hover:bg-[#DC2626]/5 transition-colors cursor-pointer"
+                className="px-4 py-2 text-sm font-medium text-[#DC2626] dark:text-red-400 border border-[#DC2626] dark:border-red-400 rounded-lg hover:bg-[#DC2626]/5 dark:hover:bg-red-400/10 transition-colors cursor-pointer"
               >
                 Suspender
               </button>
@@ -88,7 +88,7 @@ export function OrgDetailHeader({ org }: OrgDetailHeaderProps) {
             {org.status === 'suspended' && (
               <button
                 onClick={() => setReactivating(true)}
-                className="px-4 py-2 text-sm font-medium text-[#16A34A] border border-[#16A34A] rounded-lg hover:bg-[#16A34A]/5 transition-colors cursor-pointer"
+                className="px-4 py-2 text-sm font-medium text-[#16A34A] dark:text-emerald-400 border border-[#16A34A] dark:border-emerald-400 rounded-lg hover:bg-[#16A34A]/5 dark:hover:bg-emerald-400/10 transition-colors cursor-pointer"
               >
                 Reactivar
               </button>
@@ -97,8 +97,8 @@ export function OrgDetailHeader({ org }: OrgDetailHeaderProps) {
         </div>
 
         {org.statusReason && (
-          <div className="mt-4 p-3 bg-[#DC2626]/5 border border-[#DC2626]/20 rounded-lg">
-            <p className="text-sm text-[#DC2626]">
+          <div className="mt-4 p-3 bg-[#DC2626]/5 dark:bg-red-400/5 border border-[#DC2626]/20 dark:border-red-400/20 rounded-lg">
+            <p className="text-sm text-[#DC2626] dark:text-red-400">
               <span className="font-medium">Motivo:</span> {org.statusReason}
             </p>
           </div>
@@ -124,7 +124,7 @@ export function OrgDetailHeader({ org }: OrgDetailHeaderProps) {
               placeholder="Motivo de la suspensión"
               value={suspendReason}
               onChange={(e) => setSuspendReason(e.target.value)}
-              className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C]"
+              className="w-full px-3 py-2 border border-[#E2E8F0] dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 text-[#0F172A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0F4C5C] dark:focus:ring-[#38BDF8]"
             />
           </div>
         }

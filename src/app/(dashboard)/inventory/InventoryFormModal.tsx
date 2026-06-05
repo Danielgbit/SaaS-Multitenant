@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X, Package, Tag, DollarSign, Boxes, AlertCircle, CheckCircle, HelpCircle } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
 import { createInventoryItem, type CreateInventoryItemInput } from '@/actions/inventory/createInventoryItem'
 import { updateInventoryItem, type UpdateInventoryItemInput } from '@/actions/inventory/updateInventoryItem'
@@ -54,6 +55,8 @@ export function InventoryFormModal({
     cost_price: '',
     unit: 'pieza',
   })
+
+  useEscapeKey(isOpen, onClose)
 
   if (!isOpen) return null
 

@@ -1,14 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Package, Search, AlertTriangle, FolderOpen, ChevronDown, X } from 'lucide-react'
+import { Plus, Package, Search, AlertTriangle, FolderOpen, ChevronDown, X, ArrowUpDown, LayoutGrid, List } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
 import { InventoryCard } from './InventoryCard'
 import { InventoryFormModal } from './InventoryFormModal'
 import { DeleteInventoryModal } from './DeleteInventoryModal'
+import { InventoryKPIRow } from './InventoryKPIRow'
+import { InventoryListItem } from './InventoryListItem'
 
 interface InventoryClientProps {
   items: InventoryItem[]
@@ -17,6 +19,8 @@ interface InventoryClientProps {
 }
 
 type FilterType = 'all' | 'lowStock' | 'criticalStock' | 'category'
+type SortOption = 'name-asc' | 'name-desc' | 'stock-asc' | 'stock-desc' | 'price-asc' | 'price-desc'
+type ViewMode = 'grid' | 'list'
 
 export function InventoryClient({ items, categories, organizationId }: InventoryClientProps) {
   const router = useRouter()
@@ -25,6 +29,12 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
   const [selectedCategory, setSelectedCategory] = useState('')
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [sortBy, setSortBy] = useState<SortOption>('name-asc')
+  const [sortOpen, setSortOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return 'grid'
+    return (localStorage.getItem('inventory-view-mode') as ViewMode) || 'grid'
+  })
   const COLORS = useThemeColors()
 
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
@@ -36,6 +46,15 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
   const totalItems = items.length
   const lowStockCount = items.filter((item) => item.quantity > 0 && item.quantity <= item.min_quantity).length
   const criticalStockCount = items.filter((item) => item.quantity === 0).length
+
+  const sortOptions: { value: SortOption; label: string }[] = [
+    { value: 'name-asc', label: 'Nombre A-Z' },
+    { value: 'name-desc', label: 'Nombre Z-A' },
+    { value: 'stock-desc', label: 'Stock mayor' },
+    { value: 'stock-asc', label: 'Stock menor' },
+    { value: 'price-desc', label: 'Precio mayor' },
+    { value: 'price-asc', label: 'Precio menor' },
+  ]
 
   const filtered = items.filter((item) => {
     const matchesSearch = 
@@ -64,6 +83,22 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
     const timer = setTimeout(() => setIsLoading(false), 300)
     return () => clearTimeout(timer)
   }, [query, filter, selectedCategory])
+
+  useEffect(() => {
+    localStorage.setItem('inventory-view-mode', viewMode)
+  }, [viewMode])
+
+  const sortedAndFiltered = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      if (sortBy === 'name-asc') return a.name.localeCompare(b.name)
+      if (sortBy === 'name-desc') return b.name.localeCompare(a.name)
+      if (sortBy === 'stock-asc') return a.quantity - b.quantity
+      if (sortBy === 'stock-desc') return b.quantity - a.quantity
+      if (sortBy === 'price-asc') return (a.price ?? 0) - (b.price ?? 0)
+      if (sortBy === 'price-desc') return (b.price ?? 0) - (a.price ?? 0)
+      return 0
+    })
+  }, [filtered, sortBy])
 
   function handleSuccess() {
     router.refresh()
@@ -122,10 +157,13 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
         </div>
       </div>
 
+      {/* KPI Row */}
+      <InventoryKPIRow items={items} />
+
       {/* Search & Filters - Glassmorphism */}
-      <div 
-        className="p-4 rounded-2xl mb-6"
-        style={{ 
+      <div
+        className="p-4 rounded-2xl mb-6 relative z-[1]"
+        style={{
           backgroundColor: COLORS.surfaceGlass,
           backdropFilter: 'blur(12px)',
           border: `1px solid ${COLORS.border}`
@@ -222,9 +260,9 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
               style={{
                 borderRadius: '10px',
                 padding: '10px 16px',
-                backgroundColor: filter === 'criticalStock' ? COLORS.danger : 'transparent',
-                color: filter === 'criticalStock' ? '#FFFFFF' : COLORS.danger,
-                border: filter === 'criticalStock' ? 'none' : `1px solid ${COLORS.danger}40`,
+                backgroundColor: filter === 'criticalStock' ? COLORS.error : 'transparent',
+                color: filter === 'criticalStock' ? '#FFFFFF' : COLORS.error,
+                border: filter === 'criticalStock' ? 'none' : `1px solid ${COLORS.error}40`,
               }}
               className="text-sm font-medium transition-all duration-200 flex items-center gap-2"
             >
@@ -234,8 +272,8 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
                 <span 
                   className="ml-1 px-1.5 py-0.5 rounded-full text-xs"
                   style={{ 
-                    backgroundColor: filter === 'criticalStock' ? 'rgba(255,255,255,0.2)' : COLORS.dangerLight,
-                    color: filter === 'criticalStock' ? '#FFFFFF' : COLORS.danger
+                    backgroundColor: filter === 'criticalStock' ? 'rgba(255,255,255,0.2)' : COLORS.errorLight,
+                    color: filter === 'criticalStock' ? '#FFFFFF' : COLORS.error
                   }}
                 >
                   {criticalStockCount}
@@ -429,25 +467,161 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
           </div>
         </div>
       ) : (
-        <div 
-          className="grid gap-4"
-          style={{ 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))'
+        <div
+          className="rounded-2xl"
+          style={{
+            backgroundColor: COLORS.surfaceGlass,
+            backdropFilter: 'blur(12px)',
+            border: `1px solid ${COLORS.border}`,
           }}
         >
-          {filtered.map((item, index) => (
-            <div 
-              key={item.id}
-              className="animate-in fade-in slide-in-from-bottom-4"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <InventoryCard
-                item={item}
-                onEdit={setEditingItem}
-                onDelete={setDeletingItem}
-              />
+          {/* Section Header */}
+          <div
+            className="flex items-center justify-between px-6 py-3.5 border-b"
+            style={{
+              borderColor: COLORS.border,
+              backgroundColor: COLORS.surfaceSubtle + '40',
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Package className="w-3.5 h-3.5" style={{ color: COLORS.textMuted }} />
+              <span
+                className="text-xs font-semibold uppercase tracking-wider"
+                style={{ color: COLORS.textMuted }}
+              >
+                Catálogo
+              </span>
             </div>
-          ))}
+
+            <div className="flex items-center gap-3">
+              {/* Sort dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setSortOpen(!sortOpen)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 cursor-pointer"
+                  style={{
+                    color: COLORS.textSecondary,
+                    backgroundColor: sortOpen ? COLORS.surfaceHover : 'transparent',
+                  }}
+                >
+                  <ArrowUpDown className="w-3.5 h-3.5" />
+                  {sortOptions.find(s => s.value === sortBy)?.label}
+                  <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${sortOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {sortOpen && (
+                  <div
+                    className="absolute right-0 top-full mt-2 py-2 rounded-xl shadow-xl border z-50 min-w-[160px]"
+                    style={{
+                      backgroundColor: COLORS.surface,
+                      borderColor: COLORS.border,
+                    }}
+                  >
+                    {sortOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          setSortBy(option.value)
+                          setSortOpen(false)
+                        }}
+                        className="w-full text-left px-4 py-2 text-xs transition-colors cursor-pointer"
+                        style={{
+                          color: sortBy === option.value ? COLORS.primary : COLORS.textPrimary,
+                          fontWeight: sortBy === option.value ? 600 : 400,
+                          backgroundColor: sortBy === option.value ? COLORS.primarySubtle : 'transparent',
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* View toggle */}
+              <div
+                className="flex items-center overflow-hidden"
+                style={{ borderRadius: '8px', border: `1px solid ${COLORS.border}` }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  className="p-1.5 transition-colors duration-200 cursor-pointer"
+                  style={{
+                    backgroundColor: viewMode === 'grid' ? COLORS.primary : 'transparent',
+                    color: viewMode === 'grid' ? '#FFFFFF' : COLORS.textMuted,
+                  }}
+                  aria-label="Vista cuadrícula"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  className="p-1.5 transition-colors duration-200 cursor-pointer"
+                  style={{
+                    backgroundColor: viewMode === 'list' ? COLORS.primary : 'transparent',
+                    color: viewMode === 'list' ? '#FFFFFF' : COLORS.textMuted,
+                  }}
+                  aria-label="Vista lista"
+                >
+                  <List className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Count */}
+              <span
+                className="text-xs"
+                style={{ color: COLORS.textSecondary }}
+              >
+                {sortedAndFiltered.length} resultado{sortedAndFiltered.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="overflow-hidden rounded-b-2xl">
+            {viewMode === 'grid' ? (
+            <div
+              className="grid gap-4 p-4"
+              style={{
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              }}
+            >
+              {sortedAndFiltered.map((item, index) => (
+                <div
+                  key={item.id}
+                  className="animate-in fade-in slide-in-from-bottom-4"
+                  style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
+                >
+                  <InventoryCard
+                    item={item}
+                    onEdit={setEditingItem}
+                    onDelete={setDeletingItem}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ul className="divide-y" style={{ borderColor: COLORS.border }}>
+              {sortedAndFiltered.map((item, index) => (
+                <li
+                  key={item.id}
+                  className="animate-in fade-in"
+                  style={{ animationDelay: `${Math.min(index * 30, 200)}ms` }}
+                >
+                  <InventoryListItem
+                    item={item}
+                    onEdit={setEditingItem}
+                    onDelete={setDeletingItem}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+          </div>
         </div>
       )}
 
@@ -477,9 +651,16 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
       )}
 
       {isCategoryOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setIsCategoryOpen(false)} 
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setIsCategoryOpen(false)}
+        />
+      )}
+
+      {sortOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setSortOpen(false)}
         />
       )}
     </>

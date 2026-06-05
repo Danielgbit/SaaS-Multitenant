@@ -787,16 +787,33 @@ Implementar 6 componentes base faltantes:
 
 > ⚠️ Los icon-only sin `aria-label` subieron porque los 6 botones migrados eran icon-only. La solución a largo plazo es migrar más usos a `Button` con `aria-label` explícito.
 
-#### Sprint B2 — Modal (pendiente)
+#### Sprint B2 — Modal (COMPLETADO ✅)
 
-Componente base con overlay, focus trap, escape-to-close, `role="dialog"`.
+| Entregable | Estado |
+|-----------|:------:|
+| `src/hooks/useFocusTrap.ts` | ✅ Hook aislado con escape + focus trap + restore |
+| `src/hooks/useScrollLock.ts` | ✅ Hook con cleanup garantizado |
+| `src/components/ui/Modal.tsx` | ✅ Creado con `ModalFooter`, orden explícito (focus → scroll) |
+| `ConfirmModal.tsx` refactorizado | ✅ ~70 líneas menos, compone Modal + Button |
+| Exportado del barrel `index.ts` | ✅ |
+| Tests hooks | ✅ 3 tests |
+| Tests totales | ✅ **327 tests, 34 suites — 0 fallos** |
 
-| Pendiente | Prioridad |
-|-----------|:---------:|
-| Crear `Modal.tsx` | Media |
-| Refactorizar `ConfirmModal` para usar Modal como base | Media |
-| Verificar Radix Dialog antes de implementar | Baja |
-| Migrar 6 modales inline prioritarios | Baja |
+**Arquitectura actual:**
+
+```
+Modal.tsx (~80 líneas)
+  ├── useFocusTrap hook   (focus cíclico, escape, restore)
+  ├── useScrollLock hook   (body overflow con cleanup)
+  └── ModalFooter          (componente composable)
+        ↑
+ConfirmModal.tsx (~100 líneas)  ← compone Modal + contenido específico
+```
+
+**Próximos pasos (post-B2):**
+- Migrar modales inline prioritarios (CashSession, form modals con side effects)
+- Verificar LIFO stacking en runtime
+- Evaluar si B3 (Modal system hardening) es necesario
 
 ---
 

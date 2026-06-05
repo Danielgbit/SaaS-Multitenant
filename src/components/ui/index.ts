@@ -1,5 +1,6 @@
 export { Card } from './Card'
 export { Button } from './Button'
+export { Modal, ModalFooter } from './Modal'
 export { Skeleton } from './Skeleton'
 export { Spinner } from './Spinner'
 export { Badge } from './Badge'

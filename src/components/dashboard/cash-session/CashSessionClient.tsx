@@ -18,7 +18,7 @@ import { OpenSessionForm } from './OpenSessionForm'
 import { NewEntryModal } from './NewEntryModal'
 import { PayEmployeeModal } from './PayEmployeeModal'
 import { VoidEntryModal } from './VoidEntryModal'
-import { ConfirmModal } from './ConfirmModal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { CashSessionAlertBanner } from './CashSessionAlertBanner'
 import { CashSessionFAB } from './CashSessionFAB'
 import { CashSessionSkeleton } from './CashSessionSkeleton'
@@ -315,13 +315,14 @@ export function CashSessionClient({ initialSession, initialEntries, organization
 
       {showCloseConfirm && (
         <ConfirmModal
+          isOpen={showCloseConfirm}
           title="Cerrar caja"
-          message="¿Cerrar la caja del día? Asegúrate de haber contado el efectivo y registrado todos los gastos."
-          confirmLabel="Cerrar caja"
+          description="¿Cerrar la caja del día? Asegúrate de haber contado el efectivo y registrado todos los gastos."
+          confirmText="Cerrar caja"
           variant="warning"
-          onConfirm={() => hClose(session.real_cash_detail ?? { cash: 0, qr: 0, transfer: 0, card: 0 })}
+          onConfirm={async () => { hClose(session.real_cash_detail ?? { cash: 0, qr: 0, transfer: 0, card: 0 }) }}
           onClose={() => setShowCloseConfirm(false)}
-          isLoading={closeM.isPending}
+          loading={closeM.isPending}
         />
       )}
 

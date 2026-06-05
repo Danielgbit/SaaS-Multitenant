@@ -89,7 +89,7 @@ export function AdminNav({ userEmail }: AdminNavProps) {
                       ${
                         active
                           ? 'bg-[#0F4C5C] dark:bg-[#38BDF8] text-white'
-                          : 'text-[#475569] hover:text-[#0F172A] hover:bg-[#E6F1F4] dark:hover:bg-slate-800'
+                          : 'text-[#475569] dark:text-slate-300 hover:text-[#0F172A] dark:hover:text-white hover:bg-[#E6F1F4] dark:hover:bg-slate-800'
                       }
                     `}
                   >
@@ -102,12 +102,12 @@ export function AdminNav({ userEmail }: AdminNavProps) {
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-sm text-[#475569] hidden sm:block">
+            <span className="text-sm text-[#475569] dark:text-slate-300 hidden sm:block">
               {userEmail}
             </span>
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-[#475569] hover:text-[#0F172A] hover:bg-[#E6F1F4] dark:hover:bg-slate-800 rounded-md transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-[#475569] dark:text-slate-300 hover:text-[#0F172A] dark:hover:text-white hover:bg-[#E6F1F4] dark:hover:bg-slate-800 rounded-md transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Salir</span>
@@ -128,7 +128,7 @@ export function AdminNav({ userEmail }: AdminNavProps) {
                 ${
                   active
                     ? 'bg-[#0F4C5C] dark:bg-[#38BDF8] text-white'
-                    : 'text-[#475569] hover:text-[#0F172A] hover:bg-[#E6F1F4]'
+                    : 'text-[#475569] dark:text-slate-300 hover:text-[#0F172A] dark:hover:text-white hover:bg-[#E6F1F4] dark:hover:bg-slate-800'
                 }
               `}
             >

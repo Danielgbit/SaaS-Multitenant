@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Plus, Users, Minus, X, Download, RefreshCw, Loader2 } from 'lucide-react'
-import { ConfirmModal } from './ConfirmModal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 interface CashSessionFABProps {
   onNewEntry: () => void
@@ -140,13 +140,14 @@ export function CashSessionFAB({
 
       {showCloseConfirm && (
         <ConfirmModal
+          isOpen={showCloseConfirm}
           title="Cerrar caja"
-          message="¿Cerrar la caja del día? Asegúrate de haber contado el efectivo y registrado todos los gastos."
-          confirmLabel="Cerrar caja"
+          description="¿Cerrar la caja del día? Asegúrate de haber contado el efectivo y registrado todos los gastos."
+          confirmText="Cerrar caja"
           variant="warning"
-          onConfirm={handleCloseConfirm}
+          onConfirm={async () => { handleCloseConfirm() }}
           onClose={() => setShowCloseConfirm(false)}
-          isLoading={isClosing}
+          loading={isClosing}
         />
       )}
     </>

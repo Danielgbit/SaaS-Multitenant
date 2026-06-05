@@ -26,8 +26,8 @@ export function ActiveAlerts({ alerts }: { alerts: AlertEvent[] }) {
   if (alerts.length === 0) {
     return (
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-[#E2E8F0] dark:border-slate-700 p-12 text-center">
-        <div className="w-12 h-12 rounded-lg bg-[#16A34A]/10 flex items-center justify-center mx-auto">
-          <Bell className="w-6 h-6 text-[#16A34A]" />
+        <div className="w-12 h-12 rounded-lg bg-[#16A34A]/10 dark:bg-emerald-400/10 flex items-center justify-center mx-auto">
+          <Bell className="w-6 h-6 text-[#16A34A] dark:text-emerald-400" />
         </div>
         <h3 className="mt-4 text-lg font-medium text-[#0F172A] dark:text-white">No active alerts</h3>
         <p className="text-[#475569] dark:text-slate-400 mt-2">All notification workers are healthy</p>
@@ -58,14 +58,14 @@ export function ActiveAlerts({ alerts }: { alerts: AlertEvent[] }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                    alert.level === 'error' ? 'bg-[#DC2626]/10 text-[#DC2626]' : 'bg-[#F59E0B]/10 text-[#F59E0B]'
+                    alert.level === 'error' ? 'bg-[#DC2626]/10 dark:bg-red-400/10 text-[#DC2626] dark:text-red-400' : 'bg-[#F59E0B]/10 dark:bg-amber-400/10 text-[#F59E0B] dark:text-amber-400'
                   }`}>
                     {config.label}
                   </span>
                   <span className="text-sm font-medium text-[#475569] dark:text-slate-400">{alert.code}</span>
                 </div>
                 <p className="text-sm text-[#0F172A] dark:text-white mt-1">{alert.message}</p>
-                <p className="text-xs text-[#94A3B8] mt-2">
+                <p className="text-xs text-[#94A3B8] dark:text-slate-500 mt-2">
                   {alert.worker_name} • {formatRelative(alert.created_at)}
                 </p>
               </div>

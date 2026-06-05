@@ -17,10 +17,10 @@ function formatDate(dateString: string) {
 
 function StatusBadge({ status }: { status: string | null }) {
   const config: Record<string, { label: string; className: string }> = {
-    trial: { label: 'Trial', className: 'bg-[#0EA5E9]/10 text-[#0EA5E9]' },
-    active: { label: 'Activo', className: 'bg-[#16A34A]/10 text-[#16A34A]' },
-    grace_period: { label: 'Grace Period', className: 'bg-[#F59E0B]/10 text-[#F59E0B]' },
-    past_due: { label: 'Vencido', className: 'bg-[#DC2626]/10 text-[#DC2626]' },
+    trial: { label: 'Trial', className: 'bg-[#0EA5E9]/10 dark:bg-sky-400/10 text-[#0EA5E9] dark:text-sky-400' },
+    active: { label: 'Activo', className: 'bg-[#16A34A]/10 dark:bg-emerald-400/10 text-[#16A34A] dark:text-emerald-400' },
+    grace_period: { label: 'Grace Period', className: 'bg-[#F59E0B]/10 dark:bg-amber-400/10 text-[#F59E0B] dark:text-amber-400' },
+    past_due: { label: 'Vencido', className: 'bg-[#DC2626]/10 dark:bg-red-400/10 text-[#DC2626] dark:text-red-400' },
     canceled: { label: 'Cancelado', className: 'bg-slate-100 text-[#475569] dark:bg-slate-700 dark:text-slate-400' },
   }
 
@@ -32,7 +32,7 @@ function StatusBadge({ status }: { status: string | null }) {
     )
   }
 
-  const { label, className } = config[status] ?? { label: status, className: 'bg-slate-100 text-[#475569]' }
+  const { label, className } = config[status] ?? { label: status, className: 'bg-slate-100 dark:bg-slate-700 text-[#475569] dark:text-slate-400' }
 
   return (
     <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${className}`}>
@@ -43,12 +43,12 @@ function StatusBadge({ status }: { status: string | null }) {
 
 function OrgStatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    active: { label: 'Activo', className: 'bg-[#16A34A]/10 text-[#16A34A]' },
-    suspended: { label: 'Suspendido', className: 'bg-[#DC2626]/10 text-[#DC2626]' },
-    maintenance: { label: 'Mantenimiento', className: 'bg-[#F59E0B]/10 text-[#F59E0B]' },
+    active: { label: 'Activo', className: 'bg-[#16A34A]/10 dark:bg-emerald-400/10 text-[#16A34A] dark:text-emerald-400' },
+    suspended: { label: 'Suspendido', className: 'bg-[#DC2626]/10 dark:bg-red-400/10 text-[#DC2626] dark:text-red-400' },
+    maintenance: { label: 'Mantenimiento', className: 'bg-[#F59E0B]/10 dark:bg-amber-400/10 text-[#F59E0B] dark:text-amber-400' },
   }
 
-  const { label, className } = config[status] ?? { label: status, className: 'bg-slate-100 text-[#475569]' }
+  const { label, className } = config[status] ?? { label: status, className: 'bg-slate-100 dark:bg-slate-700 text-[#475569] dark:text-slate-400' }
 
   return (
     <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${className}`}>
@@ -114,14 +114,14 @@ export default async function OrganizationsPage() {
                         href={`/admin/organizations/${org.id}`}
                         className="flex items-center gap-3 hover:text-[#0F4C5C] dark:hover:text-[#38BDF8] transition-colors"
                       >
-                        <div className="w-8 h-8 rounded-full bg-[#0F4C5C]/10 flex items-center justify-center">
-                          <BuildingIcon className="w-4 h-4 text-[#0F4C5C]" />
+                        <div className="w-8 h-8 rounded-full bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center">
+                          <BuildingIcon className="w-4 h-4 text-[#0F4C5C] dark:text-[#38BDF8]" />
                         </div>
                         <div>
                           <span className="font-medium text-[#0F172A] dark:text-white">
                             {org.name}
                           </span>
-                          <p className="text-xs text-[#94A3B8]">{org.slug}</p>
+                          <p className="text-xs text-[#94A3B8] dark:text-slate-500">{org.slug}</p>
                         </div>
                       </Link>
                     </td>
@@ -154,7 +154,7 @@ export default async function OrganizationsPage() {
         </div>
       ) : (
         <div className="bg-white dark:bg-slate-800 rounded-lg border border-[#E2E8F0] dark:border-slate-700 p-12 text-center">
-          <BuildingIcon className="w-12 h-12 mx-auto text-[#94A3B8]" />
+          <BuildingIcon className="w-12 h-12 mx-auto text-[#94A3B8] dark:text-slate-500" />
           <h3 className="mt-4 text-lg font-medium text-[#0F172A] dark:text-white">
             No hay organizaciones
           </h3>

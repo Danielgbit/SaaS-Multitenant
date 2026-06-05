@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { AlertTriangle, X, Package, CheckCircle } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
 import { deleteInventoryItem } from '@/actions/inventory/deleteInventoryItem'
 
@@ -26,6 +27,8 @@ export function DeleteInventoryModal({
   const [isDeleted, setIsDeleted] = useState(false)
   const [error, setError] = useState('')
   const COLORS = useThemeColors()
+
+  useEscapeKey(isOpen, onClose)
 
   if (!isOpen) return null
 

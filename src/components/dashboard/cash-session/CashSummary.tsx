@@ -7,7 +7,7 @@ import { CashStatusCard } from './CashStatusCard'
 import { PaymentBreakdownCard } from './PaymentBreakdownCard'
 import { DailyMetricsCard } from './DailyMetricsCard'
 import { LowStockAlertCard } from './LowStockAlertCard'
-import { ConfirmModal } from './ConfirmModal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 const METHODS: PaymentMethod[] = ['cash', 'qr', 'transfer', 'card']
 
@@ -74,13 +74,14 @@ export function CashSummary({ session, entries, onClose, isClosing, canClose, or
           </button>
           {showConfirm && (
             <ConfirmModal
+              isOpen={showConfirm}
               title="Cerrar caja"
-              message="¿Cerrar la caja del día? Asegúrate de haber contado el efectivo y registrado todos los gastos."
-              confirmLabel="Cerrar caja"
+              description="¿Cerrar la caja del día? Asegúrate de haber contado el efectivo y registrado todos los gastos."
+              confirmText="Cerrar caja"
               variant="warning"
-              onConfirm={() => onClose(session.real_cash_detail ?? { cash: 0, qr: 0, transfer: 0, card: 0 })}
+              onConfirm={async () => { await onClose(session.real_cash_detail ?? { cash: 0, qr: 0, transfer: 0, card: 0 }) }}
               onClose={() => setShowConfirm(false)}
-              isLoading={isClosing}
+              loading={isClosing}
             />
           )}
         </>

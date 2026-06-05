@@ -26,7 +26,7 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
     : 0
 
   const getStockStatus = () => {
-    if (isCriticalStock) return { label: 'Sin stock', color: COLORS.danger, bg: COLORS.dangerLight, icon: AlertTriangle }
+    if (isCriticalStock) return { label: 'Sin stock', color: COLORS.error, bg: COLORS.errorLight, icon: AlertTriangle }
     if (isLowStock) return { label: 'Stock bajo', color: COLORS.warning, bg: COLORS.warningLight, icon: AlertTriangle }
     return { label: 'En stock', color: COLORS.success, bg: COLORS.successLight, icon: null }
   }
@@ -46,13 +46,11 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
       className="group transition-all duration-300 cursor-default"
       style={{
         backgroundColor: COLORS.surfaceGlass,
-        borderRadius: '16px',
+        borderRadius: COLORS.radius.card,
         border: `1px solid ${isHovered ? COLORS.primary + '40' : COLORS.border}`,
         overflow: 'hidden',
-        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-        boxShadow: isHovered 
-          ? '0 20px 40px -12px rgba(15, 76, 92, 0.15), 0 0 0 1px rgba(15, 76, 92, 0.05)' 
-          : '0 4px 24px rgba(15, 76, 92, 0.08)',
+        ...(isHovered && { transform: 'translateY(-2px)' }),
+        boxShadow: isHovered ? COLORS.shadow.tealMd : COLORS.shadow.tealSm,
         backdropFilter: 'blur(12px)',
       }}
     >
@@ -95,7 +93,7 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
         {item.category && (
           <div
             className="text-xs font-medium inline-block px-2.5 py-1 rounded-lg"
-            style={{ backgroundColor: COLORS.surfaceSubtle, color: COLORS.textSecondary }}
+            style={{ backgroundColor: COLORS.accentTealSubtle, color: COLORS.textSecondary }}
           >
             {item.category}
           </div>
@@ -115,7 +113,7 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
             <div className="flex items-baseline gap-2 mt-1">
               <p
                 className="text-3xl font-bold font-heading"
-                style={{ color: isCriticalStock ? COLORS.danger : isLowStock ? COLORS.warning : COLORS.textPrimary }}
+                style={{ color: isCriticalStock ? COLORS.error : isLowStock ? COLORS.warning : COLORS.textPrimary }}
               >
                 {item.quantity}
               </p>
@@ -134,7 +132,7 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
                 className="h-full rounded-full transition-all duration-500"
                 style={{ 
                   width: `${Math.min((item.quantity / (item.min_quantity * 3)) * 100, 100)}%`,
-                  backgroundColor: isCriticalStock ? COLORS.danger : isLowStock ? COLORS.warning : COLORS.success
+                  backgroundColor: isCriticalStock ? COLORS.error : isLowStock ? COLORS.warning : COLORS.success
                 }}
               />
             </div>
@@ -163,11 +161,11 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
                 {marginPercent > 0 ? (
                   <TrendingUp className="w-3 h-3" style={{ color: COLORS.success }} />
                 ) : (
-                  <TrendingDown className="w-3 h-3" style={{ color: COLORS.danger }} />
+                  <TrendingDown className="w-3 h-3" style={{ color: COLORS.error }} />
                 )}
                 <span
                   className="text-xs font-medium"
-                  style={{ color: marginPercent > 0 ? COLORS.success : COLORS.danger }}
+                  style={{ color: marginPercent > 0 ? COLORS.success : COLORS.error }}
                 >
                   {marginPercent > 0 ? '+' : ''}{marginPercent}%
                 </span>
@@ -226,7 +224,7 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
           onClick={handleDelete}
           disabled={isDeleting}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer disabled:opacity-50"
-          style={{ color: COLORS.danger, backgroundColor: COLORS.dangerLight }}
+          style={{ color: COLORS.error, backgroundColor: COLORS.errorLight }}
         >
           <Trash2 className="w-4 h-4" />
           {isDeleting ? 'Eliminando...' : 'Eliminar'}

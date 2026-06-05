@@ -20,7 +20,7 @@ export function GrowthChart({ title, data, color: barColor, formatValue }: Growt
     return (
       <Card variant="surface" className="p-6">
         <h3 className="text-lg font-semibold text-[#0F172A] dark:text-white font-heading mb-4">{title}</h3>
-        <p className="text-sm text-[#94A3B8] text-center py-8">Sin datos de crecimiento aún</p>
+        <p className="text-sm text-[#94A3B8] dark:text-slate-500 text-center py-8">Sin datos de crecimiento aún</p>
       </Card>
     )
   }

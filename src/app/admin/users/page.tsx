@@ -9,7 +9,7 @@ export const metadata = {
 function UserStatusBadge({ isActive }: { isActive: boolean }) {
   if (isActive) {
     return (
-      <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-[#16A34A]/10 text-[#16A34A]">
+      <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-[#16A34A]/10 dark:bg-emerald-400/10 text-[#16A34A] dark:text-emerald-400">
         Activo
       </span>
     )
@@ -31,16 +31,16 @@ function formatDate(dateString: string | null) {
 }
 
 function RoleBadge({ role }: { role: string | null }) {
-  if (!role) return <span className="text-sm text-[#94A3B8]">—</span>
+  if (!role) return <span className="text-sm text-[#94A3B8] dark:text-slate-500">—</span>
 
   const config: Record<string, { label: string; className: string }> = {
-    owner: { label: 'Propietario', className: 'bg-[#0F4C5C]/10 text-[#0F4C5C]' },
-    admin: { label: 'Admin', className: 'bg-[#DC2626]/10 text-[#DC2626]' },
-    staff: { label: 'Staff', className: 'bg-[#F59E0B]/10 text-[#F59E0B]' },
-    empleado: { label: 'Empleado', className: 'bg-[#0EA5E9]/10 text-[#0EA5E9]' },
+    owner: { label: 'Propietario', className: 'bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 text-[#0F4C5C] dark:text-[#38BDF8]' },
+    admin: { label: 'Admin', className: 'bg-[#DC2626]/10 dark:bg-red-400/10 text-[#DC2626] dark:text-red-400' },
+    staff: { label: 'Staff', className: 'bg-[#F59E0B]/10 dark:bg-amber-400/10 text-[#F59E0B] dark:text-amber-400' },
+    empleado: { label: 'Empleado', className: 'bg-[#0EA5E9]/10 dark:bg-sky-400/10 text-[#0EA5E9] dark:text-sky-400' },
   }
 
-  const { label, className } = config[role] ?? { label: role, className: 'bg-slate-100 text-[#475569]' }
+  const { label, className } = config[role] ?? { label: role, className: 'bg-slate-100 dark:bg-slate-700 text-[#475569] dark:text-slate-400' }
 
   return (
     <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${className}`}>
@@ -84,15 +84,15 @@ export default async function UsersPage() {
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#0F4C5C]/10 flex items-center justify-center">
-                          <UsersIcon className="w-4 h-4 text-[#0F4C5C]" />
+                        <div className="w-8 h-8 rounded-full bg-[#0F4C5C]/10 dark:bg-[#38BDF8]/10 flex items-center justify-center">
+                          <UsersIcon className="w-4 h-4 text-[#0F4C5C] dark:text-[#38BDF8]" />
                         </div>
                         <div>
                           <span className="font-medium text-[#0F172A] dark:text-white">
                             {user.email}
                           </span>
                           {user.primaryOrgName && (
-                            <p className="text-xs text-[#94A3B8] mt-0.5 flex items-center gap-1">
+                            <p className="text-xs text-[#94A3B8] dark:text-slate-500 mt-0.5 flex items-center gap-1">
                               <BuildingIcon className="w-3 h-3" />
                               {user.primaryOrgName}
                             </p>
@@ -120,7 +120,7 @@ export default async function UsersPage() {
         </div>
       ) : (
         <div className="bg-white dark:bg-slate-800 rounded-lg border border-[#E2E8F0] dark:border-slate-700 p-12 text-center">
-          <UsersIcon className="w-12 h-12 mx-auto text-[#94A3B8]" />
+          <UsersIcon className="w-12 h-12 mx-auto text-[#94A3B8] dark:text-slate-500" />
           <h3 className="mt-4 text-lg font-medium text-[#0F172A] dark:text-white">No hay usuarios</h3>
           <p className="text-[#475569] dark:text-slate-400 mt-2">
             Los usuarios aparecerán aquí cuando se registren

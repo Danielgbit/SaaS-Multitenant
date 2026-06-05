@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Package, TrendingUp, TrendingDown, RotateCcw, AlertTriangle, RefreshCw, History } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { Spinner } from '@/components/ui'
 import { getInventoryMovements, type InventoryMovement } from '@/actions/inventory/getInventoryMovements'
 
@@ -55,6 +56,8 @@ export function InventoryMovementModal({ itemId, organizationId, isOpen, onClose
       .then(setMovements)
       .finally(() => setLoading(false))
   }, [itemId, organizationId, isOpen])
+
+  useEscapeKey(isOpen, onClose)
 
   if (!isOpen) return null
 

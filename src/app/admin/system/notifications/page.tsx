@@ -24,7 +24,7 @@ export default async function NotificationsHealthPage() {
         </div>
         <Link
           href="/admin/system/notifications"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F4C5C] text-white rounded-md text-sm font-medium hover:bg-[#0C3E4A] transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F4C5C] dark:bg-[#38BDF8] text-white dark:text-[#0F172A] rounded-md text-sm font-medium hover:bg-[#0C3E4A] dark:hover:bg-[#0EA5E9] transition-colors"
         >
           <RefreshCw className="w-4 h-4" />
           Refresh
