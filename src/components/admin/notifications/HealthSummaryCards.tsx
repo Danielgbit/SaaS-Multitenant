@@ -1,38 +1,22 @@
 import { HealthSummary } from '@/types/admin/notifications'
 import { Activity, Inbox, AlertTriangle, Bell } from 'lucide-react'
-
-type CardConfig = {
-  label: string
-  value: number
-  icon: React.ComponentType<{ className?: string }>
-  color: string
-}
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 export function HealthSummaryCards({ summary }: { summary: HealthSummary }) {
-  const cards: CardConfig[] = [
+  const COLORS = useThemeColors()
+
+  const cards = [
     {
       label: 'Healthy Workers',
       value: summary.healthyWorkers,
       icon: Activity,
-      color: '#16A34A',
+      color: COLORS.success,
     },
     {
       label: 'Total Queued',
       value: summary.totalQueueDepth,
       icon: Inbox,
-      color: summary.totalQueueDepth > 50 ? '#F59E0B' : '#0EA5E9',
-    },
-    {
-      label: 'DLQ Pending',
-      value: summary.totalDlqDepth,
-      icon: AlertTriangle,
-      color: summary.totalDlqDepth > 5 ? '#DC2626' : '#475569',
-    },
-    {
-      label: 'Active Alerts',
-      value: summary.activeAlerts,
-      icon: Bell,
-      color: summary.activeAlerts > 0 ? '#DC2626' : '#16A34A',
+      color: summary.totalQueueDepth > 50 ? COLORS.warning : COLORS.info,
     },
   ]
 

@@ -1,10 +1,8 @@
 import { AlertEvent } from '@/types/admin/notifications'
 import { AlertTriangle, Bell } from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
-const LEVEL_CONFIG: Record<string, { icon: React.ComponentType<{ className?: string }>; color: string; label: string }> = {
-  error: { icon: AlertTriangle, color: '#DC2626', label: 'Error' },
-  warning: { icon: Bell, color: '#F59E0B', label: 'Warning' },
-}
+
 
 function formatRelative(dateStr?: string | null): string {
   if (!dateStr) return '—'
@@ -19,6 +17,12 @@ function formatRelative(dateStr?: string | null): string {
 }
 
 export function ActiveAlerts({ alerts }: { alerts: AlertEvent[] }) {
+  const COLORS = useThemeColors()
+
+  const levelConfig = {
+    error: { icon: AlertTriangle, color: COLORS.error, label: 'Error' },
+    warning: { icon: Bell, color: COLORS.warning, label: 'Warning' },
+  }
   if (alerts.length === 0) {
     return (
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-[#E2E8F0] dark:border-slate-700 p-12 text-center">
@@ -38,7 +42,7 @@ export function ActiveAlerts({ alerts }: { alerts: AlertEvent[] }) {
       </div>
       <div className="divide-y divide-[#E2E8F0] dark:divide-slate-700">
         {alerts.map((alert) => {
-          const config = LEVEL_CONFIG[alert.level] ?? LEVEL_CONFIG.warning
+          const config = levelConfig[alert.level] ?? levelConfig.warning
           const Icon = config.icon
           return (
             <div

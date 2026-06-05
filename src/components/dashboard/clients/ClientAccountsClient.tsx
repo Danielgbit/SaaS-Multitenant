@@ -46,13 +46,6 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'last_transaction', label: 'Última transacción' },
 ]
 
-const FILTER_CHIPS: { value: FilterOption; label: string; color: string }[] = [
-  { value: 'all', label: 'Todos', color: '' },
-  { value: 'over_limit', label: 'Sobre límite', color: '#DC2626' },
-  { value: 'warning', label: 'Warning', color: '#D97706' },
-  { value: 'healthy', label: 'Al día', color: '#16A34A' },
-]
-
 function formatLastTransaction(dateStr: string | null): string {
   if (!dateStr) return 'Sin actividad'
   const date = new Date(dateStr)
@@ -89,13 +82,6 @@ function exportToCSV(accounts: ClientAccountWithClient[]) {
   URL.revokeObjectURL(url)
 }
 
-function getStatusLabel(account: ClientAccountWithClient): { label: string; color: string; bg: string } | null {
-  if (account.is_over_limit) return { label: 'Sobre límite', color: '#DC2626', bg: '#FEE2E2' }
-  if (account.is_at_warning_threshold) return { label: 'Warning', color: '#D97706', bg: '#FEF3C7' }
-  if (account.balance > 0) return { label: 'Al día', color: '#16A34A', bg: '#D1FAE5' }
-  return null
-}
-
 export function ClientAccountsClient({
   accounts,
   summary,
@@ -103,6 +89,22 @@ export function ClientAccountsClient({
 }: ClientAccountsClientProps) {
   const COLORS = useThemeColors()
   const [mounted, setMounted] = useState(false)
+
+  type FilterChip = { value: FilterOption; label: string; color: string }
+
+  const filterChips: FilterChip[] = [
+    { value: 'all', label: 'Todos', color: '' },
+    { value: 'over_limit', label: 'Sobre límite', color: COLORS.error },
+    { value: 'warning', label: 'Warning', color: COLORS.warning },
+    { value: 'healthy', label: 'Al día', color: COLORS.success },
+  ]
+
+  function getStatusLabel(account: ClientAccountWithClient): { label: string; color: string; bg: string } | null {
+    if (account.is_over_limit) return { label: 'Sobre límite', color: COLORS.error, bg: COLORS.errorLight }
+    if (account.is_at_warning_threshold) return { label: 'Warning', color: COLORS.warning, bg: COLORS.warningLight }
+    if (account.balance > 0) return { label: 'Al día', color: COLORS.success, bg: COLORS.successLight }
+    return null
+  }
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [sortBy, setSortBy] = useState<SortOption>('balance_desc')
@@ -559,7 +561,7 @@ export function ClientAccountsClient({
 
         {/* Filter chips */}
         <div className="flex flex-wrap items-center gap-2">
-          {FILTER_CHIPS.map((chip) => {
+          {filterChips.map((chip) => {
             const isActive = filterBy === chip.value
             return (
               <button
