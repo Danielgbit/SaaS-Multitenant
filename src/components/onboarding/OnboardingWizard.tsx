@@ -43,7 +43,7 @@ export function OnboardingWizard({ currentStep, completed, children }: Onboardin
         className="px-6 py-5 relative overflow-hidden"
         style={{
           background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`,
-          color: '#FFF',
+          color: colors.textOnPrimary,
         }}
       >
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
@@ -65,9 +65,9 @@ export function OnboardingWizard({ currentStep, completed, children }: Onboardin
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${
                         isActive
-                          ? 'bg-white text-[#0F4C5C] shadow-lg scale-110'
+                          ? 'bg-white dark:bg-slate-700 text-[#0F4C5C] dark:text-[#38BDF8] shadow-lg scale-110'
                           : isCompleted
-                          ? 'bg-white text-[#0F4C5C]'
+                          ? 'bg-white dark:bg-slate-700 text-[#0F4C5C] dark:text-[#38BDF8]'
                           : 'bg-white/20 text-white'
                       }`}
                     >
