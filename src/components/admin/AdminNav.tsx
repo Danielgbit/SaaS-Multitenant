@@ -88,7 +88,7 @@ export function AdminNav({ userEmail }: AdminNavProps) {
                       flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
                       ${
                         active
-                          ? 'bg-[#0F4C5C] text-white'
+                          ? 'bg-[#0F4C5C] dark:bg-[#38BDF8] text-white'
                           : 'text-[#475569] hover:text-[#0F172A] hover:bg-[#E6F1F4] dark:hover:bg-slate-800'
                       }
                     `}
@@ -127,7 +127,7 @@ export function AdminNav({ userEmail }: AdminNavProps) {
                 flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors
                 ${
                   active
-                    ? 'bg-[#0F4C5C] text-white'
+                    ? 'bg-[#0F4C5C] dark:bg-[#38BDF8] text-white'
                     : 'text-[#475569] hover:text-[#0F172A] hover:bg-[#E6F1F4]'
                 }
               `}

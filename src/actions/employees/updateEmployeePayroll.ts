@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { Database } from '@db/supabase'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const UpdateEmployeePayrollSchema = z.object({
   id: z.string().uuid(),
@@ -41,11 +42,6 @@ export async function updateEmployeePayroll(input: {
 
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
   // Get employee to verify organization
   const { data: employee } = await supabase
     .from('employees')
@@ -57,17 +53,8 @@ export async function updateEmployeePayroll(input: {
     return { success: false, error: 'Empleado no encontrado' }
   }
 
-  // Check if user is owner/admin
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', employee.organization_id)
-    .single()
-
-  if (!orgMember || !['owner', 'admin', 'staff'].includes(orgMember.role)) {
-    return { success: false, error: 'No tienes permisos para actualizar este empleado' }
-  }
+  const access = await requireOrgAccess(employee.organization_id, ['owner', 'admin', 'staff'])
+  if (!access.success) return access
 
   const updateData: Database['public']['Tables']['employees']['Update'] = {}
 

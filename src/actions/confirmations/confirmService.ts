@@ -4,6 +4,7 @@ import { revalidateTag, revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { appLog } from '@/lib/app-logger'
 import { ConfirmServiceSchema, type ConfirmServiceState } from './schemas'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 export async function confirmService(
   prevState: ConfirmServiceState,
@@ -25,11 +26,6 @@ export async function confirmService(
   const { appointmentId, logId, paymentMethod, notes } = parsed.data
 
   const supabase = await createClient()
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { success: false, error: 'No autorizado.' }
-  }
 
   const { data: appointment, error: apptError } = await supabase
     .from('appointments')
@@ -57,20 +53,8 @@ export async function confirmService(
     return { success: false, error: 'Esta cita aún no fue marcada por el empleado.' }
   }
 
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', appointment.organization_id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { success: false, error: 'No perteneces a esta organización.' }
-  }
-
-  if (!['owner', 'admin', 'staff'].includes(orgMember.role)) {
-    return { success: false, error: 'No tienes permiso para confirmar cobros.' }
-  }
+  const access = await requireOrgAccess(appointment.organization_id, ['owner', 'admin', 'staff'])
+  if (!access.success) return access
 
   const now = new Date().toISOString()
 

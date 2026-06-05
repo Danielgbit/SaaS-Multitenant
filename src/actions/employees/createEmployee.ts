@@ -9,6 +9,7 @@ import { createEmployeeLimiter } from '@/lib/rate-limiter'
 import { headers } from 'next/headers'
 import { getClientIp } from '@/lib/network/get-client-ip'
 import type { Employee } from '@/types/employees'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 interface CreateEmployeeResult {
   success: boolean
@@ -30,39 +31,23 @@ export async function createEmployee(
     }
   }
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { success: false, error: 'No se encontró organización para este usuario' }
-  }
+  const access = await requireCurrentOrganization()
+  if (!access.success) return access
 
   const headerStore = await headers()
   const ip = getClientIp(headerStore)
-  const rateKey = `createEmployee:${orgMember.organization_id}:${user.id}`
+  const rateKey = `createEmployee:${access.context.organizationId}:${access.context.userId}`
   const rateCheck = createEmployeeLimiter.check(rateKey)
   if (!rateCheck.allowed) {
-    createEmployeeLimiter.hit(rateKey, { ip, route: 'createEmployee', userId: user.id, organizationId: orgMember.organization_id })
+    createEmployeeLimiter.hit(rateKey, { ip, route: 'createEmployee', userId: access.context.userId, organizationId: access.context.organizationId })
     return { success: false, error: 'Demasiados intentos. Intenta nuevamente en unos minutos.' }
   }
-  createEmployeeLimiter.hit(rateKey, { ip, route: 'createEmployee', userId: user.id, organizationId: orgMember.organization_id })
+  createEmployeeLimiter.hit(rateKey, { ip, route: 'createEmployee', userId: access.context.userId, organizationId: access.context.organizationId })
 
   if (parsed.data.phone) {
     const { employee: existingEmployee, error: findError } = await findByPhone({
       phone: parsed.data.phone,
-      organizationId: orgMember.organization_id,
+      organizationId: access.context.organizationId,
     })
 
     if (findError) {
@@ -87,7 +72,7 @@ export async function createEmployee(
       name: parsed.data.name,
       phone: normalizedPhone || null,
       email: email || null,
-      organization_id: orgMember.organization_id,
+      organization_id: access.context.organizationId,
       active: true,
     })
     .select()

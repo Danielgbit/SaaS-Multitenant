@@ -3,6 +3,7 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const PermanentDeleteSchema = z.object({
   employeeId: z.string().uuid(),
@@ -24,30 +25,8 @@ export async function permanentDeleteEmployee(
 
   const supabase = await createClient()
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return { success: false, error: 'No autorizado.' }
-  }
-
-  // Verify user is owner or admin
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', organizationId)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { success: false, error: 'No se encontró organización.' }
-  }
-
-  if (!['owner', 'admin'].includes(orgMember.role)) {
-    return { success: false, error: 'Solo owners y admins pueden eliminar empleados permanentemente.' }
-  }
+  const access = await requireOrgAccess(organizationId, ['owner', 'admin'])
+  if (!access.success) return access
 
   // Check for active appointments (future appointments that are not cancelled or completed)
   const { count: activeAppointmentsCount } = await supabase

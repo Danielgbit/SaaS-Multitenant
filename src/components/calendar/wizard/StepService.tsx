@@ -86,7 +86,7 @@ export function StepService({
               <button
                 key={s.id}
                 onClick={() => onSelect(s)}
-                className="w-full px-4 py-3 sm:py-3.5 text-left flex items-center justify-between gap-3 transition-colors hover:bg-black/5"
+                className="w-full px-4 py-3 sm:py-3.5 text-left flex items-center justify-between gap-3 transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                 style={{ color: COLORS.textPrimary }}
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">

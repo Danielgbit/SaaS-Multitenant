@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { RecordAdjustmentInput } from '@/types/clientAccounts'
 import { revalidatePath } from 'next/cache'
 import { createEntryFromSource } from '@/actions/cash-sessions/createEntryFromSource'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 export async function recordAdjustment(
   organizationId: string,
@@ -18,10 +19,8 @@ export async function recordAdjustment(
 }> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
+  const access = await requireOrgAccess(organizationId, ['owner', 'admin'])
+  if (!access.success) return access
 
   if (input.amount <= 0) {
     return { success: false, error: 'El monto debe ser mayor a 0' }
@@ -59,7 +58,7 @@ export async function recordAdjustment(
       payment_method: null,
       payment_reference: input.reference || null,
       notes: input.description,
-      created_by: user.id,
+      created_by: access.context.userId,
     })
     .select('id')
     .single()
@@ -78,7 +77,7 @@ export async function recordAdjustment(
     amount: input.amount,
     payment_method: undefined,
     title: `Ajuste: ${input.description}${client?.name ? ' - ' + client.name : ''}`,
-    created_by: user.id,
+    created_by: access.context.userId,
     created_via: 'manual',
   })
 

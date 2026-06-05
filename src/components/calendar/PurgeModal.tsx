@@ -314,7 +314,7 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-black/5 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                       aria-label="Limpiar búsqueda"
                     >
                       <X className="w-4 h-4" style={{ color: COLORS.textMuted }} />

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { executePurge, countAppointmentsToPurge, getAppointmentsToPurge } from '@/lib/cleanup-helpers'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const PurgeSchema = z.object({
   organizationId: z.string().uuid('ID de organización inválido'),
@@ -53,25 +54,8 @@ export async function purgeAppointments(
 
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', organizationId)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { success: false, error: 'No perteneces a esta organización' }
-  }
-
-  if (!['owner', 'admin'].includes(orgMember.role)) {
-    return { success: false, error: 'No tienes permiso para purgar citas' }
-  }
+  const access = await requireOrgAccess(organizationId, ['owner', 'admin'])
+  if (!access.success) return access
 
   try {
     if (dryRun) {
@@ -111,21 +95,8 @@ export async function deleteAppointmentsByIds(
 ): Promise<{ success: boolean; deletedCount?: number; error?: string }> {
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', organizationId)
-    .single()
-
-  if (!orgMember || !['owner', 'admin'].includes(orgMember.role)) {
-    return { success: false, error: 'No tienes permiso' }
-  }
+  const access = await requireOrgAccess(organizationId, ['owner', 'admin'])
+  if (!access.success) return access
 
   if (!appointmentIds || appointmentIds.length === 0) {
     return { success: false, error: 'No hay citas seleccionadas' }
@@ -169,21 +140,8 @@ export async function updateRetentionSettings(
 
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', organizationId)
-    .single()
-
-  if (!orgMember || !['owner', 'admin'].includes(orgMember.role)) {
-    return { success: false, error: 'No tienes permiso para modificar esta configuración' }
-  }
+  const access = await requireOrgAccess(organizationId, ['owner', 'admin'])
+  if (!access.success) return access
 
   const { error } = await supabase
     .from('booking_settings')

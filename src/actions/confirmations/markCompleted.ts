@@ -2,6 +2,7 @@
 
 import { revalidateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { MarkCompletedSchema, type MarkCompletedState } from './schemas'
 
 export async function markCompleted(
@@ -63,6 +64,9 @@ export async function markCompleted(
   if (appointment.confirmation_status === 'confirmed') {
     return { error: 'Esta cita ya fue confirmada.' }
   }
+
+  const access = await requireOrgAccess(appointment.organization_id)
+  if (!access.success) return { error: access.error }
 
   const { data: employee, error: empError } = await supabase
     .from('employees')

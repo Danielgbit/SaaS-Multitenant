@@ -10,6 +10,7 @@ import { queueEmailMessage } from '@/actions/email/queueEmailMessage'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
 import { appLog } from '@/lib/app-logger'
 import { setRequestContext } from '@/lib/request-context'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import {
   validateCreateInput,
   checkCreatePreconditions,
@@ -28,17 +29,8 @@ export async function createAppointment(
   const { employee_id, client_id, service_id, start_time, organization_id, notes } = validated.data
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) return { error: 'No autorizado.' }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', organization_id)
-    .single()
-
-  if (orgError || !orgMember) return { error: 'No perteneces a esta organización.' }
+  const access = await requireOrgAccess(organization_id)
+  if (!access.success) return { error: access.error }
 
   const preconditions = await checkCreatePreconditions(supabase, validated.data)
   if (!preconditions.success) return { error: preconditions.error }
@@ -185,8 +177,8 @@ export async function updateAppointmentStatus(
   const { appointment_id, status } = validated.data
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) return { error: 'No autorizado.' }
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado.' }
 
   const preconditions = await checkUpdateStatusPreconditions(supabase, appointment_id, user.id)
   if (!preconditions.success) return { error: preconditions.error }

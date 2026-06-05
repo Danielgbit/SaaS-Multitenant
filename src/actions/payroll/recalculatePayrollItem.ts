@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 export async function recalculatePayrollItem(itemId: string): Promise<{
   success: boolean
@@ -14,11 +15,6 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
   }
 }> {
   const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
 
   const { data: item } = await supabase
     .from('payroll_items')
@@ -61,15 +57,8 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
     return { success: false, error: 'Solo se pueden recalcular items de períodos en borrador' }
   }
 
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', period.organization_id)
-    .single()
-
-  if (!orgMember || !['owner', 'admin'].includes(orgMember.role)) {
-    return { success: false, error: 'Solo owners/admins pueden recalcular items' }
+  const access = await requireOrgAccess(period.organization_id, ['owner', 'admin'])
+  if (!access.success) return access
   }
 
   const [year, month] = period.period.split('-')

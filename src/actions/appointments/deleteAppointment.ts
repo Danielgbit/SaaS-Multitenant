@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const DeleteAppointmentSchema = z.object({
   appointment_id: z.string().uuid('ID de cita inválido'),
@@ -19,9 +20,6 @@ export async function deleteAppointment(
   const { appointment_id } = parsed.data
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) return { error: 'No autorizado.' }
-
   const { data: appointment, error: aptError } = await supabase
     .from('appointments')
     .select('organization_id')
@@ -30,16 +28,8 @@ export async function deleteAppointment(
 
   if (aptError || !appointment) return { error: 'Cita no encontrada.' }
 
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', appointment.organization_id)
-    .single()
-
-  if (!orgMember || (orgMember.role !== 'owner' && orgMember.role !== 'staff' && orgMember.role !== 'admin')) {
-    return { error: 'No tienes permisos para eliminar esta cita.' }
-  }
+  const access = await requireOrgAccess(appointment.organization_id, ['owner', 'staff', 'admin'])
+  if (!access.success) return { error: access.error }
 
   await supabase.from('appointment_services').delete().eq('appointment_id', appointment_id)
 

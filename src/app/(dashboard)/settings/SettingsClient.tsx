@@ -388,7 +388,7 @@ export default function SettingsClient({
                     backgroundColor: bookingSettings.online_booking_enabled ? COLORS.primary : undefined,
                   }}
                 >
-                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-slate-300 transition-transform ${
                     bookingSettings.online_booking_enabled ? 'translate-x-6' : 'translate-x-1'
                   }`} />
                 </button>

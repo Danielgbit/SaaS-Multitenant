@@ -38,7 +38,7 @@ export function AppointmentDetailModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
-      style={{ backgroundColor: 'rgba(15,23,42,0.8)', backdropFilter: 'blur(8px)' }}
+      style={{ backgroundColor: COLORS.overlay, backdropFilter: 'blur(8px)' }}
       onClick={onClose}
     >
       <div

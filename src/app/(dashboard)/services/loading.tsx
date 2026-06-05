@@ -35,7 +35,7 @@ export default function ServicesLoading() {
 
       {/* Search Bar Skeleton */}
       <div className="relative mb-4">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
         <div className="w-full h-[46px] rounded-xl bg-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30" />
       </div>
 

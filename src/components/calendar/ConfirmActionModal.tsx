@@ -33,7 +33,7 @@ export function ConfirmActionModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }}
+      style={{ backgroundColor: COLORS.overlay, backdropFilter: 'blur(4px)' }}
       onClick={onClose}
     >
       <div

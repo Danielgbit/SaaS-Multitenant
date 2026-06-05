@@ -64,7 +64,7 @@ describe('updateAdjustment', () => {
     })
 
     expect(result.success).toBe(false)
-    expect(result.error).toBe('No autorizado')
+    expect(result.error).toBe('No autorizado.')
   })
 
   it('retorna error si description vacia', async () => {

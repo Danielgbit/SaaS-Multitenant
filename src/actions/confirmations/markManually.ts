@@ -3,6 +3,7 @@
 import { revalidateTag, revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { appLog } from '@/lib/app-logger'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { MarkManuallySchema, type MarkManuallyState } from './schemas'
 
 export async function markManually(
@@ -24,11 +25,6 @@ export async function markManually(
 
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
   const { data: appointment, error: apptError } = await supabase
     .from('appointments')
     .select('id, organization_id, employee_id, client_id, status, confirmation_status, price_adjustment, payment_method, created_at')
@@ -43,20 +39,8 @@ export async function markManually(
     return { error: 'Esta cita ya fue confirmada.' }
   }
 
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', appointment.organization_id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No perteneces a esta organización.' }
-  }
-
-  if (!['owner', 'admin', 'staff'].includes(orgMember.role)) {
-    return { error: 'No tienes permiso para marcar citas manualmente.' }
-  }
+  const access = await requireOrgAccess(appointment.organization_id, ['owner', 'admin', 'staff'])
+  if (!access.success) return { error: access.error }
 
   const now = new Date().toISOString()
 

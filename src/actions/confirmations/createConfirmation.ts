@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const ServiceItemSchema = z.object({
   service_id: z.string(),
@@ -39,28 +40,8 @@ export async function createConfirmation(
 
   const supabase = await createClient()
 
-  // Verificar autenticación
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    console.log('[createConfirmation] Auth error:', authError)
-    return { error: 'No autorizado.' }
-  }
-
-  // Verificar que el usuario pertenece a la organización
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', organization_id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No perteneces a esta organización.' }
-  }
+  const access = await requireOrgAccess(organization_id)
+  if (!access.success) return { error: access.error }
 
   // Verificar que el employee_id pertenece a la organización
   const { data: employee, error: empError } = await supabase

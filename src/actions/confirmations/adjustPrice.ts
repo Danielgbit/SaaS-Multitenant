@@ -3,6 +3,7 @@
 import { revalidateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { AdjustPriceSchema, type AdjustPriceState } from './schemas'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 export async function adjustPrice(
   prevState: AdjustPriceState,
@@ -24,11 +25,6 @@ export async function adjustPrice(
 
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
   const { data: appointment, error: apptError } = await supabase
     .from('appointments')
     .select('id, organization_id, price_adjustment, confirmation_status')
@@ -43,20 +39,8 @@ export async function adjustPrice(
     return { error: 'No se puede ajustar el precio de una cita ya confirmada.' }
   }
 
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', appointment.organization_id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No perteneces a esta organización.' }
-  }
-
-  if (!['owner', 'admin', 'staff'].includes(orgMember.role)) {
-    return { error: 'No tienes permiso para ajustar precios.' }
-  }
+  const access = await requireOrgAccess(appointment.organization_id, ['owner', 'admin', 'staff'])
+  if (!access.success) return { error: access.error }
 
   const previousPrice = appointment.price_adjustment || 0
 
@@ -66,7 +50,7 @@ export async function adjustPrice(
       appointment_id: appointmentId,
       organization_id: appointment.organization_id,
       action: 'adjusted',
-      performed_by: user.id,
+      performed_by: access.context.userId,
       performed_by_role: 'assistant',
       price_before: previousPrice,
       price_after: newPrice,

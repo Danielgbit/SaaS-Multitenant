@@ -516,7 +516,7 @@ function BreaksSection({ organizationId, employees }: BreaksSectionProps) {
                                       aria-label={hasBreak ? 'Desactivar descanso' : 'Activar descanso'}
                                     >
                                       <span
-                                        className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                                        className={`inline-block h-4 w-4 rounded-full bg-white dark:bg-slate-300 shadow-sm transition-transform duration-200 ${
                                           hasBreak ? 'translate-x-6' : 'translate-x-1'
                                         }`}
                                       />

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { RotateCcw, ExternalLink, CheckCircle2 } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 interface MessageReplayButtonProps {
   messageId: string
@@ -18,6 +19,7 @@ export function MessageReplayButton({ messageId, currentStatus }: MessageReplayB
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [newQueueItemId, setNewQueueItemId] = useState<string | null>(null)
+  const [showConfirm, setShowConfirm] = useState(false)
   const COLORS = useThemeColors()
 
   if (!REPLAYABLE_STATUSES.includes(currentStatus)) {
@@ -25,10 +27,6 @@ export function MessageReplayButton({ messageId, currentStatus }: MessageReplayB
   }
 
   const handleReplay = async () => {
-    if (!window.confirm('¿Re-enviar este mensaje?\n\nSe creará un nuevo item en la cola con el payload original exacto.')) {
-      return
-    }
-
     setLoading(true)
     setError(null)
 
@@ -77,7 +75,7 @@ export function MessageReplayButton({ messageId, currentStatus }: MessageReplayB
   return (
     <div className="flex items-center gap-2">
       <button
-        onClick={handleReplay}
+        onClick={() => setShowConfirm(true)}
         disabled={loading}
         className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
@@ -89,6 +87,15 @@ export function MessageReplayButton({ messageId, currentStatus }: MessageReplayB
           {error}
         </span>
       )}
+      <ConfirmModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleReplay}
+        title="Re-enviar mensaje"
+        description="Se creará un nuevo item en la cola con el payload original exacto."
+        confirmText="Re-enviar"
+        variant="warning"
+      />
     </div>
   )
 }

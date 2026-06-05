@@ -1,8 +1,9 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import type { Database } from '@db/supabase'
 import { z } from 'zod'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { Database } from '@db/supabase'
 
 const UpdatePayrollItemSchema = z.object({
@@ -24,11 +25,6 @@ export async function updatePayrollItem(input: z.infer<typeof UpdatePayrollItemS
   const { itemId, changes } = parsed.data
 
   const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
 
   const { data: item } = await supabase
     .from('payroll_items')
@@ -54,16 +50,8 @@ export async function updatePayrollItem(input: z.infer<typeof UpdatePayrollItemS
     return { success: false, error: 'Solo se pueden editar items de períodos en borrador' }
   }
 
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', period.organization_id)
-    .single()
-
-  if (!orgMember || !['owner', 'admin'].includes(orgMember.role)) {
-    return { success: false, error: 'Solo owners/admins pueden editar items' }
-  }
+  const access = await requireOrgAccess(period.organization_id, ['owner', 'admin'])
+  if (!access.success) return access
 
   const updateData: Database['public']['Tables']['payroll_items']['Update'] = {}
 

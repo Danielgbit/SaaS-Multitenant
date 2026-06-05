@@ -29,32 +29,8 @@ export async function confirmByReception(
 
   const supabase = await createClient()
 
-  // Verificar autenticación
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return { success: false, error: 'No autorizado.' }
-  }
-
-  // Verificar que el usuario pertenece a la organización
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', organization_id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { success: false, error: 'No perteneces a esta organización.' }
-  }
-
-  // Verificar que tiene permisos (owner, admin, staff)
-  if (!['owner', 'admin', 'staff'].includes(orgMember.role)) {
-    return { success: false, error: 'No tienes permiso para confirmar pagos.' }
-  }
+  const access = await requireOrgAccess(organization_id, ['owner', 'admin', 'staff'])
+  if (!access.success) return access
 
   // Determinar status final
   let newStatus: string

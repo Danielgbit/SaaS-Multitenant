@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 interface AddToPayrollResult {
   success: boolean
@@ -116,6 +117,9 @@ export async function addAppointmentToPayroll(
 
   const orgId = apt.organization_id as string
   const employeeId = apt.employee_id as string
+
+  const access = await requireOrgAccess(orgId, ['owner', 'admin', 'staff'])
+  if (!access.success) return { success: false, error: access.error }
 
   // ── Período YYYY-MM desde start_time ────────────────
   const d = new Date(apt.start_time)

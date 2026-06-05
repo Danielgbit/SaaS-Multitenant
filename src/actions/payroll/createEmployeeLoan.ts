@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { CreateLoanInput, EmployeeLoan, LoanConcept } from '@/types/payroll'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 const CreateLoanSchema = z.object({
   employee_id: z.string().uuid('ID de empleado inválido'),
@@ -30,20 +31,8 @@ export async function createEmployeeLoan(
 
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!orgMember) {
-    return { success: false, error: 'No se encontró organización' }
-  }
+  const access = await requireCurrentOrganization()
+  if (!access.success) return access
 
   const { data: employee } = await supabase
     .from('employees')

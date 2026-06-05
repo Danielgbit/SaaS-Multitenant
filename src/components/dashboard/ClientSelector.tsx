@@ -190,7 +190,7 @@ export function ClientSelector({
                   <button
                     type="button"
                     onClick={() => handleSelect(client)}
-                    className="w-full flex items-center gap-3 px-4 py-3 transition-colors text-left hover:bg-slate-50"
+                    className="w-full flex items-center gap-3 px-4 py-3 transition-colors text-left hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     <div 
                       className="w-8 h-8 rounded-full flex items-center justify-center"

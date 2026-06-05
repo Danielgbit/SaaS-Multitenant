@@ -2,6 +2,7 @@
 
 import { revalidateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { z } from 'zod'
 
 const CancelConfirmationSchema = z.object({
@@ -33,11 +34,6 @@ export async function cancelConfirmation(
 
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
   const { data: appointment, error: apptError } = await supabase
     .from('appointments')
     .select('id, organization_id, status, confirmation_status, created_at')
@@ -56,16 +52,8 @@ export async function cancelConfirmation(
     return { error: 'Esta cita ya fue cancelada.' }
   }
 
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', appointment.organization_id)
-    .single()
-
-  if (!orgMember || !['owner', 'admin', 'staff'].includes(orgMember.role)) {
-    return { error: 'No tienes permisos para cancelar esta cita.' }
-  }
+  const access = await requireOrgAccess(appointment.organization_id, ['owner', 'admin', 'staff'])
+  if (!access.success) return { error: access.error }
 
   const now = new Date().toISOString()
 

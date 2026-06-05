@@ -180,7 +180,7 @@ export function PayrollClient({
   if (!mounted) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <Spinner size="lg" className="text-[#38BDF8]" />
+        <Spinner size="lg" className="text-[#0F4C5C] dark:text-[#38BDF8]" />
       </div>
     )
   }

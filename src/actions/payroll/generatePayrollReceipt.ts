@@ -8,6 +8,7 @@ import { getPendingLoans } from './getPendingLoans'
 import type { PayrollReceipt, PeriodType } from '@/types/payroll'
 import { appLog } from '@/lib/app-logger'
 import { setRequestContext } from '@/lib/request-context'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 const GenerateReceiptSchema = z.object({
   employee_id: z.string().uuid('ID de empleado inválido'),
@@ -44,22 +45,10 @@ export async function generatePayrollReceipt(input: {
 
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
+  const access = await requireCurrentOrganization()
+  if (!access.success) return access
 
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!orgMember) {
-    return { success: false, error: 'No se encontró organización' }
-  }
-
-  const organizationId = orgMember.organization_id
+  const organizationId = access.context.organizationId
 
   const commissionResult = await calculateCommission(
     input.employee_id,

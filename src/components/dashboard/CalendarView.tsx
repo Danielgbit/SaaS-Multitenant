@@ -544,8 +544,8 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
 
       {/* Delete Confirm */}
       {modals.showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(26,43,50,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => modals.setShowDeleteConfirm(false)}>
-          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }} onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: COLORS.overlay, backdropFilter: 'blur(4px)' }} onClick={() => modals.setShowDeleteConfirm(false)}>
+          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, boxShadow: COLORS.shadow.xl }} onClick={e => e.stopPropagation()}>
             <div className="p-6 text-center"><div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: COLORS.errorLight }}><AlertCircle className="w-8 h-8" style={{ color: COLORS.error }} /></div><h3 className="text-xl font-semibold mb-2" style={{ color: COLORS.textPrimary }}>¿Eliminar?</h3><p className="text-sm" style={{ color: COLORS.textSecondary }}>Esta acción no se puede deshacer.</p></div>
             <div className="px-6 py-4 flex gap-3" style={{ borderTop: `1px solid ${COLORS.border}` }}>
               <button onClick={() => modals.setShowDeleteConfirm(false)} className="flex-1 px-4 py-3 rounded-xl text-sm font-medium" style={{ color: COLORS.textSecondary, backgroundColor: COLORS.surfaceSubtle }}>Cancelar</button>

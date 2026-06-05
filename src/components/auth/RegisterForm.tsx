@@ -29,7 +29,7 @@ export function RegisterForm() {
           Nombre del Negocio
         </label>
         <div className="relative">
-          <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+          <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500 pointer-events-none" />
           <input
             name="businessName"
             id="businessName"
@@ -50,7 +50,7 @@ export function RegisterForm() {
           Tu Nombre
         </label>
         <div className="relative">
-          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500 pointer-events-none" />
           <input
             name="fullName"
             id="fullName"
@@ -71,7 +71,7 @@ export function RegisterForm() {
           Correo Electrónico
         </label>
         <div className="relative">
-          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500 pointer-events-none" />
           <input
             name="email"
             id="email"

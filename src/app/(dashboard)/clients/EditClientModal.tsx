@@ -361,7 +361,7 @@ function ConfirmationToggle({
         aria-checked={enabled}
       >
         <div 
-          className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
+          className="absolute top-1 w-4 h-4 rounded-full bg-white dark:bg-slate-300 shadow transition-transform duration-200"
           style={{ 
             left: enabled ? '26px' : '4px',
             transition: 'left 0.2s ease-out',

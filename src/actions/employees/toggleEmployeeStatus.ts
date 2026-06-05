@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 /**
  * Server Action: Activa o desactiva un empleado.
@@ -13,30 +14,14 @@ export async function toggleEmployeeStatus(
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No se encontró organización.' }
-  }
+  const access = await requireCurrentOrganization()
+  if (!access.success) return { error: access.error }
 
   const { error: updateError } = await supabase
     .from('employees')
     .update({ active })
     .eq('id', employeeId)
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
 
   if (updateError) {
     console.error('Error al cambiar estado del empleado:', updateError.message)

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 interface UpdateAdjustmentInput {
   transaction_id: string
@@ -18,10 +19,8 @@ export async function updateAdjustment(
 }> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
+  const access = await requireOrgAccess(organizationId, ['owner', 'admin'])
+  if (!access.success) return access
 
   if (!input.description || input.description.trim().length === 0) {
     return { success: false, error: 'La descripcion es requerida' }
@@ -49,23 +48,12 @@ export async function updateAdjustment(
     return { success: false, error: 'No autorizado' }
   }
 
-  const { data: member } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', organizationId)
-    .single()
-
-  if (!member || !['owner', 'admin'].includes(member.role)) {
-    return { success: false, error: 'Sin permiso para editar transacciones' }
-  }
-
   const { error: updateError } = await (supabase as any)
     .from('client_account_transactions')
     .update({
       notes: input.description.trim(),
       payment_reference: input.reference?.trim() || null,
-      edited_by: user.id,
+      edited_by: access.context.userId,
       edited_at: new Date().toISOString(),
     })
     .eq('id', input.transaction_id)

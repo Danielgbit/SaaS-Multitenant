@@ -85,7 +85,7 @@ export function StepEmployee({
               <button
                 key={e.id}
                 onClick={() => onSelect(e)}
-                className="w-full px-4 py-3 sm:py-3.5 text-left flex items-center gap-3 transition-colors hover:bg-black/5"
+                className="w-full px-4 py-3 sm:py-3.5 text-left flex items-center gap-3 transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                 style={{ color: COLORS.textPrimary }}
               >
                 <div

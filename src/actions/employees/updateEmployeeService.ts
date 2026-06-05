@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 const UpdateEmployeeServiceSchema = z.object({
   employeeId: z.string().uuid(),
@@ -24,20 +25,8 @@ export async function updateEmployeeService(
 
   const { employeeId, serviceId, enabled, durationOverride, priceOverride } = validation.data
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No se encontró organización.' }
-  }
+  const access = await requireCurrentOrganization()
+  if (!access.success) return { error: access.error }
 
   if (enabled) {
     const { data: existing } = await supabase

@@ -120,7 +120,7 @@ export function StepClient({
           {clientSearch && (
             <button
               onClick={() => { onSetClientSearch(''); onSetShowClientDropdown(false) }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-black/5 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
               <X className="w-4 h-4" style={{ color: COLORS.textMuted }} />
             </button>
@@ -138,7 +138,7 @@ export function StepClient({
                   <button
                     key={c.id}
                     onClick={() => onClientSelected(c)}
-                    className="w-full px-4 py-3 text-left flex items-center gap-3 transition-colors duration-150 hover:bg-black/5"
+                    className="w-full px-4 py-3 text-left flex items-center gap-3 transition-colors duration-150 hover:bg-black/5 dark:hover:bg-white/5"
                     style={{ color: COLORS.textPrimary }}
                   >
                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0" style={{ backgroundColor: COLORS.primary + '20', color: COLORS.primary }}>
@@ -161,7 +161,7 @@ export function StepClient({
             {showCreateOption && (
               <button
                 onClick={() => { setShowQuickAdd(true); setQuickName(clientSearch) }}
-                className="w-full flex items-center gap-3 px-4 py-3 transition-colors hover:bg-black/5 border-t"
+                className="w-full flex items-center gap-3 px-4 py-3 transition-colors hover:bg-black/5 dark:hover:bg-white/5 border-t"
                 style={{ borderColor: COLORS.border }}
               >
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.success + '20' }}>

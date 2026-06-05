@@ -430,7 +430,7 @@ export function InviteEmployeeModal({ isOpen, employee, organizationName, onClos
                 >
                   <span
                     className={`
-                      inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200
+                      inline-block h-4 w-4 transform rounded-full bg-white dark:bg-slate-300 shadow-sm transition-transform duration-200
                       ${sendEmail ? 'translate-x-6' : 'translate-x-1'}
                     `}
                   />

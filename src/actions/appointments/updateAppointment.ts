@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { generateSlots } from '@/services/slots/generateSlots'
 import { Database } from '@db/supabase'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const UpdateAppointmentSchema = z.object({
   appointment_id: z.string().uuid('ID de cita inválido'),
@@ -27,9 +28,6 @@ export async function updateAppointment(
   const { appointment_id, employee_id, client_id, service_id, start_time, notes, ignoreAvailability } = parsed.data
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) return { error: 'No autorizado.' }
-
   const { data: currentAppointment, error: aptError } = await supabase
     .from('appointments')
     .select('*, services:appointment_services(*)')
@@ -38,16 +36,8 @@ export async function updateAppointment(
 
   if (aptError || !currentAppointment) return { error: 'Cita no encontrada.' }
 
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .eq('organization_id', currentAppointment.organization_id)
-    .single()
-
-  if (!orgMember || (orgMember.role !== 'owner' && orgMember.role !== 'staff' && orgMember.role !== 'admin')) {
-    return { error: 'No tienes permisos para editar esta cita.' }
-  }
+  const access = await requireOrgAccess(currentAppointment.organization_id, ['owner', 'staff', 'admin'])
+  if (!access.success) return { error: access.error }
 
   const updateData: Database['public']['Tables']['appointments']['Update'] = {}
   let warning: string | undefined

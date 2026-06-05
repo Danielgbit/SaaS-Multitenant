@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { calculateEmployeePayroll } from './calculateEmployeePayroll'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { getPendingLoans } from './getPendingLoans'
 import { appLog } from '@/lib/app-logger'
 
@@ -34,22 +35,8 @@ export async function createPayrollPeriod(input: {
 
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
-  // Check if user is owner/admin
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', input.organization_id)
-    .single()
-
-  if (!orgMember || !['owner', 'admin'].includes(orgMember.role)) {
-    return { success: false, error: 'Solo owners/admins pueden crear períodos' }
-  }
+  const access = await requireOrgAccess(input.organization_id, ['owner', 'admin'])
+  if (!access.success) return access
 
   // Check if period already exists
   const { data: existing } = await supabase

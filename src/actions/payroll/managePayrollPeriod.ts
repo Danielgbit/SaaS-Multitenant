@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { Database } from '@db/supabase'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 export async function approvePayrollPeriod(periodId: string): Promise<{
   success: boolean
@@ -10,12 +11,6 @@ export async function approvePayrollPeriod(periodId: string): Promise<{
 }> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
-  // Get period to verify ownership
   const { data: period } = await supabase
     .from('payroll_periods')
     .select('id, organization_id, status')
@@ -30,17 +25,8 @@ export async function approvePayrollPeriod(periodId: string): Promise<{
     return { success: false, error: 'Solo se pueden aprobar períodos en estado draft' }
   }
 
-  // Check if user is owner/admin of this org
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', period.organization_id)
-    .single()
-
-  if (!orgMember || !['owner', 'admin'].includes(orgMember.role)) {
-    return { success: false, error: 'Solo owners/admins pueden aprobar períodos' }
-  }
+  const access = await requireOrgAccess(period.organization_id, ['owner', 'admin'])
+  if (!access.success) return access
 
   const { error } = await supabase
     .from('payroll_periods')
@@ -67,12 +53,6 @@ export async function markPayrollPeriodAsPaid(
 }> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
-  // Get period
   const { data: period } = await supabase
     .from('payroll_periods')
     .select('id, organization_id, status')
@@ -87,17 +67,8 @@ export async function markPayrollPeriodAsPaid(
     return { success: false, error: 'Solo se pueden marcar como pagados períodos en estado approved' }
   }
 
-  // Check if user is owner/admin
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', period.organization_id)
-    .single()
-
-  if (!orgMember || !['owner', 'admin'].includes(orgMember.role)) {
-    return { success: false, error: 'Solo owners/admins pueden marcar períodos como pagados' }
-  }
+  const access = await requireOrgAccess(period.organization_id, ['owner', 'admin'])
+  if (!access.success) return access
 
   const updateData: Database['public']['Tables']['payroll_periods']['Update'] = { status: 'paid' }
 
@@ -122,12 +93,6 @@ export async function deletePayrollPeriod(periodId: string): Promise<{
 }> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
-  // Get period
   const { data: period } = await supabase
     .from('payroll_periods')
     .select('id, organization_id, status')
@@ -142,17 +107,8 @@ export async function deletePayrollPeriod(periodId: string): Promise<{
     return { success: false, error: 'No se pueden eliminar períodos que ya fueron pagados' }
   }
 
-  // Check if user is owner/admin
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', period.organization_id)
-    .single()
-
-  if (!orgMember || !['owner', 'admin'].includes(orgMember.role)) {
-    return { success: false, error: 'Solo owners/admins pueden eliminar períodos' }
-  }
+  const access = await requireOrgAccess(period.organization_id, ['owner', 'admin'])
+  if (!access.success) return access
 
   // Delete will cascade to payroll_items, period_commissions, payroll_item_loans
   const { error } = await supabase
