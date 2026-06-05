@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * 🔒 DESIGN SYSTEM LOCK v1
  *
@@ -16,8 +18,7 @@
  * 🟢 Fuente oficial: useThemeColors()
  */
 
-import { useMemo } from 'react'
-import { useTheme } from 'next-themes'
+import { useMemo, useSyncExternalStore } from 'react'
 
 export interface ThemeColors {
   primary: string
@@ -109,12 +110,25 @@ const LIGHT_SHADOWS = {
   tealXl: '0 16px 64px rgba(15,76,92,0.14)',
 } as const
 
+function getDarkSnapshot() {
+  return document.documentElement.classList.contains('dark')
+}
+
+function subscribe(callback: () => void) {
+  const observer = new MutationObserver(callback)
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  })
+  return () => observer.disconnect()
+}
+
 export function useThemeColors(): ThemeColors {
-  const { resolvedTheme } = useTheme()
-  const isDark =
-    typeof document !== 'undefined'
-      ? document.documentElement.classList.contains('dark')
-      : false
+  const isDark = useSyncExternalStore(
+    subscribe,
+    getDarkSnapshot,
+    () => false,
+  )
 
   return useMemo(() => ({
     primary: isDark ? '#38BDF8' : '#0F4C5C',
