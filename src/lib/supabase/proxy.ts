@@ -43,11 +43,11 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/register') ||
     request.nextUrl.pathname.startsWith('/forgot-password') ||
     request.nextUrl.pathname.startsWith('/reset-password') ||
-    request.nextUrl.pathname.startsWith('/invite')
+    request.nextUrl.pathname.startsWith('/invitar')
 
   const isPublicRoute =
     request.nextUrl.pathname.startsWith('/confirmar') ||
-    request.nextUrl.pathname.startsWith('/help') ||
+    request.nextUrl.pathname.startsWith('/ayuda') ||
     request.nextUrl.pathname.startsWith('/reservar')
 
   // Usuario no autenticado intentando acceder a rutas protegidas → redirigir a login

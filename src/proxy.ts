@@ -4,11 +4,11 @@ import type { Database } from '@/../types/supabase'
 import { clientEnv } from '@/lib/env/client'
 
 const RESTRICTED_FOR_STAFF_EMPLEADO = [
-  '/payroll', '/employees', '/whatsapp', '/email', '/settings', '/billing',
+  '/nomina', '/employees', '/whatsapp', '/correo', '/ajustes', '/facturacion',
 ] as const
 
 const RESTRICTED_FOR_EMPLEADO = [
-  '/clients', '/services', '/inventory',
+  '/clients', '/services', '/inventario',
 ] as const
 
 export async function proxy(request: NextRequest) {
@@ -47,11 +47,11 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/register') ||
     pathname.startsWith('/forgot-password') ||
     pathname.startsWith('/reset-password') ||
-    pathname.startsWith('/invite')
+    pathname.startsWith('/invitar')
 
   const isPublicRoute =
     pathname.startsWith('/confirmar') ||
-    pathname.startsWith('/help') ||
+    pathname.startsWith('/ayuda') ||
     pathname.startsWith('/reservar')
 
   if (!user && !isAuthRoute && !isPublicRoute && pathname !== '/') {
@@ -106,7 +106,7 @@ export async function proxy(request: NextRequest) {
   const isEmpleado = role === 'empleado'
 
   // Suspended organization check (allow access to suspended page itself)
-  if (orgMember?.organization_id && !pathname.startsWith('/dashboard/suspended')) {
+  if (orgMember?.organization_id && !pathname.startsWith('/dashboard/suspendido')) {
     const { data: org } = await supabase
       .from('organizations')
       .select('status')
@@ -115,14 +115,14 @@ export async function proxy(request: NextRequest) {
 
     if (org?.status === 'suspended') {
       const url = request.nextUrl.clone()
-      url.pathname = '/dashboard/suspended'
+      url.pathname = '/dashboard/suspendido'
       return NextResponse.redirect(url)
     }
   }
 
-  if (isEmpleado && pathname.startsWith('/payroll') && !pathname.startsWith('/payroll/mi')) {
+  if (isEmpleado && pathname.startsWith('/nomina') && !pathname.startsWith('/nomina/mi')) {
     const url = request.nextUrl.clone()
-    url.pathname = '/payroll/mi'
+    url.pathname = '/nomina/mi'
     return NextResponse.redirect(url)
   }
 
@@ -160,12 +160,12 @@ export async function proxy(request: NextRequest) {
       const now = new Date()
       if (trialEnds < now) {
         if (
-          !pathname.startsWith('/dashboard/billing') &&
+          !pathname.startsWith('/dashboard/facturacion') &&
           !pathname.startsWith('/login') &&
           !pathname.startsWith('/admin')
         ) {
           const url = request.nextUrl.clone()
-          url.pathname = '/dashboard/billing'
+          url.pathname = '/dashboard/facturacion'
           return NextResponse.redirect(url)
         }
       }
