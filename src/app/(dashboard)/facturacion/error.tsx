@@ -13,7 +13,7 @@ export default function BillingError({
 }) {
   useEffect(() => {
     captureError('billing-error', error, {
-      route: '/billing',
+      route: '/facturacion',
     })
   }, [error])
 

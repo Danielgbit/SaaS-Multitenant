@@ -7,8 +7,8 @@ describe('dashboardRoutes', () => {
     expect(hrefs).toContain('/dashboard')
     expect(hrefs).toContain('/calendar')
     expect(hrefs).toContain('/horarios')
-    expect(hrefs).toContain('/payroll/mi')
-    expect(hrefs).toContain('/settings')
+    expect(hrefs).toContain('/nomina/mi')
+    expect(hrefs).toContain('/ajustes')
   })
 
   it('define /horarios como ruta de negocio', () => {
@@ -46,7 +46,7 @@ describe('filterRoutesByRole', () => {
 
   it('empleado solo ve rutas permitidas', () => {
     const filtered = filterRoutesByRole(dashboardRoutes, 'empleado')
-    expect(filtered.some(r => r.href === '/payroll/mi')).toBe(true)
+    expect(filtered.some(r => r.href === '/nomina/mi')).toBe(true)
     expect(filtered.some(r => r.href === '/employees')).toBe(false)
     expect(filtered.some(r => r.href === '/horarios')).toBe(false)
   })
@@ -55,8 +55,8 @@ describe('filterRoutesByRole', () => {
     const adminFiltered = filterRoutesByRole(dashboardRoutes, 'admin')
     const empFiltered = filterRoutesByRole(dashboardRoutes, 'empleado')
 
-    expect(adminFiltered.some(r => r.href === '/payroll/mi')).toBe(false)
-    expect(empFiltered.some(r => r.href === '/payroll/mi')).toBe(true)
+    expect(adminFiltered.some(r => r.href === '/nomina/mi')).toBe(false)
+    expect(empFiltered.some(r => r.href === '/nomina/mi')).toBe(true)
   })
 
   it('role null/undefined no excluye rutas sin flags', () => {

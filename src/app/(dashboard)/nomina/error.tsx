@@ -13,7 +13,7 @@ export default function PayrollError({
 }) {
   useEffect(() => {
     captureError('payroll-error', error, {
-      route: '/payroll',
+      route: '/nomina',
     })
   }, [error])
 

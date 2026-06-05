@@ -47,11 +47,11 @@ describe('loginAction', () => {
     const formData = new FormData()
     formData.set('email', 'test@mail.com')
     formData.set('password', 'validpass')
-    formData.set('redirect_to', '/payroll')
+    formData.set('redirect_to', '/nomina')
 
     await loginAction(null, formData)
 
-    expect(mockRedirect).toHaveBeenCalledWith('/payroll')
+    expect(mockRedirect).toHaveBeenCalledWith('/nomina')
   })
 
   it('rechaza email inválido sin llamar a Supabase', async () => {
