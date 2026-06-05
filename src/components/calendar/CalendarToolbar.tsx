@@ -67,6 +67,7 @@ export function CalendarToolbar({
           <button
             onClick={goToToday}
             className="px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-white/20"
+            // eslint-disable-next-line no-restricted-syntax -- glass effect on gradient header
             style={{ color: '#FFFFFF', backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}
           >
             Hoy

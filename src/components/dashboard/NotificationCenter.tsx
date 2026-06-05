@@ -191,7 +191,7 @@ export function NotificationCenter({
 
     if (diffMin < 5) return { color: COLORS.success, animate: false }
     if (diffMin < 15) return { color: COLORS.warning, animate: false }
-    if (diffMin < 25) return { color: '#F97316', animate: false }
+    if (diffMin < 25) return { color: COLORS.orange, animate: false }
     return { color: COLORS.error, animate: true }
   }
 

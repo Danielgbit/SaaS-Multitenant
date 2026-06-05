@@ -82,7 +82,7 @@ export function PaymentModal({
   function getTimerUrgency(m: number) {
     if (m < 5) return { color: COLORS.success, bg: COLORS.successLight, label: 'Reciente', pct: 0 }
     if (m < 15) return { color: COLORS.warning, bg: COLORS.warningLight, label: 'Pendiente', pct: 0.33 }
-    if (m < 30) return { color: '#F97316', bg: COLORS.amberLight, label: 'Atención', pct: 0.66 }
+    if (m < 30) return { color: COLORS.orange, bg: COLORS.orangeLight, label: 'Atención', pct: 0.66 }
     return { color: COLORS.error, bg: COLORS.errorLight, label: 'Urgente', pct: 1 }
   }
 

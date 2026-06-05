@@ -425,7 +425,7 @@ export function ReceptionConfirmations({ confirmations, organizationId }: Recept
                           </button>
                           {isSuccess ? (
                             <div className="flex-1 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
-                              style={{ backgroundColor: COLORS.success, color: '#FFFFFF' }}>
+                              style={{ backgroundColor: COLORS.success, color: COLORS.textOnSuccess }}>
                               <Sparkles className="w-4 h-4" />
                               Listo!
                             </div>

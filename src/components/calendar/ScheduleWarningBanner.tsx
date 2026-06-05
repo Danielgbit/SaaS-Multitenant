@@ -69,7 +69,7 @@ export function ScheduleWarningBanner({
               className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:brightness-110 cursor-pointer"
               style={{
                 backgroundColor: COLORS.warning,
-                color: '#FFFFFF',
+                color: COLORS.textOnWarning,
               }}
               aria-label="Configurar horarios del empleado"
             >

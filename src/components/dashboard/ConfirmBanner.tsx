@@ -42,7 +42,7 @@ function TimeBadge({ completedAt }: { completedAt: string | null }) {
     } else if (diffMin < 25) {
       return { level: 'warning', color: COLORS.warning, bgColor: COLORS.warningLight || '#FEF3C7', label: `${diffMin} min` }
     } else if (diffMin < 40) {
-      return { level: 'urgent', color: '#F97316', bgColor: COLORS.isDark ? '#7C2D12' : '#FFF7ED', label: `${diffMin} min` }
+      return { level: 'urgent', color: COLORS.orange, bgColor: COLORS.orangeLight || '#FFF7ED', label: `${diffMin} min` }
     } else {
       return { level: 'critical', color: COLORS.error, bgColor: COLORS.errorLight || '#FEE2F2', label: `${diffMin} min` }
     }

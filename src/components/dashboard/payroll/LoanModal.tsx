@@ -85,6 +85,8 @@ export function LoanModal({
   const wouldExceedLimit =
     debtLimit && parseFloat(amount) > 0 && currentDebt + parseFloat(amount) > debtLimit
 
+  const decorativeBg = '#FFFFFF'
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
@@ -123,7 +125,7 @@ export function LoanModal({
           <div
             className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10"
             style={{
-              backgroundColor: '#FFFFFF',
+              backgroundColor: decorativeBg,
               transform: 'translate(30%, -30%)',
             }}
           />

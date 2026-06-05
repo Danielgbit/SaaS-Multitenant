@@ -303,7 +303,7 @@ export function EmployeeConfirmations({
                       {/* Submit */}
                       {isSuccess ? (
                         <div className="w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2"
-                          style={{ backgroundColor: COLORS.success, color: '#FFFFFF' }}>
+                          style={{ backgroundColor: COLORS.success, color: COLORS.textOnSuccess }}>
                           <CheckCircle className="w-5 h-5" />
                           Confirmado
                         </div>

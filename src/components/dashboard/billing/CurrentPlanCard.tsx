@@ -129,7 +129,7 @@ export function CurrentPlanCard({ subscription, organizationId }: CurrentPlanCar
                 <button onClick={() => setShowCancelModal(false)} className="flex-1 py-3 rounded-xl font-medium text-sm transition-colors duration-200 cursor-pointer" style={{ border: `1px solid ${COLORS.border}`, color: COLORS.textSecondary, backgroundColor: 'transparent' }}>
                   Mantener suscripción
                 </button>
-                <button onClick={handleCancel} disabled={isCancelling} className="flex-1 py-3 rounded-xl font-medium text-sm transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70" style={{ backgroundColor: COLORS.error, color: '#FFFFFF' }}>
+                <button onClick={handleCancel} disabled={isCancelling} className="flex-1 py-3 rounded-xl font-medium text-sm transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70" style={{ backgroundColor: COLORS.error, color: COLORS.textOnError }}>
                   {isCancelling && <Spinner size="sm" />}
                   {isCancelling ? 'Cancelando...' : 'Si, cancelar'}
                 </button>

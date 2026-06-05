@@ -320,7 +320,7 @@ export function TabQueue({ organizationId }: TabQueueProps) {
                 onClick={handleBulkCancel}
                 disabled={bulkLoading}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                style={{ backgroundColor: COLORS.error, color: '#FFFFFF' }}
+                style={{ backgroundColor: COLORS.error, color: COLORS.textOnError }}
               >
                 {bulkLoading ? <Spinner size="sm" className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
                 Cancelar

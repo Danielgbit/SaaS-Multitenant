@@ -222,7 +222,7 @@ export function DeleteInventoryModal({
                 className="flex-1 py-3 px-4 rounded-xl font-medium transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 style={{ 
                   backgroundColor: COLORS.danger,
-                  color: '#FFFFFF',
+                  color: COLORS.textOnError,
                 }}
               >
                 {isDeleting ? (

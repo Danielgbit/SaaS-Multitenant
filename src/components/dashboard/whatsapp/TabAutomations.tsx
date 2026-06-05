@@ -139,6 +139,9 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
 
   const activeRulesCount = rules.filter((r) => r.isEnabled).length
 
+  const toggleThumbBg = '#FFFFFF'
+  const spinnerColor = '#FFFFFF'
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -197,12 +200,19 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
                         style={{
                           backgroundColor: hasRule && rule!.isEnabled ? COLORS.whatsappLight : COLORS.surfaceSubtle,
                         }}
-                      >
-                        {hasRule && rule!.isEnabled ? (
-                          <Zap className="w-5 h-5" style={{ color: COLORS.whatsapp }} />
-                        ) : (
-                          <Circle className="w-5 h-5" style={{ color: COLORS.textMuted }} />
-                        )}
+                          >
+                            {togglingId === rule!.id ? (
+                            <Spinner size="sm" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: spinnerColor }} />
+                            ) : (
+                              <span
+                                className="absolute top-1 w-5 h-5 rounded-full transition-transform"
+                                style={{
+                                  backgroundColor: toggleThumbBg,
+                                  left: rule!.isEnabled ? '20px' : '2px',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                                }}
+                              />
+                            )}
                       </div>
                       <div>
                         <div className="flex items-center gap-2 mb-0.5">
@@ -269,12 +279,12 @@ export function TabAutomations({ organizationId }: TabAutomationsProps) {
                             aria-checked={rule!.isEnabled}
                           >
                             {togglingId === rule!.id ? (
-                              <Spinner size="sm" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: '#FFFFFF' }} />
+                            <Spinner size="sm" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: spinnerColor }} />
                             ) : (
                               <span
                                 className="absolute top-1 w-5 h-5 rounded-full transition-transform"
                                 style={{
-                                  backgroundColor: '#FFFFFF',
+                                  backgroundColor: toggleThumbBg,
                                   left: rule!.isEnabled ? '20px' : '2px',
                                   boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                                 }}

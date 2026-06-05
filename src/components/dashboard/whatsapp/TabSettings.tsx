@@ -103,7 +103,9 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
   }
 
   if (loading) {
-    return (
+  const toggleThumbBg = '#FFFFFF'
+
+  return (
       <div className="flex items-center justify-center py-16">
         <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>
@@ -278,10 +280,10 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
             role="switch"
             aria-checked={enabled}
           >
-            <span
-              className="absolute top-1 w-5 h-5 rounded-full transition-transform"
-              style={{
-                backgroundColor: '#FFFFFF',
+              <span
+                className="absolute top-1 w-5 h-5 rounded-full transition-transform"
+                style={{
+                  backgroundColor: toggleThumbBg,
                 left: enabled ? '20px' : '2px',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
               }}
