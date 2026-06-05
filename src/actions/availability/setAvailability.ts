@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { HHMM_REGEX, timeToMinutes } from '@/schemas/common'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 const SetAvailabilitySchema = z.object({
   employee_id: z.string().uuid('ID inválido'),
@@ -42,30 +43,14 @@ export async function setAvailability(
 
   const supabase = await createClient()
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No se encontró organización para este usuario.' }
-  }
+  const access = await requireCurrentOrganization()
+  if (!access.success) return { error: access.error }
 
   const { data: employee, error: empError } = await supabase
     .from('employees')
     .select('id, organization_id')
     .eq('id', parsed.data.employee_id)
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
     .single()
 
   if (empError || !employee) {

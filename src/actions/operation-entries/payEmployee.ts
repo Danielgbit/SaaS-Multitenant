@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
 import { z } from 'zod'
 import { coercePositiveNumber } from '@/schemas/common'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const PayEmployeeSchema = z.object({
   employee_id: z.string().uuid(),
@@ -21,14 +22,12 @@ export async function payEmployee(input: {
   }
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'No autorizado.' }
 
   const { data: emp } = await supabase.from('employees').select('id, name, organization_id').eq('id', parsed.data.employee_id).single()
   if (!emp) return { error: 'Empleado no encontrado.' }
 
-  const { data: member } = await supabase.from('organization_members').select('role').eq('user_id', user.id).eq('organization_id', emp.organization_id).single()
-  if (!member || !['owner', 'admin'].includes(member.role)) return { error: 'Sin permiso.' }
+  const access = await requireOrgAccess(emp.organization_id, ['owner', 'admin'])
+  if (!access.success) return { error: access.error }
 
   const today = getTodayDateColombia()
   const { data: session } = await supabase.from('cash_sessions').select('id').eq('organization_id', emp.organization_id).eq('session_date', today).eq('status', 'open').maybeSingle()
@@ -38,7 +37,7 @@ export async function payEmployee(input: {
   const { data: entry, error } = await supabase.from('operation_entries').insert({
     cash_session_id: session.id, entry_type: 'payroll_expense', entry_status: 'active', created_via: 'payroll_auto',
     direction: 'out', title: 'Pago a ' + emp.name, description: notes || null, amount,
-    payment_method, source_type: 'payroll', source_id: employee_id, created_by: user.id,
+    payment_method, source_type: 'payroll', source_id: employee_id, created_by: access.context.userId,
   }).select('id').single()
   if (error) return { error: 'Error al registrar.' }
   revalidatePath('/caja')

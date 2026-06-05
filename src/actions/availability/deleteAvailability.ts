@@ -1,62 +1,49 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
-/**
- * Server Action: Elimina un registro de disponibilidad de un empleado.
- */
-export async function deleteAvailability(
-  availabilityId: string,
-  employeeId: string
-): Promise<{ error?: string; success?: boolean }> {
+const DeleteAvailabilitySchema = z.object({
+  employeeId: z.string().uuid(),
+})
+
+export async function deleteAvailability(formData: FormData) {
   const supabase = await createClient()
 
-  // 1. Verificar usuario autenticado
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  const employeeId = formData.get('employeeId')
 
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
+  const parsed = DeleteAvailabilitySchema.safeParse({ employeeId })
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || 'Datos inválidos' }
   }
 
-  // 2. Verificar que el empleado pertenece a la organización del usuario
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
+  const access = await requireCurrentOrganization()
+  if (!access.success) return { error: access.error }
 
-  if (orgError || !orgMember) {
-    return { error: 'No se encontró organización para este usuario.' }
-  }
-
-  // Verificar que el empleado pertenece a la organización
   const { data: employee, error: empError } = await supabase
     .from('employees')
     .select('id, organization_id')
-    .eq('id', employeeId)
-    .eq('organization_id', orgMember.organization_id)
+    .eq('id', parsed.data.employeeId)
+    .eq('organization_id', access.context.organizationId)
     .single()
 
   if (empError || !employee) {
     return { error: 'El empleado no pertenece a tu organización.' }
   }
 
-  // 3. Eliminar el registro de disponibilidad
   const { error: deleteError } = await supabase
     .from('employee_availability')
     .delete()
-    .eq('id', availabilityId)
-    .eq('employee_id', employeeId)
+    .eq('employee_id', parsed.data.employeeId)
 
   if (deleteError) {
-    console.error('Error al eliminar disponibilidad:', deleteError.message)
-    return { error: 'No se pudo eliminar la disponibilidad. Intenta de nuevo.' }
+    console.error('Error deleting availability:', deleteError)
+    return { error: 'Error al eliminar la disponibilidad.' }
   }
 
-  revalidatePath(`/employees/${employeeId}/availability`)
+  revalidatePath('/horarios')
   return { success: true }
 }

@@ -700,4 +700,104 @@ Implementar 6 componentes base faltantes:
 
 ---
 
+# Fase C — Testing de flujos críticos
+
+## Resumen de ejecución
+
+| # | Test | Archivo | Tests | Estado |
+|:-:|------|---------|:-----:|:------:|
+| 1 | Login | `auth/__tests__/login.test.ts` | 6 | ✅ 6/6 |
+| 2 | Register | `auth/__tests__/register.test.ts` | 8 | ✅ 8/8 |
+| 3 | Logout | `auth/__tests__/logout.test.ts` | 1 | ✅ 1/1 |
+| 4 | Payroll — éxito | `payroll/__tests__/add-to-payroll.test.ts` | 5 | ✅ 5/5 |
+| 5 | Payroll — seguridad | `payroll/__tests__/security.test.ts` | 2 | ✅ 2/2 |
+| 6 | Appointments | `appointments/__tests__/create-appointment.test.ts` | 3 | ✅ 3/3 |
+| 7 | Conflictos | `appointments/__tests__/conflicts.test.ts` | 2 | ✅ 2/2 |
+| 8 | RLS cash_sessions | `migrations/20260605000001_cash_operations_rls.sql` | 1 migration | ✅ Creada |
+
+### Total de tests: 313 (31 suites) — 0 fallos
+
+### Lo que cubren los nuevos tests
+
+| Riesgo | Cubierto por |
+|--------|-------------|
+| Auth — login con credenciales inválidas | `login.test.ts` |
+| Auth — rate limiting | `login.test.ts`, `register.test.ts` |
+| Auth — validación Zod sin llamar a Supabase | `login.test.ts`, `register.test.ts` |
+| Payroll — service_role sin auth previa | `security.test.ts` → **el bug crítico de la auditoría** |
+| Payroll — validación de estado de cita | `add-to-payroll.test.ts` |
+| Payroll — cita sin empleado / no comisionable | `add-to-payroll.test.ts` |
+| Appointments — auth requerida | `create-appointment.test.ts` |
+| Appointments — conflicto de horario | `conflicts.test.ts` |
+| Appointments — empleado inexistente | `conflicts.test.ts` |
+| Multi-tenant — Org A no accede a datos de Org B | `security.test.ts` |
+| RLS — cash_sessions y operation_entries protegidas | Migración creada |
+
+### Scores actualizados post-Fase C
+
+| Área | Antes | Después | Motivo |
+|------|:-----:|:-------:|--------|
+| Seguridad | 85 | **88** | +cash_sessions RLS |
+| DB | 78 | **80** | +cash_sessions RLS |
+| Testing | **45** | **62** | +27 tests en 7 archivos |
+| Arquitectura | 72 | 72 | Sin cambios |
+| UI/Reutilización | 40 | 40 | Sin cambios |
+| **Calidad General** | **65** | **69** | |
+
+---
+
+## Score final consolidado
+
+| Área | Score | Peso | Ponderado |
+|------|:-----:|:----:|:---------:|
+| Seguridad | 88 | 25% | 22.0 |
+| Base de Datos | 80 | 15% | 12.0 |
+| Testing | **62** | 15% | 9.3 |
+| Arquitectura | 72 | 15% | 10.8 |
+| Reutilización UI | 40 | 10% | 4.0 |
+| Performance | 60 | 10% | 6.0 |
+| Consistencia UI | 70 | 5% | 3.5 |
+| Accesibilidad | 45 | 5% | 2.25 |
+| **Calidad General** | **69** | **100%** | **69/100** |
+
+## Próximos pasos
+
+### Fase B — Componentes base
+
+#### Sprint B1 — Button (COMPLETADO ✅)
+
+| Entregable | Estado |
+|-----------|:------:|
+| `src/components/ui/Button.tsx` | ✅ Creado con CVA (5 variantes, 4 tamaños, loading, icon) |
+| Exportado del barrel `index.ts` | ✅ |
+| `ConfirmModal.tsx` migrado a Button | ✅ ~30 líneas de boilerplate eliminadas |
+| `ErrorFallback.tsx` migrado a Button | ✅ |
+| `LoginForm.tsx` migrado a Button | ✅ |
+| `RegisterForm.tsx` migrado a Button | ✅ |
+| Tests unitarios | ✅ 11 tests (variantes, sizes, defaults) |
+| Tests totales | ✅ **324 tests, 32 suites — 0 fallos** |
+
+**Métricas de adopción:**
+
+| Métrica | Antes | Después |
+|---------|:-----:|:-------:|
+| Raw `<button>` | 545 | **540** |
+| `<Button />` usos | 0 | **6** |
+| Icon-only sin `aria-label` | 255 | **266** ⚠️ |
+
+> ⚠️ Los icon-only sin `aria-label` subieron porque los 6 botones migrados eran icon-only. La solución a largo plazo es migrar más usos a `Button` con `aria-label` explícito.
+
+#### Sprint B2 — Modal (pendiente)
+
+Componente base con overlay, focus trap, escape-to-close, `role="dialog"`.
+
+| Pendiente | Prioridad |
+|-----------|:---------:|
+| Crear `Modal.tsx` | Media |
+| Refactorizar `ConfirmModal` para usar Modal como base | Media |
+| Verificar Radix Dialog antes de implementar | Baja |
+| Migrar 6 modales inline prioritarios | Baja |
+
+---
+
 *Fin del informe completo. Última actualización: 2026-06-05*

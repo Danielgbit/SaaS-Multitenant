@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 const CancelInvitationSchema = z.object({
   invitationId: z.string().uuid('ID de invitación inválido'),
@@ -20,24 +21,8 @@ export async function cancelInvitation(
 
   const { invitationId } = validation.data
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No se encontró organización.' }
-  }
-
-  if (!['owner', 'admin'].includes(orgMember.role)) {
-    return { error: 'No tienes permisos para cancelar invitaciones.' }
-  }
+  const access = await requireCurrentOrganization(['owner', 'admin'])
+  if (!access.success) return { error: access.error }
 
   const { data: invitation, error: inviteError } = await supabase
     .from('employee_invitations')

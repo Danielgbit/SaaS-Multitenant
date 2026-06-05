@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const SpaOverrideInputSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -18,19 +19,8 @@ export async function createSpaOverride(
 ): Promise<{ success: boolean; error?: string; data?: any }> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'No autenticado' }
-
-  const { data: member } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', organizationId)
-    .single()
-
-  if (!member || !['owner', 'admin', 'assistant'].includes(member.role)) {
-    return { success: false, error: 'No tienes permisos para crear overrides' }
-  }
+  const access = await requireOrgAccess(organizationId, ['owner', 'admin', 'assistant'])
+  if (!access.success) return access
 
   const validation = SpaOverrideInputSchema.safeParse(input)
   if (!validation.success) {
@@ -42,7 +32,7 @@ export async function createSpaOverride(
     .insert({
       organization_id: organizationId,
       ...validation.data,
-      created_by: user.id,
+      created_by: access.context.userId,
     })
     .select()
     .single()
@@ -64,9 +54,6 @@ export async function createSpaOverride(
 export async function deleteSpaOverride(overrideId: string): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'No autenticado' }
-
   const { data: override } = await supabase
     .from('spa_availability_overrides')
     .select('organization_id')
@@ -75,16 +62,8 @@ export async function deleteSpaOverride(overrideId: string): Promise<{ success: 
 
   if (!override) return { success: false, error: 'Override no encontrado' }
 
-  const { data: member } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', override.organization_id)
-    .single()
-
-  if (!member || !['owner', 'admin', 'assistant'].includes(member.role)) {
-    return { success: false, error: 'No tienes permisos para eliminar overrides' }
-  }
+  const access = await requireOrgAccess(override.organization_id, ['owner', 'admin', 'assistant'])
+  if (!access.success) return access
 
   const { error } = await supabase
     .from('spa_availability_overrides')

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 export async function toggleServiceStatus(serviceId: string, newState: boolean) {
   try {
@@ -9,31 +10,14 @@ export async function toggleServiceStatus(serviceId: string, newState: boolean) 
 
     // 1. Obtener usuario actual
     const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    const access = await requireCurrentOrganization()
+    if (!access.success) return { error: access.error }
 
-    if (authError || !user) {
-      return { error: 'No autorizado. Inicia sesión nuevamente.' }
-    }
-
-    // 2. Obtener organización
-    const { data: orgMember, error: orgError } = await supabase
-      .from('organization_members')
-      .select('organization_id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (orgError || !orgMember) {
-      return { error: 'No se encontró tu organización.' }
-    }
-
-    // 3. Actualizar estado
     const { error: updateError } = await supabase
       .from('services')
       .update({ active: newState })
       .eq('id', serviceId)
-      .eq('organization_id', orgMember.organization_id)
+      .eq('organization_id', access.context.organizationId)
 
     if (updateError) {
       console.error('Error toggling service status:', updateError)

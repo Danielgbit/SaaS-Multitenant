@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
 import { z } from 'zod'
 import { coerceMinNumber } from '@/schemas/common'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const OpenSessionSchema = z.object({
   organization_id: z.string().uuid(),
@@ -18,19 +19,16 @@ export async function openSession(input: { organization_id: string; opening_cash
   }
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'No autorizado.' }
 
-  const { data: orgMember } = await supabase.from('organization_members').select('role').eq('user_id', user.id).eq('organization_id', parsed.data.organization_id).single()
-  if (!orgMember) return { success: false, error: 'No perteneces.' }
-  if (!['owner', 'admin', 'staff'].includes(orgMember.role)) return { success: false, error: 'Sin permiso.' }
+  const access = await requireOrgAccess(parsed.data.organization_id, ['owner', 'admin', 'staff'])
+  if (!access.success) return access
 
   const today = getTodayDateColombia()
   const { data: existing } = await supabase.from('cash_sessions').select('id').eq('organization_id', parsed.data.organization_id).eq('session_date', today).eq('status', 'open').maybeSingle()
   if (existing) return { success: false, error: 'Ya hay caja abierta.' }
 
   const { opening_cash, notes } = parsed.data
-  const { data: session, error } = await supabase.from('cash_sessions').insert({ organization_id: parsed.data.organization_id, session_date: today, opened_by: user.id, opening_cash, notes: notes || null }).select('id').single()
+  const { data: session, error } = await supabase.from('cash_sessions').insert({ organization_id: parsed.data.organization_id, session_date: today, opened_by: access.context.userId, opening_cash, notes: notes || null }).select('id').single()
   if (error) return { success: false, error: 'Error al abrir.' }
   revalidatePath('/caja')
   return { success: true, session_id: session.id }

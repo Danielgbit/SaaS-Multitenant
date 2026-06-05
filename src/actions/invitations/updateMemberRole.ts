@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 const UpdateMemberRoleSchema = z.object({
   employeeId: z.string().uuid('ID de empleado inválido'),
@@ -21,30 +22,14 @@ export async function updateMemberRole(
 
   const { employeeId, role } = validation.data
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No se encontró organización.' }
-  }
-
-  if (orgMember.role !== 'owner') {
-    return { error: 'Solo el owner puede cambiar roles.' }
-  }
+  const access = await requireCurrentOrganization(['owner'])
+  if (!access.success) return { error: access.error }
 
   const { data: employee, error: employeeError } = await supabase
     .from('employees')
     .select('id, name, user_id, organization_id')
     .eq('id', employeeId)
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
     .single()
 
   if (employeeError || !employee) {
@@ -58,7 +43,7 @@ export async function updateMemberRole(
   const { data: memberToUpdate, error: memberError } = await supabase
     .from('organization_members')
     .select('id, role')
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
     .eq('user_id', employee.user_id)
     .single()
 

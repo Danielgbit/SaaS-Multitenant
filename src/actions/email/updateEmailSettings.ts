@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const UpdateEmailSettingsSchema = z.object({
   organizationId: z.string().uuid('ID de organización inválido'),
@@ -25,25 +26,8 @@ export async function updateEmailSettings(
 
   const supabase = await createClient()
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return { success: false, error: 'No autorizado.' }
-  }
-
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .eq('organization_id', organizationId)
-    .single()
-
-  if (!orgMember) {
-    return { success: false, error: 'No perteneces a esta organización.' }
-  }
+  const access = await requireOrgAccess(organizationId)
+  if (!access.success) return access
 
   const updateData: Record<string, unknown> = {}
 

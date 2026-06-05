@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { CreateServiceSchema } from '@/schemas/services/service.schema'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 export async function createService(input: { name: string; duration: number; price: number }) {
   try {
@@ -13,27 +14,11 @@ export async function createService(input: { name: string; duration: number; pri
 
     const supabase = await createClient()
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return { error: 'No autorizado. Inicia sesión nuevamente.' }
-    }
-
-    const { data: orgMember, error: orgError } = await supabase
-      .from('organization_members')
-      .select('organization_id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (orgError || !orgMember) {
-      return { error: 'No se encontró tu organización.' }
-    }
+    const access = await requireCurrentOrganization()
+    if (!access.success) return { error: access.error }
 
     const { data: newService, error: insertError } = await supabase.from('services').insert({
-      organization_id: orgMember.organization_id,
+      organization_id: access.context.organizationId,
       name: parsed.data.name,
       duration: parsed.data.duration,
       price: parsed.data.price,

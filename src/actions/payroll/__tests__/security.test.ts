@@ -1,106 +1,64 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const UUID = () => crypto.randomUUID()
+vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }))
+vi.mock('@/lib/supabase/service-role', () => ({ createServiceRoleClient: vi.fn() }))
+vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
+vi.mock('@/lib/auth/require-org-access', () => ({ requireOrgAccess: vi.fn() }))
 
-describe('addAppointmentToPayroll — seguridad', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    vi.resetModules()
-  })
+const { addAppointmentToPayroll } = await import('../addAppointmentToPayroll')
+const supabase = await import('@/lib/supabase/server')
+const serviceRole = await import('@/lib/supabase/service-role')
+const { requireOrgAccess } = await import('@/lib/auth/require-org-access')
+
+describe('seguridad', () => {
+  beforeEach(() => { vi.clearAllMocks() })
 
   it('NO ejecuta createServiceRoleClient cuando requireOrgAccess falla', async () => {
-    vi.mock('@/lib/auth/require-org-access', () => ({
-      requireOrgAccess: vi.fn().mockResolvedValue({ success: false, error: 'No autorizado.' }),
-    }))
-
-    const mockServiceRole = vi.fn()
-    vi.mock('@/lib/supabase/service-role', () => ({
-      createServiceRoleClient: mockServiceRole,
-    }))
-
-    const aptId = UUID()
-    vi.mock('@/lib/supabase/server', () => ({
-      createClient: vi.fn(() => ({
-        from: vi.fn(() => ({
-          select: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(),
-          single: vi.fn().mockResolvedValue({
-            data: {
-              id: aptId,
-              organization_id: 'org-1',
-              employee_id: 'emp-1',
-              start_time: '2026-05-01T10:00:00.000Z',
-              is_commissionable: true,
-              status: 'completed',
-              appointment_services: [],
-            },
-            error: null,
-          }),
-        })),
+    vi.mocked(requireOrgAccess).mockResolvedValueOnce({ success: false, error: 'No autorizado.' })
+    vi.mocked(supabase.createClient).mockReturnValue({
+      from: vi.fn(() => ({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: crypto.randomUUID(), organization_id: 'org-1', employee_id: 'emp-1',
+            start_time: '2026-05-01T10:00:00.000Z', is_commissionable: true, status: 'completed',
+            appointment_services: [] },
+          error: null,
+        }),
       })),
-    }))
+    } as never)
 
-    vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
-
-    const { addAppointmentToPayroll } = await import('../addAppointmentToPayroll')
-    const result = await addAppointmentToPayroll(aptId)
+    const result = await addAppointmentToPayroll(crypto.randomUUID())
 
     expect(result.success).toBe(false)
     expect(result.error).toBe('No autorizado.')
-    expect(mockServiceRole).not.toHaveBeenCalled()
+    expect(serviceRole.createServiceRoleClient).not.toHaveBeenCalled()
   })
 })
 
-describe('aislamiento multi-tenant', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    vi.resetModules()
-  })
+describe('multi-tenant', () => {
+  beforeEach(() => { vi.clearAllMocks() })
 
-  it('deniega acceso cuando el appointment pertenece a otra organización', async () => {
-    vi.mock('@/lib/auth/require-org-access', () => ({
-      requireOrgAccess: vi.fn().mockImplementation(async (orgId: string) => {
-        if (orgId === 'org-b') {
-          return { success: false, error: 'No perteneces a esta organización.' }
-        }
-        return { success: true, context: { userId: 'user-1', organizationId: orgId, role: 'admin' } }
-      }),
-    }))
-
-    const mockServiceRole = vi.fn()
-    vi.mock('@/lib/supabase/service-role', () => ({
-      createServiceRoleClient: mockServiceRole,
-    }))
-
-    const aptId = UUID()
-    vi.mock('@/lib/supabase/server', () => ({
-      createClient: vi.fn(() => ({
-        from: vi.fn(() => ({
-          select: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(),
-          single: vi.fn().mockResolvedValue({
-            data: {
-              id: aptId,
-              organization_id: 'org-b',
-              employee_id: 'emp-2',
-              start_time: '2026-05-01T10:00:00.000Z',
-              is_commissionable: true,
-              status: 'completed',
-              appointment_services: [],
-            },
-            error: null,
-          }),
-        })),
+  it('deniega cuando appointment pertenece a otra organización', async () => {
+    vi.mocked(requireOrgAccess).mockImplementation(async (orgId: string) => {
+      if (orgId === 'org-b') return { success: false, error: 'No perteneces.' }
+      return { success: true, context: { userId: 'u1', organizationId: orgId, role: 'admin' } }
+    })
+    vi.mocked(supabase.createClient).mockReturnValue({
+      from: vi.fn(() => ({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: crypto.randomUUID(), organization_id: 'org-b', employee_id: 'emp-1',
+            start_time: '2026-05-01T10:00:00.000Z', is_commissionable: true, status: 'completed',
+            appointment_services: [] },
+          error: null,
+        }),
       })),
-    }))
+    } as never)
 
-    vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
-
-    const { addAppointmentToPayroll } = await import('../addAppointmentToPayroll')
-    const result = await addAppointmentToPayroll(aptId)
-
-    expect(result.success).toBe(false)
+    const result = await addAppointmentToPayroll(crypto.randomUUID())
     expect(result.error).toContain('No perteneces')
-    expect(mockServiceRole).not.toHaveBeenCalled()
+    expect(serviceRole.createServiceRoleClient).not.toHaveBeenCalled()
   })
 })

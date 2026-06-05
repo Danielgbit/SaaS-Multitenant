@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { clientEnv } from '@/lib/env/client'
 import { z } from 'zod'
 import { createInvitationLimiter } from '@/lib/rate-limiter'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 import { headers } from 'next/headers'
 import { getClientIp } from '@/lib/network/get-client-ip'
 import type { CreateInvitationInput, MemberRole } from '@/types/invitations'
@@ -32,34 +33,18 @@ export async function createInvitation(
   const emailValue = email || null
   const shouldSendEmail = sendEmail && emailValue
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No se encontró organización.' }
-  }
-
-  if (!['owner', 'admin'].includes(orgMember.role)) {
-    return { error: 'No tienes permisos para invitar empleados.' }
-  }
+  const access = await requireCurrentOrganization(['owner', 'admin'])
+  if (!access.success) return { error: access.error }
 
   const headerStore = await headers()
   const ip = getClientIp(headerStore)
-  const rateKey = `createInvitation:${orgMember.organization_id}:${user.id}`
+  const rateKey = `createInvitation:${access.context.organizationId}:${access.context.userId}`
   const rateCheck = createInvitationLimiter.check(rateKey)
   if (!rateCheck.allowed) {
-    createInvitationLimiter.hit(rateKey, { ip, route: 'createInvitation', userId: user.id, organizationId: orgMember.organization_id })
+    createInvitationLimiter.hit(rateKey, { ip, route: 'createInvitation', userId: access.context.userId, organizationId: access.context.organizationId })
     return { error: 'Demasiados intentos. Intenta nuevamente en unos minutos.' }
   }
-  createInvitationLimiter.hit(rateKey, { ip, route: 'createInvitation', userId: user.id, organizationId: orgMember.organization_id })
+  createInvitationLimiter.hit(rateKey, { ip, route: 'createInvitation', userId: access.context.userId, organizationId: access.context.organizationId })
 
   const { data: employee, error: employeeError } = await supabase
     .from('employees')
@@ -122,7 +107,7 @@ export async function createInvitation(
       token,
       role: role as MemberRole,
       expires_at: expiresAt.toISOString(),
-      created_by: user.id,
+      created_by: access.context.userId,
     })
     .select()
     .single()

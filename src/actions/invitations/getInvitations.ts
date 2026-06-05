@@ -2,30 +2,19 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireOrgAccess, requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 export async function getInvitationsByEmployee(employeeId: string) {
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No se encontró organización.' }
-  }
+  const access = await requireCurrentOrganization()
+  if (!access.success) return { error: access.error }
 
   const { data: invitations, error } = await supabase
     .from('employee_invitations')
     .select('*')
     .eq('employee_id', employeeId)
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -39,24 +28,12 @@ export async function getInvitationsByEmployee(employeeId: string) {
 export async function getPendingInvitations(organizationId?: string) {
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
+  const access = organizationId
+    ? await requireOrgAccess(organizationId)
+    : await requireCurrentOrganization()
+  if (!access.success) return { error: access.error }
 
-  let orgId = organizationId
-  if (!orgId) {
-    const { data: orgMember } = await supabase
-      .from('organization_members')
-      .select('organization_id')
-      .eq('user_id', user.id)
-      .single()
-    orgId = orgMember?.organization_id
-  }
-
-  if (!orgId) {
-    return { error: 'No se encontró organización.' }
-  }
+  const orgId = access.context.organizationId
 
   const { data: invitations, error } = await supabase
     .from('employee_invitations')

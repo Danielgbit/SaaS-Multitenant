@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { Building2, User, Mail, ArrowRight } from 'lucide-react'
-import { Spinner } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { registerAction } from '@/actions/auth'
 import { PasswordInput } from './PasswordInput'
 
@@ -101,23 +101,17 @@ export function RegisterForm() {
         required
       />
 
-      <button
+      <Button
         type="submit"
         disabled={isPending}
-        className="w-full mt-2 flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-primary hover:bg-primary/90 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+        variant="primary"
+        size="lg"
+        className="w-full mt-2"
+        loading={isPending}
+        icon={isPending ? undefined : <ArrowRight className="w-5 h-5" />}
       >
-        {isPending ? (
-          <>
-            <Spinner size="sm" className="w-5 h-5" />
-            <span>Creando...</span>
-          </>
-        ) : (
-          <>
-            <span>Crear Cuenta</span>
-            <ArrowRight className="w-5 h-5" />
-          </>
-        )}
-      </button>
+        {isPending ? 'Creando...' : 'Crear Cuenta'}
+      </Button>
     </form>
   )
 }

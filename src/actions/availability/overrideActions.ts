@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { HHMM_REGEX, timeToMinutes, isValidDateString } from '@/schemas/common'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 const CreateOverrideSchema = z.object({
   employee_id: z.string().uuid(),
@@ -53,34 +54,14 @@ export async function createOverride(
 
   const supabase = await createClient()
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No se encontró organización para este usuario.' }
-  }
-
-  if (!['owner', 'admin', 'assistant'].includes(orgMember.role)) {
-    return { error: 'No tienes permisos para crear overrides.' }
-  }
+  const access = await requireCurrentOrganization(['owner', 'admin', 'assistant'])
+  if (!access.success) return { error: access.error }
 
   const { data: employee, error: empError } = await supabase
     .from('employees')
     .select('id, organization_id')
     .eq('id', parsed.data.employee_id)
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
     .single()
 
   if (empError || !employee) {
@@ -102,7 +83,7 @@ export async function createOverride(
         reason: reason || null,
         break_start: break_start || null,
         break_end: break_end || null,
-        created_by: user.id,
+        created_by: access.context.userId,
       },
       {
         onConflict: 'employee_id,date',
@@ -128,16 +109,6 @@ export async function deleteOverride(
 ): Promise<{ error?: string; success?: boolean }> {
   const supabase = await createClient()
 
-  // 1. Verificar usuario autenticado
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    return { error: 'No autorizado.' }
-  }
-
   // 2. Verificar que el override existe y el usuario tiene permisos
   const { data: override, error: fetchError } = await supabase
     .from('employee_availability_overrides')
@@ -149,26 +120,12 @@ export async function deleteOverride(
     return { error: 'Override no encontrado.' }
   }
 
-  // 3. Verificar organización del usuario
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .single()
+  const access = await requireCurrentOrganization(['owner', 'admin', 'assistant'])
+  if (!access.success) return { error: access.error }
 
-  if (orgError || !orgMember) {
-    return { error: 'No se encontró organización para este usuario.' }
-  }
-
-  // 4. Verificar que el override es de la misma organización
   const employeeOrgId = (override as { employees?: { organization_id: string } }).employees?.organization_id
-  if (employeeOrgId !== orgMember.organization_id) {
+  if (employeeOrgId !== access.context.organizationId) {
     return { error: 'No tienes permisos para eliminar este override.' }
-  }
-
-  // 5. Verificar permisos
-  if (!['owner', 'admin', 'assistant'].includes(orgMember.role)) {
-    return { error: 'No tienes permisos para eliminar overrides.' }
   }
 
   // 6. Eliminar

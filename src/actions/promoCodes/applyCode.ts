@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { validateCode } from './validateCode'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 const ApplyCodeSchema = z.object({
   code: z.string().trim().min(1, 'Código requerido').max(50).transform(v => v.toUpperCase()),
@@ -20,21 +21,8 @@ export async function applyCode(
   formData: FormData
 ): Promise<ApplyCodeState> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { error: 'No autenticado' }
-  }
-
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!orgMember) {
-    return { error: 'No tienes organización' }
-  }
+  const access = await requireCurrentOrganization()
+  if (!access.success) return { error: access.error }
 
   const rawCode = { code: formData.get('code') as string }
   const parsed = ApplyCodeSchema.safeParse(rawCode)

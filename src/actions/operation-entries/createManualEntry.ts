@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { coercePositiveNumber } from '@/schemas/common'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const ManualEntrySchema = z.object({
   cash_session_id: z.string().uuid(),
@@ -22,22 +23,20 @@ export async function createManualEntry(input: { cash_session_id: string; entry_
   }
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'No autorizado.' }
 
   const { data: session } = await supabase.from('cash_sessions').select('organization_id, status').eq('id', parsed.data.cash_session_id).single()
   if (!session) return { error: 'Sesion no encontrada.' }
   if (session.status !== 'open') return { error: 'Caja cerrada.' }
 
-  const { data: member } = await supabase.from('organization_members').select('role').eq('user_id', user.id).eq('organization_id', session.organization_id).single()
-  if (!member || !['owner', 'admin', 'staff'].includes(member.role)) return { error: 'Sin permiso.' }
+  const access = await requireOrgAccess(session.organization_id, ['owner', 'admin', 'staff'])
+  if (!access.success) return { error: access.error }
 
   const { cash_session_id, entry_type, created_via, direction, title, description, amount, payment_method } = parsed.data
   const { data: entry, error } = await supabase.from('operation_entries').insert({
     cash_session_id, entry_type, entry_status: 'active',
     created_via, direction, title,
     description: description || null, amount, payment_method: payment_method || null,
-    source_type: 'manual', created_by: user.id,
+    source_type: 'manual', created_by: access.context.userId,
   }).select('id').single()
   if (error) return { error: 'Error al registrar.' }
   revalidatePath('/caja')

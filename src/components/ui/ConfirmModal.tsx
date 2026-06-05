@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { X, AlertTriangle, Trash2, Info } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { Spinner } from './Spinner'
+import { Button } from './Button'
 
 interface ConfirmModalProps {
   isOpen: boolean
@@ -100,17 +100,16 @@ export default function ConfirmModal({
         style={{ backgroundColor: COLORS.surface }}
       >
         {/* Close */}
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Cerrar"
           onClick={onClose}
           disabled={loading}
-          aria-label="Cerrar"
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-xl transition-colors duration-200 disabled:opacity-50"
-          style={{ color: COLORS.textMuted }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle)}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          className="absolute right-4 top-4"
         >
           <X className="h-4 w-4" />
-        </button>
+        </Button>
 
         {/* Icon */}
         <div className="mb-4 mt-2 flex justify-center">
@@ -151,45 +150,23 @@ export default function ConfirmModal({
 
         {/* Actions */}
         <div className="flex gap-3">
-          <button
+          <Button
+            variant="secondary"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 disabled:opacity-50 min-h-[44px] cursor-pointer"
-            style={{
-              backgroundColor: COLORS.surfaceSubtle,
-              color: COLORS.textPrimary,
-              border: `1px solid ${COLORS.border}`,
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = COLORS.border)
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = COLORS.surfaceSubtle)
-            }
+            className="flex-1"
           >
             {cancelText}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant={variant === 'danger' ? 'danger' : 'primary'}
             onClick={handleConfirm}
             disabled={loading || confirmDisabled}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 disabled:opacity-70 min-h-[44px] cursor-pointer"
-            style={{ backgroundColor: COLORS[cfg.buttonBg as keyof typeof COLORS] as string }}
-            onMouseEnter={(e) => {
-              if (!loading) e.currentTarget.style.opacity = '0.9'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = '1'
-            }}
+            loading={loading}
+            className="flex-1"
           >
-            {loading ? (
-              <>
-                <Spinner size="sm" />
-                {confirmText}
-              </>
-            ) : (
-              confirmText
-            )}
-          </button>
+            {confirmText}
+          </Button>
         </div>
       </div>
     </div>

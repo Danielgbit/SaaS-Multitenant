@@ -1,6 +1,7 @@
 'use client'
 
 import { AlertCircle, RefreshCcw } from 'lucide-react'
+import { Button } from './Button'
 
 interface ErrorFallbackProps {
   title: string
@@ -26,13 +27,9 @@ export function ErrorFallback({ title, description, retry }: ErrorFallbackProps)
       )}
       
       {retry && (
-        <button
-          onClick={retry}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F4C5C] dark:bg-[#38BDF8] text-white rounded-lg font-medium hover:opacity-90 transition-opacity cursor-pointer"
-        >
-          <RefreshCcw className="w-4 h-4" />
+        <Button variant="primary" onClick={retry} icon={<RefreshCcw className="w-4 h-4" />}>
           Reintentar
-        </button>
+        </Button>
       )}
     </div>
   )

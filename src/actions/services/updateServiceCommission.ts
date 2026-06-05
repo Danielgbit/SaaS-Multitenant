@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 export async function updateServiceCommission(
   serviceId: string,
@@ -12,26 +13,14 @@ export async function updateServiceCommission(
 }> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!orgMember) {
-    return { success: false, error: 'No se encontró organización' }
-  }
+  const access = await requireCurrentOrganization()
+  if (!access.success) return access
 
   const { error } = await supabase
     .from('services')
     .update({ has_commission: hasCommission })
     .eq('id', serviceId)
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
 
   if (error) {
     return { success: false, error: error.message }

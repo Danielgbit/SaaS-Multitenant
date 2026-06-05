@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { UpdateServiceSchema } from '@/schemas/services/service.schema'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 export async function updateService(input: { id: string; name: string; duration: number; price: number }) {
   try {
@@ -13,24 +14,8 @@ export async function updateService(input: { id: string; name: string; duration:
 
     const supabase = await createClient()
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return { error: 'No autorizado. Inicia sesión nuevamente.' }
-    }
-
-    const { data: orgMember, error: orgError } = await supabase
-      .from('organization_members')
-      .select('organization_id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (orgError || !orgMember) {
-      return { error: 'No se encontró tu organización.' }
-    }
+    const access = await requireCurrentOrganization()
+    if (!access.success) return { error: access.error }
 
     const { error: updateError } = await supabase
       .from('services')
@@ -40,7 +25,7 @@ export async function updateService(input: { id: string; name: string; duration:
         price: parsed.data.price,
       })
       .eq('id', parsed.data.id)
-      .eq('organization_id', orgMember.organization_id)
+      .eq('organization_id', access.context.organizationId)
 
     if (updateError) {
       return { error: 'Ocurrió un error al actualizar el servicio.' }

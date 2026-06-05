@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
 export type OnboardingStep = 'business' | 'services' | 'employees' | 'hours' | 'whatsapp'
 
@@ -18,8 +19,8 @@ const GRACE_PERIOD_DAYS = 14
 export async function getOnboardingState(): Promise<OnboardingState> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  const access = await requireCurrentOrganization()
+  if (!access.success) {
     return {
       isFirstTime: false,
       currentStep: 'business',
@@ -29,23 +30,7 @@ export async function getOnboardingState(): Promise<OnboardingState> {
     }
   }
 
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!orgMember) {
-    return {
-      isFirstTime: false,
-      currentStep: 'business',
-      completed: { business: true, services: true, employees: true, hours: true, whatsapp: true },
-      totalCompleted: 5,
-      totalSteps: 5,
-    }
-  }
-
-  const orgId = orgMember.organization_id
+  const orgId = access.context.organizationId
 
   const [orgResult, servicesResult, employeesResult, bookingResult, providersResult, integrationsResult] =
     await Promise.all([
