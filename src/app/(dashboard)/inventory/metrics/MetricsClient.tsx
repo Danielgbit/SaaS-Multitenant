@@ -6,6 +6,7 @@ import {
   Package, Activity, AlertTriangle, RefreshCw, TrendingUp, Clock, Shield,
 } from 'lucide-react'
 import type { InventoryMetrics } from '@/lib/metrics/getInventoryMetrics'
+import { DivergenceCard } from './DivergenceCard'
 
 const STATUS_LABELS: Record<string, string> = {
   healthy: 'Saludable',
@@ -24,7 +25,7 @@ function timeAgo(date: string): string {
   return `hace ${days}d`
 }
 
-export function MetricsClient({ metrics }: { metrics: InventoryMetrics }) {
+export function MetricsClient({ metrics, organizationId }: { metrics: InventoryMetrics; organizationId: string }) {
   const COLORS = useThemeColors()
 
   return (
@@ -100,6 +101,27 @@ export function MetricsClient({ metrics }: { metrics: InventoryMetrics }) {
           iconColor={metrics.cron_status === 'healthy' ? COLORS.success : COLORS.warning}
         />
       </div>
+
+      {metrics.open_divergences_list && metrics.open_divergences_list.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-bold font-heading mb-4" style={{ color: COLORS.textPrimary }}>
+            Divergencias abiertas
+          </h2>
+          <p className="text-xs mb-4" style={{ color: COLORS.textMuted }}>
+            {metrics.open_divergences_list.length} de {metrics.open_divergences} divergencias visibles
+          </p>
+          <div className="space-y-3">
+            {metrics.open_divergences_list.map(div => (
+              <DivergenceCard
+                key={div.id}
+                divergence={div}
+                organizationId={organizationId}
+                onResolved={() => window.location.reload()}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

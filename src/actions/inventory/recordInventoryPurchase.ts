@@ -5,6 +5,7 @@ import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
 import type { PaymentMethod } from '@/types/cash-sessions'
 import type { Database } from '@db/supabase'
 import { recordInventoryMovement } from '@/lib/inventory/inventory-movement'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 export async function recordInventoryPurchase(input: {
   item_id: string
@@ -16,9 +17,6 @@ export async function recordInventoryPurchase(input: {
 }): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'No autorizado.' }
-
   const { data: item } = await supabase
     .from('inventory_items')
     .select('id, name, quantity, organization_id')
@@ -27,16 +25,8 @@ export async function recordInventoryPurchase(input: {
 
   if (!item) return { success: false, error: 'Producto no encontrado.' }
 
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', item.organization_id)
-    .single()
-
-  if (!orgMember || !['owner', 'admin'].includes(orgMember.role)) {
-    return { success: false, error: 'Solo administradores.' }
-  }
+  const access = await requireOrgAccess(item.organization_id, ['owner', 'admin'])
+  if (!access.success) return access
 
   if (input.quantity <= 0 || input.unit_cost <= 0) {
     return { success: false, error: 'Cantidad y costo deben ser > 0.' }
@@ -66,7 +56,7 @@ export async function recordInventoryPurchase(input: {
     quantityBefore: rpcResult.quantity_before,
     quantityAfter: rpcResult.quantity_after,
     metadata: { unit_cost: input.unit_cost, total_cost: totalCost, payment_status: input.payment_status },
-    createdBy: user.id,
+    createdBy: access.context.userId,
   })
 
   // Si es pagado, crear movimiento de caja
@@ -94,7 +84,7 @@ export async function recordInventoryPurchase(input: {
         payment_method: input.payment_method || null,
         source_type: 'inventory',
         source_id: input.item_id,
-        created_by: user.id,
+        created_by: access.context.userId,
         metadata: { quantity: input.quantity, unit_cost: input.unit_cost, payment_status: input.payment_status },
       }
       await supabase.from('operation_entries').insert(entry)

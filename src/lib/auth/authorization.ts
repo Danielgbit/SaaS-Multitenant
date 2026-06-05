@@ -2,6 +2,11 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/../types/supabase'
 import type { OrganizationStatus, OrganizationAccess } from '@/lib/admin/types'
 
+/**
+ * @deprecated No usar en Server Actions.
+ * Lanza excepción en vez de retornar { success, error }.
+ * Usar require-org-access.ts en su lugar.
+ */
 export async function requireRole(
   supabase: SupabaseClient<Database>,
   organizationId: string,
@@ -22,6 +27,9 @@ export async function requireRole(
   }
 }
 
+/**
+ * @deprecated Usar require-org-access.ts en su lugar.
+ */
 export async function requireOrganizationAccess(
   supabase: SupabaseClient<Database>,
   organizationId: string
@@ -53,6 +61,9 @@ export async function requireOrganizationAccess(
   }
 }
 
+/**
+ * @deprecated Usar require-org-access.ts en su lugar.
+ */
 export async function requireActiveOrganization(
   supabase: SupabaseClient<Database>,
   organizationId: string

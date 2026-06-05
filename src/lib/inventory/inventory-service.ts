@@ -99,6 +99,7 @@ export async function adjust(params: {
   quantity: number
   organization_id: string
   created_by: string
+  metadata?: Record<string, unknown>
 }): Promise<InventoryResult> {
   const supabase = await createClient()
 
@@ -123,7 +124,11 @@ export async function adjust(params: {
     quantityChange: delta,
     quantityBefore: rpcResult.quantity_before,
     quantityAfter: rpcResult.quantity_after,
-    metadata: { quantity_before: rpcResult.quantity_before, quantity_after: rpcResult.quantity_after },
+    metadata: {
+      ...params.metadata,
+      quantity_before: rpcResult.quantity_before,
+      quantity_after: rpcResult.quantity_after,
+    },
     createdBy: params.created_by,
   })
 
@@ -179,6 +184,27 @@ export async function restore(params: {
   }
 
   return { success: true }
+}
+
+// ─── alignToLedger ─────────────────────────────────────
+
+export async function alignToLedger(params: {
+  item_id: string
+  target_quantity: number
+  organization_id: string
+  created_by: string
+  divergence_id: string
+}): Promise<InventoryResult> {
+  return adjust({
+    item_id: params.item_id,
+    quantity: params.target_quantity,
+    organization_id: params.organization_id,
+    created_by: params.created_by,
+    metadata: {
+      source: 'assisted_reconciliation',
+      divergence_id: params.divergence_id,
+    },
+  })
 }
 
 // ─── decrementBatch ───────────────────────────────────

@@ -31,5 +31,5 @@ export default async function MetricsPage() {
 
   const metrics = await getInventoryMetrics(orgMember.organization_id)
 
-  return <MetricsClient metrics={metrics} />
+  return <MetricsClient metrics={metrics} organizationId={orgMember.organization_id} />
 }

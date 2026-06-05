@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
 import type { Database } from '@db/supabase'
 import { recordInventoryMovement } from '@/lib/inventory/inventory-movement'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 export async function consumeInventory(input: {
   item_id: string
@@ -13,9 +14,6 @@ export async function consumeInventory(input: {
 }): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'No autorizado.' }
-
   const { data: item } = await supabase
     .from('inventory_items')
     .select('id, name, quantity, organization_id')
@@ -24,16 +22,8 @@ export async function consumeInventory(input: {
 
   if (!item) return { success: false, error: 'Producto no encontrado.' }
 
-  const { data: orgMember } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', item.organization_id)
-    .single()
-
-  if (!orgMember || !['owner', 'admin', 'staff'].includes(orgMember.role)) {
-    return { success: false, error: 'Sin permiso.' }
-  }
+  const access = await requireOrgAccess(item.organization_id, ['owner', 'admin'])
+  if (!access.success) return access
 
   if (input.quantity <= 0) return { success: false, error: 'Cantidad debe ser > 0.' }
 
@@ -63,7 +53,7 @@ export async function consumeInventory(input: {
     quantityAfter: rpcResult.quantity_after,
     reason: input.notes || undefined,
     metadata: { estimated_cost: input.estimated_cost || null },
-    createdBy: user.id,
+    createdBy: access.context.userId,
   })
 
   // Registrar consumo interno en caja (informativo, NO afecta expected_cash)
@@ -90,7 +80,7 @@ export async function consumeInventory(input: {
       payment_method: null,
       source_type: 'inventory',
       source_id: input.item_id,
-      created_by: user.id,
+      created_by: access.context.userId,
       metadata: {
         quantity: input.quantity,
         estimated_cost: input.estimated_cost || null,

@@ -7,6 +7,7 @@ import { captureError } from '@/lib/error-logger'
 import { recordInventoryMovement } from '@/lib/inventory/inventory-movement'
 import * as inventoryService from '@/lib/inventory/inventory-service'
 import type { Database } from '@db/supabase'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 interface VoidTransactionInput {
   transaction_id: string
@@ -22,14 +23,12 @@ export async function voidTransaction(
 }> {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'No autorizado' }
-  }
-
   if (!input.reason || input.reason.trim().length === 0) {
     return { success: false, error: 'El motivo de anulación es requerido' }
   }
+
+  const access = await requireOrgAccess(organizationId, ['owner', 'admin'])
+  if (!access.success) return access
 
   // Fetch the transaction
   const { data: transaction, error: fetchError } = await supabase
@@ -50,22 +49,10 @@ export async function voidTransaction(
     return { success: false, error: 'No autorizado' }
   }
 
-  // Check permissions
-  const { data: member } = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', organizationId)
-    .single()
-
-  if (!member || !['owner', 'admin'].includes(member.role)) {
-    return { success: false, error: 'Sin permiso para anular transacciones' }
-  }
-
   // Mark as voided (trigger handles balance recalculation)
   const voidPayload: Database['public']['Tables']['client_account_transactions']['Update'] = {
     is_voided: true,
-    voided_by: user.id,
+    voided_by: access.context.userId,
     voided_at: new Date().toISOString(),
   }
   const { error: voidError } = await supabase
@@ -106,7 +93,7 @@ export async function voidTransaction(
               item_id: sale.inventory_item_id,
               quantity: sale.quantity,
               organization_id: organizationId,
-              created_by: user.id,
+              created_by: access.context.userId,
               recordMovement: true,
               movementType: 'void',
               sourceOperationId: input.transaction_id,

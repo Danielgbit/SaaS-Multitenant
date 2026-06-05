@@ -23,6 +23,8 @@ export interface ReconciliationResult {
   errors: string[]
 }
 
+import { ASSISTED_RECONCILIATION_MAX_DELTA } from '@/lib/inventory/constants'
+
 const DUPLICATE_DIVERGENCE_CODE = '23505'
 
 export async function runInventoryReconciliation(): Promise<ReconciliationResult> {
@@ -69,6 +71,9 @@ export async function runInventoryReconciliation(): Promise<ReconciliationResult
           last_checked_at: new Date().toISOString(),
           last_detected_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+          suggested_action: Math.abs(item.delta) <= ASSISTED_RECONCILIATION_MAX_DELTA
+            ? 'align_to_ledger'
+            : 'investigate',
         } as any)
         .eq('id', openSet.get(item.id))
 
@@ -85,6 +90,9 @@ export async function runInventoryReconciliation(): Promise<ReconciliationResult
           last_movement_id: item.last_movement_id,
           last_movement_created_at: item.last_movement_created_at,
           status: 'open',
+          suggested_action: Math.abs(item.delta) <= ASSISTED_RECONCILIATION_MAX_DELTA
+            ? 'align_to_ledger'
+            : 'investigate',
         } as any)
 
       if (insertErr && insertErr.code !== DUPLICATE_DIVERGENCE_CODE) {
@@ -119,12 +127,20 @@ export async function runInventoryReconciliation(): Promise<ReconciliationResult
   const currentIds = new Set(items.map(i => i.id))
   for (const [itemId, recordId] of openSet) {
     if (!currentIds.has(itemId)) {
+      const { data: existingRecord } = await supabase
+        .from('inventory_divergences')
+        .select('action_taken')
+        .eq('id', recordId)
+        .single()
+
       await supabase
         .from('inventory_divergences')
         .update({
           status: 'resolved',
           resolved_at: new Date().toISOString(),
-          resolution: 'resolved_after_new_movement',
+          resolution: existingRecord?.action_taken === 'none'
+            ? 'auto_resolved_before_action'
+            : 'resolved_after_new_movement',
           updated_at: new Date().toISOString(),
         } as any)
         .eq('id', recordId)

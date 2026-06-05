@@ -7,6 +7,7 @@ import type { PaymentMethod } from '@/types/cash-sessions'
 import { createEntryFromSource } from '@/actions/cash-sessions/createEntryFromSource'
 import * as inventoryService from '@/lib/inventory/inventory-service'
 import { recordInventoryMovementsBatch } from '@/lib/inventory/inventory-movement'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const CREDIT_METHODS: SalePaymentMethod[] = ['credit']
 
@@ -59,14 +60,8 @@ export async function recordSale(
   // El inventario operativo sigue en Excel. Cuando migre al SaaS,
   // se habilitara staff via RPCs SECURITY DEFINER.
   if (activeProducts.length > 0) {
-    const { data: invMember } = await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('organization_id', organizationId)
-      .single()
-
-    if (!invMember || !['owner', 'admin'].includes(invMember.role)) {
+    const access = await requireOrgAccess(organizationId, ['owner', 'admin'])
+    if (!access.success) {
       return { success: false, error: 'Sin permiso para vender productos con inventario.' }
     }
   }

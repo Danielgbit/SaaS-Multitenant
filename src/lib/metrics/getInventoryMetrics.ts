@@ -1,6 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { subDays } from 'date-fns'
 
+export interface OpenDivergence {
+  id: string
+  inventory_item_id: string
+  item_name: string
+  current_stock: number
+  ledger_stock: number
+  delta: number
+  suggested_action: string | null
+}
+
 export interface InventoryMetrics {
   total_items: number
   items_without_movements: number
@@ -12,6 +22,7 @@ export interface InventoryMetrics {
   last_cron_heartbeat: string | null
   cron_status: string | null
   heartbeat_age_minutes: number | null
+  open_divergences_list: OpenDivergence[]
 }
 
 export async function getInventoryMetrics(
@@ -30,6 +41,7 @@ export async function getInventoryMetrics(
     { count: openDivergences },
     { count: voidEvents },
     { data: heartbeat },
+    { data: openDivs },
   ] = await Promise.all([
     supabase.from('inventory_items').select('*', { count: 'exact', head: true })
       .eq('organization_id', organizationId).eq('active', true),
@@ -46,6 +58,12 @@ export async function getInventoryMetrics(
     supabase.from('inventory_movements').select('*', { count: 'exact', head: true })
       .eq('organization_id', organizationId).eq('movement_type', 'void')
       .gte('created_at', dayAgo),
+
+    supabase.from('inventory_divergences')
+      .select('id, inventory_item_id, current_stock, ledger_stock, delta, suggested_action')
+      .eq('organization_id', organizationId)
+      .eq('status', 'open')
+      .limit(20),
 
     // SECURITY NOTE: notification_worker_heartbeats no tiene RLS.
     // Es tabla global del sistema, no por organización.
@@ -75,6 +93,30 @@ export async function getInventoryMetrics(
     ? Math.round(((total - without) / total) * 10000) / 100
     : 0
 
+  // ── Divergencias abiertas ──
+  let openDivergencesList: OpenDivergence[] = []
+  if (openDivs && openDivs.length > 0) {
+    const itemIds = [...new Set(openDivs.map((d: any) => d.inventory_item_id))]
+    const { data: items } = await supabase
+      .from('inventory_items')
+      .select('id, name')
+      .in('id', itemIds)
+
+    const nameMap = new Map((items || []).map(i => [i.id, i.name]))
+
+    openDivergencesList = (openDivs as any[])
+      .map(d => ({
+        id: d.id,
+        inventory_item_id: d.inventory_item_id,
+        item_name: nameMap.get(d.inventory_item_id) || 'Producto',
+        current_stock: d.current_stock,
+        ledger_stock: d.ledger_stock,
+        delta: d.delta,
+        suggested_action: d.suggested_action,
+      }))
+      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+  }
+
   const heartbeatAge = heartbeat?.last_seen_at
     ? Math.floor((Date.now() - new Date(heartbeat.last_seen_at).getTime()) / 60000)
     : null
@@ -92,6 +134,7 @@ export async function getInventoryMetrics(
       ? heartbeatAge < 15 ? 'healthy' : heartbeatAge < 60 ? 'warning' : 'critical'
       : null,
     heartbeat_age_minutes: heartbeatAge,
+    open_divergences_list: openDivergencesList,
   }
 }
 
