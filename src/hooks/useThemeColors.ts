@@ -55,6 +55,8 @@ export interface ThemeColors {
   goldLight: string
   info: string
   infoLight?: string
+  orange: string
+  orangeLight: string
   overlay?: string
   glass: string
   radius: { sm: string; md: string; lg: string; xl: string; button: string; card: string; modal: string }
@@ -67,6 +69,9 @@ export interface ThemeColors {
   whatsapp: string
   whatsappLight: string
   textOnPrimary: string
+  textOnSuccess: string
+  textOnWarning: string
+  textOnError: string
   isDark: boolean
 }
 
@@ -148,6 +153,8 @@ export function useThemeColors(): ThemeColors {
     goldLight: isDark ? '#78350F' : '#FEF3C7',
     info: '#0EA5E9',
     infoLight: isDark ? '#0C4A6E' : '#E0F2FE',
+    orange: '#F97316',
+    orangeLight: isDark ? '#7C2D12' : '#FFF7ED',
     overlay: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(15, 23, 42, 0.4)',
     glass: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.9)',
     radius: RADIUS,
@@ -162,6 +169,9 @@ export function useThemeColors(): ThemeColors {
     whatsapp: isDark ? '#25D366' : '#0F4C5C',
     whatsappLight: isDark ? '#25D36615' : '#0F4C5C10',
     textOnPrimary: isDark ? '#0F172A' : '#FFFFFF',
+    textOnSuccess: '#FFFFFF',
+    textOnWarning: '#FFFFFF',
+    textOnError: '#FFFFFF',
     isDark,
   }), [isDark])
 }
