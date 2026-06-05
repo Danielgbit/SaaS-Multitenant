@@ -39,13 +39,22 @@ const eslintConfig = defineConfig([
   {
     rules: {
       "no-restricted-syntax": [
-        "warn",
+        "error",
         {
           selector: `Property[key.name=/^(color|backgroundColor|borderColor|borderLeftColor|borderRightColor|borderTopColor|borderBottomColor)$/][value.type='Literal'][value.value=/^#[0-9A-Fa-f]{6}$/]`,
           message: "Hardcoded hex in inline style. Use COLORS tokens."
         }
       ]
     },
+  },
+  // Exenciones por archivo — hex intencional fuera de alcance del design system
+  {
+    files: [
+      'src/app/layout.tsx',
+      'src/app/precios/page.tsx',
+      'src/lib/rbac-config.ts',
+    ],
+    rules: { "no-restricted-syntax": "off" },
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([
