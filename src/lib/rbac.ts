@@ -57,12 +57,12 @@ export function canAccessRoute(role: string | null, route: string): boolean {
   if (isStaff(role)) {
     const staffRestricted = [
       '/dashboard/employees',
-      '/dashboard/payroll',
-      '/dashboard/inventory',
+      '/dashboard/nomina',
+      '/dashboard/inventario',
       '/dashboard/whatsapp',
-      '/dashboard/email',
-      '/dashboard/settings',
-      '/dashboard/billing',
+      '/dashboard/correo',
+      '/dashboard/ajustes',
+      '/dashboard/facturacion',
     ]
     return !staffRestricted.some(r => route.startsWith(r))
   }
@@ -72,11 +72,11 @@ export function canAccessRoute(role: string | null, route: string): boolean {
       '/dashboard/employees',
       '/dashboard/clients',
       '/dashboard/services',
-      '/dashboard/inventory',
+      '/dashboard/inventario',
       '/dashboard/whatsapp',
-      '/dashboard/email',
-      '/dashboard/settings',
-      '/dashboard/billing',
+      '/dashboard/correo',
+      '/dashboard/ajustes',
+      '/dashboard/facturacion',
     ]
     if (empleadoRestricted.some(r => route.startsWith(r))) return false
     return true
@@ -86,6 +86,6 @@ export function canAccessRoute(role: string | null, route: string): boolean {
 }
 
 export function getDashboardDefaultRoute(role: string | null): string {
-  if (isEmpleado(role)) return '/dashboard/payroll/mi'
+  if (isEmpleado(role)) return '/dashboard/nomina/mi'
   return '/dashboard'
 }

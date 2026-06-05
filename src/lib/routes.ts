@@ -3,11 +3,11 @@ import { dashboardRoutes, routeKey } from './navigation'
 const ROUTE_MAP_EXTENSIONS: Record<string, { label: string }> = {
   'mi-payroll': { label: 'Mi Nómina' },
   'mi-schedule': { label: 'Mi Horario' },
-  'payroll-mi': { label: 'Mi Nómina' },
+  'nomina-mi': { label: 'Mi Nómina' },
   'clients-accounts': { label: 'Cuentas por Cobrar' },
   'notificaciones-validacion': { label: 'Validación V2' },
-  'notificaciones-messages': { label: 'Inspector' },
-  'notificaciones-dead-letter': { label: 'Dead Letter' },
+  'notificaciones-mensajes': { label: 'Inspector' },
+  'notificaciones-rechazados': { label: 'Dead Letter' },
 }
 
 export const ROUTE_MAP: Record<string, { label: string }> = Object.fromEntries(

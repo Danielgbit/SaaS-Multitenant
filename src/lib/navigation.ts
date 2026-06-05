@@ -75,8 +75,8 @@ export const dashboardRoutes: RouteDefinition[] = [
     group: NAV_GROUPS.BUSINESS,
     activeMatch: [
       '/notificaciones',
-      '/notificaciones/messages',
-      '/notificaciones/dead-letter',
+      '/notificaciones/mensajes',
+      '/notificaciones/rechazados',
       '/notificaciones/validacion',
     ],
   },
@@ -87,7 +87,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     group: NAV_GROUPS.COMMS,
   },
   {
-    href: '/notificaciones/messages',
+    href: '/notificaciones/mensajes',
     label: 'Inspector',
     icon: FileSearch,
     group: NAV_GROUPS.COMMS,
@@ -101,7 +101,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     hideForEmpleado: true,
   },
   {
-    href: '/payroll',
+    href: '/nomina',
     label: 'Nómina',
     icon: Receipt,
     group: NAV_GROUPS.TEAM,
@@ -109,7 +109,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     hideForEmpleado: true,
   },
   {
-    href: '/payroll/mi',
+    href: '/nomina/mi',
     label: 'Mi Nómina',
     icon: WalletCards,
     group: NAV_GROUPS.STAFF,
@@ -152,7 +152,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     hideForEmpleado: true,
   },
   {
-    href: '/inventory',
+    href: '/inventario',
     label: 'Inventario',
     icon: Package,
     group: NAV_GROUPS.BUSINESS,
@@ -168,7 +168,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     hideForEmpleado: true,
   },
   {
-    href: '/email',
+    href: '/correo',
     label: 'Email',
     icon: Mail,
     group: NAV_GROUPS.COMMS,
@@ -176,7 +176,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     hideForEmpleado: true,
   },
   {
-    href: '/billing',
+    href: '/facturacion',
     label: 'Facturación',
     icon: CreditCard,
     group: NAV_GROUPS.SYSTEM,
@@ -184,7 +184,7 @@ export const dashboardRoutes: RouteDefinition[] = [
     hideForEmpleado: true,
   },
   {
-    href: '/settings',
+    href: '/ajustes',
     label: 'Ajustes',
     icon: Settings,
     group: NAV_GROUPS.SYSTEM,
