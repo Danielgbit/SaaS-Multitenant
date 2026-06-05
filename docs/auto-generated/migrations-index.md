@@ -4,7 +4,7 @@
 > Regenerar con: `pnpm docs:gen`
 > Generated: 2026-06-04
 
-Total: 73 migrations
+Total: 77 migrations
 
 | File | Description |
 |------|-------------|
@@ -81,3 +81,7 @@ Total: 73 migrations
 | `20260603140000_add_email_to_employees.sql` | Add Email To Employees |
 | `20260603150000_create_platform_admins_and_org_status.sql` | Create Platform Admins And Org Status |
 | `20260604000000_create_user_profiles.sql` | Create User Profiles |
+| `20260605000001_inventory_rpc_atomic_stock.sql` | Inventory Rpc Atomic Stock |
+| `20260605000002_inventory_constraints.sql` | Inventory Constraints |
+| `20260606000001_inventory_movements.sql` | Inventory Movements |
+| `20260606000002_inventory_movements_rls.sql` | Inventory Movements Rls |

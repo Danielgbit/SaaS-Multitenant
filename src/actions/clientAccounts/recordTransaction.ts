@@ -5,6 +5,8 @@ import type { CreateSaleInput, SalePaymentMethod, RecordPaymentInput } from '@/t
 import { revalidatePath } from 'next/cache'
 import type { PaymentMethod } from '@/types/cash-sessions'
 import { createEntryFromSource } from '@/actions/cash-sessions/createEntryFromSource'
+import * as inventoryService from '@/lib/inventory/inventory-service'
+import { recordInventoryMovementsBatch } from '@/lib/inventory/inventory-movement'
 
 const CREDIT_METHODS: SalePaymentMethod[] = ['credit']
 
@@ -50,24 +52,35 @@ export async function recordSale(
 
   const isCredit = input.payment_method === 'credit'
 
-  // --- Stock decrement (always) ---
-  for (const product of input.products) {
-    if (product.inventory_item_id) {
-      const { data: currentItem } = await supabase
-        .from('inventory_items')
-        .select('quantity')
-        .eq('id', product.inventory_item_id)
-        .single()
+  // --- Stock decrement (atomic via RPC) ---
+  const activeProducts = input.products.filter(p => p.inventory_item_id)
 
-      if (currentItem) {
-        await supabase
-          .from('inventory_items')
-          .update({
-            quantity: currentItem.quantity - product.quantity,
-          })
-          .eq('id', product.inventory_item_id)
-      }
+  // TEMPORAL: staff bloqueado para ventas con inventario.
+  // El inventario operativo sigue en Excel. Cuando migre al SaaS,
+  // se habilitara staff via RPCs SECURITY DEFINER.
+  if (activeProducts.length > 0) {
+    const { data: invMember } = await supabase
+      .from('organization_members')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('organization_id', organizationId)
+      .single()
+
+    if (!invMember || !['owner', 'admin'].includes(invMember.role)) {
+      return { success: false, error: 'Sin permiso para vender productos con inventario.' }
     }
+  }
+
+  const stockResult = activeProducts.length > 0
+    ? await inventoryService.decrementBatch({
+        items: activeProducts.map(p => ({ item_id: p.inventory_item_id!, quantity: p.quantity })),
+        organization_id: organizationId,
+        context: `sale:client=${input.client_id},method=${input.payment_method}`,
+      })
+    : null
+
+  if (stockResult && !stockResult.success) {
+    return { success: false, error: stockResult.error || 'Error al procesar stock.' }
   }
 
   if (isCredit) {
@@ -128,6 +141,40 @@ export async function recordSale(
       return { success: false, error: transactionError.message }
     }
 
+    // Registrar movimientos de auditoría con source_operation_id = transaction.id
+    if (stockResult) {
+      const movements = stockResult.results
+        .filter(r => r.success)
+        .map(r => ({
+          inventoryItemId: r.item_id,
+          organizationId,
+          movementType: 'sale' as const,
+          quantityChange: -(r.quantity_before! - r.quantity_after!),
+          quantityBefore: r.quantity_before!,
+          quantityAfter: r.quantity_after!,
+          sourceOperationId: transaction.id,
+          referenceType: 'transaction' as const,
+          referenceId: transaction.id,
+          createdBy: user.id,
+        }))
+      await recordInventoryMovementsBatch(movements)
+    }
+
+    // Resolver nombres de productos en 1 query (evitar N+1)
+    const ids = input.products.map(p => p.inventory_item_id).filter(Boolean) as string[]
+    const nameById = new Map<string, string>()
+    if (ids.length > 0) {
+      const { data: inventoryItems } = await supabase
+        .from('inventory_items')
+        .select('id, name')
+        .in('id', ids)
+      if (inventoryItems) {
+        for (const inv of inventoryItems) {
+          nameById.set(inv.id, inv.name)
+        }
+      }
+    }
+
     for (const product of input.products) {
       const discount = (product.unit_price * (product.discount_percent || 0)) / 100
       const totalPrice = (product.unit_price - discount) * product.quantity
@@ -137,12 +184,14 @@ export async function recordSale(
         .insert({
           transaction_id: transaction.id,
           inventory_item_id: product.inventory_item_id,
-          product_name: '',
+          product_name: product.inventory_item_id
+            ? (nameById.get(product.inventory_item_id) || 'Producto')
+            : 'Producto',
           quantity: product.quantity,
           unit_price: product.unit_price,
           discount_percent: product.discount_percent || 0,
           total_price: totalPrice,
-        })
+        } as any)
 
       if (saleError) {
         console.error('Error inserting product sale:', saleError)
@@ -168,7 +217,25 @@ export async function recordSale(
     }
   }
 
-  // --- FLUJO CONTADO: stock ya descontado + crear entrada en caja ---
+  // --- FLUJO CONTADO: stock ya descontado + auditoría + entrada en caja ---
+
+  // Registrar movimientos de auditoría (sin source_operation_id — no hay transaction)
+  if (activeProducts.length > 0 && stockResult) {
+    const movements = stockResult.results
+      .filter(r => r.success)
+      .map(r => ({
+        inventoryItemId: r.item_id,
+        organizationId,
+        movementType: 'sale' as const,
+        quantityChange: -(r.quantity_before! - r.quantity_after!),
+        quantityBefore: r.quantity_before!,
+        quantityAfter: r.quantity_after!,
+        metadata: { payment_method: input.payment_method },
+        createdBy: user.id,
+      }))
+    await recordInventoryMovementsBatch(movements)
+  }
+
   const paymentMethod = toPaymentMethod(input.payment_method)
 
   const entryResult = await createEntryFromSource({

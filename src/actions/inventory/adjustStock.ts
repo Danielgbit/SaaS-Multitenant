@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import * as inventoryService from '@/lib/inventory/inventory-service'
 
 const AdjustStockSchema = z.object({
   id: z.string().uuid('ID de producto inválido'),
@@ -15,12 +16,9 @@ type AdjustStockInput = z.infer<typeof AdjustStockSchema>
 export async function adjustStock(
   input: AdjustStockInput
 ): Promise<{ error?: string; success?: boolean }> {
-  console.log('[adjustStock] Input:', input)
-
   const parsed = AdjustStockSchema.safeParse(input)
 
   if (!parsed.success) {
-    console.log('[adjustStock] Validation failed:', parsed.error.issues)
     const firstError = parsed.error.issues[0]?.message
     return { error: firstError || 'Datos inválidos' }
   }
@@ -49,21 +47,16 @@ export async function adjustStock(
     return { error: 'No perteneces a esta organización.' }
   }
 
-  const { error: updateError } = await supabase
-    .from('inventory_items')
-    .update({
-      quantity,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', id)
-    .eq('organization_id', organization_id)
+  const result = await inventoryService.adjust({
+    item_id: id,
+    quantity,
+    organization_id,
+    created_by: user.id,
+  })
 
-  if (updateError) {
-    console.error('[adjustStock] Update error:', updateError)
-    return { error: 'Error al ajustar el stock. Intenta de nuevo.' }
+  if (!result.success) {
+    return { error: result.error }
   }
-
-  console.log('[adjustStock] Stock adjusted successfully:', id, 'to', quantity)
 
   revalidatePath('/inventory')
   revalidatePath('/dashboard')

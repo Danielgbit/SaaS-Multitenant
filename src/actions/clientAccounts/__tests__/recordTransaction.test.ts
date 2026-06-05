@@ -19,12 +19,18 @@ function createMockSupabase(overrides: { user?: unknown; account?: unknown; tran
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
+    in: vi.fn().mockResolvedValue({ data: [{ id: 'item-1', name: 'Test Product' }], error: null }),
+    order: vi.fn().mockReturnThis(),
     single: vi.fn(),
     maybeSingle: vi.fn(),
   }
 
   return {
     from: vi.fn(() => query),
+    rpc: vi.fn().mockResolvedValue({
+      data: [{ success: true, quantity_before: 10, quantity_after: 5 }],
+      error: null,
+    }),
     auth: {
       getUser: vi.fn().mockResolvedValue({
         data: { user: overrides.user ?? { id: 'user-1', email: 'test@example.com' } },
@@ -165,7 +171,7 @@ describe('recordSale (contado)', () => {
     const query = mockSupabase.from()
     query.single
       .mockResolvedValueOnce({ data: { id: 'client-1', name: 'Test Client' }, error: null })
-      .mockResolvedValueOnce({ data: { quantity: 10 }, error: null })
+      .mockResolvedValueOnce({ data: { role: 'owner' }, error: null })
 
     const { createEntryFromSource } = await import('@/actions/cash-sessions/createEntryFromSource')
     vi.mocked(createEntryFromSource).mockResolvedValue({ success: false, error: 'No hay caja abierta' })
@@ -179,6 +185,7 @@ describe('recordSale (contado)', () => {
     expect(result.success).toBe(false)
     expect(result.error).toContain('Error al registrar en caja')
   })
+
 })
 
 describe('recordSale (credito)', () => {
@@ -200,8 +207,7 @@ describe('recordSale (credito)', () => {
     const query = mockSupabase.from()
     query.single
       .mockResolvedValueOnce({ data: { id: 'client-1', name: 'Test Client' }, error: null })
-      .mockResolvedValueOnce({ data: { quantity: 10 }, error: null })
-      .mockResolvedValueOnce({ data: { quantity: 5 }, error: null })
+      .mockResolvedValueOnce({ data: { role: 'owner' }, error: null })
       .mockResolvedValueOnce({ data: { id: 'account-1', balance: 0 }, error: null })
       .mockResolvedValueOnce({ data: { id: 'txn-new' }, error: null })
       .mockResolvedValueOnce({ data: { balance: 60000 }, error: null })

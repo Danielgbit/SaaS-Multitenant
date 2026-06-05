@@ -32,6 +32,10 @@ function createMockSupabase(role = 'owner', tables: Record<string, unknown> = {}
   const defaultQuery = createQueryChain()
 
   return {
+    rpc: vi.fn().mockResolvedValue({
+      data: [{ success: true, quantity_before: 10, quantity_after: 13 }],
+      error: null,
+    }),
     from: vi.fn((table: string) => {
       if (table === 'organization_members') {
         return createQueryChain({ role })

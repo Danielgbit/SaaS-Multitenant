@@ -1,0 +1,147 @@
+'use server'
+
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { appLog } from '@/lib/app-logger'
+import { captureError } from '@/lib/error-logger'
+
+interface Divergence {
+  id: string
+  name: string
+  organization_id: string
+  current_stock: number
+  ledger_stock: number
+  delta: number
+  last_movement_id: string | null
+  last_movement_created_at: string | null
+}
+
+export interface ReconciliationResult {
+  total_checked: number
+  total_diverged: number
+  new_divergences: number
+  resolved_divergences: number
+  errors: string[]
+}
+
+const DUPLICATE_DIVERGENCE_CODE = '23505'
+
+export async function runInventoryReconciliation(): Promise<ReconciliationResult> {
+  const supabase = createServiceRoleClient()
+  const result: ReconciliationResult = {
+    total_checked: 0,
+    total_diverged: 0,
+    new_divergences: 0,
+    resolved_divergences: 0,
+    errors: [],
+  }
+
+  // 1. Fetch current divergences
+  const { data: divergences, error: fetchError } = await supabase.rpc('get_inventory_divergences')
+
+  if (fetchError) {
+    captureError('inventory_reconciliation_fetch_failed', fetchError)
+    return { ...result, errors: [fetchError.message] }
+  }
+
+  const items = (divergences as Divergence[]) || []
+  result.total_checked = items.length
+  result.total_diverged = items.length
+
+  // 2. Load currently open divergences
+  const { data: existingOpen } = await supabase
+    .from('inventory_divergences')
+    .select('inventory_item_id, id')
+    .eq('status', 'open')
+
+  const openSet = new Map((existingOpen || []).map(r => [r.inventory_item_id, r.id]))
+
+  // 3. Process each divergence
+  for (const item of items) {
+    if (openSet.has(item.id)) {
+      const { error: updateErr } = await supabase
+        .from('inventory_divergences')
+        .update({
+          current_stock: item.current_stock,
+          ledger_stock: item.ledger_stock,
+          delta: item.delta,
+          last_movement_id: item.last_movement_id,
+          last_movement_created_at: item.last_movement_created_at,
+          last_checked_at: new Date().toISOString(),
+          last_detected_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('id', openSet.get(item.id))
+
+      if (updateErr) result.errors.push(updateErr.message)
+    } else {
+      const { error: insertErr } = await supabase
+        .from('inventory_divergences')
+        .insert({
+          inventory_item_id: item.id,
+          organization_id: item.organization_id,
+          current_stock: item.current_stock,
+          ledger_stock: item.ledger_stock,
+          delta: item.delta,
+          last_movement_id: item.last_movement_id,
+          last_movement_created_at: item.last_movement_created_at,
+          status: 'open',
+        } as any)
+
+      if (insertErr && insertErr.code !== DUPLICATE_DIVERGENCE_CODE) {
+        result.errors.push(insertErr.message)
+        captureError('inventory_divergence_insert_failed', insertErr, {
+          itemId: item.id,
+          organizationId: item.organization_id,
+        })
+      }
+
+      if (!insertErr || insertErr.code === DUPLICATE_DIVERGENCE_CODE) {
+        result.new_divergences++
+
+        if (!insertErr) {
+          captureError('inventory_divergence_detected', new Error(
+            `Stock diverge: ${item.name} (${item.id}) ` +
+            `actual=${item.current_stock} ledger=${item.ledger_stock} delta=${item.delta > 0 ? '+' : ''}${item.delta}`
+          ), {
+            itemId: item.id,
+            itemName: item.name,
+            organizationId: item.organization_id,
+            currentStock: item.current_stock,
+            ledgerStock: item.ledger_stock,
+            delta: item.delta,
+          })
+        }
+      }
+    }
+  }
+
+  // 4. Resolve divergences that no longer exist
+  const currentIds = new Set(items.map(i => i.id))
+  for (const [itemId, recordId] of openSet) {
+    if (!currentIds.has(itemId)) {
+      await supabase
+        .from('inventory_divergences')
+        .update({
+          status: 'resolved',
+          resolved_at: new Date().toISOString(),
+          resolution: 'resolved_after_new_movement',
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('id', recordId)
+
+      result.resolved_divergences++
+    }
+  }
+
+  if (result.new_divergences > 0 || result.resolved_divergences > 0) {
+    appLog('info', 'inventory_reconciliation_complete', {
+      totalChecked: result.total_checked,
+      totalDiverged: result.total_diverged,
+      newDivergences: result.new_divergences,
+      resolvedDivergences: result.resolved_divergences,
+      errors: result.errors.length,
+    })
+  }
+
+  return result
+}

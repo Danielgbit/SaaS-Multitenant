@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Trash2, AlertTriangle, Package, TrendingUp, TrendingDown } from 'lucide-react'
+import { Pencil, Trash2, AlertTriangle, Package, TrendingUp, TrendingDown, History } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
+import { InventoryMovementModal } from './InventoryMovementModal'
 
 interface InventoryCardProps {
   item: InventoryItem
@@ -14,6 +15,7 @@ interface InventoryCardProps {
 export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
   const COLORS = useThemeColors()
 
   const isCriticalStock = item.quantity === 0
@@ -212,6 +214,15 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
         </button>
         <button
           type="button"
+          onClick={() => setShowHistory(true)}
+          className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
+          style={{ color: COLORS.primary, backgroundColor: COLORS.primary + '15' }}
+        >
+          <History className="w-4 h-4" />
+          Historial
+        </button>
+        <button
+          type="button"
           onClick={handleDelete}
           disabled={isDeleting}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer disabled:opacity-50"
@@ -221,6 +232,15 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
           {isDeleting ? 'Eliminando...' : 'Eliminar'}
         </button>
       </div>
+
+      {showHistory && (
+        <InventoryMovementModal
+          itemId={item.id}
+          organizationId={item.organization_id}
+          isOpen={showHistory}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
     </div>
   )
 }
