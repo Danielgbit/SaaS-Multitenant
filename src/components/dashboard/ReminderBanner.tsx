@@ -48,7 +48,7 @@ function getUrgencyStyles(urgency: 'normal' | 'warning' | 'urgent') {
       iconColor: 'text-[#0F4C5C] dark:text-[#38BDF8]',
     },
     warning: {
-      border: 'border-l-[#D97706]',
+      border: 'border-l-[#D97706] dark:border-l-amber-400',
       bg: 'bg-amber-50/80 dark:bg-amber-900/20',
       hoverBg: 'hover:bg-amber-50 dark:hover:bg-amber-900/30',
       textPrimary: 'text-amber-900 dark:text-amber-100',
@@ -57,7 +57,7 @@ function getUrgencyStyles(urgency: 'normal' | 'warning' | 'urgent') {
       iconColor: 'text-amber-600 dark:text-amber-300',
     },
     urgent: {
-      border: 'border-l-[#DC2626]',
+      border: 'border-l-[#DC2626] dark:border-l-red-400',
       bg: 'bg-red-50/80 dark:bg-red-900/20',
       hoverBg: 'hover:bg-red-50 dark:hover:bg-red-900/30',
       textPrimary: 'text-red-900 dark:text-red-100',
@@ -106,7 +106,7 @@ function ReminderCard({
         ${styles.bg} ${styles.border}
         border-l-4 shadow-sm
         transition-all duration-200
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] focus-visible:ring-offset-2
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] dark:focus-visible:ring-[#38BDF8] focus-visible:ring-offset-2
         ${metadata.appointment_id ? `cursor-pointer ${styles.hoverBg}` : 'cursor-default'}
         group
         ${hasBeenShown ? 'animate-fadeSlideIn' : ''}
@@ -236,7 +236,7 @@ export function ReminderBanner({ userId, onOpenAppointment }: ReminderBannerProp
               <Bell className="w-4 h-4 text-[#0F4C5C] dark:text-[#38BDF8]" />
             </div>
             {reminders.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#0F4C5C] dark:bg-[#38BDF8] text-white text-[10px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full           bg-[#0F4C5C] dark:bg-[#38BDF8] text-white dark:text-[#0F172A] text-[10px] font-bold flex items-center justify-center">
                 {reminders.length}
               </span>
             )}
@@ -285,12 +285,12 @@ export function ReminderBanner({ userId, onOpenAppointment }: ReminderBannerProp
           className="
             w-full py-2.5 px-4 rounded-xl
             bg-[#0F4C5C] dark:bg-[#38BDF8]
-            text-white text-sm font-medium
+            text-white dark:text-[#0F172A] text-sm font-medium
             flex items-center justify-center gap-2
             transition-colors duration-200
             cursor-pointer
             hover:bg-[#0C3E4A] dark:hover:bg-[#0EA5E9]
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] focus-visible:ring-offset-2
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] dark:focus-visible:ring-[#38BDF8] focus-visible:ring-offset-2
             disabled:opacity-50 disabled:cursor-not-allowed
           "
         >
