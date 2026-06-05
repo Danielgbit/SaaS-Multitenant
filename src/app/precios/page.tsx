@@ -191,7 +191,7 @@ export default async function PricingPage() {
                         <ArrowRight className="w-5 h-5" />
                       </Link>
 
-                      <p className="text-center text-xs text-slate-400 mt-4">
+                      <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-4">
                         30 días de prueba · Sin tarjeta de crédito
                       </p>
                     </div>
@@ -253,13 +253,13 @@ export default async function PricingPage() {
 
                       <Link
                         href={`/register?plan=${plan.id}`}
-                        className="block w-full py-4 rounded-2xl font-medium text-center transition-all duration-200 bg-[#0F4C5C] text-white hover:bg-[#0C3E4A] flex items-center justify-center gap-2"
+                        className="block w-full py-4 rounded-2xl font-medium text-center transition-all duration-200 bg-[#0F4C5C] dark:bg-[#38BDF8] text-white dark:text-[#0F172A] hover:bg-[#0C3E4A] dark:hover:bg-[#0EA5E9] flex items-center justify-center gap-2"
                       >
                         Comenzar prueba gratis
                         <ArrowRight className="w-5 h-5" />
                       </Link>
 
-                      <p className="text-center text-xs text-slate-400 mt-4">
+                      <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-4">
                         30 días de prueba · Sin tarjeta de crédito
                       </p>
                     </div>
@@ -272,19 +272,19 @@ export default async function PricingPage() {
       </section>
 
       {/* Features */}
-      <section className="py-20 px-4" style={{ backgroundColor: '#FFF' }}>
+      <section className="py-20 px-4 dark:bg-slate-900" style={{ backgroundColor: '#FFF' }}>
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-semibold text-center mb-12 text-slate-800 font-heading">
+          <h2 className="text-3xl font-semibold text-center mb-12 text-slate-800 dark:text-slate-100 font-heading">
             Todo lo que necesitas para gestionar tu negocio
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, i) => (
               <div key={i} className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-100">
-                  <feature.icon className="w-6 h-6 text-emerald-600" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-100 dark:bg-emerald-900/30">
+                  <feature.icon className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-slate-800">{feature.text}</h3>
+                  <h3 className="font-medium text-slate-800 dark:text-slate-200">{feature.text}</h3>
                 </div>
               </div>
             ))}
@@ -293,9 +293,9 @@ export default async function PricingPage() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 px-4" style={{ backgroundColor: '#FAFAF9' }}>
+      <section className="py-20 px-4 dark:bg-slate-900" style={{ backgroundColor: '#FAFAF9' }}>
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-semibold text-center mb-12 text-slate-800 font-heading">
+          <h2 className="text-3xl font-semibold text-center mb-12 text-slate-800 dark:text-slate-100 font-heading">
             Preguntas frecuentes
           </h2>
           <div className="space-y-4">
@@ -306,9 +306,9 @@ export default async function PricingPage() {
               { q: '¿Qué pasa si paso los límites del plan?', a: 'Te notificaremos cuando alcances el 80% de uso. Puedes hacer upgrade en cualquier momento.' },
               { q: '¿Puedo cancelar en cualquier momento?', a: 'Sí. Cancela cuando quieras y mantienes el acceso hasta el final del período pagado.' },
             ].map((faq, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 border border-slate-100">
-                <h3 className="font-medium text-slate-800 mb-2">{faq.q}</h3>
-                <p className="text-sm text-slate-500">{faq.a}</p>
+              <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700">
+                <h3 className="font-medium text-slate-800 dark:text-slate-200 mb-2">{faq.q}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{faq.a}</p>
               </div>
             ))}
           </div>
@@ -316,7 +316,7 @@ export default async function PricingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4" style={{ backgroundColor: '#0F4C5C' }}>
+      <section className="py-20 px-4 dark:bg-slate-900" style={{ backgroundColor: '#0F4C5C' }}>
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-semibold text-white mb-4 font-heading">
             Empieza tu prueba gratuita hoy
@@ -326,7 +326,7 @@ export default async function PricingPage() {
           </p>
           <Link 
             href="/register"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-medium bg-white text-[#0F4C5C] hover:bg-slate-100 transition-all"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-medium bg-white dark:bg-slate-800 text-[#0F4C5C] dark:text-[#38BDF8] hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
           >
             Crear cuenta gratis
             <ArrowRight className="w-5 h-5" />
@@ -355,8 +355,8 @@ export default async function PricingPage() {
       />
 
       {/* Footer */}
-      <footer className="py-8 px-4 border-t" style={{ borderColor: '#E8ECEE' }}>
-        <div className="max-w-6xl mx-auto text-center text-sm text-slate-500">
+      <footer className="py-8 px-4 border-t dark:border-slate-700" style={{ borderColor: '#E8ECEE' }}>
+        <div className="max-w-6xl mx-auto text-center text-sm text-slate-500 dark:text-slate-400">
           <p>© 2024 Prügressy. Todos los derechos reservados.</p>
         </div>
       </footer>
