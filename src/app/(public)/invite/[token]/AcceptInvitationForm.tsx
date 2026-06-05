@@ -17,7 +17,7 @@ function SubmitButton({ children, pending }: { children: React.ReactNode; pendin
     <button
       type="submit"
       disabled={isPending}
-      className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] active:scale-[0.98] text-white font-semibold shadow-lg shadow-[#0F4C5C]/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0F4C5C] dark:bg-[#38BDF8] hover:bg-[#0C3E4A] dark:hover:bg-[#0EA5E9] active:scale-[0.98] text-white font-semibold shadow-lg shadow-[#0F4C5C]/20 dark:shadow-[#38BDF8]/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {isPending ? (
         <>
@@ -104,7 +104,7 @@ export function AcceptInvitationForm({ token, invitationEmail, isLoggedIn = fals
 
         <p className="text-xs text-center text-slate-400 dark:text-slate-500">
           ¿Olvidaste tu contraseña?{' '}
-          <a href="/forgot-password" className="text-[#0F4C5C] hover:underline">
+          <a href="/forgot-password" className="text-[#0F4C5C] dark:text-[#38BDF8] hover:underline">
             Recupérala aquí
           </a>
         </p>
@@ -125,7 +125,7 @@ export function AcceptInvitationForm({ token, invitationEmail, isLoggedIn = fals
 
         <button
           onClick={handleAccept}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] active:scale-[0.98] text-white font-semibold shadow-lg shadow-[#0F4C5C]/20 transition-all duration-200"
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0F4C5C] dark:bg-[#38BDF8] hover:bg-[#0C3E4A] dark:hover:bg-[#0EA5E9] active:scale-[0.98] text-white font-semibold shadow-lg shadow-[#0F4C5C]/20 dark:shadow-[#38BDF8]/20 transition-all duration-200"
         >
           <UserPlus className="w-5 h-5" />
           <span>Aceptar invitación</span>

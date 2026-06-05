@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+const UUID = () => crypto.randomUUID()
+
 describe('addAppointmentToPayroll — seguridad', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -7,12 +9,8 @@ describe('addAppointmentToPayroll — seguridad', () => {
   })
 
   it('NO ejecuta createServiceRoleClient cuando requireOrgAccess falla', async () => {
-    // Mock requireOrgAccess para que FALLE
     vi.mock('@/lib/auth/require-org-access', () => ({
-      requireOrgAccess: vi.fn().mockResolvedValue({
-        success: false,
-        error: 'No autorizado.',
-      }),
+      requireOrgAccess: vi.fn().mockResolvedValue({ success: false, error: 'No autorizado.' }),
     }))
 
     const mockServiceRole = vi.fn()
@@ -20,7 +18,7 @@ describe('addAppointmentToPayroll — seguridad', () => {
       createServiceRoleClient: mockServiceRole,
     }))
 
-    // Mock básico para createClient (necesario para fetch inicial)
+    const aptId = UUID()
     vi.mock('@/lib/supabase/server', () => ({
       createClient: vi.fn(() => ({
         from: vi.fn(() => ({
@@ -28,7 +26,7 @@ describe('addAppointmentToPayroll — seguridad', () => {
           eq: vi.fn().mockReturnThis(),
           single: vi.fn().mockResolvedValue({
             data: {
-              id: 'apt-1',
+              id: aptId,
               organization_id: 'org-1',
               employee_id: 'emp-1',
               start_time: '2026-05-01T10:00:00.000Z',
@@ -45,13 +43,10 @@ describe('addAppointmentToPayroll — seguridad', () => {
     vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 
     const { addAppointmentToPayroll } = await import('../addAppointmentToPayroll')
-    const result = await addAppointmentToPayroll('apt-1')
+    const result = await addAppointmentToPayroll(aptId)
 
-    // La acción debe fallar por auth
     expect(result.success).toBe(false)
     expect(result.error).toBe('No autorizado.')
-
-    // NUNCA debe llamarse createServiceRoleClient
     expect(mockServiceRole).not.toHaveBeenCalled()
   })
 })
@@ -63,9 +58,8 @@ describe('aislamiento multi-tenant', () => {
   })
 
   it('deniega acceso cuando el appointment pertenece a otra organización', async () => {
-    // Simular que requireOrgAccess verifica orgId
     vi.mock('@/lib/auth/require-org-access', () => ({
-      requireOrgAccess: vi.fn().mockImplementation(async (orgId: string, roles?: string[]) => {
+      requireOrgAccess: vi.fn().mockImplementation(async (orgId: string) => {
         if (orgId === 'org-b') {
           return { success: false, error: 'No perteneces a esta organización.' }
         }
@@ -78,6 +72,7 @@ describe('aislamiento multi-tenant', () => {
       createServiceRoleClient: mockServiceRole,
     }))
 
+    const aptId = UUID()
     vi.mock('@/lib/supabase/server', () => ({
       createClient: vi.fn(() => ({
         from: vi.fn(() => ({
@@ -85,8 +80,8 @@ describe('aislamiento multi-tenant', () => {
           eq: vi.fn().mockReturnThis(),
           single: vi.fn().mockResolvedValue({
             data: {
-              id: 'apt-2',
-              organization_id: 'org-b', // Pertenece a ORG B
+              id: aptId,
+              organization_id: 'org-b',
               employee_id: 'emp-2',
               start_time: '2026-05-01T10:00:00.000Z',
               is_commissionable: true,
@@ -102,7 +97,7 @@ describe('aislamiento multi-tenant', () => {
     vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 
     const { addAppointmentToPayroll } = await import('../addAppointmentToPayroll')
-    const result = await addAppointmentToPayroll('apt-2')
+    const result = await addAppointmentToPayroll(aptId)
 
     expect(result.success).toBe(false)
     expect(result.error).toContain('No perteneces')

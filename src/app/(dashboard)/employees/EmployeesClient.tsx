@@ -107,7 +107,7 @@ export function EmployeesClient({
             <button
               type="button"
               onClick={() => setIsCreateOpen(true)}
-              className="group relative inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#0F4C5C] to-[#0a3d4d] hover:from-[#0C3E4A] hover:to-[#083242] active:scale-[0.98] text-white text-sm font-semibold shadow-xl shadow-[#0F4C5C]/25 hover:shadow-2xl hover:shadow-[#0F4C5C]/30 transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+              className="group relative inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#0F4C5C] to-[#0a3d4d] dark:from-[#38BDF8] dark:to-[#0EA5E9] hover:from-[#0C3E4A] hover:to-[#083242] dark:hover:from-[#0ea5e9] dark:hover:to-[#0284c7] active:scale-[0.98] text-white text-sm font-semibold shadow-xl shadow-[#0F4C5C]/25 hover:shadow-2xl hover:shadow-[#0F4C5C]/30 transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4C5C] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
             >
               <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <Plus className="w-4 h-4 transition-transform duration-300 group-hover:rotate-90" />
