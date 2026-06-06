@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import { X, Package, TrendingUp, TrendingDown, RotateCcw, AlertTriangle, RefreshCw, History } from 'lucide-react'
+import { Package, TrendingUp, TrendingDown, RotateCcw, AlertTriangle, RefreshCw, History } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { useEscapeKey } from '@/hooks/useEscapeKey'
-import { Spinner } from '@/components/ui'
+
+import { Modal, Button, Spinner } from '@/components/ui'
 import { getInventoryMovements, type InventoryMovement } from '@/actions/inventory/getInventoryMovements'
 
 interface Props {
@@ -91,7 +90,7 @@ export function InventoryMovementModal({ itemId, organizationId, isOpen, onClose
     }
   }, [isOpen, itemId, organizationId])
 
-  useEscapeKey(isOpen, onClose)
+  
 
   if (!isOpen) return null
 
@@ -191,16 +190,14 @@ export function InventoryMovementModal({ itemId, organizationId, isOpen, onClose
                       {m.reason && (
                         <p className="text-xs mt-1.5" style={{ color: COLORS.textSecondary }}>{m.reason}</p>
                       )}
-                    </div>
-                  </div>
+                    </Modal>
                 )
               })}
             </div>
           )}
-        </div>
-      </div>
+        </Modal>
     </div>
   )
 
-  return createPortal(modalContent, document.body)
+  return <></>
 }

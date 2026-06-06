@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { appLog } from '@/lib/app-logger'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { MarkManuallySchema, type MarkManuallyState } from './schemas'
+import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
 
 export async function markManually(
   prevState: MarkManuallyState,
@@ -206,28 +207,18 @@ export async function markManually(
     console.warn('[markManually] revalidatePath /calendar error:', e)
   }
 
-  // Auto-registrar comisión (fire-and-forget, solo si hay confirmación financiera)
-  if (appointment.payment_method || currentPrice > 0) {
-    const accrualKey = `commission_accrued:hook:${appointmentId}:${appointment.employee_id}:markManually`
-    import('@/actions/financial/recordCommissionAccrual').then((m) =>
-      m.recordCommissionAccrual({
-        appointmentId,
-        organizationId: appointment.organization_id!,
-        idempotencyKey: accrualKey,
-      }).then((result) => {
-        if ('error' in result) {
-          appLog('error', '[markManually] commission accrual failed', {
-            appointmentId,
-            error: result.error,
-          })
-        }
-      }).catch((e) => {
-        appLog('error', '[markManually] commission accrual exception', {
-          appointmentId,
-          error: e instanceof Error ? e.message : String(e),
-        })
-      })
-    )
+  // Auto-registrar payroll y comisión
+  const financialResult = await finalizeAppointmentFinancials(
+    appointmentId,
+    appointment.organization_id,
+    appointment.employee_id!,
+    `markManually_${user.id}`
+  )
+  if (!financialResult.payroll.success) {
+    console.error('[markManually] payroll failed:', financialResult.payroll.error)
+  }
+  if (!financialResult.commission.success) {
+    console.error('[markManually] commission failed:', financialResult.commission.error)
   }
 
   // Shadow Mode: capture context for fire-and-forget validation

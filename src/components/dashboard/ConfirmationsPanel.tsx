@@ -200,15 +200,7 @@ export function ConfirmationsPanel({
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-slate-900/20 dark:bg-slate-950/40 backdrop-blur-sm"
-        onClick={handleClose} aria-hidden="true" />
-
-      <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
-        style={{ backgroundColor: COLORS.surface }}>
-
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
-          <div className="flex items-center gap-3">
-            <div className="relative">
+      <Modal>
               <Bell className="w-5 h-5" style={{ color: COLORS.textSecondary }} />
               {confirmations.length > 0 && (
                 <span className={`absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-white text-[10px] font-bold flex items-center justify-center ${newItemPulse ? 'animate-ping' : ''}`}
