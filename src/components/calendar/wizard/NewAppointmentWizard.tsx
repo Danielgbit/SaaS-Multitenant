@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Spinner } from '@/components/ui'
+import { Modal, Button } from '@/components/ui'
 import type { CalendarColors, Employee, Client, Service, TimeSlot, NewAppointmentData } from '@/types/calendar'
 import { WizardHeader } from './WizardHeader'
 import { StepClient } from './StepClient'
@@ -162,31 +162,8 @@ export function NewAppointmentWizard({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
-      style={{ backgroundColor: COLORS.overlay, backdropFilter: 'blur(8px)' }}
-      onClick={onClose}
-    >
-      <div
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Nueva cita"
-        className="w-full sm:max-w-xl rounded-2xl overflow-hidden flex flex-col max-h-[95dvh] sm:max-h-[90vh] transition-all duration-300"
-        style={{
-          backgroundColor: COLORS.surface,
-          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        <WizardHeader
-          COLORS={COLORS}
-          currentStep={wizardStep}
-          totalSteps={TOTAL_STEPS}
-          stepLabels={STEP_LABELS}
-          onClose={onClose}
-          closeRef={closeRef}
-        />
+    <Modal isOpen={true} onClose={onClose} title="Nueva Cita">
+        <WizardHeader currentStep={wizardStep} totalSteps={TOTAL_STEPS} direction={direction} COLORS={COLORS} />
 
         {/* ── Body (scrollable) ── */}
         <div className="flex-1 overflow-y-auto overscroll-contain">
@@ -311,7 +288,6 @@ export function NewAppointmentWizard({
             </button>
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

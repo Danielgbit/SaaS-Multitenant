@@ -1,20 +1,8 @@
 'use client'
 
-import { 
-  Calendar, 
-  User, 
-  Building2, 
-  Clock, 
-  FileText, 
-  Phone, 
-  X,
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
-  Circle
-} from 'lucide-react'
+import { Calendar, User, Building2, Clock, FileText, Phone, CheckCircle2, AlertCircle, XCircle, Circle } from 'lucide-react'
+import { Modal } from '@/components/ui'
 import { AppointmentWithDetails, CalendarColors } from '@/types/calendar'
-import React from 'react'
 
 interface AppointmentDetailsModalProps {
   appointment: AppointmentWithDetails | null
@@ -51,32 +39,14 @@ export function AppointmentDetailsModal({
   }
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4" 
-      style={{ backgroundColor: COLORS.overlay, backdropFilter: 'blur(4px)' }} 
-      onClick={onClose}
-    >
-      <div 
-        className="w-full max-w-lg rounded-2xl overflow-hidden"
-        style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }} 
-        onClick={e => e.stopPropagation()}
-      >
-        <div 
-          className="px-6 py-4" 
-          style={{ backgroundColor: COLORS.primary, color: '#FFF' }}
-        >
-          <h3 className="text-xl font-semibold font-heading">
-            Detalles
-          </h3>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div 
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
-                style={{ backgroundColor: st.bg, color: st.color }}
-              >
-                {st.icon}
+    <Modal isOpen={true} onClose={onClose} title="Detalles">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div 
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
+            style={{ backgroundColor: st.bg, color: st.color }}
+          >
+            {st.icon}
                 {st.label}
               </div>
               <span className="text-sm" style={{ color: COLORS.textMuted }}>
@@ -207,7 +177,6 @@ export function AppointmentDetailsModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </Modal>
   )
 }

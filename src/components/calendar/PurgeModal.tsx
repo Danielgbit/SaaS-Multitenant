@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { createPortal } from 'react-dom'
-import { Trash2, X, Check, Calendar, Search } from 'lucide-react'
-import { Spinner } from '@/components/ui'
+import { AlertTriangle, Calendar, ChevronLeft, ChevronRight, Clock, Filter, Loader2, RefreshCw, Trash2, XCircle, CheckCircle2 } from 'lucide-react'
+import { Modal, Button } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { PurgeCandidate } from '@/lib/cleanup-helpers'
 import { getAppointmentsByFilters } from '@/lib/cleanup-helpers'
@@ -197,13 +196,6 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
-      style={{ backgroundColor: COLORS.overlay, backdropFilter: 'blur(4px)' }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div
         className="w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col max-h-[90dvh] animate-in zoom-in-95 duration-200"
         style={{
           backgroundColor: COLORS.surface,
@@ -680,10 +672,9 @@ export function PurgeModal({ organizationId, initialTab = 'selection', onClose, 
           )}
         </div>
       </div>
-    </div>
   )
 
-  return createPortal(modalContent, document.body)
+  return <Modal isOpen={true} onClose={onClose} title="Purga de Citas">{modalContent}</Modal>
 }
 
 interface OpenPurgeModalOptions {

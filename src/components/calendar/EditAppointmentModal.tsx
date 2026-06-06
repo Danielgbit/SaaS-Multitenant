@@ -1,7 +1,7 @@
 'use client'
 
-import { X, AlertTriangle } from 'lucide-react'
-import { Spinner } from '@/components/ui'
+import { AlertTriangle } from 'lucide-react'
+import { Modal, Button, Spinner } from '@/components/ui'
 import type { Employee, Client, Service, TimeSlot } from '@/types/calendar'
 import type { CalendarColors } from '@/types/calendar'
 
@@ -60,25 +60,8 @@ export function EditAppointmentModal({
   const canSave = editData.clientId && editData.serviceId && editData.employeeId && editData.time
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: COLORS.overlay, backdropFilter: 'blur(4px)' }}
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md rounded-2xl overflow-hidden max-h-[90dvh] overflow-y-auto"
-        style={{ backgroundColor: COLORS.surface, boxShadow: '0 24px 48px rgba(15,76,92,0.2)' }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="px-6 py-4" style={{ backgroundColor: COLORS.primary, color: '#FFF' }}>
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold">Editar Cita</h3>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/20">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
+    <Modal isOpen={true} onClose={onClose} title="Editar Cita">
+      <div className="overflow-y-auto max-h-[70dvh]">
         <div className="p-6 space-y-4">
           <SearchableSelect
             label="Cliente"
@@ -221,7 +204,7 @@ export function EditAppointmentModal({
           </button>
         </div>
       </div>
-    </div>
+      </Modal>
   )
 }
 

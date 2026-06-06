@@ -642,44 +642,16 @@ export function EditClientModal({
           </Button>
         </>
       }>
-      <form id="edit-client-form" onSubmit={handleSubmit} className="space-y-5">
-        <input type="hidden" name="organization_id" value={organizationId} />
-              <div>
-                <h2 
-                  style={{ 
-                    color: COLORS.textOnPrimary,
-                  }}
-                  className="text-2xl font-semibold font-heading"
-                >
-                  {isNewClient ? 'Nuevo Cliente' : 'Editar Cliente'}
-                </h2>
-                <p 
-                  style={{ 
-                    color: 'rgba(255,255,255,0.8)',
-                    fontSize: '13px'
-                  }}
-                >
-                  {isNewClient ? 'Añade la información del cliente' : 'Actualiza la información'}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleClose}
-              disabled={isLoading}
-              className="p-2.5 rounded-xl hover:bg-white/20 transition-colors disabled:opacity-50 cursor-pointer"
-              aria-label="Cerrar"
-            >
-              <X className="w-5 h-5 text-white" />
-            </button>
-          </div>
-        </div>
+
 
         <form 
+          id="edit-client-form"
           ref={formRef}
           onSubmit={handleSubmit}
           className="p-6 space-y-5 overflow-y-auto"
           style={{ maxHeight: 'calc(90dvh - 200px)' }}
         >
+          <input type="hidden" name="organization_id" value={organizationId} />
           {formErrors._form && (
             <div 
               className="flex items-start gap-3 p-4 rounded-xl"
@@ -823,6 +795,8 @@ export function EditClientModal({
                   <Spinner size="sm" />
                   Guardando...
                 </>
+              ) : null}
+            </button>
           </div>
         </form>
       </Modal>
