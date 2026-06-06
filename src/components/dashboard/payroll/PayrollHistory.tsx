@@ -65,7 +65,7 @@ export function PayrollHistory({ periods }: PayrollHistoryProps) {
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
         <div className="relative">
           <Link
-            href="/payroll"
+            href="/nomina"
             className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -120,7 +120,7 @@ export function PayrollHistory({ periods }: PayrollHistoryProps) {
           {filtered.map((period) => (
             <Link
               key={period.id}
-              href={`/payroll/period/${period.id}`}
+              href={`/nomina/periodo/${period.id}`}
               className="rounded-2xl border p-5 transition-all duration-200 hover:shadow-lg"
               style={{
                 backgroundColor: COLORS.surfaceGlass,

@@ -91,7 +91,7 @@ export async function recordInventoryPurchase(input: {
     }
   }
 
-  revalidatePath('/inventory')
+  revalidatePath('/inventario')
   revalidatePath('/caja')
 
   return { success: true }

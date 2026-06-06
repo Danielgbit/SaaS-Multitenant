@@ -84,7 +84,7 @@ export async function sendTrialExpiringEmail({
   daysLeft: number
 }) {
   const billingUrl = clientEnv?.NEXT_PUBLIC_APP_URL
-    ? `${clientEnv.NEXT_PUBLIC_APP_URL}/dashboard/billing`
+    ? `${clientEnv.NEXT_PUBLIC_APP_URL}/dashboard/facturacion`
     : '#'
 
   const html = `

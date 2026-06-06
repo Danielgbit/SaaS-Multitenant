@@ -105,6 +105,6 @@ export async function applyCode(
     .update({ used_count: promoCode.usedCount + 1 } as any)
     .eq('id', promoCode.id)
 
-  revalidatePath('/dashboard/billing')
+  revalidatePath('/dashboard/facturacion')
   return { success: true, newTrialEndsAt: newTrialEndsAt?.toISOString() }
 }

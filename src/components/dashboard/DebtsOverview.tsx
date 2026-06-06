@@ -213,7 +213,7 @@ export function DebtsOverview({ clientAccounts, employeeLoans }: DebtsOverviewPr
             {employeeLoans.map((loan) => (
               <Link
                 key={loan.id}
-                href={`/payroll/${loan.employee.id}`}
+                href={`/nomina/empleado/${loan.employee.id}`}
                 className="flex items-center justify-between p-4 rounded-xl border transition-all duration-200 hover:shadow-sm cursor-pointer"
                 style={{ backgroundColor: COLORS.surfaceGlass, borderColor: COLORS.border }}
               >
@@ -249,7 +249,7 @@ export function DebtsOverview({ clientAccounts, employeeLoans }: DebtsOverviewPr
           </div>
           <div className="mt-4 text-center">
             <Link
-              href="/payroll"
+              href="/nomina"
               className="text-sm font-medium transition-colors hover:opacity-80"
               style={{ color: COLORS.primary }}
             >

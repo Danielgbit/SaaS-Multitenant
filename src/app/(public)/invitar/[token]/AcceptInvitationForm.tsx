@@ -78,7 +78,7 @@ export function AcceptInvitationForm({ token, invitationEmail, isLoggedIn = fals
   }
 
   if (showExistingUser) {
-    const loginUrl = `/login?email=${encodeURIComponent(invitationEmail || '')}&redirect=${encodeURIComponent(`/invite/${token}`)}`
+    const loginUrl = `/login?email=${encodeURIComponent(invitationEmail || '')}&redirect=${encodeURIComponent(`/invitar/${token}`)}`
     return (
       <div className="space-y-4">
         <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30">

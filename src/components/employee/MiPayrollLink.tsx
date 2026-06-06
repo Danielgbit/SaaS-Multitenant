@@ -9,7 +9,7 @@ export function MiPayrollLink() {
 
   return (
     <Link
-      href="/payroll/mi"
+      href="/nomina/mi"
       className="block rounded-2xl p-5 transition-all hover:opacity-90"
       style={{
         background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`,

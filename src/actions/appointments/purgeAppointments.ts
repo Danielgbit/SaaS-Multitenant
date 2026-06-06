@@ -74,7 +74,7 @@ export async function purgeAppointments(
 
     revalidatePath('/calendar')
     revalidatePath('/dashboard')
-    revalidatePath('/payroll')
+    revalidatePath('/nomina')
 
     return {
       success: true,
@@ -114,7 +114,7 @@ export async function deleteAppointmentsByIds(
 
     revalidatePath('/calendar')
     revalidatePath('/dashboard')
-    revalidatePath('/payroll')
+    revalidatePath('/nomina')
 
     return { success: true, deletedCount: (deleted || []).length }
   } catch (e) {
@@ -155,7 +155,7 @@ export async function updateRetentionSettings(
     return { success: false, error: error.message }
   }
 
-  revalidatePath('/settings')
+  revalidatePath('/ajustes')
 
   return { success: true }
 }

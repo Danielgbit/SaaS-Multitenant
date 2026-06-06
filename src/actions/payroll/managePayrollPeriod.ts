@@ -37,8 +37,8 @@ export async function approvePayrollPeriod(periodId: string): Promise<{
     return { success: false, error: error.message }
   }
 
-  revalidatePath('/payroll')
-  revalidatePath(`/payroll/${periodId}`)
+  revalidatePath('/nomina')
+  revalidatePath(`/nomina/periodo/${periodId}`)
 
   return { success: true }
 }
@@ -81,8 +81,8 @@ export async function markPayrollPeriodAsPaid(
     return { success: false, error: error.message }
   }
 
-  revalidatePath('/payroll')
-  revalidatePath(`/payroll/${periodId}`)
+  revalidatePath('/nomina')
+  revalidatePath(`/nomina/periodo/${periodId}`)
 
   return { success: true }
 }
@@ -120,7 +120,7 @@ export async function deletePayrollPeriod(periodId: string): Promise<{
     return { success: false, error: error.message }
   }
 
-  revalidatePath('/payroll')
+  revalidatePath('/nomina')
 
   return { success: true }
 }

@@ -64,7 +64,7 @@ export async function deleteInventoryItem(
 
   console.log('[deleteInventoryItem] Item deleted successfully:', id)
 
-  revalidatePath('/inventory')
+  revalidatePath('/inventario')
   revalidatePath('/dashboard')
 
   return { success: true }

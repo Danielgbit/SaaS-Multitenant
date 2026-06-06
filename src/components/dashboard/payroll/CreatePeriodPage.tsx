@@ -126,7 +126,7 @@ export function CreatePeriodPage({
         employee_ids: Array.from(selectedEmployees),
       })
       if (result.success && result.data) {
-        router.push(`/payroll/${result.data.period_id}`)
+        router.push(`/nomina/periodo/${result.data.period_id}`)
       } else {
         setError(result.error || 'Error al crear período')
       }

@@ -118,7 +118,7 @@ export async function createInvitation(
   }
 
   const baseUrl = clientEnv?.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-  const invitationUrl = `${baseUrl}/invite/${token}`
+  const invitationUrl = `${baseUrl}/invitar/${token}`
 
   let emailSent = false
   if (shouldSendEmail) {

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { Check, AlertCircle, HelpCircle, UserCircle, PhoneCall, MessageCircle, Users, User, BellOff, X, Phone, Mail } from 'lucide-react'
-import { Spinner } from '@/components/ui'
+import { Check, AlertCircle, HelpCircle, UserCircle, PhoneCall, MessageCircle, Users, User, BellOff, Phone, Mail } from 'lucide-react'
+import { Modal, Button } from '@/components/ui'
 import type { ConfirmationMethod } from '@/types/clients'
 import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
 import { colombianNameSchema } from '@/schemas/common'
@@ -633,59 +633,17 @@ export function EditClientModal({
   const isLoading = isSubmitted
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ 
-        opacity: isClosing ? 0 : isVisible ? 1 : 0,
-        transition: 'opacity 0.2s ease-out',
-        pointerEvents: isClosing ? 'none' : 'auto'
-      }}
-    >
-      <div 
-        className="absolute inset-0"
-        style={{ 
-          backgroundColor: COLORS.overlay,
-          backdropFilter: 'blur(12px)',
-        }}
-        onClick={handleClose}
-      />
-
-      <div
-        style={{
-          backgroundColor: COLORS.surfaceGlass,
-          borderRadius: COLORS.radius.lg,
-          boxShadow: COLORS.shadow.lg,
-          border: `1px solid ${COLORS.border}`,
-          backdropFilter: 'blur(20px)',
-          opacity: isClosing ? 0 : 1,
-          transform: isClosing ? 'scale(0.95) translateY(10px)' : 'scale(1) translateY(0)',
-          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-          width: '100%',
-          maxWidth: '480px',
-          maxHeight: '90dvh',
-          overflow: 'hidden',
-        }}
-      >
-        <div 
-          className="relative p-6 border-b"
-          style={{ 
-            borderColor: COLORS.border,
-            background: COLORS.primaryGradient,
-          }}
-        >
-          <div 
-            className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4"
-            style={{ filter: 'blur(40px)' }}
-          />
-          
-          <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div 
-                className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                style={{ backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)' }}
-              >
-                <UserCircle className="w-6 h-6 text-white" />
-              </div>
+    <Modal isOpen={isOpen} onClose={handleClose} title={isNewClient ? 'Nuevo Cliente' : 'Editar Cliente'}
+      footer={
+        <>
+          <Button variant="secondary" onClick={handleClose} disabled={isLoading}>Cancelar</Button>
+          <Button variant="primary" type="submit" form="edit-client-form" disabled={isLoading} loading={isLoading}>
+            {isNewClient ? 'Crear cliente' : 'Guardar cambios'}
+          </Button>
+        </>
+      }>
+      <form id="edit-client-form" onSubmit={handleSubmit} className="space-y-5">
+        <input type="hidden" name="organization_id" value={organizationId} />
               <div>
                 <h2 
                   style={{ 
@@ -865,13 +823,8 @@ export function EditClientModal({
                   <Spinner size="sm" />
                   Guardando...
                 </>
-              ) : (
-                isNewClient ? 'Crear cliente' : 'Guardar cambios'
-              )}
-            </button>
           </div>
         </form>
-      </div>
-    </div>
+      </Modal>
   )
 }

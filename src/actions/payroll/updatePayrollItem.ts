@@ -79,8 +79,8 @@ export async function updatePayrollItem(input: z.infer<typeof UpdatePayrollItemS
     return { success: false, error: error.message }
   }
 
-  revalidatePath('/payroll')
-  revalidatePath(`/payroll/${item.payroll_period_id}`)
+  revalidatePath('/nomina')
+  revalidatePath(`/nomina/periodo/${item.payroll_period_id}`)
 
   return { success: true }
 }

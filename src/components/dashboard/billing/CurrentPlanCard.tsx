@@ -66,12 +66,12 @@ export function CurrentPlanCard({ subscription, organizationId }: CurrentPlanCar
               </button>
             )}
             {!isTrial && (
-              <button onClick={() => window.location.replace('/dashboard/billing?portal=true')} className="px-4 py-2 rounded-xl text-sm font-medium transition-colors duration-200 cursor-pointer" style={{ color: COLORS.primary, border: `1px solid ${COLORS.primary}20`, backgroundColor: 'transparent' }}>
+              <button onClick={() => window.location.replace('/dashboard/facturacion?portal=true')} className="px-4 py-2 rounded-xl text-sm font-medium transition-colors duration-200 cursor-pointer" style={{ color: COLORS.primary, border: `1px solid ${COLORS.primary}20`, backgroundColor: 'transparent' }}>
                 Métodos de pago
               </button>
             )}
             {isTrial && (
-              <button onClick={() => window.location.replace('/dashboard/billing?portal=true')} className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer" style={{ background: COLORS.primaryGradient, color: COLORS.textOnPrimary }}>
+              <button onClick={() => window.location.replace('/dashboard/facturacion?portal=true')} className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer" style={{ background: COLORS.primaryGradient, color: COLORS.textOnPrimary }}>
                 Configurar pago
               </button>
             )}

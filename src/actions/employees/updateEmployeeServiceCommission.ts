@@ -62,7 +62,7 @@ export async function updateEmployeeServiceCommission(
 
   revalidatePath('/employees')
   revalidatePath(`/employees/${input.employee_id}`)
-  revalidatePath('/payroll')
+  revalidatePath('/nomina')
 
   return { success: true }
 }

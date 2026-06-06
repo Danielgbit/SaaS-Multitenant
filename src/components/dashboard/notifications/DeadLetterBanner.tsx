@@ -41,7 +41,7 @@ export function DeadLetterBanner({ count }: DeadLetterBannerProps) {
           </div>
         </div>
         <Link
-          href="/notificaciones/dead-letter"
+          href="/notificaciones/rechazados"
           className="rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:opacity-80 shrink-0"
           style={{
             backgroundColor: COLORS.warningLight,

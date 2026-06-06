@@ -240,8 +240,8 @@ export async function generatePayrollReceipt(input: {
     }
   }
 
-  revalidatePath('/payroll')
-  revalidatePath(`/payroll/${input.employee_id}`)
+  revalidatePath('/nomina')
+  revalidatePath(`/nomina/empleado/${input.employee_id}`)
   revalidatePath('/employees')
 
   const receipt: PayrollReceipt = {

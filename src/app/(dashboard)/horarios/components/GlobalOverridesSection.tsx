@@ -230,7 +230,7 @@ export function GlobalOverridesSection({
             <AlertCircle className="w-3.5 h-3.5" />
             <span>¿No sabes qué es esto?</span>
             <a
-              href="/help/special-days"
+              href="/ayuda/dias-especiales"
               className="text-[#0F4C5C] dark:text-[#38BDF8] hover:underline ml-1"
             >
               Aprende cómo funcionan →

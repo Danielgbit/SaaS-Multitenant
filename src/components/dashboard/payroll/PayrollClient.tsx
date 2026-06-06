@@ -347,7 +347,7 @@ export function PayrollClient({
                       >
                         <td className="p-4">
                           <Link
-                            href={`/payroll/${emp.employee_id}`}
+                            href={`/nomina/empleado/${emp.employee_id}`}
                             className="flex items-center gap-3"
                           >
                             <div
@@ -411,8 +411,8 @@ export function PayrollClient({
                               <DollarSign className="w-4 h-4" />
                             </button>
                             <Link
-                              href={`/payroll/${emp.employee_id}`}
-                              className="p-2 rounded-lg transition-colors"
+                            href={`/nomina/empleado/${emp.employee_id}`}
+                            className="p-2 rounded-lg transition-colors"
                               style={{
                                 backgroundColor: COLORS.primary + '15',
                                 color: COLORS.primary,
@@ -493,7 +493,7 @@ export function PayrollClient({
                 return (
                   <Link
                     key={emp.employee_id}
-                    href={`/payroll/${emp.employee_id}`}
+                    href={`/nomina/empleado/${emp.employee_id}`}
                     className="block p-5 rounded-2xl border transition-all duration-200 hover:shadow-lg group"
                     style={{
                       backgroundColor: COLORS.surfaceGlass,

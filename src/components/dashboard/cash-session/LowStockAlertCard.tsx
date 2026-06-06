@@ -80,7 +80,7 @@ export function LowStockAlertCard({ organizationId }: LowStockAlertCardProps) {
           ))}
           {lowStockItems.length > 5 && (
             <Link
-              href="/inventory"
+              href="/inventario"
               className="block text-xs font-medium mt-2"
               style={{ color: COLORS.primary }}
             >

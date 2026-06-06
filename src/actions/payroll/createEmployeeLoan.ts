@@ -92,9 +92,9 @@ export async function createEmployeeLoan(
     return { success: false, error: error.message }
   }
 
-  revalidatePath('/payroll')
+  revalidatePath('/nomina')
   revalidatePath('/employees')
-  revalidatePath(`/payroll/${input.employee_id}`)
+  revalidatePath(`/nomina/empleado/${input.employee_id}`)
 
   return { success: true, data: loan as EmployeeLoan, warning }
 }
@@ -149,7 +149,7 @@ export async function updateEmployeeLoan(
     return { success: false, error: error.message }
   }
 
-  revalidatePath('/payroll')
+  revalidatePath('/nomina')
   revalidatePath('/employees')
 
   return { success: true }

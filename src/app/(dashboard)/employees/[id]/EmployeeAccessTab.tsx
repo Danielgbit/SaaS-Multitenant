@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, X, AlertTriangle, Link2, Send, Shield } from 'lucide-react'
-import { Spinner } from '@/components/ui'
+import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, AlertTriangle, Link2, Send, Shield } from 'lucide-react'
+import { Modal, Button, Spinner } from '@/components/ui'
 import { toast } from 'sonner'
 import { createInvitation } from '@/actions/invitations/createInvitation'
 import { resendInvitation } from '@/actions/invitations/resendInvitation'
@@ -98,7 +98,7 @@ export function EmployeeAccessTab({
   const hasPendingInvite = pendingInvitation?.status === 'pending'
 
   const pendingInviteUrl = pendingInvitation 
-    ? `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/invite/${pendingInvitation.token}`
+    ? `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/invitar/${pendingInvitation.token}`
     : null
 
   function isValidEmail(email: string): boolean {
@@ -331,132 +331,62 @@ export function EmployeeAccessTab({
       </div>
 
       {/* Invite Modal */}
-      {showInviteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 font-heading">
-              Invitar a {employee.name}
-            </h3>
+      <Modal isOpen={showInviteModal} onClose={handleCloseModal} title={`Invitar a ${employee.name}`} size="md">
+        {error && (
+          <div className="p-3 rounded-lg bg-red-50/80 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm mb-4">
+            {error}
+          </div>
+        )}
 
-            {error && (
-              <div className="p-3 rounded-lg bg-red-50/80 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm mb-4">
-                {error}
-              </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              Correo electrónico
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(null) }}
+              onBlur={() => { if (sendEmail && email.length > 0 && !isValidEmail(email)) { setEmailError('Ingresa un correo válido') } }}
+              placeholder="empleado@ejemplo.com"
+              className={`w-full px-4 py-3 rounded-xl border bg-white/80 dark:bg-slate-800/60 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 transition-all ${
+                emailError ? 'border-red-400 dark:border-red-500' : 'border-slate-200/60 dark:border-slate-700/60 focus:ring-[#0F4C5C]/30'
+              }`}
+            />
+            {emailError && <p className="text-sm text-red-600 dark:text-red-400 mt-1"><span>⚠️</span> {emailError}</p>}
+            {sendEmail && email.length === 0 && !emailError && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Ingresa un correo o desactiva el envío</p>
             )}
+          </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Correo electrónico
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value)
-                    if (emailError) setEmailError(null)
-                  }}
-                  onBlur={() => {
-                    if (sendEmail && email.length > 0 && !isValidEmail(email)) {
-                      setEmailError('Ingresa un correo válido')
-                    }
-                  }}
-                  placeholder="empleado@ejemplo.com"
-                  className={`
-                    w-full px-4 py-3 rounded-xl 
-                    bg-white/80 dark:bg-slate-800/60
-                    border
-                    ${emailError 
-                      ? 'border-red-400 dark:border-red-500 focus:ring-red-300' 
-                      : 'border-slate-200/60 dark:border-slate-700/60 focus:ring-[#0F4C5C]/30'
-                    }
-                    text-slate-900 dark:text-slate-100
-                    shadow-md shadow-slate-200/20
-                    focus:outline-none focus:ring-2
-                    transition-all duration-200
-                  `}
-                />
-                {emailError && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
-                    <span>⚠️</span> {emailError}
-                  </p>
-                )}
-                {sendEmail && email.length === 0 && !emailError && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Ingresa un correo o desactiva el envío para generar solo el link
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
-                <div className="flex items-center h-5">
-                  <input
-                    id="send-email-checkbox"
-                    type="checkbox"
-                    checked={sendEmail}
-                    onChange={(e) => setSendEmail(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 text-[#0F4C5C] focus:ring-[#0F4C5C] cursor-pointer"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label htmlFor="send-email-checkbox" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                    Enviar invitación por correo
-                  </label>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    {sendEmail ? 'Se enviará inmediatamente' : 'Solo genera el link'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Rol
-                </label>
-                <div className="grid grid-cols-1 gap-2">
-                  <RoleOption
-                    value="empleado"
-                    label="Empleado"
-                    description="Agenda, confirmaciones y su nómina"
-                    selected={role === 'empleado'}
-                    onSelect={() => setRole('empleado')}
-                  />
-                  <RoleOption
-                    value="staff"
-                    label="Asistente"
-                    description="Agenda, confirmaciones e invitaciones"
-                    selected={role === 'staff'}
-                    onSelect={() => setRole('staff')}
-                  />
-                  <RoleOption
-                    value="admin"
-                    label="Administrador"
-                    description="Acceso completo al sistema"
-                    selected={role === 'admin'}
-                    onSelect={() => setRole('admin')}
-                  />
-                </div>
-              </div>
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+            <input id="send-email-checkbox" type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)}
+              className="w-4 h-4 mt-0.5 rounded border-slate-300 text-[#0F4C5C] focus:ring-[#0F4C5C] cursor-pointer" />
+            <div>
+              <label htmlFor="send-email-checkbox" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                Enviar invitación por correo
+              </label>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{sendEmail ? 'Se enviará inmediatamente' : 'Solo genera el link'}</p>
             </div>
+          </div>
 
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={handleCloseModal}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleCreateInvite}
-                disabled={isLoading || !canSubmit}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0F4C5C] hover:bg-[#0C3E4A] text-white font-medium shadow-lg shadow-[#0F4C5C]/20 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? <Spinner size="sm" /> : <Send className="w-4 h-4" />}
-                Crear invitación
-              </button>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Rol</label>
+            <div className="grid grid-cols-1 gap-2">
+              <RoleOption value="empleado" label="Empleado" description="Agenda, confirmaciones y su nómina" selected={role === 'empleado'} onSelect={() => setRole('empleado')} />
+              <RoleOption value="staff" label="Asistente" description="Agenda, confirmaciones e invitaciones" selected={role === 'staff'} onSelect={() => setRole('staff')} />
+              <RoleOption value="admin" label="Administrador" description="Acceso completo al sistema" selected={role === 'admin'} onSelect={() => setRole('admin')} />
             </div>
           </div>
         </div>
-      )}
+
+        <div className="flex gap-3 mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <Button variant="secondary" onClick={handleCloseModal} className="flex-1">Cancelar</Button>
+          <Button variant="primary" onClick={handleCreateInvite} disabled={isLoading || !canSubmit} loading={isLoading} icon={<Send className="w-4 h-4" />} className="flex-1">
+            Crear invitación
+          </Button>
+        </div>
+      </Modal>
 
       {/* Pending Invitation Link Card */}
       {hasPendingInvite && pendingInviteUrl && (

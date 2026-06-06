@@ -61,7 +61,7 @@ export function MessageReplayButton({ messageId, currentStatus }: MessageReplayB
           <span className="text-sm font-medium text-green-700">Re-encolado</span>
         </div>
         <Link
-          href={`/notificaciones/messages/${newQueueItemId}`}
+          href={`/notificaciones/mensajes/${newQueueItemId}`}
           className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm text-primary hover:bg-muted/30 transition-colors"
           style={{ borderColor: COLORS.border }}
         >

@@ -46,7 +46,7 @@ export function InvitationLinkModal({
   const baseUrl = typeof window !== 'undefined' 
     ? (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000')
     : 'http://localhost:3000'
-  const invitationUrl = `${baseUrl}/invite/${invitation.token}`
+  const invitationUrl = `${baseUrl}/invitar/${invitation.token}`
   
   const dateInfo = formatDate(invitation.expires_at)
   const isExpired = dateInfo.daysLeft <= 0

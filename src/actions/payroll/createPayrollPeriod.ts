@@ -242,7 +242,7 @@ export async function createPayrollPeriod(input: {
       .eq('id', periodRecord.id)
   }
 
-  revalidatePath('/payroll')
+  revalidatePath('/nomina')
 
   return {
     success: true,

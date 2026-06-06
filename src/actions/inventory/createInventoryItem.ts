@@ -108,7 +108,7 @@ export async function createInventoryItem(
 
   console.log('[createInventoryItem] Item created successfully:', item.id)
 
-  revalidatePath('/inventory')
+  revalidatePath('/inventario')
   revalidatePath('/dashboard')
 
   return { success: true, itemId: item.id }

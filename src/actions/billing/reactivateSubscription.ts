@@ -59,7 +59,7 @@ export async function reactivateSubscription(
       })
       .eq('organization_id', organizationId)
 
-    revalidatePath('/dashboard/billing')
+    revalidatePath('/dashboard/facturacion')
 
     return { success: true }
   } catch (error) {

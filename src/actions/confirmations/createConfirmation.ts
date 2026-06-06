@@ -126,7 +126,7 @@ export async function createConfirmation(
   revalidatePath('/dashboard/confirmations/employee')
   revalidatePath('/dashboard/confirmations/reception')
   revalidatePath('/dashboard/my-services')
-  revalidatePath('/payroll')
+  revalidatePath('/nomina')
 
   return { success: true, confirmationId: confirmation.id }
 }

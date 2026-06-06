@@ -12,7 +12,7 @@ export const insightRules: InsightRule[] = [
           description: `Los ingresos bajaron ${Math.abs(ctx.revenueChange)}% vs el período anterior`,
           metric: `${ctx.revenueChange}%`,
           category: 'revenue',
-          action: { label: 'Ver detalle', href: '/billing' },
+          action: { label: 'Ver detalle', href: '/facturacion' },
           dismissible: true,
           severity: 9,
         }
@@ -25,7 +25,7 @@ export const insightRules: InsightRule[] = [
           description: `Bajaron ${Math.abs(ctx.revenueChange)}% respecto al período anterior`,
           metric: `${ctx.revenueChange}%`,
           category: 'revenue',
-          action: { label: 'Ver billing', href: '/billing' },
+          action: { label: 'Ver facturación', href: '/facturacion' },
           dismissible: true,
           severity: 5,
         }

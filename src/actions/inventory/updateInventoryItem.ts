@@ -81,7 +81,7 @@ export async function updateInventoryItem(
 
   console.log('[updateInventoryItem] Item updated successfully:', id)
 
-  revalidatePath('/inventory')
+  revalidatePath('/inventario')
   revalidatePath('/dashboard')
 
   return { success: true }

@@ -26,7 +26,7 @@ const variantConfig = {
   info:    { Icon: Info, bg: 'primaryLight' as const, fg: 'primary' as const },
 }
 
-export default function ConfirmModal({
+function ConfirmModal({
   isOpen, onClose, onConfirm, title, description,
   confirmText = 'Eliminar', cancelText = 'Cancelar',
   variant = 'danger', icon, extraContent, confirmDisabled = false,
@@ -71,3 +71,6 @@ export default function ConfirmModal({
     </Modal>
   )
 }
+
+export default ConfirmModal
+export { ConfirmModal }

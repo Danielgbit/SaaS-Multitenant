@@ -691,7 +691,7 @@ export default function SettingsClient({
                 </a>
 
                 <a
-                  href="/email"
+                  href="/correo"
                   className="flex items-center justify-between p-4 rounded-xl border transition-all duration-200 cursor-pointer"
                   style={{ 
                     borderColor: COLORS.border,

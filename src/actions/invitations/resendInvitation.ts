@@ -70,7 +70,7 @@ export async function resendInvitation(
 
   if (invitation.email) {
     const baseUrl = clientEnv?.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    const invitationUrl = `${baseUrl}/invite/${invitation.token}`
+    const invitationUrl = `${baseUrl}/invitar/${invitation.token}`
 
     await sendResendEmail(
       invitation.email,

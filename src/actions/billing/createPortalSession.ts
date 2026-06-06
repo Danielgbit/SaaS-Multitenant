@@ -33,7 +33,7 @@ export async function createPortalSession(
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/billing`,
+      return_url: `${clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/facturacion`,
     })
 
     if (!session.url) {

@@ -196,7 +196,7 @@ export async function markManually(
     console.warn('[markManually] revalidateTag error:', e)
   }
   try {
-    revalidatePath('/payroll')
+    revalidatePath('/nomina')
   } catch (e) {
     console.warn('[markManually] revalidatePath /payroll error:', e)
   }

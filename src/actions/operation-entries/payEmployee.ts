@@ -41,6 +41,6 @@ export async function payEmployee(input: {
   }).select('id').single()
   if (error) return { error: 'Error al registrar.' }
   revalidatePath('/caja')
-  revalidatePath('/payroll')
+  revalidatePath('/nomina')
   return { entry_id: entry.id }
 }

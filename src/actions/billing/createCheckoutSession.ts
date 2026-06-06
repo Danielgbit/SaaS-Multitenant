@@ -96,8 +96,8 @@ export async function createCheckoutSession(input: {
         organization_id: organizationId,
         plan_id: planId,
       },
-      success_url: `${clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/billing?success=true`,
-      cancel_url: `${clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/billing?canceled=true`,
+      success_url: `${clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/facturacion?success=true`,
+      cancel_url: `${clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/facturacion?canceled=true`,
     })
 
     if (!session.url) {

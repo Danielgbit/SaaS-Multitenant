@@ -129,7 +129,7 @@ export default async function MessagesSearchPage({
                   </td>
                   <td className="px-4 py-3">
                     <Link
-                      href={r.type === 'queue' ? `/notificaciones/messages/${r.id}?type=queue` : `/notificaciones/messages/${r.id}`}
+                      href={r.type === 'queue' ? `/notificaciones/mensajes/${r.id}?type=queue` : `/notificaciones/mensajes/${r.id}`}
                       className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
                     >
                       Inspeccionar

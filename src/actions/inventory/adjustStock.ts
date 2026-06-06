@@ -42,7 +42,7 @@ export async function adjustStock(
     return { error: result.error }
   }
 
-  revalidatePath('/inventory')
+  revalidatePath('/inventario')
   revalidatePath('/dashboard')
 
   return { success: true }

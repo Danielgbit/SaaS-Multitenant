@@ -228,7 +228,7 @@ export async function confirmByReception(
   revalidatePath('/dashboard/confirmations/reception')
   revalidatePath('/dashboard/confirmations/employee')
   revalidatePath('/dashboard/my-services')
-  revalidatePath('/payroll')
+  revalidatePath('/nomina')
 
   return { success: true }
 }

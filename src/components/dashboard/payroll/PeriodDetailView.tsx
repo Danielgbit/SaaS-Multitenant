@@ -201,7 +201,7 @@ export function PeriodDetailView({
       if (result.success) {
         toast.success('Período eliminado correctamente')
         setShowDeleteModal(false)
-        window.location.href = '/payroll'
+        window.location.href = '/nomina'
       } else {
         const msg = result.error || 'Error al eliminar'
         setError(msg)
@@ -328,7 +328,7 @@ export function PeriodDetailView({
     <div className="space-y-6">
       {/* Back Button */}
       <Link
-        href="/payroll"
+        href="/nomina"
         className="inline-flex items-center gap-2 text-sm transition-colors hover:opacity-80"
         style={{ color: COLORS.textSecondary }}
       >

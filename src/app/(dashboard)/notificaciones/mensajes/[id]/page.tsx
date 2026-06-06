@@ -178,7 +178,7 @@ export default async function MessageInspectorPage({
   if (!inspectorData.message && !inspectorData.queueItem) {
     return (
       <div className="space-y-6">
-        <Link href="/notificaciones/messages" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1">
+        <Link href="/notificaciones/mensajes" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1">
           <ArrowLeft className="w-3.5 h-3.5" />
           Volver a búsqueda
         </Link>
@@ -222,7 +222,7 @@ export default async function MessageInspectorPage({
     <div className="space-y-6">
       {/* Back link */}
       <Link
-        href="/notificaciones/messages"
+        href="/notificaciones/mensajes"
         className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
       >
         <ArrowLeft className="w-3.5 h-3.5" />

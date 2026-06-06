@@ -77,7 +77,7 @@ export function Header({
     setProfileDropdownOpen(false)
   }
 
-  const profileHref = user.role === 'empleado' ? '/mi' : '/settings'
+  const profileHref = user.role === 'empleado' ? '/mi' : '/ajustes'
 
   return (
     <header
@@ -174,7 +174,7 @@ export function Header({
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               className="flex items-center gap-1.5 md:gap-2 p-1 pr-1.5 md:pr-2 rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               style={{
-                backgroundColor: profileDropdownOpen || pathname.startsWith('/settings') ? COLORS.primarySubtle : 'transparent',
+                backgroundColor: profileDropdownOpen || pathname.startsWith('/ajustes') ? COLORS.primarySubtle : 'transparent',
               }}
               onMouseEnter={e => { if (!profileDropdownOpen) e.currentTarget.style.backgroundColor = COLORS.surfaceHover }}
               onMouseLeave={e => { if (!profileDropdownOpen) e.currentTarget.style.backgroundColor = 'transparent' }}
@@ -230,7 +230,7 @@ export function Header({
                   </Link>
 
                   <Link
-                    href="/settings"
+                    href="/ajustes"
                     className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
                     style={{ color: COLORS.textSecondary }}
                     onClick={() => setProfileDropdownOpen(false)}

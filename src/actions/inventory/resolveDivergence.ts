@@ -85,7 +85,7 @@ export async function resolveDivergence(
     }
   }
 
-  revalidatePath('/inventory')
-  revalidatePath('/inventory/metrics')
+  revalidatePath('/inventario')
+  revalidatePath('/inventario/metricas')
   return { success: true }
 }

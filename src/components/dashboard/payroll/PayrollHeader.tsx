@@ -27,7 +27,7 @@ export function PayrollHeader({ payrollTypeLabel }: PayrollHeaderProps) {
           </div>
         </div>
         <div className="flex gap-2">
-          <Link href="/payroll/settings" className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium backdrop-blur-sm transition-all duration-200 hover:bg-white/10" style={{ color: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.1)' }}>
+          <Link href="/nomina/configuracion" className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium backdrop-blur-sm transition-all duration-200 hover:bg-white/10" style={{ color: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.1)' }}>
             <Settings className="w-4 h-4" />
             Configurar
           </Link>

@@ -23,13 +23,13 @@ export function DashboardSearch() {
           placeholder="Buscar mensajes por ID, teléfono, trace..."
           onSearch={(term) => {
             if (term.length >= 3) {
-              router.push(`/notificaciones/messages?q=${encodeURIComponent(term)}`)
+              router.push(`/notificaciones/mensajes?q=${encodeURIComponent(term)}`)
             }
           }}
         />
       </div>
       <Link
-        href="/notificaciones/messages"
+        href="/notificaciones/mensajes"
         className="rounded-xl border px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors inline-flex items-center gap-1.5 shrink-0"
         style={{ borderColor: COLORS.border }}
       >

@@ -65,7 +65,7 @@ export async function updateOrganization(
   }
 
   // Revalidate settings page
-  revalidatePath('/settings')
+  revalidatePath('/ajustes')
 
   // Revalidate booking pages (old and new slug)
   if (data.slug && oldSlug && data.slug !== oldSlug) {

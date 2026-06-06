@@ -264,7 +264,7 @@ export async function addAppointmentToPayroll(
     })
     .eq('id', periodRecord.id)
 
-  safeRevalidate('/payroll')
+  safeRevalidate('/nomina')
 
   return {
     success: true,

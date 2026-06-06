@@ -107,8 +107,8 @@ export async function recordCommissionAccrual(input: z.infer<typeof InputSchema>
     }
   }
 
-  revalidatePath('/payroll')
-  revalidatePath(`/payroll/${appointment.employee_id}`)
+  revalidatePath('/nomina')
+  revalidatePath(`/nomina/empleado/${appointment.employee_id}`)
 
   return { success: true }
 }

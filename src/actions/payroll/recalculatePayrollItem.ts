@@ -156,8 +156,8 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
     return { success: false, error: error.message }
   }
 
-  revalidatePath('/payroll')
-  revalidatePath(`/payroll/${item.payroll_period_id}`)
+  revalidatePath('/nomina')
+  revalidatePath(`/nomina/periodo/${item.payroll_period_id}`)
 
   return {
     success: true,

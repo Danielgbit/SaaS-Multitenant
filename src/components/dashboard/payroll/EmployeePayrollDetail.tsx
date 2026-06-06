@@ -165,7 +165,7 @@ export function EmployeePayrollDetail({
     <div className="space-y-6">
       {/* Back Button */}
       <Link
-        href="/payroll"
+        href="/nomina"
         className="inline-flex items-center gap-2 text-sm transition-colors"
         style={{ color: COLORS.textSecondary }}
       >

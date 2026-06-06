@@ -54,8 +54,8 @@ export function CurrentPeriodCard({
   const currentStep = PROGRESS_STEPS.findIndex((s) => s.key === period.status)
 
   const mainAction = period.status === 'draft'
-    ? { href: `/payroll/period/${period.id}`, label: 'Calcular nómina', icon: Calculator }
-    : { href: `/payroll/period/${period.id}`, label: 'Revisar y aprobar', icon: ChevronRight }
+    ? { href: `/nomina/periodo/${period.id}`, label: 'Calcular nómina', icon: Calculator }
+    : { href: `/nomina/periodo/${period.id}`, label: 'Revisar y aprobar', icon: ChevronRight }
   const ActionIcon = mainAction.icon
 
   return (
@@ -220,7 +220,7 @@ export function CurrentPeriodCard({
                   ))}
                 </div>
                 <Link
-                  href={`/payroll/period/${period.id}`}
+                  href={`/nomina/periodo/${period.id}`}
                   className="flex items-center justify-center gap-1.5 mt-3 text-sm font-medium transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-lg px-2 py-1"
                   style={{ color: colors.primary }}
                 >

@@ -64,7 +64,7 @@ export async function updateBookingSettings(
     return { success: false, error: error.message }
   }
 
-  revalidatePath('/settings')
+  revalidatePath('/ajustes')
   revalidatePath('/calendar')
   revalidatePath('/horarios')
   revalidatePath('/reservar')

@@ -31,7 +31,7 @@ export function EmployeeRow({ employee, compact = false }: EmployeeRowProps) {
 
   return (
     <Link
-      href={`/payroll/${employee.id}`}
+      href={`/nomina/empleado/${employee.id}`}
       className="flex items-center justify-between p-2.5 rounded-xl transition-all duration-200 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 hover:bg-slate-100 dark:hover:bg-slate-800"
       style={{
         backgroundColor: colors.surfaceSubtle,

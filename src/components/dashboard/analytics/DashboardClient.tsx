@@ -108,7 +108,7 @@ export function DashboardClient({
             </div>
           </Link>
 
-          <Link href="/payroll/mi" className="group block p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#0F4C5C] dark:hover:border-[#38BDF8] transition-all duration-200 hover:shadow-lg">
+          <Link href="/nomina/mi" className="group block p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#0F4C5C] dark:hover:border-[#38BDF8] transition-all duration-200 hover:shadow-lg">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.successLight }}>
                 <DollarSign className="w-6 h-6" style={{ color: COLORS.success }} />

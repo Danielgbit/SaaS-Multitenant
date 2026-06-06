@@ -40,7 +40,7 @@ export function CompactPeriodCard({ period, isPending }: CompactPeriodCardProps)
 
   return (
     <Link
-      href={`/payroll/period/${period.id}`}
+      href={`/nomina/periodo/${period.id}`}
       className="block rounded-2xl border p-5 transition-all duration-200 hover:shadow-md group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       style={{
         backgroundColor: colors.surfaceGlass,

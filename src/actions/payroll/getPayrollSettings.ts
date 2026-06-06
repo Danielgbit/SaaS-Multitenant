@@ -80,7 +80,7 @@ export async function updatePayrollSettings(
     return { success: false, error: error.message }
   }
 
-  revalidatePath('/payroll/settings')
+  revalidatePath('/nomina/configuracion')
 
   return { success: true, data: data as OrganizationPayrollSettings }
 }

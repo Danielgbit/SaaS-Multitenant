@@ -68,7 +68,7 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
             </div>
           </div>
           <Link
-            href="/payroll/new"
+            href="/nomina/crear"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold backdrop-blur-sm transition-all duration-200 hover:bg-white/20 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
           >
@@ -85,7 +85,7 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
           value={formatCurrencyCOP(dashboardData.total_pending_net)}
           icon={<Wallet className="w-4 h-4" />}
           iconColor={colors.warning}
-          onClick={hasPending ? () => router.push(`/payroll/period/${dashboardData.pending_periods![0].id}`) : undefined}
+          onClick={hasPending ? () => router.push(`/nomina/periodo/${dashboardData.pending_periods![0].id}`) : undefined}
           footer={hasPending && <span className="text-xs" style={{ color: colors.textMuted }}>Revisar →</span>}
         />
         <MetricCard
@@ -94,7 +94,7 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
           suffix="empleados"
           icon={<CheckCircle className="w-4 h-4" />}
           iconColor={colors.success}
-          onClick={dashboardData.employees_ready_to_pay > 0 && dashboardData.current_period ? () => router.push(`/payroll/period/${dashboardData.current_period!.id}`) : undefined}
+          onClick={dashboardData.employees_ready_to_pay > 0 && dashboardData.current_period ? () => router.push(`/nomina/periodo/${dashboardData.current_period!.id}`) : undefined}
           footer={dashboardData.employees_ready_to_pay > 0 && dashboardData.current_period && <span className="text-xs" style={{ color: colors.textMuted }}>Pagar →</span>}
         />
         <MetricCard
@@ -110,7 +110,7 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
           suffix="abiertos"
           icon={<TrendingUp className="w-4 h-4" />}
           iconColor={colors.success}
-          onClick={() => router.push('/payroll/new')}
+          onClick={() => router.push('/nomina/crear')}
           footer={<span className="text-xs" style={{ color: colors.textMuted }}>Crear →</span>}
         />
       </div>
@@ -124,7 +124,7 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
             description="Crea tu primer período de nómina para comenzar a gestionar los pagos de tus empleados."
             action={
               <Link
-                href="/payroll/new"
+                href="/nomina/crear"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 style={{ backgroundColor: colors.primary }}
               >
@@ -199,7 +199,7 @@ export function PayrollDashboard({ dashboardData, error }: PayrollDashboardProps
               Períodos Anteriores
             </h2>
             <Link
-              href="/payroll/history"
+              href="/nomina/historial"
               className="text-sm font-medium transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-lg px-2 py-1"
               style={{ color: colors.primary }}
             >

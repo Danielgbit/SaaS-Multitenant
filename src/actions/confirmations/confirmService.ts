@@ -144,7 +144,7 @@ export async function confirmService(
     console.warn('[confirmService] revalidateTag error:', e)
   }
   try {
-    revalidatePath('/payroll')
+    revalidatePath('/nomina')
   } catch (e) {
     console.warn('[confirmService] revalidatePath /payroll error:', e)
   }

@@ -90,7 +90,7 @@ export async function consumeInventory(input: {
     await supabase.from('operation_entries').insert(entry)
   }
 
-  revalidatePath('/inventory')
+  revalidatePath('/inventario')
   revalidatePath('/caja')
 
   return { success: true }
