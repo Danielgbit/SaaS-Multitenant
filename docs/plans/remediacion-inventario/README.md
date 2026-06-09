@@ -35,11 +35,16 @@ graph LR
 
 | ID | Tarea | Sprint | Estado | Responsable |
 |----|-------|--------|--------|-------------|
-| FIX-001 | PurgeModal syntax error | 1 | ⬜ Pendiente | — |
-| FIX-002 | Formulario edición no carga datos | 1 | ⬜ Pendiente | — |
-| FIX-003 | Filtro lowStock roto | 1 | ⬜ Pendiente | — |
-| FIX-004 | Acciones invisibles en touch | 1 | ⬜ Pendiente | — |
-| FIX-005 | Venta sin validar stock (atómico) | 1 | ⬜ Pendiente | — |
+| FIX-001 | PurgeModal syntax error | 1 | ✅ Completado | — |
+| FIX-002 | Formulario edición no carga datos | 1 | ✅ Completado | — |
+| FIX-003 | Filtro lowStock roto | 1 | ✅ Completado | — |
+| FIX-004 | Acciones invisibles en touch | 1 | ✅ Completado | — |
+| FIX-005 | Venta sin validar stock (atómico) | 1 | ✅ Completado | — |
+| FIX-006 | Rollback transaccional recordInventoryPurchase/consumeInventory | 2 | ⬜ Pendiente | — |
+| FIX-007 | Regenerar tipos Supabase | 2 | ⬜ Pendiente | — |
+| FIX-008 | Tests Server Actions de inventario | 2 | ⬜ Pendiente | — |
+| FIX-009 | router.refresh() → actualizaciones optimistas | 2 | ⬜ Pendiente | — |
+| FIX-010 | Pipeline CI | 2 | ✅ Completado | — |
 
 ## Riesgos Identificados
 
