@@ -5,13 +5,14 @@ import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
 import type { Database } from '@db/supabase'
 import { recordInventoryMovement } from '@/lib/inventory/inventory-movement'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
+import { captureError } from '@/lib/error-logger'
 
 export async function consumeInventory(input: {
   item_id: string
   quantity: number
   estimated_cost?: number
   notes?: string
-}): Promise<{ success: boolean; error?: string }> {
+}): Promise<{ success: boolean; error?: string; partialSuccess?: boolean }> {
   const supabase = await createClient()
 
   const { data: item } = await supabase
@@ -43,8 +44,8 @@ export async function consumeInventory(input: {
     return { success: false, error: msg }
   }
 
-  // Auditar movimiento
-  await recordInventoryMovement({
+  // Auditar movimiento (FIX-006: verificar retorno)
+  const movementResult = await recordInventoryMovement({
     inventoryItemId: input.item_id,
     organizationId: item.organization_id,
     movementType: 'consumption',
@@ -56,7 +57,24 @@ export async function consumeInventory(input: {
     createdBy: access.context.userId,
   })
 
-  // Registrar consumo interno en caja (informativo, NO afecta expected_cash)
+  if (!movementResult.success) {
+    const { error: compError } = await supabase.rpc('inventory_increment_stock', {
+      p_item_id: input.item_id,
+      p_quantity: input.quantity,
+      p_organization_id: item.organization_id,
+    })
+    if (compError) {
+      captureError('inventory_consumption_inconsistent_state', compError, {
+        itemId: input.item_id,
+        quantity: input.quantity,
+        organizationId: item.organization_id,
+      })
+      return { success: false, error: 'Error crítico: falló el movimiento y también la compensación.' }
+    }
+    return { success: false, error: 'Error al registrar el movimiento de inventario.' }
+  }
+
+  // Registrar consumo interno en caja (FIX-008: verificar retorno)
   const today = getTodayDateColombia()
   const { data: session } = await supabase
     .from('cash_sessions')
@@ -87,7 +105,19 @@ export async function consumeInventory(input: {
         remaining_stock: rpcResult.quantity_after,
       },
     }
-    await supabase.from('operation_entries').insert(entry)
+    const { error: entryError } = await supabase.from('operation_entries').insert(entry)
+
+    if (entryError) {
+      captureError('inventory_consumption_entry_failed', entryError, {
+        itemId: input.item_id,
+        organizationId: item.organization_id,
+      })
+      return {
+        success: false,
+        error: 'El consumo fue registrado, pero falló el registro en caja.',
+        partialSuccess: true,
+      }
+    }
   }
 
   revalidatePath('/inventario')
