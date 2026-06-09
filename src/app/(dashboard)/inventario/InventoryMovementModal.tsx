@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Package, TrendingUp, TrendingDown, RotateCcw, AlertTriangle, RefreshCw, History } from 'lucide-react'
+import { Package, TrendingUp, TrendingDown, RotateCcw, AlertTriangle, RefreshCw, History, X } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 
 import { Modal, Button, Spinner } from '@/components/ui'

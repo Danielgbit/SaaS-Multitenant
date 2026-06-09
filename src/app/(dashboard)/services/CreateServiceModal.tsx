@@ -2,8 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertTriangle } from 'lucide-react'
-import { Modal, Button } from '@/components/ui'
+import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { needsParsing, parseDuration, formatDurationDisplay, formatDurationInput } from '@/lib/utils/parseDuration'
 import { formatPriceInput, parsePriceToNumber } from '@/lib/utils/parsePrice'
