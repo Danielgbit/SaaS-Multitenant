@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { ShieldAlert, AlertTriangle, Info, Check } from 'lucide-react'
+import { Modal } from '@/components/ui'
 import { 
   ROLE_SECURITY_CONFIG, 
   getPrivilegeChangeType,
@@ -73,9 +74,7 @@ export function SecurityConfirmationModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onCancel} title={getHeaderText()}>
-      
-      
-      <div 
+      <div
         className={`
           relative w-full max-w-md mx-4 rounded-2xl shadow-2xl
           border-2 ${config.borderColor}
@@ -83,18 +82,16 @@ export function SecurityConfirmationModal({
           transform transition-all
         `}
       >
-        
-        
         <div className="p-6">
           <div className="flex items-start gap-4 mb-4">
-            <div 
+            <div
               className={`
                 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
                 ${isEscalation ? 'bg-red-100 dark:bg-red-900/30' : isDegradation ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-amber-100 dark:bg-amber-900/30'}
               `}
             >
-              <Icon 
-                className={`w-6 h-6 ${isEscalation ? 'text-red-500 dark:text-red-400' : isDegradation ? 'text-blue-500 dark:text-blue-400' : 'text-amber-500 dark:text-amber-400'}`} 
+              <Icon
+                className={`w-6 h-6 ${isEscalation ? 'text-red-500 dark:text-red-400' : isDegradation ? 'text-blue-500 dark:text-blue-400' : 'text-amber-500 dark:text-amber-400'}`}
               />
             </div>
             <div>
@@ -104,7 +101,10 @@ export function SecurityConfirmationModal({
               <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                 {getSubtext()}
               </p>
-            </Modal><div className="mb-6">
+            </div>
+          </div>
+
+          <div className="mb-6">
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Esta persona tendrá acceso a:
             </p>
@@ -117,7 +117,7 @@ export function SecurityConfirmationModal({
               ))}
             </ul>
           </div>
-          
+
           {config.requiresTextConfirmation && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -140,7 +140,7 @@ export function SecurityConfirmationModal({
               />
             </div>
           )}
-          
+
           {isEscalation && role === 'admin' && (
             <div className="mb-6 p-3 rounded-xl bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40">
               <p className="text-sm text-red-700 dark:text-red-400 font-medium">
@@ -149,8 +149,8 @@ export function SecurityConfirmationModal({
             </div>
           )}
         </div>
-        
-        <div className="flex gap-3">
+
+        <div className="flex gap-3 px-6 pb-6">
           <button
             onClick={onCancel}
             className="
@@ -178,6 +178,8 @@ export function SecurityConfirmationModal({
           >
             {isEscalation ? 'Sí, asignar' : 'Confirmar'}
           </button>
-        </Modal></div>
+        </div>
+      </div>
+    </Modal>
   )
 }

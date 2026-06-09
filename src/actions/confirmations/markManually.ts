@@ -1,4 +1,4 @@
-'use server'
+﻿'use server'
 
 import { revalidateTag, revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
@@ -134,7 +134,7 @@ export async function markManually(
     // Don't return error - the appointment was already updated
   }
 
-  // Auto-registrar transacción financiera
+  // Auto-registrar transaccion financiera (client accounts)
   try {
     const apt = appointment as unknown as { payment_method?: string; client_id?: string }
     const { data: account } = await supabase
@@ -159,6 +159,28 @@ export async function markManually(
     }
   } catch (e) {
     console.error('[markManually] financial auto-add error:', e)
+  }
+
+  // Auto-registrar payroll y comision
+  if (appointment.employee_id) {
+    const financialResult = await finalizeAppointmentFinancials(
+      appointmentId,
+      appointment.organization_id,
+      appointment.employee_id,
+      `markManually_${user.id}`
+    )
+    if (!financialResult.payroll.success) {
+      appLog('error', '[markManually] payroll failed', {
+        appointmentId,
+        error: financialResult.payroll.error,
+      })
+    }
+    if (!financialResult.commission.success) {
+      appLog('error', '[markManually] commission failed', {
+        appointmentId,
+        error: financialResult.commission.error,
+      })
+    }
   }
 
   // Send service_ready notification to staff
@@ -205,20 +227,6 @@ export async function markManually(
     revalidatePath('/calendar')
   } catch (e) {
     console.warn('[markManually] revalidatePath /calendar error:', e)
-  }
-
-  // Auto-registrar payroll y comisión
-  const financialResult = await finalizeAppointmentFinancials(
-    appointmentId,
-    appointment.organization_id,
-    appointment.employee_id!,
-    `markManually_${user.id}`
-  )
-  if (!financialResult.payroll.success) {
-    console.error('[markManually] payroll failed:', financialResult.payroll.error)
-  }
-  if (!financialResult.commission.success) {
-    console.error('[markManually] commission failed:', financialResult.commission.error)
   }
 
   // Shadow Mode: capture context for fire-and-forget validation

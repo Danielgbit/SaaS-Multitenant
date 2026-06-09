@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { appLog } from '@/lib/app-logger'
 import { z } from 'zod'
 import { devLog } from '@/lib/logger'
+import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
 
 const ConfirmReceptionSchema = z.object({
   confirmation_id: z.string().uuid('ID de confirmación inválido'),
@@ -107,7 +108,7 @@ export async function confirmByReception(
         .from('appointments')
         .update({
           status: 'completed',
-          confirmation_status: 'completed',
+          confirmation_status: 'confirmed',
         })
         .eq('id', confirmation.appointment_id)
     } else if (action === 'no_show') {
@@ -162,37 +163,26 @@ export async function confirmByReception(
     }
   }
 
-  // Auto-agregar a nómina cuando se completa el pago
+  // Auto-agregar a nómina y comisión (orquestado por helper)
   if (action === 'complete' && confirmation.appointment_id) {
-    import('@/actions/payroll/addAppointmentToPayroll').then((m) =>
-      m.addAppointmentToPayroll(confirmation.appointment_id!).catch((e) => {
-        console.error('[confirmByReception] payroll auto-add error:', e)
-      })
-    )
-  }
-
-  // Auto-registrar comisión (fire-and-forget)
-  if (action === 'complete' && confirmation.appointment_id) {
-    const accrualKey = `commission_accrued:hook:${confirmation.appointment_id}:${confirmation.employee_id}:confirmByReception`
-    import('@/actions/financial/recordCommissionAccrual').then((m) =>
-      m.recordCommissionAccrual({
-        appointmentId: confirmation.appointment_id!,
-        organizationId: organization_id,
-        idempotencyKey: accrualKey,
-      }).then((result) => {
-        if ('error' in result) {
-          appLog('error', '[confirmByReception] commission accrual failed', {
-            appointmentId: confirmation.appointment_id,
-            error: result.error,
-          })
-        }
-      }).catch((e) => {
-        appLog('error', '[confirmByReception] commission accrual exception', {
+    if (confirmation.employee_id) {
+      const financialResult = await finalizeAppointmentFinancials(
+        confirmation.appointment_id,
+        organization_id,
+        confirmation.employee_id,
+        `confirmByReception_${user.id}`
+      )
+      if (!financialResult.payroll.success) {
+        appLog('error', '[confirmByReception] payroll failed', {
           appointmentId: confirmation.appointment_id,
-          error: e instanceof Error ? e.message : String(e),
+          error: financialResult.payroll.error,
         })
+      }
+    } else {
+      appLog('warn', '[confirmByReception] appointment without employee_id', {
+        appointmentId: confirmation.appointment_id,
       })
-    )
+    }
   }
 
   // Shadow Mode: fire-and-forget validation

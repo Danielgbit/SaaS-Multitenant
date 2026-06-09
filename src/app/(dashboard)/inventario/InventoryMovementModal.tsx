@@ -190,14 +190,16 @@ export function InventoryMovementModal({ itemId, organizationId, isOpen, onClose
                       {m.reason && (
                         <p className="text-xs mt-1.5" style={{ color: COLORS.textSecondary }}>{m.reason}</p>
                       )}
-                    </Modal>
+                    </div>
+                  </div>
                 )
               })}
             </div>
           )}
-        </Modal>
+        </div>
+      </div>
     </div>
   )
 
-  return <></>
+  return modalContent
 }

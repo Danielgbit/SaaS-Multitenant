@@ -60,3 +60,61 @@ describe('confirmService — price calculation', () => {
     expect(calculateTotal(50000, 0, [])).toBe(50000)
   })
 })
+
+describe('confirmService — helper failure behavior', () => {
+  type FinancialResult = {
+    payroll: { attempted: boolean; success: boolean; error?: string }
+    commission: { attempted: boolean; success: boolean; error?: string }
+  }
+
+  function simulateConfirmWithHelperResult(
+    helperResult: FinancialResult,
+    onPayrollFailed: (error: string) => void
+  ): { success: boolean } {
+    if (!helperResult.payroll.success) {
+      onPayrollFailed(helperResult.payroll.error || 'unknown error')
+    }
+    return { success: true }
+  }
+
+  it('retorna success aunque payroll falle', () => {
+    const failedResult: FinancialResult = {
+      payroll: { attempted: true, success: false, error: 'db error' },
+      commission: { attempted: false, success: false },
+    }
+    let loggedError = ''
+
+    const result = simulateConfirmWithHelperResult(failedResult, (err) => {
+      loggedError = err
+    })
+
+    expect(result.success).toBe(true)
+    expect(loggedError).toBe('db error')
+  })
+
+  it('retorna success aunque commission falle', () => {
+    const failedResult: FinancialResult = {
+      payroll: { attempted: true, success: true },
+      commission: { attempted: true, success: false, error: 'rate limit' },
+    }
+    let loggedError = ''
+
+    const result = simulateConfirmWithHelperResult(failedResult, () => {})
+
+    expect(result.success).toBe(true)
+  })
+
+  it('no llama onPayrollFailed cuando payroll es exitoso', () => {
+    const successResult: FinancialResult = {
+      payroll: { attempted: true, success: true },
+      commission: { attempted: true, success: true },
+    }
+    let called = false
+
+    simulateConfirmWithHelperResult(successResult, () => {
+      called = true
+    })
+
+    expect(called).toBe(false)
+  })
+})

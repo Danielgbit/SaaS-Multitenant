@@ -201,6 +201,8 @@ export function ConfirmationsPanel({
   return (
     <>
       <Modal>
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center gap-2">
               <Bell className="w-5 h-5" style={{ color: COLORS.textSecondary }} />
               {confirmations.length > 0 && (
                 <span className={`absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-white text-[10px] font-bold flex items-center justify-center ${newItemPulse ? 'animate-ping' : ''}`}
@@ -217,7 +219,7 @@ export function ConfirmationsPanel({
             className="p-2 rounded-xl transition-colors" style={{ color: COLORS.textMuted }}>
             <X className="w-5 h-5" />
           </button>
-        </div>
+        </Modal>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {loading ? (
@@ -244,7 +246,6 @@ export function ConfirmationsPanel({
             ))
           )}
         </div>
-      </div>
 
       {selectedConfirmation && (
         <>

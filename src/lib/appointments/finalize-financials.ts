@@ -15,10 +15,13 @@ export type FinancialResult = {
 }
 
 /**
- * Ejecuta payroll y comisión para una cita completada.
+ * Ejecuta payroll y comisi&#243;n para una cita completada.
+ *
  * No lanza excepciones — siempre devuelve resultado estructurado.
- * Cada sub-operación es idempotente y maneja su propio error.
- * Orden: payroll → comisión.
+ * Cada sub-operaci&#243;n es idempotente y maneja su propio error.
+ * Orden: payroll → comisi&#243;n.
+ *
+ * Un fallo en una operaci&#243;n NO bloquea la siguiente.
  */
 export async function finalizeAppointmentFinancials(
   appointmentId: string,
@@ -34,7 +37,9 @@ export async function finalizeAppointmentFinancials(
   // ── Payroll ──
   result.payroll.attempted = true
   try {
-    const { addAppointmentToPayroll } = await import('@/actions/payroll/addAppointmentToPayroll')
+    const { addAppointmentToPayroll } = await import(
+      '@/actions/payroll/addAppointmentToPayroll'
+    )
     const payrollResult = await addAppointmentToPayroll(appointmentId)
     if (payrollResult.success) {
       result.payroll.success = true
@@ -57,14 +62,16 @@ export async function finalizeAppointmentFinancials(
   // ── Commission ──
   result.commission.attempted = true
   try {
-    const { recordCommissionAccrual } = await import('@/actions/financial/recordCommissionAccrual')
+    const { recordCommissionAccrual } = await import(
+      '@/actions/financial/recordCommissionAccrual'
+    )
     const accrualKey = `${idempotencyPrefix}_${appointmentId}_${employeeId}`
     const commissionResult = await recordCommissionAccrual({
       appointmentId,
       organizationId,
       idempotencyKey: accrualKey,
     })
-    if (commissionResult.success === true) {
+    if ('success' in commissionResult) {
       result.commission.success = true
     } else {
       result.commission.error = commissionResult.error
@@ -80,12 +87,6 @@ export async function finalizeAppointmentFinancials(
       error: result.commission.error,
     })
   }
-
-  appLog('info', '[finalizeFinancials] completed', {
-    appointmentId,
-    payrollSuccess: result.payroll.success,
-    commissionSuccess: result.commission.success,
-  })
 
   return result
 }
