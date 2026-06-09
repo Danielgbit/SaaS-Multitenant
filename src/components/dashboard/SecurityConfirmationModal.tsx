@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { X, ShieldAlert, AlertTriangle, Info, Check } from 'lucide-react'
+import { ShieldAlert, AlertTriangle, Info, Check } from 'lucide-react'
+import { Modal } from '@/components/ui'
 import { 
   ROLE_SECURITY_CONFIG, 
   getPrivilegeChangeType,
@@ -72,17 +73,8 @@ export function SecurityConfirmationModal({
   }
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      aria-modal="true"
-      role="dialog"
-    >
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onCancel}
-      />
-      
-      <div 
+    <Modal isOpen={isOpen} onClose={onCancel} title={getHeaderText()}>
+      <div
         className={`
           relative w-full max-w-md mx-4 rounded-2xl shadow-2xl
           border-2 ${config.borderColor}
@@ -90,24 +82,16 @@ export function SecurityConfirmationModal({
           transform transition-all
         `}
       >
-        <button
-          onClick={onCancel}
-          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-          aria-label="Cerrar"
-        >
-          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-        </button>
-        
         <div className="p-6">
           <div className="flex items-start gap-4 mb-4">
-            <div 
+            <div
               className={`
                 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
                 ${isEscalation ? 'bg-red-100 dark:bg-red-900/30' : isDegradation ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-amber-100 dark:bg-amber-900/30'}
               `}
             >
-              <Icon 
-                className={`w-6 h-6 ${isEscalation ? 'text-red-500 dark:text-red-400' : isDegradation ? 'text-blue-500 dark:text-blue-400' : 'text-amber-500 dark:text-amber-400'}`} 
+              <Icon
+                className={`w-6 h-6 ${isEscalation ? 'text-red-500 dark:text-red-400' : isDegradation ? 'text-blue-500 dark:text-blue-400' : 'text-amber-500 dark:text-amber-400'}`}
               />
             </div>
             <div>
@@ -119,7 +103,7 @@ export function SecurityConfirmationModal({
               </p>
             </div>
           </div>
-          
+
           <div className="mb-6">
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Esta persona tendrá acceso a:
@@ -133,7 +117,7 @@ export function SecurityConfirmationModal({
               ))}
             </ul>
           </div>
-          
+
           {config.requiresTextConfirmation && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -156,7 +140,7 @@ export function SecurityConfirmationModal({
               />
             </div>
           )}
-          
+
           {isEscalation && role === 'admin' && (
             <div className="mb-6 p-3 rounded-xl bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40">
               <p className="text-sm text-red-700 dark:text-red-400 font-medium">
@@ -165,7 +149,7 @@ export function SecurityConfirmationModal({
             </div>
           )}
         </div>
-        
+
         <div className="flex gap-3 px-6 pb-6">
           <button
             onClick={onCancel}
@@ -196,6 +180,6 @@ export function SecurityConfirmationModal({
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

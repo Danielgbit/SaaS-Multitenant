@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Scissors, Clock, DollarSign, Check } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { needsParsing, parseDuration, formatDurationDisplay, formatDurationInput } from '@/lib/utils/parseDuration'

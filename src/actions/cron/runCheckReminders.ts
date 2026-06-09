@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { appLog } from '@/lib/app-logger'
+import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
 
 type SupabaseClient = ReturnType<typeof createClient>
 
@@ -229,6 +231,37 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
             await supabase
               .from('notifications')
               .insert(notifications)
+          }
+
+          // Auto-registrar payroll y comision
+          const { data: aptDetail } = await supabase
+            .from('appointments')
+            .select('employee_id')
+            .eq('id', apt.id)
+            .single()
+
+          if (aptDetail?.employee_id) {
+            const financialResult = await finalizeAppointmentFinancials(
+              apt.id,
+              apt.organization_id,
+              aptDetail.employee_id,
+              'auto_complete_cron'
+            )
+            appLog('info', '[runCheckReminders] auto-complete financials', {
+              appointmentId: apt.id,
+              payroll: {
+                success: financialResult.payroll.success,
+                error: financialResult.payroll.error,
+              },
+              commission: {
+                success: financialResult.commission.success,
+                error: financialResult.commission.error,
+              },
+            })
+          } else {
+            appLog('warn', '[runCheckReminders] auto-complete sin employee_id', {
+              appointmentId: apt.id,
+            })
           }
 
           autoCompleted++

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { appLog } from '@/lib/app-logger'
 import { ConfirmServiceSchema, type ConfirmServiceState } from './schemas'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
+import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
 
 export async function confirmService(
   prevState: ConfirmServiceState,
@@ -154,36 +155,27 @@ export async function confirmService(
     console.warn('[confirmService] revalidatePath /calendar error:', e)
   }
 
-  // Auto-agregar a nómina (fire-and-forget)
-  import('@/actions/payroll/addAppointmentToPayroll').then((m) =>
-    m.addAppointmentToPayroll(appointmentId).catch((e) => {
-      console.error('[confirmService] payroll auto-add error:', e)
-    })
-  )
-
-  // Auto-registrar comisión (fire-and-forget)
-  const accrualKey = `commission_accrued:hook:${appointmentId}:${appointment.employee_id}:confirmService`
-  import('@/actions/financial/recordCommissionAccrual').then((m) =>
-    m.recordCommissionAccrual({
+  // Auto-agregar a nómina y comisión (orquestado por helper)
+  if (appointment.employee_id) {
+    const financialResult = await finalizeAppointmentFinancials(
       appointmentId,
-      organizationId: appointment.organization_id,
-      idempotencyKey: accrualKey,
-    }).then((result) => {
-      if ('error' in result) {
-        appLog('error', '[confirmService] commission accrual failed', {
-          appointmentId,
-          error: result.error,
-        })
-      }
-    }).catch((e) => {
-      appLog('error', '[confirmService] commission accrual exception', {
+      appointment.organization_id,
+      appointment.employee_id,
+      `confirmService_${user.id}`
+    )
+    if (!financialResult.payroll.success) {
+      appLog('error', '[confirmService] payroll failed', {
         appointmentId,
-        error: e instanceof Error ? e.message : String(e),
+        error: financialResult.payroll.error,
       })
+    }
+  } else {
+    appLog('warn', '[confirmService] appointment without employee_id', {
+      appointmentId,
     })
-  )
+  }
 
-  // Auto-registrar movimiento de caja (fire-and-forget)
+  // Auto-registrar movimiento de caja (fire-and-forget, no idempotente)
   import('@/actions/cash-sessions/createEntryFromSource').then((m) =>
     m.createEntryFromSource({
       organization_id: appointment.organization_id,

@@ -37,7 +37,7 @@ export function InventoryListItem({ item, onEdit, onDelete }: InventoryListItemP
       <div
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="flex items-center gap-4 px-6 py-3.5 transition-colors duration-200 cursor-default"
+        className="group flex items-center gap-4 px-6 py-3.5 transition-colors duration-200 cursor-default"
         style={{
           backgroundColor: isHovered ? COLORS.surfaceHover : 'transparent',
         }}
@@ -101,8 +101,9 @@ export function InventoryListItem({ item, onEdit, onDelete }: InventoryListItemP
 
         {/* Actions */}
         <div
-          className="flex items-center gap-1 shrink-0 transition-opacity duration-200"
-          style={{ opacity: isHovered ? 1 : 0 }}
+          className="flex items-center gap-1 shrink-0 transition-opacity duration-200
+                     opacity-100 md:opacity-0 md:group-hover:opacity-100
+                     max-md:opacity-100 focus-within:opacity-100"
         >
           <button
             type="button"

@@ -31,6 +31,20 @@ export async function getInventoryItems(
 ): Promise<InventoryItem[]> {
   const supabase = await createClient()
 
+  if (filters?.lowStock) {
+    const { data, error } = await supabase.rpc('get_low_stock_items', {
+      p_organization_id: organizationId,
+      p_include_zero_min: false,
+    })
+
+    if (error) {
+      console.error('[getInventoryItems] RPC error:', error)
+      return []
+    }
+
+    return (data as InventoryItem[]) || []
+  }
+
   let query = supabase
     .from('inventory_items')
     .select('*')
@@ -45,10 +59,6 @@ export async function getInventoryItems(
 
   if (filters?.category) {
     query = query.eq('category', filters.category)
-  }
-
-  if (filters?.lowStock) {
-    query = query.filter('quantity', '<=', 'min_quantity')
   }
 
   const { data, error } = await query
@@ -110,16 +120,13 @@ export async function getLowStockItems(
 ): Promise<InventoryItem[]> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
-    .from('inventory_items')
-    .select('*')
-    .eq('organization_id', organizationId)
-    .eq('active', true)
-    .filter('quantity', '<=', 'min_quantity')
-    .order('quantity', { ascending: true })
+  const { data, error } = await supabase.rpc('get_low_stock_items', {
+    p_organization_id: organizationId,
+    p_include_zero_min: false,
+  })
 
   if (error) {
-    console.error('[getLowStockItems] Error:', error)
+    console.error('[getLowStockItems] RPC error:', error)
     return []
   }
 

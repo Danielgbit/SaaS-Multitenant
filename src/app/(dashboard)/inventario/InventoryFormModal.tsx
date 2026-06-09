@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Package, Tag, DollarSign, Boxes, AlertCircle, CheckCircle, HelpCircle } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
@@ -27,6 +27,35 @@ interface FieldErrors {
   price?: string
   cost_price?: string
 }
+
+type FormDataState = {
+  name: string
+  sku: string
+  description: string
+  category: string
+  quantity: string
+  min_quantity: string
+  price: string
+  cost_price: string
+  unit: string
+}
+
+const defaultFormData = (): FormDataState => ({
+  name: '', sku: '', description: '', category: '',
+  quantity: '0', min_quantity: '5', price: '', cost_price: '', unit: 'pieza',
+})
+
+const mapItemToFormData = (item: InventoryItem): FormDataState => ({
+  name: item.name,
+  sku: item.sku ?? '',
+  description: item.description ?? '',
+  category: item.category ?? '',
+  quantity: String(item.quantity),
+  min_quantity: String(item.min_quantity),
+  price: item.price ? String(item.price) : '',
+  cost_price: item.cost_price ? String(item.cost_price) : '',
+  unit: item.unit,
+})
 
 export function InventoryFormModal({ 
   item, 
@@ -57,6 +86,10 @@ export function InventoryFormModal({
   })
 
   useEscapeKey(isOpen, onClose)
+
+  useEffect(() => {
+    setFormData(item ? mapItemToFormData(item) : defaultFormData())
+  }, [item])
 
   if (!isOpen) return null
 
