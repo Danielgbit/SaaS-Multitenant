@@ -4,6 +4,7 @@
 
 export type ConfirmationStatus = 
   | 'scheduled' 
+  | 'pending_confirmation'
   | 'completed' 
   | 'confirmed' 
   | 'needs_review'

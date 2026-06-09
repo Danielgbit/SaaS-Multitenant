@@ -41,7 +41,11 @@ describe('SaleModal', () => {
     fireEvent.click(screen.getByText('Shampoo').closest('button')!)
     const submitBtn = screen.getByRole('button', { name: /Registrar Venta/i })
     fireEvent.click(submitBtn)
-    expect(await screen.findByText(/No fue posible registrar la venta/)).toBeTruthy()
+    expect(
+      await screen.findByText(
+        /No fue posible registrar la venta\. El inventario pudo haber cambiado/
+      )
+    ).toBeTruthy()
   })
 
   it('elimina producto del carrito al hacer clic en - con cantidad 1', () => {

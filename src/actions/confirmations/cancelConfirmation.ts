@@ -48,7 +48,7 @@ export async function cancelConfirmation(
     return { error: 'Esta cita ya fue confirmada y no se puede cancelar.' }
   }
 
-  if (appointment.confirmation_status === 'cancelled') {
+  if (appointment.status === 'cancelled') {
     return { error: 'Esta cita ya fue cancelada.' }
   }
 
@@ -69,7 +69,6 @@ export async function cancelConfirmation(
   const { error: updateError } = await supabase
     .from('appointments')
     .update({
-      confirmation_status: 'cancelled',
       status: 'cancelled',
     })
     .eq('id', appointmentId)

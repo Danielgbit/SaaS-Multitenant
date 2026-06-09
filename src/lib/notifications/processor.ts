@@ -181,13 +181,16 @@ export async function processInboundReply(
       traceId: event.traceId,
     })
   } else {
-    await (supabase as any)
+    const { error: cancelError } = await (supabase as any)
       .from('appointments')
       .update({
         status: 'cancelled',
-        confirmation_status: 'cancelled',
       })
       .eq('id', appointmentId)
+
+    if (cancelError) {
+      console.error('[processor] cancel update failed:', cancelError)
+    }
 
     await logNotificationEvent({
       organizationId: orgId,

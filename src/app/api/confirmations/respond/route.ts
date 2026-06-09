@@ -116,13 +116,16 @@ export async function POST(request: Request) {
         correlationId: crypto.randomUUID(),
       }
 
-      await supabase
+      const { error: cancelError } = await supabase
         .from('appointments')
         .update({
           status: 'cancelled',
-          confirmation_status: 'cancelled',
         })
         .eq('id', tokenData.appointmentId)
+
+      if (cancelError) {
+        console.error('[respond/route] cancel update failed:', cancelError)
+      }
 
       // Shadow Mode: fire-and-forget validation
       import('@/lib/shadow').catch(() => {})

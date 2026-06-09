@@ -117,7 +117,7 @@ export async function adjust(params: {
 
   const delta = rpcResult.quantity_after - rpcResult.quantity_before
 
-  await recordInventoryMovement({
+  const movementResult = await recordInventoryMovement({
     inventoryItemId: params.item_id,
     organizationId: params.organization_id,
     movementType: 'adjustment',
@@ -131,6 +131,23 @@ export async function adjust(params: {
     },
     createdBy: params.created_by,
   })
+
+  if (!movementResult.success) {
+    const { error: compError } = await supabase.rpc('inventory_set_stock', {
+      p_item_id: params.item_id,
+      p_quantity: rpcResult.quantity_before,
+      p_organization_id: params.organization_id,
+    })
+    if (compError) {
+      captureError('inventory_adjust_inconsistent_state', compError, {
+        itemId: params.item_id,
+        targetQuantity: params.quantity,
+        organizationId: params.organization_id,
+      })
+      return { success: false, error: 'Error crítico: falló el ajuste y también la compensación.' }
+    }
+    return { success: false, error: 'Error al registrar el movimiento de ajuste.' }
+  }
 
   return { success: true }
 }
@@ -168,7 +185,7 @@ export async function restore(params: {
   }
 
   if (params.recordMovement) {
-    await recordInventoryMovement({
+    const movementResult = await recordInventoryMovement({
       inventoryItemId: params.item_id,
       organizationId: params.organization_id,
       movementType: params.movementType!,
@@ -181,6 +198,23 @@ export async function restore(params: {
       reason: params.reason,
       createdBy: params.created_by,
     })
+
+    if (!movementResult.success) {
+      const { error: compError } = await supabase.rpc('inventory_decrement_stock', {
+        p_item_id: params.item_id,
+        p_quantity: params.quantity,
+        p_organization_id: params.organization_id,
+      })
+      if (compError) {
+        captureError('inventory_restore_inconsistent_state', compError, {
+          itemId: params.item_id,
+          quantity: params.quantity,
+          organizationId: params.organization_id,
+        })
+        return { success: false, error: 'Error crítico: falló la restauración y también la compensación.' }
+      }
+      return { success: false, error: 'Error al registrar el movimiento de restauración.' }
+    }
   }
 
   return { success: true }
