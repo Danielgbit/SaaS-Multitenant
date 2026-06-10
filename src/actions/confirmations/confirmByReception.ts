@@ -6,6 +6,7 @@ import { appLog } from '@/lib/app-logger'
 import { z } from 'zod'
 import { devLog } from '@/lib/logger'
 import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 
 const ConfirmReceptionSchema = z.object({
   confirmation_id: z.string().uuid('ID de confirmación inválido'),
@@ -33,6 +34,8 @@ export async function confirmByReception(
   const access = await requireOrgAccess(organization_id, ['owner', 'admin', 'staff'])
   if (!access.success) return access
 
+  const { userId } = access.context
+
   // Determinar status final
   let newStatus: string
   switch (action) {
@@ -52,7 +55,7 @@ export async function confirmByReception(
   // Obtener la confirmación actual
   const { data: confirmation, error: confError } = await supabase
     .from('appointment_confirmations')
-    .select('appointment_id, status, employee_id')
+    .select('appointment_id, status, employee_id, total_amount')
     .eq('id', confirmation_id)
     .single()
 
@@ -127,7 +130,7 @@ export async function confirmByReception(
   // Auto-registrar transacción financiera si hay payment_method
   if (action === 'complete' && payment_method && confirmation.appointment_id) {
     try {
-      const conf = confirmation as unknown as { total_amount?: number; employee_id?: string }
+      const conf = confirmation
       const { data: apt } = await supabase
         .from('appointments')
         .select('client_id, organization_id')
@@ -170,7 +173,7 @@ export async function confirmByReception(
         confirmation.appointment_id,
         organization_id,
         confirmation.employee_id,
-        `confirmByReception_${user.id}`
+        `confirmByReception_${userId}`
       )
       if (!financialResult.payroll.success) {
         appLog('error', '[confirmByReception] payroll failed', {
@@ -203,10 +206,10 @@ export async function confirmByReception(
         source_id: confirmation.appointment_id!,
         entry_type: 'income',
         direction: 'in',
-        amount: (confirmation as any).total_amount || 0,
+        amount: confirmation.total_amount || 0,
         payment_method: payment_method as any,
         title: `Pago recepción`,
-        created_by: user.id,
+        created_by: userId,
         created_via: 'appointment_auto',
       }).catch((e) => {
         console.error('[confirmByReception] cash entry error:', e)

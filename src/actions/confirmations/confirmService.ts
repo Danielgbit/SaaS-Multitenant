@@ -57,6 +57,8 @@ export async function confirmService(
   const access = await requireOrgAccess(appointment.organization_id, ['owner', 'admin', 'staff'])
   if (!access.success) return access
 
+  const { userId } = access.context
+
   const now = new Date().toISOString()
 
   // Get prices from appointment_services with employee override support
@@ -86,7 +88,7 @@ export async function confirmService(
       appointment_id: appointmentId,
       organization_id: appointment.organization_id,
       action: 'confirmed',
-      performed_by: user.id,
+      performed_by: userId,
       performed_by_role: 'assistant',
       price_before: currentPrice,
       price_after: currentPrice,
@@ -107,7 +109,7 @@ export async function confirmService(
       confirmation_status: 'confirmed',
       status: 'completed',
       confirmed_at: now,
-      confirmed_by: user.id,
+      confirmed_by: userId,
       payment_method: paymentMethod,
     })
     .eq('id', appointmentId)
@@ -161,7 +163,7 @@ export async function confirmService(
       appointmentId,
       appointment.organization_id,
       appointment.employee_id,
-      `confirmService_${user.id}`
+      `confirmService_${userId}`
     )
     if (!financialResult.payroll.success) {
       appLog('error', '[confirmService] payroll failed', {
@@ -186,7 +188,7 @@ export async function confirmService(
       amount: currentPrice,
       payment_method: paymentMethod as any,
       title: `Pago servicio`,
-      created_by: user.id,
+      created_by: userId,
       created_via: 'appointment_auto',
     }).catch((e) => {
       console.error('[confirmService] cash entry error:', e)
