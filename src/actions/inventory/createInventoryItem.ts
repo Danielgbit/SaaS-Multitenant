@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { z } from 'zod'
 import { getInventoryCount } from './getInventoryItems'
 
@@ -55,26 +56,8 @@ export async function createInventoryItem(
 
   const supabase = await createClient()
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) {
-    console.log('[createInventoryItem] Auth error:', authError)
-    return { error: 'No autorizado.' }
-  }
-
-  const { data: orgMember, error: orgError } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .eq('organization_id', organization_id)
-    .single()
-
-  if (orgError || !orgMember) {
-    return { error: 'No perteneces a esta organización.' }
-  }
+  const access = await requireOrgAccess(organization_id, ['owner', 'admin'], supabase)
+  if (!access.success) return { error: access.error }
 
   const currentCount = await getInventoryCount(organization_id)
   const limit = await getPlanLimit(supabase, organization_id)

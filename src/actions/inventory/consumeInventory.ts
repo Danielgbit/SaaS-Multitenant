@@ -23,7 +23,7 @@ export async function consumeInventory(input: {
 
   if (!item) return { success: false, error: 'Producto no encontrado.' }
 
-  const access = await requireOrgAccess(item.organization_id, ['owner', 'admin'])
+  const access = await requireOrgAccess(item.organization_id, ['owner', 'admin'], supabase)
   if (!access.success) return access
 
   if (input.quantity <= 0) return { success: false, error: 'Cantidad debe ser > 0.' }

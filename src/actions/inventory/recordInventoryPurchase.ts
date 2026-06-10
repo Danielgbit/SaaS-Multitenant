@@ -26,7 +26,7 @@ export async function recordInventoryPurchase(input: {
 
   if (!item) return { success: false, error: 'Producto no encontrado.' }
 
-  const access = await requireOrgAccess(item.organization_id, ['owner', 'admin'])
+  const access = await requireOrgAccess(item.organization_id, ['owner', 'admin'], supabase)
   if (!access.success) return access
 
   if (input.quantity <= 0 || input.unit_cost <= 0) {

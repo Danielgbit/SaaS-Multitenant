@@ -28,7 +28,7 @@ export async function adjustStock(
 
   const supabase = await createClient()
 
-  const access = await requireOrgAccess(organization_id, ['owner', 'admin'])
+  const access = await requireOrgAccess(organization_id, ['owner', 'admin'], supabase)
   if (!access.success) return { error: access.error }
 
   const result = await inventoryService.adjust({

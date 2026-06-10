@@ -13,7 +13,7 @@ export async function resolveDivergence(
   dismissReason?: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
-  const access = await requireOrgAccess(organizationId, ['owner', 'admin'])
+  const access = await requireOrgAccess(organizationId, ['owner', 'admin'], supabase)
   if (!access.success) return access
 
   const { data: div } = await supabase
