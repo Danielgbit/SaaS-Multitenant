@@ -7,7 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 export const UpdateStatusSchema = z.object({
   appointment_id: z.string().uuid('ID de cita inválido'),
-  status: z.enum(['pending', 'confirmed', 'completed', 'canceled', 'no_show']),
+  status: z.enum(['pending', 'confirmed', 'completed', 'cancelled', 'no_show']),
 })
 
 export type UpdateStatusInput = z.infer<typeof UpdateStatusSchema>

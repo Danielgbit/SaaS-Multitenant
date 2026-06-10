@@ -187,12 +187,12 @@ export async function updateAppointmentStatus(
   if (updateError) return { error: updateError }
 
   // Shadow Mode (deprecated — no-op stub)
-  if (status === 'canceled') {
+  if (status === 'cancelled') {
     import('@/lib/shadow').catch(() => {})
   }
 
   // Email para cambios de estado críticos
-  if (status === 'canceled' || status === 'completed' || status === 'no_show') {
+  if (status === 'cancelled' || status === 'completed' || status === 'no_show') {
     try {
       const { data: aptData } = await supabase
         .from('appointments')
@@ -228,7 +228,7 @@ export async function updateAppointmentStatus(
               .single()
 
             const startDate = new Date(aptData.start_time)
-            const emailType = status === 'canceled' ? 'appointment_cancelled'
+            const emailType = status === 'cancelled' ? 'appointment_cancelled'
               : status === 'completed' ? 'appointment_completed'
               : 'appointment_no_show'
 

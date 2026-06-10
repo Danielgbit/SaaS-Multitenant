@@ -117,7 +117,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Shadow Mode (deprecated — no-op stub)
-    if (status === 'canceled') {
+    if (status === 'cancelled') {
       import('@/lib/shadow').catch(() => {})
     }
 

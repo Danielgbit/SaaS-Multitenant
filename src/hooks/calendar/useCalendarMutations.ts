@@ -71,7 +71,7 @@ export function useCalendarMutations(
     try {
       const result = await updateAppointmentStatus({
         appointment_id: selectedAppointment.id,
-        status: status as any,
+        status: status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show',
       })
       if (result.error) { toast.error(result.error); return }
       toast.success('Estado actualizado')

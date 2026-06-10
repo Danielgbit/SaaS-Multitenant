@@ -4,16 +4,16 @@ import { validateUpdateStatusInput } from '../update-appointment-core'
 const UUID = () => crypto.randomUUID()
 
 describe('validateUpdateStatusInput', () => {
-  it('acepta input válido con status cancelado (una L)', () => {
+  it('acepta input válido con status cancelado (doble L)', () => {
     const result = validateUpdateStatusInput({
       appointment_id: UUID(),
-      status: 'canceled',
+      status: 'cancelled',
     })
     expect(result.success).toBe(true)
   })
 
   it('acepta todos los status válidos', () => {
-    const statuses = ['pending', 'confirmed', 'completed', 'canceled', 'no_show'] as const
+    const statuses = ['pending', 'confirmed', 'completed', 'cancelled', 'no_show'] as const
     for (const status of statuses) {
       const result = validateUpdateStatusInput({
         appointment_id: UUID(),
@@ -23,10 +23,10 @@ describe('validateUpdateStatusInput', () => {
     }
   })
 
-  it('rechaza status con doble L (cancelled)', () => {
+  it('rechaza status con una L (canceled)', () => {
     const result = validateUpdateStatusInput({
       appointment_id: UUID(),
-      status: 'cancelled',
+      status: 'canceled',
     })
     expect(result.success).toBe(false)
   })
@@ -34,7 +34,7 @@ describe('validateUpdateStatusInput', () => {
   it('rechaza appointment_id inválido', () => {
     const result = validateUpdateStatusInput({
       appointment_id: 'no-es-uuid',
-      status: 'canceled',
+      status: 'cancelled',
     })
     expect(result.success).toBe(false)
   })

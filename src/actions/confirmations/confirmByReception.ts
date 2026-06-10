@@ -119,7 +119,7 @@ export async function confirmByReception(
     } else if (action === 'not_performed') {
       await supabase
         .from('appointments')
-        .update({ status: 'canceled' })
+        .update({ status: 'cancelled' })
         .eq('id', confirmation.appointment_id)
     }
   }
