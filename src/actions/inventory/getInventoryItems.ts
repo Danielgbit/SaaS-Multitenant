@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
+import { captureError } from '@/lib/error-logger'
 
 export interface InventoryItem {
   id: string
@@ -19,6 +21,13 @@ export interface InventoryItem {
   updated_at: string
 }
 
+/**
+ * Filtros de búsqueda para inventario.
+ * Nota: cuando lowStock=true, los filtros search y category son ignorados
+ * porque el RPC subyacente (get_low_stock_items) no los soporta.
+ * Para filtrar por búsqueda o categoría, no uses lowStock y maneja la
+ * lógica de low-stock en el cliente usando min_quantity.
+ */
 export interface GetInventoryFilters {
   search?: string
   category?: string
@@ -29,6 +38,8 @@ export async function getInventoryItems(
   organizationId: string,
   filters?: GetInventoryFilters
 ): Promise<InventoryItem[]> {
+  const access = await requireOrgAccess(organizationId)
+  if (!access.success) return []
   const supabase = await createClient()
 
   if (filters?.lowStock) {
@@ -38,7 +49,7 @@ export async function getInventoryItems(
     })
 
     if (error) {
-      console.error('[getInventoryItems] RPC error:', error)
+      captureError('inventory_get_items_rpc_error', error, { organizationId })
       return []
     }
 
@@ -64,7 +75,7 @@ export async function getInventoryItems(
   const { data, error } = await query
 
   if (error) {
-    console.error('[getInventoryItems] Error:', error)
+    captureError('inventory_get_items_error', error, { organizationId })
     return []
   }
 
@@ -74,6 +85,8 @@ export async function getInventoryItems(
 export async function getInventoryCategories(
   organizationId: string
 ): Promise<string[]> {
+  const access = await requireOrgAccess(organizationId)
+  if (!access.success) return []
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -84,7 +97,7 @@ export async function getInventoryCategories(
     .not('category', 'is', null)
 
   if (error) {
-    console.error('[getInventoryCategories] Error:', error)
+    captureError('inventory_get_categories_error', error, { organizationId })
     return []
   }
 
@@ -99,6 +112,8 @@ export async function getInventoryCategories(
 export async function getInventoryCount(
   organizationId: string
 ): Promise<number> {
+  const access = await requireOrgAccess(organizationId)
+  if (!access.success) return 0
   const supabase = await createClient()
 
   const { count, error } = await supabase
@@ -108,7 +123,7 @@ export async function getInventoryCount(
     .eq('active', true)
 
   if (error) {
-    console.error('[getInventoryCount] Error:', error)
+    captureError('inventory_get_count_error', error, { organizationId })
     return 0
   }
 
@@ -118,6 +133,8 @@ export async function getInventoryCount(
 export async function getLowStockItems(
   organizationId: string
 ): Promise<InventoryItem[]> {
+  const access = await requireOrgAccess(organizationId)
+  if (!access.success) return []
   const supabase = await createClient()
 
   const { data, error } = await supabase.rpc('get_low_stock_items', {
@@ -126,7 +143,7 @@ export async function getLowStockItems(
   })
 
   if (error) {
-    console.error('[getLowStockItems] RPC error:', error)
+    captureError('inventory_low_stock_error', error, { organizationId })
     return []
   }
 

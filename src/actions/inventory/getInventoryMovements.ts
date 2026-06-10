@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { requireOrgAccess } from '@/lib/auth/require-org-access'
+import { captureError } from '@/lib/error-logger'
 
 export interface InventoryMovement {
   id: string
@@ -24,6 +26,8 @@ export async function getInventoryMovements(
   organizationId: string,
   limit = 20
 ): Promise<InventoryMovement[]> {
+  const access = await requireOrgAccess(organizationId)
+  if (!access.success) return []
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -36,7 +40,7 @@ export async function getInventoryMovements(
     .limit(limit)
 
   if (error) {
-    console.error('[getInventoryMovements] Error:', error)
+    captureError('inventory_movements_error', error, { itemId, organizationId })
     return []
   }
 
