@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { captureError } from '@/lib/error-logger'
+import type { Database } from '@db/supabase'
 import type { MovementType, ReferenceType } from './inventory-types'
 
 export interface InventoryMovementInput {
@@ -17,15 +18,15 @@ export interface InventoryMovementInput {
   createdBy: string
 }
 
-function toRow(input: InventoryMovementInput) {
-  const row: Record<string, unknown> = {
+function toRow(input: InventoryMovementInput): Database["public"]["Tables"]["inventory_movements"]["Insert"] {
+  const row: Database["public"]["Tables"]["inventory_movements"]["Insert"] = {
     organization_id: input.organizationId,
     inventory_item_id: input.inventoryItemId,
     movement_type: input.movementType,
     quantity_change: input.quantityChange,
     quantity_before: input.quantityBefore,
     quantity_after: input.quantityAfter,
-    metadata: input.metadata ?? {},
+    metadata: (input.metadata ?? {}) as Json,
     created_by: input.createdBy,
   }
   if (input.sourceOperationId) row.source_operation_id = input.sourceOperationId
@@ -42,7 +43,7 @@ export async function recordInventoryMovement(
 
   const { error } = await supabase
     .from('inventory_movements')
-    .insert(toRow(input) as any)
+    .insert(toRow(input))
 
   if (error) {
     captureError('inventory_movement_insert_failed', error, {
@@ -66,7 +67,7 @@ export async function recordInventoryMovementsBatch(
 
   const { error } = await supabase
     .from('inventory_movements')
-    .insert(inputs.map(toRow) as any)
+    .insert(inputs.map(toRow))
 
   if (error) {
     captureError('inventory_movement_batch_insert_failed', error, {

@@ -5,6 +5,9 @@ import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { revalidatePath } from 'next/cache'
 import * as inventoryService from '@/lib/inventory/inventory-service'
 import { ASSISTED_RECONCILIATION_MAX_DELTA } from '@/lib/inventory/constants'
+import type { Database } from '@db/supabase'
+
+type DivergenceUpdate = Database["public"]["Tables"]["inventory_divergences"]["Update"]
 
 export async function resolveDivergence(
   divergenceId: string,
@@ -52,7 +55,7 @@ export async function resolveDivergence(
         action_taken: 'aligned',
         action_taken_at: new Date().toISOString(),
         action_taken_by: access.context.userId,
-      } as any)
+      } as DivergenceUpdate)
       .eq('id', divergenceId)
       .eq('status', 'open')
       .select()
@@ -75,7 +78,7 @@ export async function resolveDivergence(
         action_taken_at: new Date().toISOString(),
         action_taken_by: access.context.userId,
         dismiss_reason: dismissReason || null,
-      } as any)
+      } as DivergenceUpdate)
       .eq('id', divergenceId)
       .eq('status', 'open')
       .select()
