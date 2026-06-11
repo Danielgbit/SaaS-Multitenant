@@ -59,7 +59,6 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
 
   const access = await requireOrgAccess(period.organization_id, ['owner', 'admin'])
   if (!access.success) return access
-  }
 
   const [year, month] = period.period.split('-')
   const periodStart = `${period.period}-01`
@@ -97,7 +96,7 @@ export async function recalculatePayrollItem(itemId: string): Promise<{
     const commissionPercentage = it.percentage ?? item.employee?.percentage ?? 60
 
     for (const apt of appointments) {
-      const services = apt.appointment_services as any[] || []
+      const services: { service_id: string; services: { price: number } | null }[] = apt.appointment_services ?? []
       for (const aptService of services) {
         if (aptService.services?.price) {
           const serviceValue = aptService.services.price
