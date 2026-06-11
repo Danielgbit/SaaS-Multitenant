@@ -8,18 +8,20 @@ import { CurrentPlanCard } from './CurrentPlanCard'
 import { PlanCard } from './PlanCard'
 import { formatCurrency } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import type { Database } from '@/../types/supabase'
+
+type DbPlan = Database['public']['Tables']['plans']['Row']
 
 interface Plan {
   id: string
   name: string
   price: number
-  currency?: string
+  features?: string[]
   max_employees: number
   max_services: number
   max_inventory_items: number
   whatsapp_enabled: boolean
   description?: string
-  features?: string[]
 }
 
 interface Subscription {
@@ -66,52 +68,44 @@ export function BillingClient({
     <div className="space-y-10">
       {subscription && (
         <CurrentPlanCard
-          subscription={subscription}
-          organizationId={organizationId}
+          plan={{
+            id: subscription.id,
+            name: subscription.planName,
+            price: subscription.planPrice,
+            currency: subscription.planCurrency || null,
+            description: null,
+            features: null,
+            max_credit_clients: -1,
+            max_employees: -1,
+            max_inventory_items: -1,
+            max_services: -1,
+            stripe_price_id: null,
+            whatsapp_enabled: subscription.planWhatsApp,
+          } satisfies DbPlan}
+          currentPlanId={subscription.id}
+          isCurrent={true}
+          onSelect={() => {}}
         />
       )}
 
       {/* Promo Code */}
-      <div
-        className="rounded-2xl border p-6"
-        style={{
-          backgroundColor: COLORS.surface,
-          borderColor: COLORS.border,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}
-      >
-        <PromoCodeInput />
-      </div>
-
-      {/* Plans Section */}
-      <div className="space-y-6">
-        <div>
-          <h2
-            className="text-2xl font-bold mb-1 font-heading"
-            style={{ color: COLORS.textPrimary }}
-          >
-            Elige tu plan
-          </h2>
-          <p className="text-sm" style={{ color: COLORS.textSecondary }}>
-            Sin costos ocultos. Cancela cuando quieras.
-          </p>
+      {isTrial && (
+        <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl shadow-sm border border-[#E2E8F0] dark:border-[#1E293B] p-6">
+          <PromoCodeInput />
         </div>
+      )}
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {plans.map((plan) => (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              isCurrentPlan={subscription?.planName === plan.name}
-              isTrial={isTrial}
-              onUpgrade={handleUpgrade}
-            />
-          ))}
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {plans.map((plan) => (
+          <PlanCard
+            key={plan.id}
+            plan={plan}
+            isCurrentPlan={subscription?.planName === plan.name}
+            isTrial={isTrial}
+            onUpgrade={handleUpgrade}
+          />
+        ))}
       </div>
-
     </div>
   )
 }
-
-

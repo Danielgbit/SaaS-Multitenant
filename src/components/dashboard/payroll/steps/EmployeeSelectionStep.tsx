@@ -167,7 +167,6 @@ export default function EmployeeSelectionStep({
 
       {showBulkEdit && (
         <BulkEditModal
-          COLORS={COLORS}
           selectedCount={selectedCount}
           field={bulkEditField}
           value={bulkEditValue}

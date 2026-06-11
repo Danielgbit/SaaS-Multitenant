@@ -80,9 +80,8 @@ export function CashSummary({ session, entries, onClose, isClosing, canClose, or
               confirmText="Cerrar caja"
               variant="warning"
               onConfirm={async () => { await onClose(session.real_cash_detail ?? { cash: 0, qr: 0, transfer: 0, card: 0 }) }}
-              onClose={() => setShowConfirm(false)}
-              loading={isClosing}
-            />
+          onClose={() => setShowConfirm(false)}
+        />
           )}
         </>
       )}

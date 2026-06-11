@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { PaymentModal } from './PaymentModal'
 import { AdjustPriceModal } from './AdjustPriceModal'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { Modal } from '@/components/ui'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { realtimeManager } from '@/lib/realtime'
@@ -200,7 +201,7 @@ export function ConfirmationsPanel({
 
   return (
     <>
-      <Modal>
+      <Modal isOpen={true} onClose={handleClose} title="Confirmaciones">
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
               <Bell className="w-5 h-5" style={{ color: COLORS.textSecondary }} />

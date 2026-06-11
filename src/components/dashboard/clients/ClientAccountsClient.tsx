@@ -100,9 +100,9 @@ export function ClientAccountsClient({
   ]
 
   function getStatusLabel(account: ClientAccountWithClient): { label: string; color: string; bg: string } | null {
-    if (account.is_over_limit) return { label: 'Sobre límite', color: COLORS.error, bg: COLORS.errorLight }
-    if (account.is_at_warning_threshold) return { label: 'Warning', color: COLORS.warning, bg: COLORS.warningLight }
-    if (account.balance > 0) return { label: 'Al día', color: COLORS.success, bg: COLORS.successLight }
+    if (account.is_over_limit) return { label: 'Sobre límite', color: COLORS.error || '#ef4444', bg: COLORS.errorLight || '#fef2f2' }
+    if (account.is_at_warning_threshold) return { label: 'Warning', color: COLORS.warning || '#f59e0b', bg: COLORS.warningLight || '#fffbeb' }
+    if ((account.balance ?? 0) > 0) return { label: 'Al día', color: COLORS.success || '#22c55e', bg: COLORS.successLight || '#f0fdf4' }
     return null
   }
   const [searchQuery, setSearchQuery] = useState('')

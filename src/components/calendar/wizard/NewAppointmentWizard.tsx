@@ -163,7 +163,7 @@ export function NewAppointmentWizard({
 
   return (
     <Modal isOpen={true} onClose={onClose} title="Nueva Cita">
-        <WizardHeader currentStep={wizardStep} totalSteps={TOTAL_STEPS} direction={direction} COLORS={COLORS} />
+        <WizardHeader currentStep={wizardStep} totalSteps={TOTAL_STEPS} stepLabels={['Cliente', 'Servicio', 'Horario']} COLORS={COLORS} onClose={onClose} closeRef={closeRef} />
 
         {/* ── Body (scrollable) ── */}
         <div className="flex-1 overflow-y-auto overscroll-contain">

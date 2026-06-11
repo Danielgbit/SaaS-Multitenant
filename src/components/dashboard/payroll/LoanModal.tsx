@@ -120,7 +120,7 @@ export function LoanModal({ employees, selectedEmployee, organizationId, onClose
           <div>
             <div className="flex items-center gap-2 mb-1">
               <label className="text-xs font-medium text-[#475569] dark:text-[#94A3B8]">Tasa de interés</label>
-              <HelpCircle className="w-3 h-3 text-[#94A3B8]" title="0% = sin interés" />
+              <HelpCircle className="w-3 h-3 text-[#94A3B8]" aria-label="0% = sin interés" />
             </div>
             <div className="relative">
               <input type="number" step="0.1" min="0" max="100" value={interestRate} onChange={(e) => setInterestRate(e.target.value)}

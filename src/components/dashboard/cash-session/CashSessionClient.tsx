@@ -322,7 +322,6 @@ export function CashSessionClient({ initialSession, initialEntries, organization
           variant="warning"
           onConfirm={async () => { hClose(session.real_cash_detail ?? { cash: 0, qr: 0, transfer: 0, card: 0 }) }}
           onClose={() => setShowCloseConfirm(false)}
-          loading={closeM.isPending}
         />
       )}
 

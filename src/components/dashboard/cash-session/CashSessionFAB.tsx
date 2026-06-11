@@ -147,7 +147,6 @@ export function CashSessionFAB({
           variant="warning"
           onConfirm={async () => { handleCloseConfirm() }}
           onClose={() => setShowCloseConfirm(false)}
-          loading={isClosing}
         />
       )}
     </>
