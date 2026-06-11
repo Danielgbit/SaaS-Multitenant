@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { z } from 'zod'
 import { captureError } from '@/lib/error-logger'
+import { recordInventoryMovement } from '@/lib/inventory/inventory-movement'
 
 const UpdateInventoryItemSchema = z.object({
   id: z.string().uuid('ID de producto inválido'),
@@ -41,6 +42,44 @@ export async function updateInventoryItem(
 
   const access = await requireOrgAccess(organization_id, ['owner', 'admin'], supabase)
   if (!access.success) return { error: access.error }
+
+  const { data: currentItem, error: fetchError } = await supabase
+    .from('inventory_items')
+    .select('id, quantity')
+    .eq('id', id)
+    .eq('organization_id', organization_id)
+    .single()
+
+  if (fetchError || !currentItem) {
+    captureError('inventory_update_fetch_error', fetchError, { organization_id, itemId: id })
+    return { error: 'Producto no encontrado.' }
+  }
+
+  const quantityBefore = currentItem.quantity
+  const quantityChange = quantity - quantityBefore
+
+  if (quantityChange !== 0) {
+    const movementResult = await recordInventoryMovement({
+      inventoryItemId: id,
+      organizationId: organization_id,
+      movementType: 'adjustment',
+      quantityChange,
+      quantityBefore,
+      quantityAfter: quantity,
+      reason: 'Stock actualizado manualmente',
+      createdBy: access.context.userId,
+    })
+
+    if (!movementResult.success) {
+      captureError('inventory_update_movement_failed', new Error('Failed to record adjustment movement'), {
+        organization_id,
+        itemId: id,
+        quantityBefore,
+        quantityAfter: quantity,
+      })
+      return { error: 'Error al registrar el movimiento de inventario. No se actualizó el stock.' }
+    }
+  }
 
   const { error: updateError } = await supabase
     .from('inventory_items')

@@ -21,3 +21,7 @@ export type DecrementResult = {
   quantity_after?: number
   error?: string
 }
+
+export type MovementBatchResult =
+  | { success: true }
+  | { success: false; error: string }

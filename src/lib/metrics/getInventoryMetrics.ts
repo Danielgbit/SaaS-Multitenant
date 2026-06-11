@@ -181,7 +181,6 @@ async function countItemsWithoutMovements(
         .select('inventory_item_id')
         .eq('organization_id', orgId)
         .in('inventory_item_id', batch)
-        .limit(batch.length)
 
       const movedIds = new Set((movements || []).map((m: any) => m.inventory_item_id))
       count += batch.filter(id => !movedIds.has(id)).length

@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { captureError } from '@/lib/error-logger'
 import type { Database, Json } from '@db/supabase'
-import type { MovementType, ReferenceType } from './inventory-types'
+import type { MovementBatchResult, MovementType, ReferenceType } from './inventory-types'
 
 export interface InventoryMovementInput {
   inventoryItemId: string
@@ -60,8 +60,8 @@ export async function recordInventoryMovement(
 
 export async function recordInventoryMovementsBatch(
   inputs: InventoryMovementInput[]
-): Promise<void> {
-  if (inputs.length === 0) return
+): Promise<MovementBatchResult> {
+  if (inputs.length === 0) return { success: true }
 
   const supabase = await createClient()
 
@@ -75,5 +75,8 @@ export async function recordInventoryMovementsBatch(
       firstItemId: inputs[0]?.inventoryItemId,
       movementType: inputs[0]?.movementType,
     })
+    return { success: false, error: error.message }
   }
+
+  return { success: true }
 }

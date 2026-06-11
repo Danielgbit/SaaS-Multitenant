@@ -2,6 +2,34 @@ import { createClient } from '@/lib/supabase/server'
 import { captureError } from '@/lib/error-logger'
 import type { DecrementItem, DecrementResult } from './inventory-types'
 
+export async function retryCompensation(
+  organizationId: string,
+  items: { item_id: string; quantity: number }[],
+  context: string
+): Promise<{ allSucceeded: boolean; failures: { item_id: string; error: string }[] }> {
+  const supabase = await createClient()
+  const failures: { item_id: string; error: string }[] = []
+
+  for (const item of items) {
+    const { error: compError } = await supabase.rpc('inventory_increment_stock', {
+      p_item_id: item.item_id,
+      p_quantity: item.quantity,
+      p_organization_id: organizationId,
+    })
+    if (compError) {
+      failures.push({ item_id: item.item_id, error: compError.message })
+      captureError('inventory_compensation_retry_failed', compError, {
+        context,
+        organizationId,
+        itemId: item.item_id,
+        quantity: item.quantity,
+      })
+    }
+  }
+
+  return { allSucceeded: failures.length === 0, failures }
+}
+
 export async function decrementMultipleItemsOrRollback(
   items: DecrementItem[],
   organizationId: string,
@@ -9,7 +37,6 @@ export async function decrementMultipleItemsOrRollback(
 ): Promise<{ success: boolean; results: DecrementResult[]; error?: string }> {
   const supabase = await createClient()
   const committed: DecrementResult[] = []
-  const rollbackFailures: { item_id: string; quantity: number; error: string }[] = []
 
   // Normalize duplicates: same item_id -> single total
   const byItem = new Map<string, number>()
@@ -30,19 +57,16 @@ export async function decrementMultipleItemsOrRollback(
     const row = Array.isArray(rpcRaw) ? rpcRaw[0] : rpcRaw
 
     if (rpcError || !row?.success) {
-      for (const done of committed) {
-        const { error: compError } = await supabase.rpc('inventory_increment_stock', {
-          p_item_id: done.item_id,
-          p_quantity: normalizedItems.find(i => i.item_id === done.item_id)?.quantity ?? 0,
-          p_organization_id: organizationId,
-        })
-        if (compError) {
-          rollbackFailures.push({ item_id: done.item_id, quantity: normalizedItems.find(i => i.item_id === done.item_id)?.quantity ?? 0, error: compError.message })
-        }
-      }
+      const compensationResult = await retryCompensation(
+        organizationId,
+        committed.map(c => ({ item_id: c.item_id, quantity: normalizedItems.find(i => i.item_id === c.item_id)?.quantity ?? 0 })),
+        context
+      )
 
-      if (rollbackFailures.length > 0) {
-        captureError('inventory_compensation_failed', new Error(rollbackFailures.map(r => `${r.item_id}:${r.error}`).join('; ')), {
+      if (!compensationResult.allSucceeded) {
+        captureError('inventory_compensation_partial_failure', new Error(
+          compensationResult.failures.map(r => `${r.item_id}:${r.error}`).join('; ')
+        ), {
           context,
           organizationId,
           normalizedItems: JSON.stringify(normalizedItems),

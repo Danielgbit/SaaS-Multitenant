@@ -137,7 +137,7 @@ describe('recordInventoryPurchase', () => {
   })
 
   describe('FIX-008: verificar operation_entries.insert()', () => {
-    it('captura error si insert de caja falla y retorna partialSuccess', async () => {
+    it('captura error si insert de caja falla y compensa stock', async () => {
       mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
       mockMaybeSingle.mockResolvedValue({ data: { id: 'session-1' }, error: null })
       mockRpc.mockResolvedValue({ data: [{ success: true, quantity_before: 5, quantity_after: 15 }], error: null })
@@ -153,8 +153,11 @@ describe('recordInventoryPurchase', () => {
 
       expect(captureError).toHaveBeenCalledWith('inventory_purchase_entry_failed', expect.any(Error), expect.any(Object))
       expect(result.success).toBe(false)
-      expect(result.partialSuccess).toBe(true)
-      expect(result.error).toContain('falló el registro en caja')
+      expect(result.error).toContain('Error al registrar el movimiento en caja')
+      expect(mockRpc).toHaveBeenCalledWith('inventory_decrement_stock', expect.objectContaining({
+        p_item_id: 'item-1',
+        p_quantity: 10,
+      }))
     })
   })
 })
@@ -202,7 +205,7 @@ describe('consumeInventory', () => {
   })
 
   describe('FIX-008: verificar operation_entries.insert()', () => {
-    it('captura error si insert de caja falla y retorna partialSuccess', async () => {
+    it('captura error si insert de caja falla y compensa stock', async () => {
       mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
       mockRpc.mockResolvedValue({ data: [{ success: true, quantity_before: 5, quantity_after: 0 }], error: null })
 
@@ -219,8 +222,11 @@ describe('consumeInventory', () => {
 
       expect(captureError).toHaveBeenCalledWith('inventory_consumption_entry_failed', expect.any(Error), expect.any(Object))
       expect(result.success).toBe(false)
-      expect(result.partialSuccess).toBe(true)
-      expect(result.error).toContain('falló el registro en caja')
+      expect(result.error).toContain('Error al registrar el movimiento en caja')
+      expect(mockRpc).toHaveBeenCalledWith('inventory_increment_stock', expect.objectContaining({
+        p_item_id: 'item-1',
+        p_quantity: 5,
+      }))
     })
   })
 })

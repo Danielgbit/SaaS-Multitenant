@@ -12,7 +12,7 @@ export async function consumeInventory(input: {
   quantity: number
   estimated_cost?: number
   notes?: string
-}): Promise<{ success: boolean; error?: string; partialSuccess?: boolean }> {
+}): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
 
   const { data: item } = await supabase
@@ -112,11 +112,12 @@ export async function consumeInventory(input: {
         itemId: input.item_id,
         organizationId: item.organization_id,
       })
-      return {
-        success: false,
-        error: 'El consumo fue registrado, pero falló el registro en caja.',
-        partialSuccess: true,
-      }
+      await supabase.rpc('inventory_increment_stock', {
+        p_item_id: input.item_id,
+        p_quantity: input.quantity,
+        p_organization_id: item.organization_id,
+      })
+      return { success: false, error: 'Error al registrar el movimiento en caja. Se revirtió el stock.' }
     }
   }
 
