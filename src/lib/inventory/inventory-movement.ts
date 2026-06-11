@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { captureError } from '@/lib/error-logger'
-import type { Database } from '@db/supabase'
+import type { Database, Json } from '@db/supabase'
 import type { MovementType, ReferenceType } from './inventory-types'
 
 export interface InventoryMovementInput {

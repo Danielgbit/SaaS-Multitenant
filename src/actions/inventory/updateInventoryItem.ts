@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { z } from 'zod'
+import { captureError } from '@/lib/error-logger'
 
 const UpdateInventoryItemSchema = z.object({
   id: z.string().uuid('ID de producto inválido'),
@@ -59,7 +60,7 @@ export async function updateInventoryItem(
     .eq('organization_id', organization_id)
 
   if (updateError) {
-    console.error('[updateInventoryItem] Update error:', updateError)
+    captureError('inventory_update_error', updateError, { organization_id })
     return { error: 'Error al actualizar el producto. Intenta de nuevo.' }
   }
 

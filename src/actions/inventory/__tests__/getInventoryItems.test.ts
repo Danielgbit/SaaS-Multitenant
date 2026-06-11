@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createClient } from '@/lib/supabase/server'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@db/supabase'
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
@@ -32,7 +34,7 @@ const mockSupabase = {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(createClient).mockResolvedValue(mockSupabase as any)
+  vi.mocked(createClient).mockResolvedValue(mockSupabase as unknown as SupabaseClient<Database>)
   vi.mocked(requireOrgAccess).mockResolvedValue({
     success: true,
     context: { userId: 'user-1', organizationId: ORG_ID, role: 'admin' },

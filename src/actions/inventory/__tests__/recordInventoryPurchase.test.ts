@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createClient } from '@/lib/supabase/server'
 import { captureError } from '@/lib/error-logger'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@db/supabase'
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
@@ -45,7 +47,7 @@ function setupQuery() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(createClient).mockResolvedValue(mockSupabase as any)
+  vi.mocked(createClient).mockResolvedValue(mockSupabase as unknown as SupabaseClient<Database>)
   setupQuery()
 })
 

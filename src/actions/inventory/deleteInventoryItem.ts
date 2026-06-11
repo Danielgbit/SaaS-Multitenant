@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { z } from 'zod'
+import { captureError } from '@/lib/error-logger'
 
 const DeleteInventoryItemSchema = z.object({
   id: z.string().uuid('ID de producto inválido'),
@@ -42,7 +43,7 @@ export async function deleteInventoryItem(
     .eq('organization_id', organization_id)
 
   if (deleteError) {
-    console.error('[deleteInventoryItem] Delete error:', deleteError)
+    captureError('inventory_delete_error', deleteError, { organization_id })
     return { error: 'Error al eliminar el producto. Intenta de nuevo.' }
   }
 

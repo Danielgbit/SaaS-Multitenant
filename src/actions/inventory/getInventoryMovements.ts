@@ -44,5 +44,5 @@ export async function getInventoryMovements(
     return []
   }
 
-  return (data as unknown as InventoryMovement[]) || []
+  return (data as unknown as InventoryMovement[]) ?? []
 }

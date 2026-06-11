@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { z } from 'zod'
+import { captureError } from '@/lib/error-logger'
 import { getInventoryCount } from './getInventoryItems'
 
 const CreateInventoryItemSchema = z.object({
@@ -85,7 +86,7 @@ export async function createInventoryItem(
     .single()
 
   if (insertError) {
-    console.error('[createInventoryItem] Insert error:', insertError)
+    captureError('inventory_create_insert_error', insertError, { organization_id })
     return { error: 'Error al crear el producto. Intenta de nuevo.' }
   }
 

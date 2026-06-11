@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createClient } from '@/lib/supabase/server'
 import { captureError } from '@/lib/error-logger'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@db/supabase'
 
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }))
 vi.mock('@/lib/error-logger', () => ({ captureError: vi.fn() }))
@@ -16,7 +18,7 @@ let restore: ((params: any) => Promise<any>) | null = null
 
 beforeEach(async () => {
   vi.clearAllMocks()
-  vi.mocked(createClient).mockResolvedValue(mockSupabase as any)
+  vi.mocked(createClient).mockResolvedValue(mockSupabase as unknown as SupabaseClient<Database>)
   vi.resetModules()
   const service = await import('../inventory-service')
   adjust = service.adjust
