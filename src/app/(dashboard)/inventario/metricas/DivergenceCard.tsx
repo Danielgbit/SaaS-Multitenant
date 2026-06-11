@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Spinner } from '@/components/ui'
+import { captureError } from '@/lib/error-logger'
 import { resolveDivergence } from '@/actions/inventory/resolveDivergence'
 import { ASSISTED_RECONCILIATION_MAX_DELTA } from '@/lib/inventory/constants'
 import type { OpenDivergence } from '@/lib/metrics/getInventoryMetrics'
@@ -25,19 +26,31 @@ export function DivergenceCard({ divergence, organizationId, onResolved }: Props
   async function handleAlign() {
     setResolving('align')
     setError('')
-    const result = await resolveDivergence(divergence.id, 'align', organizationId)
-    if (result.error) setError(result.error)
-    else onResolved()
-    setResolving(null)
+    try {
+      const result = await resolveDivergence(divergence.id, 'align', organizationId)
+      if (result.error) setError(result.error)
+      else onResolved()
+    } catch (e) {
+      setError('Error inesperado al alinear la divergencia.')
+      captureError('inventory_divergence_align_unexpected', e, { divergenceId: divergence.id, organizationId })
+    } finally {
+      setResolving(null)
+    }
   }
 
   async function handleDismiss() {
     setResolving('dismiss')
     setError('')
-    const result = await resolveDivergence(divergence.id, 'dismiss', organizationId)
-    if (result.error) setError(result.error)
-    else onResolved()
-    setResolving(null)
+    try {
+      const result = await resolveDivergence(divergence.id, 'dismiss', organizationId)
+      if (result.error) setError(result.error)
+      else onResolved()
+    } catch (e) {
+      setError('Error inesperado al descartar la divergencia.')
+      captureError('inventory_divergence_dismiss_unexpected', e, { divergenceId: divergence.id, organizationId })
+    } finally {
+      setResolving(null)
+    }
   }
 
   return (

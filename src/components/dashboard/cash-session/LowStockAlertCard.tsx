@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { AlertTriangle, ChevronDown, Package } from 'lucide-react'
+import { captureError } from '@/lib/error-logger'
 
 function fmt(n: number) { return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n) }
 
@@ -30,7 +31,9 @@ export function LowStockAlertCard({ organizationId }: LowStockAlertCardProps) {
         const filtered = (data || []).filter((i: any) => i.quantity <= i.min_quantity)
         if (filtered.length > 0) setVisible(true)
         setLowStockItems(filtered)
-      } catch { /* silently ignore */ }
+      } catch (e) {
+        captureError('low_stock_alert_fetch_error', e, { organizationId })
+      }
     }
     fetch()
   }, [organizationId])

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { subDays } from 'date-fns'
+import { captureError } from '@/lib/error-logger'
 
 export interface OpenDivergence {
   id: string
@@ -34,15 +35,7 @@ export async function getInventoryMetrics(
   const weekAgo = subDays(now, 7).toISOString()
   const dayAgo = subDays(now, 1).toISOString()
 
-  const [
-    { count: totalItems },
-    { count: movementsToday },
-    { count: movementsWeek },
-    { count: openDivergences },
-    { count: voidEvents },
-    { data: heartbeat },
-    { data: openDivs },
-  ] = await Promise.all([
+  const results = await Promise.allSettled([
     supabase.from('inventory_items').select('*', { count: 'exact', head: true })
       .eq('organization_id', organizationId).eq('active', true),
 
@@ -75,14 +68,41 @@ export async function getInventoryMetrics(
       .maybeSingle(),
   ])
 
+  const totalItemsResult = results[0]
+  const totalItems = totalItemsResult.status === 'fulfilled' ? (totalItemsResult.value.count ?? 0) : (captureError('inventory_metrics_total_items_error', totalItemsResult.reason, { organizationId }), 0)
+
+  const movementsTodayResult = results[1]
+  const movementsToday = movementsTodayResult.status === 'fulfilled' ? (movementsTodayResult.value.count ?? 0) : (captureError('inventory_metrics_movements_today_error', movementsTodayResult.reason, { organizationId }), 0)
+
+  const movementsWeekResult = results[2]
+  const movementsWeek = movementsWeekResult.status === 'fulfilled' ? (movementsWeekResult.value.count ?? 0) : (captureError('inventory_metrics_movements_week_error', movementsWeekResult.reason, { organizationId }), 0)
+
+  const openDivergencesResult = results[3]
+  const openDivergences = openDivergencesResult.status === 'fulfilled' ? (openDivergencesResult.value.count ?? 0) : (captureError('inventory_metrics_open_divergences_error', openDivergencesResult.reason, { organizationId }), 0)
+
+  const voidEventsResult = results[4]
+  const voidEvents = voidEventsResult.status === 'fulfilled' ? (voidEventsResult.value.count ?? 0) : (captureError('inventory_metrics_void_events_24h_error', voidEventsResult.reason, { organizationId }), 0)
+
+  const openDivsResult = results[5]
+  const openDivs = openDivsResult.status === 'fulfilled' ? (openDivsResult.value.data ?? []) : (captureError('inventory_metrics_open_divergences_list_error', openDivsResult.reason, { organizationId }), [])
+
+  const heartbeatResult = results[6]
+  const heartbeat = heartbeatResult.status === 'fulfilled' ? heartbeatResult.value.data : (captureError('inventory_metrics_cron_heartbeat_error', heartbeatResult.reason, { organizationId }), null)
+
   // ── Items without movements ──
   // TODO: migrar a vista inventory_items_without_movements
   // cuando el catálogo supere ~500 items.
-  const { data: allItems } = await supabase
-    .from('inventory_items')
-    .select('id')
-    .eq('organization_id', organizationId)
-    .eq('active', true)
+  let allItems: { id: string }[] | null = null
+  try {
+    const { data } = await supabase
+      .from('inventory_items')
+      .select('id')
+      .eq('organization_id', organizationId)
+      .eq('active', true)
+    allItems = data
+  } catch (error) {
+    captureError('inventory_metrics_all_items_error', error, { organizationId })
+  }
 
   const without = allItems?.length
     ? await countItemsWithoutMovements(supabase as any, organizationId, allItems.map(i => i.id))
@@ -97,10 +117,16 @@ export async function getInventoryMetrics(
   let openDivergencesList: OpenDivergence[] = []
   if (openDivs && openDivs.length > 0) {
     const itemIds = [...new Set(openDivs.map((d: any) => d.inventory_item_id))]
-    const { data: items } = await supabase
-      .from('inventory_items')
-      .select('id, name')
-      .in('id', itemIds)
+    let items: { id: string; name: string }[] | null = null
+    try {
+      const { data } = await supabase
+        .from('inventory_items')
+        .select('id, name')
+        .in('id', itemIds)
+      items = data
+    } catch (error) {
+      captureError('inventory_metrics_divergence_items_error', error, { organizationId })
+    }
 
     const nameMap = new Map((items || []).map(i => [i.id, i.name]))
 
@@ -149,15 +175,19 @@ async function countItemsWithoutMovements(
   const batchSize = 100
   for (let i = 0; i < itemIds.length; i += batchSize) {
     const batch = itemIds.slice(i, i + batchSize)
-    const { data: movements } = await supabase
-      .from('inventory_movements')
-      .select('inventory_item_id')
-      .eq('organization_id', orgId)
-      .in('inventory_item_id', batch)
-      .limit(batch.length)
+    try {
+      const { data: movements } = await supabase
+        .from('inventory_movements')
+        .select('inventory_item_id')
+        .eq('organization_id', orgId)
+        .in('inventory_item_id', batch)
+        .limit(batch.length)
 
-    const movedIds = new Set((movements || []).map((m: any) => m.inventory_item_id))
-    count += batch.filter(id => !movedIds.has(id)).length
+      const movedIds = new Set((movements || []).map((m: any) => m.inventory_item_id))
+      count += batch.filter(id => !movedIds.has(id)).length
+    } catch (error) {
+      captureError('inventory_metrics_count_without_movements_error', error, { orgId })
+    }
   }
   return count
 }

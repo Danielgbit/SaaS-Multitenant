@@ -5,6 +5,7 @@ import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { revalidatePath } from 'next/cache'
 import * as inventoryService from '@/lib/inventory/inventory-service'
 import { ASSISTED_RECONCILIATION_MAX_DELTA } from '@/lib/inventory/constants'
+import { captureError } from '@/lib/error-logger'
 import type { Database } from '@db/supabase'
 
 type DivergenceUpdate = Database["public"]["Tables"]["inventory_divergences"]["Update"]
@@ -44,46 +45,70 @@ export async function resolveDivergence(
 
     if (!result.success) return result
 
-    const { data: updated } = await supabase
-      .from('inventory_divergences')
-      .update({
-        status: 'resolved',
-        resolution: 'aligned',
-        resolved_at: new Date().toISOString(),
-        resolved_current_stock: div.current_stock,
-        resolved_ledger_stock: div.ledger_stock,
-        action_taken: 'aligned',
-        action_taken_at: new Date().toISOString(),
-        action_taken_by: access.context.userId,
-      } as DivergenceUpdate)
-      .eq('id', divergenceId)
-      .eq('status', 'open')
-      .select()
-
-    if (!updated?.length) {
+    let updateError: any = null
+    let updated: any[] = []
+    try {
+      const result2 = await supabase
+        .from('inventory_divergences')
+        .update({
+          status: 'resolved',
+          resolution: 'aligned',
+          resolved_at: new Date().toISOString(),
+          resolved_current_stock: div.current_stock,
+          resolved_ledger_stock: div.ledger_stock,
+          action_taken: 'aligned',
+          action_taken_at: new Date().toISOString(),
+          action_taken_by: access.context.userId,
+        } as DivergenceUpdate)
+        .eq('id', divergenceId)
+        .eq('status', 'open')
+        .select()
+      updated = result2.data || []
+      updateError = result2.error
+    } catch (e) {
+      captureError('inventory_divergence_align_update_error', e, { divergenceId, organizationId })
+      return { success: false, error: 'Error al actualizar la divergencia.' }
+    }
+    if (updateError) {
+      captureError('inventory_divergence_align_update_error', updateError, { divergenceId, organizationId })
+      return { success: false, error: 'Error al alinear la divergencia.' }
+    }
+    if (!updated.length) {
       return { success: false, error: 'La divergencia fue modificada por otro usuario.' }
     }
   }
 
   if (action === 'dismiss') {
-    const { data: updated } = await supabase
-      .from('inventory_divergences')
-      .update({
-        status: 'resolved',
-        resolution: 'dismissed',
-        resolved_at: new Date().toISOString(),
-        resolved_current_stock: div.current_stock,
-        resolved_ledger_stock: div.ledger_stock,
-        action_taken: 'dismissed',
-        action_taken_at: new Date().toISOString(),
-        action_taken_by: access.context.userId,
-        dismiss_reason: dismissReason || null,
-      } as DivergenceUpdate)
-      .eq('id', divergenceId)
-      .eq('status', 'open')
-      .select()
-
-    if (!updated?.length) {
+    let updateError: any = null
+    let updated: any[] = []
+    try {
+      const result2 = await supabase
+        .from('inventory_divergences')
+        .update({
+          status: 'resolved',
+          resolution: 'dismissed',
+          resolved_at: new Date().toISOString(),
+          resolved_current_stock: div.current_stock,
+          resolved_ledger_stock: div.ledger_stock,
+          action_taken: 'dismissed',
+          action_taken_at: new Date().toISOString(),
+          action_taken_by: access.context.userId,
+          dismiss_reason: dismissReason || null,
+        } as DivergenceUpdate)
+        .eq('id', divergenceId)
+        .eq('status', 'open')
+        .select()
+      updated = result2.data || []
+      updateError = result2.error
+    } catch (e) {
+      captureError('inventory_divergence_dismiss_update_error', e, { divergenceId, organizationId })
+      return { success: false, error: 'Error al descartar la divergencia.' }
+    }
+    if (updateError) {
+      captureError('inventory_divergence_dismiss_update_error', updateError, { divergenceId, organizationId })
+      return { success: false, error: 'Error al descartar la divergencia.' }
+    }
+    if (!updated.length) {
       return { success: false, error: 'La divergencia fue modificada por otro usuario.' }
     }
   }

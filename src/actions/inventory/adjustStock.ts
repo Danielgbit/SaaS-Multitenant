@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import * as inventoryService from '@/lib/inventory/inventory-service'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
+import { captureError } from '@/lib/error-logger'
 
 const AdjustStockSchema = z.object({
   id: z.string().uuid('ID de producto inválido'),
@@ -31,13 +32,18 @@ export async function adjustStock(
   const access = await requireOrgAccess(organization_id, ['owner', 'admin'], supabase)
   if (!access.success) return { error: access.error }
 
-  const result = await inventoryService.adjust({
-    item_id: id,
-    quantity,
-    organization_id,
-    created_by: access.context.userId,
-  })
-
+  let result: Awaited<ReturnType<typeof inventoryService.adjust>>
+  try {
+    result = await inventoryService.adjust({
+      item_id: id,
+      quantity,
+      organization_id,
+      created_by: access.context.userId,
+    })
+  } catch (error) {
+    captureError('inventory_adjust_failed', error, { id, organization_id })
+    return { error: 'Error al ajustar el stock. Intenta de nuevo.' }
+  }
   if (!result.success) {
     return { error: result.error }
   }

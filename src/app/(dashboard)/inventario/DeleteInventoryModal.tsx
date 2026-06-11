@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { AlertTriangle, CheckCircle } from 'lucide-react'
 import { Modal, Button } from '@/components/ui'
+import { captureError } from '@/lib/error-logger'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
 import { deleteInventoryItem } from '@/actions/inventory/deleteInventoryItem'
 
@@ -22,10 +23,22 @@ export function DeleteInventoryModal({ item, organizationId, isOpen, onClose, on
   if (!isOpen) return null
 
   const handleDelete = async () => {
-    setIsDeleting(true); setError('')
-    const result = await deleteInventoryItem({ id: item.id, organization_id: organizationId })
-    if (result.error) { setError(result.error); setIsDeleting(false) }
-    else { setIsDeleted(true); setTimeout(() => { onSuccess(); onClose(); setTimeout(() => setIsDeleted(false), 300) }, 800) }
+    setIsDeleting(true)
+    setError('')
+    try {
+      const result = await deleteInventoryItem({ id: item.id, organization_id: organizationId })
+      if (result.error) {
+        setError(result.error)
+        setIsDeleting(false)
+      } else {
+        setIsDeleted(true)
+        setTimeout(() => { onSuccess(); onClose(); setTimeout(() => setIsDeleted(false), 300) }, 800)
+      }
+    } catch (error) {
+      captureError('inventory_delete_modal_error', error, { itemId: item.id, organizationId })
+      setError('Error inesperado al eliminar.')
+      setIsDeleting(false)
+    }
   }
 
   return (

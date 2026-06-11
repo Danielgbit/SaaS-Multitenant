@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Package, TrendingUp, TrendingDown, RotateCcw, AlertTriangle, RefreshCw, History, X } from 'lucide-react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { captureError } from '@/lib/error-logger'
 
 import { Modal, Button, Spinner } from '@/components/ui'
 import { getInventoryMovements, type InventoryMovement } from '@/actions/inventory/getInventoryMovements'
@@ -69,7 +70,7 @@ export function InventoryMovementModal({ itemId, organizationId, isOpen, onClose
       } catch (err) {
         if (cancelled) return
 
-        console.error('[InventoryMovementModal]', err)
+        captureError('inventory_movement_modal_load', err, { itemId, organizationId })
 
         setError(
           err instanceof Error
@@ -141,7 +142,7 @@ export function InventoryMovementModal({ itemId, organizationId, isOpen, onClose
                   getInventoryMovements(itemId, organizationId)
                     .then(setMovements)
                     .catch((err) => {
-                      console.error('[InventoryMovementModal]', err)
+                      captureError('inventory_movement_modal_retry', err, { itemId, organizationId })
                       setError(err instanceof Error ? err.message : 'Error al cargar historial')
                     })
                     .finally(() => setLoading(false))
