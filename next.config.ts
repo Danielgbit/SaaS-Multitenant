@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 let nextConfig: NextConfig = {
   reactCompiler: true,
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   experimental: {
     optimizePackageImports: [
