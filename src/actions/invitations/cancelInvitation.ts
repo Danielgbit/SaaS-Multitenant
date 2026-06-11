@@ -28,7 +28,7 @@ export async function cancelInvitation(
     .from('employee_invitations')
     .select('*')
     .eq('id', invitationId)
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
     .single()
 
   if (inviteError || !invitation) {
@@ -43,7 +43,7 @@ export async function cancelInvitation(
     .from('employee_invitations')
     .update({ status: 'cancelled' })
     .eq('id', invitationId)
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
 
   if (updateError) {
     console.error('Error cancelling invitation:', updateError.message)

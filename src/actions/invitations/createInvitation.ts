@@ -50,7 +50,7 @@ export async function createInvitation(
     .from('employees')
     .select('id, name, user_id')
     .eq('id', employeeId)
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
     .single()
 
   if (employeeError || !employee) {
@@ -65,7 +65,7 @@ export async function createInvitation(
     const { data: existingInvite } = await supabase
       .from('employee_invitations')
       .select('id, status')
-      .eq('organization_id', orgMember.organization_id)
+      .eq('organization_id', access.context.organizationId)
       .eq('email', emailValue)
       .eq('status', 'pending')
       .single()
@@ -78,14 +78,14 @@ export async function createInvitation(
   const { data: subscription } = await supabase
     .from('subscriptions')
     .select('plan:plans(max_employees)')
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
     .eq('status', 'active')
     .single()
 
   const { data: currentEmployees } = await supabase
     .from('employees')
     .select('id', { count: 'exact' })
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
 
   const employeeCount = currentEmployees?.length || 0
   const maxEmployees = subscription?.plan?.max_employees || 0
@@ -101,7 +101,7 @@ export async function createInvitation(
   const { data: invitation, error: inviteError } = await supabase
     .from('employee_invitations')
     .insert({
-      organization_id: orgMember.organization_id,
+      organization_id: access.context.organizationId,
       employee_id: employeeId,
       email: emailValue,
       token,
@@ -122,7 +122,7 @@ export async function createInvitation(
 
   let emailSent = false
   if (shouldSendEmail) {
-    emailSent = await sendInvitationEmail(emailValue, employee.name, orgMember.organization_id, invitationUrl, role as string)
+    emailSent = await sendInvitationEmail(emailValue, employee.name, access.context.organizationId, invitationUrl, role as string)
   }
 
   revalidatePath('/employees')

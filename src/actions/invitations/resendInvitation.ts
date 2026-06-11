@@ -29,7 +29,7 @@ export async function resendInvitation(
     .from('employee_invitations')
     .select('*, employees(name)')
     .eq('id', invitationId)
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
     .single()
 
   if (inviteError || !invitation) {

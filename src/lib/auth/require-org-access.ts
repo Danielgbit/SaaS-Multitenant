@@ -64,6 +64,7 @@ export async function requireOrgAccess(
  *   // access.context.organizationId, access.context.role
  */
 export async function requireCurrentOrganization(
+  requiredRoles?: string[],
   supabase?: SupabaseClient
 ): Promise<AuthResult> {
   const client = supabase ?? await createClient()
@@ -78,6 +79,10 @@ export async function requireCurrentOrganization(
     .single()
 
   if (!member) return { success: false, error: 'No perteneces a ninguna organización.' }
+
+  if (requiredRoles && !requiredRoles.includes(member.role)) {
+    return { success: false, error: 'Sin permiso para esta operación.' }
+  }
 
   return {
     success: true,

@@ -76,7 +76,7 @@ export async function createEmployeeLoan(
     .from('employee_loans')
     .insert({
       employee_id: input.employee_id,
-      organization_id: orgMember.organization_id,
+      organization_id: access.context.organizationId,
       amount: input.amount,
       interest_rate: input.interest_rate,
       concept: input.concept,

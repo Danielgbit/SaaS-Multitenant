@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { validateCode } from './validateCode'
 import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
+import type { Database } from '@db/supabase'
 
 const ApplyCodeSchema = z.object({
   code: z.string().trim().min(1, 'Código requerido').max(50).transform(v => v.toUpperCase()),
@@ -40,8 +41,8 @@ export async function applyCode(
     .from('promo_code_uses')
     .select('id')
     .eq('promo_code_id', promoCode.id)
-    .eq('organization_id', orgMember.organization_id)
-    .single() as any
+    .eq('organization_id', access.context.organizationId)
+    .maybeSingle()
 
   if (existingUse) {
     return { error: 'Ya usaste este código' }
@@ -50,7 +51,7 @@ export async function applyCode(
   const { data: subscription } = await supabase
     .from('subscriptions')
     .select('id, status, trial_ends_at')
-    .eq('organization_id', orgMember.organization_id)
+    .eq('organization_id', access.context.organizationId)
     .single()
 
   if (!subscription) {
@@ -68,8 +69,8 @@ export async function applyCode(
 
       await supabase
         .from('subscriptions')
-        .update({ trial_ends_at: newTrialEndsAt.toISOString() } as any)
-        .eq('organization_id', orgMember.organization_id)
+        .update({ trial_ends_at: newTrialEndsAt.toISOString() } satisfies Database['public']['Tables']['subscriptions']['Update'])
+        .eq('organization_id', access.context.organizationId)
       break
     }
     case 'grace_period': {
@@ -83,8 +84,8 @@ export async function applyCode(
         .update({
           status: 'grace_period',
           trial_ends_at: newTrialEndsAt.toISOString(),
-        } as any)
-        .eq('organization_id', orgMember.organization_id)
+        } satisfies Database['public']['Tables']['subscriptions']['Update'])
+        .eq('organization_id', access.context.organizationId)
       break
     }
     case 'free_month':
@@ -97,12 +98,12 @@ export async function applyCode(
     .from('promo_code_uses')
     .insert({
       promo_code_id: promoCode.id,
-      organization_id: orgMember.organization_id,
-    } as any)
+      organization_id: access.context.organizationId,
+    } satisfies Database['public']['Tables']['promo_code_uses']['Insert'])
 
   await supabase
     .from('promo_codes')
-    .update({ used_count: promoCode.usedCount + 1 } as any)
+    .update({ used_count: promoCode.usedCount + 1 } satisfies Database['public']['Tables']['promo_codes']['Update'])
     .eq('id', promoCode.id)
 
   revalidatePath('/dashboard/facturacion')
