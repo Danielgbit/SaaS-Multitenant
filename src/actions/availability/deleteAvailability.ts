@@ -2,23 +2,10 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
 import { requireCurrentOrganization } from '@/lib/auth/require-org-access'
 
-const DeleteAvailabilitySchema = z.object({
-  employeeId: z.string().uuid(),
-})
-
-export async function deleteAvailability(formData: FormData) {
+export async function deleteAvailability(availabilityId: string, employeeId: string) {
   const supabase = await createClient()
-
-  const employeeId = formData.get('employeeId')
-
-  const parsed = DeleteAvailabilitySchema.safeParse({ employeeId })
-
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message || 'Datos inválidos' }
-  }
 
   const access = await requireCurrentOrganization()
   if (!access.success) return { error: access.error }
@@ -26,7 +13,7 @@ export async function deleteAvailability(formData: FormData) {
   const { data: employee, error: empError } = await supabase
     .from('employees')
     .select('id, organization_id')
-    .eq('id', parsed.data.employeeId)
+    .eq('id', employeeId)
     .eq('organization_id', access.context.organizationId)
     .single()
 
@@ -37,7 +24,8 @@ export async function deleteAvailability(formData: FormData) {
   const { error: deleteError } = await supabase
     .from('employee_availability')
     .delete()
-    .eq('employee_id', parsed.data.employeeId)
+    .eq('id', availabilityId)
+    .eq('employee_id', employeeId)
 
   if (deleteError) {
     console.error('Error deleting availability:', deleteError)
