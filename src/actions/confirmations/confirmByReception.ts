@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { devLog } from '@/lib/logger'
 import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
+import { createEntryFromSource } from '@/actions/cash-sessions/createEntryFromSource'
 
 const ConfirmReceptionSchema = z.object({
   confirmation_id: z.string().uuid('ID de confirmación inválido'),
@@ -197,11 +198,11 @@ export async function confirmByReception(
     }
   }
 
-  // Auto-registrar movimiento de caja (fire-and-forget)
+  // Auto-registrar movimiento de caja
   if (action === 'complete' && payment_method) {
-    import('@/actions/cash-sessions/createEntryFromSource').then((m) =>
-      m.createEntryFromSource({
-        organization_id: organization_id,
+    try {
+      const entryResult = await createEntryFromSource({
+        organization_id,
         source_type: 'appointment',
         source_id: confirmation.appointment_id!,
         entry_type: 'income',
@@ -211,10 +212,13 @@ export async function confirmByReception(
         title: `Pago recepción`,
         created_by: userId,
         created_via: 'appointment_auto',
-      }).catch((e) => {
-        console.error('[confirmByReception] cash entry error:', e)
       })
-    ).catch(() => {})
+      if (!entryResult.success) {
+        console.error('[confirmByReception] cash entry error:', entryResult.error)
+      }
+    } catch (e) {
+      console.error('[confirmByReception] cash entry exception:', e)
+    }
   }
 
   // Revalidar paths

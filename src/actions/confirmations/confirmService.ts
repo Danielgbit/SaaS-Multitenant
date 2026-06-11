@@ -6,6 +6,7 @@ import { appLog } from '@/lib/app-logger'
 import { ConfirmServiceSchema, type ConfirmServiceState } from './schemas'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
+import { createEntryFromSource } from '@/actions/cash-sessions/createEntryFromSource'
 
 export async function confirmService(
   prevState: ConfirmServiceState,
@@ -177,9 +178,9 @@ export async function confirmService(
     })
   }
 
-  // Auto-registrar movimiento de caja (fire-and-forget, no idempotente)
-  import('@/actions/cash-sessions/createEntryFromSource').then((m) =>
-    m.createEntryFromSource({
+  // Auto-registrar movimiento de caja
+  try {
+    const entryResult = await createEntryFromSource({
       organization_id: appointment.organization_id,
       source_type: 'appointment',
       source_id: appointmentId,
@@ -190,10 +191,13 @@ export async function confirmService(
       title: `Pago servicio`,
       created_by: userId,
       created_via: 'appointment_auto',
-    }).catch((e) => {
-      console.error('[confirmService] cash entry error:', e)
     })
-  ).catch(() => {})
+    if (!entryResult.success) {
+      console.error('[confirmService] cash entry error:', entryResult.error)
+    }
+  } catch (e) {
+    console.error('[confirmService] cash entry exception:', e)
+  }
 
   return { success: true, appointmentId }
 }

@@ -6,6 +6,7 @@ import { appLog } from '@/lib/app-logger'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { MarkManuallySchema, type MarkManuallyState } from './schemas'
 import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
+import { createEntryFromSource } from '@/actions/cash-sessions/createEntryFromSource'
 
 export async function markManually(
   prevState: MarkManuallyState,
@@ -42,6 +43,7 @@ export async function markManually(
 
   const access = await requireOrgAccess(appointment.organization_id, ['owner', 'admin', 'staff'])
   if (!access.success) return { error: access.error }
+  const { userId } = access.context
 
   const now = new Date().toISOString()
 
@@ -81,7 +83,7 @@ export async function markManually(
       appointment_id: appointmentId,
       organization_id: appointment.organization_id,
       action: 'manually_set',
-      performed_by: user.id,
+      performed_by: userId,
       performed_by_role: 'assistant',
       price_before: currentPrice,
       price_after: currentPrice,
@@ -101,7 +103,7 @@ export async function markManually(
       confirmation_status: 'completed',
       status: 'completed',
       completed_at: now,
-      completed_by: user.id,
+      completed_by: userId,
     })
     .eq('id', appointmentId)
 
@@ -154,11 +156,32 @@ export async function markManually(
         payment_method: apt.payment_method || 'cash',
         appointment_id: appointmentId,
         notes: reason ? `Marcado manual: ${reason}` : 'Marcado manual',
-        created_by: user.id,
+        created_by: userId,
       }).select('id')
     }
   } catch (e) {
     console.error('[markManually] financial auto-add error:', e)
+  }
+
+  // Auto-registrar movimiento de caja
+  try {
+    const entryResult = await createEntryFromSource({
+      organization_id: appointment.organization_id,
+      source_type: 'appointment',
+      source_id: appointmentId,
+      entry_type: 'income',
+      direction: 'in',
+      amount: currentPrice,
+      payment_method: (appointment.payment_method || 'cash') as any,
+      title: `Marcado manual`,
+      created_by: userId,
+      created_via: 'appointment_auto',
+    })
+    if (!entryResult.success) {
+      console.error('[markManually] cash entry error:', entryResult.error)
+    }
+  } catch (e) {
+    console.error('[markManually] cash entry exception:', e)
   }
 
   // Auto-registrar payroll y comision
@@ -167,7 +190,7 @@ export async function markManually(
       appointmentId,
       appointment.organization_id,
       appointment.employee_id,
-      `markManually_${user.id}`
+      `markManually_${userId}`
     )
     if (!financialResult.payroll.success) {
       appLog('error', '[markManually] payroll failed', {
@@ -234,7 +257,7 @@ export async function markManually(
     appointmentId,
     organizationId: appointment.organization_id,
     correlationId: shadowSeed.correlationId,
-    actorId: user.id,
+    actorId: userId,
     timestamp: now,
     notes: reason,
     seed: shadowSeed,
