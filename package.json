@@ -17,7 +17,7 @@
     "analyze": "ANALYZE=true next build --webpack",
     "docs:gen": "tsx scripts/doc-gen.ts",
     "docs:check": "tsx scripts/doc-gen.ts --validate",
-    "supabase:types": "supabase gen types --linked --lang=typescript --schema public > types/supabase.ts",
+    "supabase:types": "supabase gen types --linked --lang=typescript --schema public 2>$null > types/supabase.ts",
     "monitor:cash": "supabase db query --linked \"SELECT session_date, status, opening_cash, expected_cash, real_cash_detail, active_entries_count, income_count, expense_count FROM cash_session_summary ORDER BY session_date DESC LIMIT 5;\""
   },
   "dependencies": {
