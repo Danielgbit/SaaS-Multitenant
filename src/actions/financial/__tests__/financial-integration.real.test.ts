@@ -12,7 +12,7 @@ const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const describeDb = URL && KEY ? describe : describe.skip
 
 describeDb('Financial Integration — real DB', () => {
-  let fixtures: Awaited<ReturnType<typeof createFixtures>>
+  let fixtures: Awaited<ReturnType<typeof import('@/test/helpers/create-test-fixtures')['createFixtures']>>
 
   beforeAll(async () => {
     const { createFixtures } = await import('@/test/helpers/create-test-fixtures')

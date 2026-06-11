@@ -38,10 +38,10 @@ describe('createAppointment', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(validateCreateInput).mockReturnValue({ success: true, data: VALID() })
-    vi.mocked(checkCreatePreconditions).mockResolvedValue({ success: true, data: { employee: { id: 'e1' }, service: { id: 's1', duration: 30, name: 'Corte', price: 50000 } } })
+    vi.mocked(checkCreatePreconditions).mockResolvedValue({ success: true, data: { service: { id: 's1', duration: 30, name: 'Corte', price: 50000, active: true } } })
     vi.mocked(computeAppointmentTimes).mockReturnValue({ startDate: new Date(), endDate: new Date(Date.now() + 1800000), normalizedStart: '2026-06-01T10:00:00.000' })
     vi.mocked(verifySlotAvailability).mockResolvedValue({ success: true })
-    vi.mocked(insertAppointment).mockResolvedValue({ success: true, data: { id: 'apt-1' } })
+    vi.mocked(insertAppointment).mockResolvedValue({ success: true, data: { id: 'apt-1', start_time: '2026-06-01T10:00:00Z', end_time: '2026-06-01T10:30:00Z', status: 'scheduled' } })
   })
 
   it('crea cita exitosamente', async () => {

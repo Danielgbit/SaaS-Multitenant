@@ -35,7 +35,7 @@ describe('conflictos', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(validateCreateInput).mockReturnValue({ success: true, data: VALID() })
-    vi.mocked(checkCreatePreconditions).mockResolvedValue({ success: true, data: { employee: { id: 'e1' }, service: { id: 's1', duration: 30, name: 'Corte', price: 50000 } } })
+    vi.mocked(checkCreatePreconditions).mockResolvedValue({ success: true, data: { service: { id: 's1', duration: 30, name: 'Corte', price: 50000, active: true } } })
     vi.mocked(computeAppointmentTimes).mockReturnValue({ startDate: new Date(), endDate: new Date(Date.now() + 1800000), normalizedStart: '2026-06-01T10:00:00.000' })
   })
 

@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/server'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { z } from 'zod'
 import { captureError } from '@/lib/error-logger'
-import { getInventoryCount } from './getInventoryItems'
 
 const CreateInventoryItemSchema = z.object({
   organization_id: z.string().uuid('ID de organización inválido'),
@@ -21,24 +20,6 @@ const CreateInventoryItemSchema = z.object({
 })
 
 export type CreateInventoryItemInput = z.infer<typeof CreateInventoryItemSchema>
-
-async function getPlanLimit(supabase: any, organizationId: string): Promise<number> {
-  const { data: subscription } = await supabase
-    .from('subscriptions')
-    .select('plan_id')
-    .eq('organization_id', organizationId)
-    .single()
-
-  if (!subscription) return 200
-
-  const { data: plan } = await supabase
-    .from('plans')
-    .select('max_inventory_items')
-    .eq('id', subscription.plan_id)
-    .single()
-
-  return plan?.max_inventory_items || 200
-}
 
 export async function createInventoryItem(
   input: CreateInventoryItemInput
@@ -60,42 +41,36 @@ export async function createInventoryItem(
   const access = await requireOrgAccess(organization_id, ['owner', 'admin'], supabase)
   if (!access.success) return { error: access.error }
 
-  const currentCount = await getInventoryCount(organization_id)
-  const limit = await getPlanLimit(supabase, organization_id)
+  const { data: rpcRaw, error: rpcError } = await supabase.rpc('inventory_create_item_with_limit_check' as any, {
+    p_organization_id: organization_id,
+    p_name: name.trim(),
+    p_sku: sku || null,
+    p_description: description || null,
+    p_category: category || null,
+    p_quantity: quantity,
+    p_min_quantity: min_quantity,
+    p_price: price ?? null,
+    p_cost_price: cost_price ?? null,
+    p_unit: unit,
+    p_created_by: access.context.userId,
+  }) as unknown as { data: { success: boolean; error?: string; message?: string; id?: string }[]; error: any }
 
-  if (currentCount >= limit) {
-    return { error: `Límite alcanzado. Máximo ${limit} productos en tu plan.` }
+  const rpcResult = Array.isArray(rpcRaw) ? rpcRaw[0] : rpcRaw
+
+  if (rpcError || !rpcResult?.success) {
+    const errorMsg = rpcResult?.error === 'limit_exceeded'
+      ? rpcResult?.message || `Límite alcanzado. Máximo productos en tu plan.`
+      : 'Error al crear el producto. Intenta de nuevo.'
+    captureError('inventory_create_rpc_error', rpcError || new Error(errorMsg), { organization_id })
+    return { error: errorMsg }
   }
 
-  const { data: item, error: insertError } = await supabase
-    .from('inventory_items')
-    .insert({
-      organization_id,
-      name: name.trim(),
-      sku: sku || null,
-      description: description || null,
-      category: category || null,
-      quantity,
-      min_quantity,
-      price,
-      cost_price,
-      unit,
-      active: true,
-    })
-    .select('id')
-    .single()
-
-  if (insertError) {
-    captureError('inventory_create_insert_error', insertError, { organization_id })
-    return { error: 'Error al crear el producto. Intenta de nuevo.' }
-  }
-
-  console.log('[createInventoryItem] Item created successfully:', item.id)
+  console.log('[createInventoryItem] Item created successfully:', rpcResult.id)
 
   revalidatePath('/inventario')
   revalidatePath('/dashboard')
 
-  return { success: true, itemId: item.id }
+  return { success: true, itemId: rpcResult.id }
 }
 
 export type CreateInventoryItemFormState = {

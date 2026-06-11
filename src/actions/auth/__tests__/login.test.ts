@@ -90,7 +90,7 @@ describe('loginAction', () => {
 
   it('rate limiter bloquea después de demasiados intentos', async () => {
     const { authLimiter } = await import('@/lib/rate-limiter')
-    vi.mocked(authLimiter.check).mockReturnValueOnce({ allowed: false })
+    vi.mocked(authLimiter.check).mockReturnValueOnce({ allowed: false, remaining: 0, resetMs: 60000 })
 
     const formData = new FormData()
     formData.set('email', 'test@mail.com')

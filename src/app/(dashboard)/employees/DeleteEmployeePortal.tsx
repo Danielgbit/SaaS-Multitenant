@@ -17,12 +17,13 @@ export function DeleteEmployeePortal({ employee, onClose }: DeleteEmployeePortal
   const [reason, setReason] = useState('')
 
   if (!employee) return null
+  const safeEmployee = employee
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     startTransition(async () => {
-      const result = await archiveEmployee(employee.id, reason || undefined)
+      const result = await archiveEmployee(safeEmployee.id, reason || undefined)
       if (result.error) setError(result.error); else onClose()
     })
   }

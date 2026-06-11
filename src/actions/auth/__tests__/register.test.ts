@@ -105,7 +105,7 @@ describe('registerAction', () => {
 
   it('rate limiter bloquea registros excesivos', async () => {
     const { registerLimiter } = await import('@/lib/rate-limiter')
-    vi.mocked(registerLimiter.check).mockReturnValueOnce({ allowed: false })
+    vi.mocked(registerLimiter.check).mockReturnValueOnce({ allowed: false, remaining: 0, resetMs: 60000 })
 
     const result = await registerAction(null, validFormData())
 

@@ -43,7 +43,7 @@ export async function getInventoryItems(
   const supabase = await createClient()
 
   if (filters?.lowStock) {
-    const { data, error } = await supabase.rpc('get_low_stock_items', {
+    const { data, error } = await supabase.rpc('get_low_stock_items' as any, {
       p_organization_id: organizationId,
       p_include_zero_min: false,
     })
@@ -137,7 +137,7 @@ export async function getLowStockItems(
   if (!access.success) return []
   const supabase = await createClient()
 
-  const { data, error } = await supabase.rpc('get_low_stock_items', {
+  const { data, error } = await supabase.rpc('get_low_stock_items' as any, {
     p_organization_id: organizationId,
     p_include_zero_min: false,
   })
