@@ -30,7 +30,7 @@ import { ASSISTED_RECONCILIATION_MAX_DELTA } from '@/lib/inventory/constants'
 const DUPLICATE_DIVERGENCE_CODE = '23505'
 
 export async function runInventoryReconciliation(): Promise<ReconciliationResult> {
-  const supabase = createServiceRoleClient()
+  const supabase = await createServiceRoleClient()
   const result: ReconciliationResult = {
     total_checked: 0,
     total_diverged: 0,

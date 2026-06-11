@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   })
 
   // Heartbeat
-  const supabase = createServiceRoleClient()
+  const supabase = await createServiceRoleClient()
   await supabase.rpc('upsert_worker_heartbeat', {
     p_worker_name: 'cron-inventory-reconciliation',
     p_status: result.errors.length > 0 ? 'warning' : 'healthy',
