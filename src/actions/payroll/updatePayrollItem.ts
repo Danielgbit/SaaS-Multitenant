@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { Database } from '@db/supabase'
+import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { Database } from '@db/supabase'

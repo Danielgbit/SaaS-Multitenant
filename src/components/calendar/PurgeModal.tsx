@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { AlertTriangle, Calendar, ChevronLeft, ChevronRight, Clock, Filter, Loader2, RefreshCw, Trash2, XCircle, CheckCircle2 } from 'lucide-react'
-import { Modal, Button } from '@/components/ui'
+import { AlertTriangle, Calendar, Check, ChevronLeft, ChevronRight, Clock, Filter, Loader2, RefreshCw, Search, Trash2, X, XCircle, CheckCircle2 } from 'lucide-react'
+import { Modal, Button, Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { PurgeCandidate } from '@/lib/cleanup-helpers'
 import { getAppointmentsByFilters } from '@/lib/cleanup-helpers'

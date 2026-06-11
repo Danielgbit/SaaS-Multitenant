@@ -102,10 +102,10 @@ export function TabSettings({ organizationId }: TabSettingsProps) {
     setTimeout(() => setToast(null), 4000)
   }
 
-  if (loading) {
   const toggleThumbBg = '#FFFFFF'
 
-  return (
+  if (loading) {
+    return (
       <div className="flex items-center justify-center py-16">
         <Spinner size="lg" style={{ color: COLORS.primary }} />
       </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Modal, Button } from '@/components/ui'
+import { Modal, Button, Spinner } from '@/components/ui'
 import type { CalendarColors, Employee, Client, Service, TimeSlot, NewAppointmentData } from '@/types/calendar'
 import { WizardHeader } from './WizardHeader'
 import { StepClient } from './StepClient'

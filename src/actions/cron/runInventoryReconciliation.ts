@@ -3,9 +3,11 @@
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { appLog } from '@/lib/app-logger'
 import { captureError } from '@/lib/error-logger'
+import type { Database } from '@db/supabase'
 
 interface Divergence {
   id: string
+  inventory_item_id: string
   name: string
   organization_id: string
   current_stock: number
@@ -55,11 +57,13 @@ export async function runInventoryReconciliation(): Promise<ReconciliationResult
     .select('inventory_item_id, id')
     .eq('status', 'open')
 
-  const openSet = new Map((existingOpen || []).map(r => [r.inventory_item_id, r.id]))
+  const openSet = new Map((existingOpen || []).map((r: { inventory_item_id: string; id: string }) => [r.inventory_item_id, r.id]))
 
   // 3. Process each divergence
   for (const item of items) {
-    if (openSet.has(item.id)) {
+    const existingDivergenceId = openSet.get(item.inventory_item_id)
+
+    if (existingDivergenceId) {
       const { error: updateErr } = await supabase
         .from('inventory_divergences')
         .update({
@@ -74,15 +78,15 @@ export async function runInventoryReconciliation(): Promise<ReconciliationResult
           suggested_action: Math.abs(item.delta) <= ASSISTED_RECONCILIATION_MAX_DELTA
             ? 'align_to_ledger'
             : 'investigate',
-        } as any)
-        .eq('id', openSet.get(item.id))
+        } satisfies Database["public"]["Tables"]["inventory_divergences"]["Update"])
+        .eq('id', existingDivergenceId)
 
       if (updateErr) result.errors.push(updateErr.message)
     } else {
       const { error: insertErr } = await supabase
         .from('inventory_divergences')
         .insert({
-          inventory_item_id: item.id,
+          inventory_item_id: item.inventory_item_id,
           organization_id: item.organization_id,
           current_stock: item.current_stock,
           ledger_stock: item.ledger_stock,
@@ -93,12 +97,12 @@ export async function runInventoryReconciliation(): Promise<ReconciliationResult
           suggested_action: Math.abs(item.delta) <= ASSISTED_RECONCILIATION_MAX_DELTA
             ? 'align_to_ledger'
             : 'investigate',
-        } as any)
+        } satisfies Database["public"]["Tables"]["inventory_divergences"]["Insert"])
 
       if (insertErr && insertErr.code !== DUPLICATE_DIVERGENCE_CODE) {
         result.errors.push(insertErr.message)
         captureError('inventory_divergence_insert_failed', insertErr, {
-          itemId: item.id,
+          itemId: item.inventory_item_id,
           organizationId: item.organization_id,
         })
       }
@@ -108,10 +112,10 @@ export async function runInventoryReconciliation(): Promise<ReconciliationResult
 
         if (!insertErr) {
           captureError('inventory_divergence_detected', new Error(
-            `Stock diverge: ${item.name} (${item.id}) ` +
+            `Stock diverge: ${item.name} (${item.inventory_item_id}) ` +
             `actual=${item.current_stock} ledger=${item.ledger_stock} delta=${item.delta > 0 ? '+' : ''}${item.delta}`
           ), {
-            itemId: item.id,
+            itemId: item.inventory_item_id,
             itemName: item.name,
             organizationId: item.organization_id,
             currentStock: item.current_stock,
@@ -124,9 +128,9 @@ export async function runInventoryReconciliation(): Promise<ReconciliationResult
   }
 
   // 4. Resolve divergences that no longer exist
-  const currentIds = new Set(items.map(i => i.id))
+  const currentItemIds = new Set(items.map(i => i.inventory_item_id))
   for (const [itemId, recordId] of openSet) {
-    if (!currentIds.has(itemId)) {
+    if (!currentItemIds.has(itemId)) {
       const { data: existingRecord } = await supabase
         .from('inventory_divergences')
         .select('action_taken')
@@ -142,7 +146,7 @@ export async function runInventoryReconciliation(): Promise<ReconciliationResult
             ? 'auto_resolved_before_action'
             : 'resolved_after_new_movement',
           updated_at: new Date().toISOString(),
-        } as any)
+        } satisfies Database["public"]["Tables"]["inventory_divergences"]["Update"])
         .eq('id', recordId)
 
       result.resolved_divergences++

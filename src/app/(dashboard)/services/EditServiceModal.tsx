@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
+import { PencilLine, X, Scissors, Clock, Check, DollarSign } from 'lucide-react'
 import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { Service } from '@/types/services'

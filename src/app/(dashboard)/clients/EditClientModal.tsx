@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { Check, AlertCircle, HelpCircle, UserCircle, PhoneCall, MessageCircle, Users, User, BellOff, Phone, Mail } from 'lucide-react'
-import { Modal, Button } from '@/components/ui'
+import { Modal, Button, Spinner } from '@/components/ui'
 import type { ConfirmationMethod } from '@/types/clients'
 import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
 import { colombianNameSchema } from '@/schemas/common'

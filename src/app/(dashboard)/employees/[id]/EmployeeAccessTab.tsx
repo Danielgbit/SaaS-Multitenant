@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, AlertTriangle, Link2, Send, Shield } from 'lucide-react'
+import { KeyRound, UserPlus, Mail, Copy, Check, RefreshCw, AlertTriangle, Link2, Send, Shield, X } from 'lucide-react'
 import { Modal, Button, Spinner } from '@/components/ui'
 import { toast } from 'sonner'
 import { createInvitation } from '@/actions/invitations/createInvitation'
