@@ -4,6 +4,9 @@ import { revalidateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { MarkCompletedSchema, type MarkCompletedState } from './schemas'
+import { canMarkCompleted, calculateTotal } from './helpers'
+import type { ServiceWithPrice, EmployeeServiceOverride } from './helpers'
+import type { ConfirmationStatus } from '@/types/confirmations'
 
 export async function markCompleted(
   prevState: MarkCompletedState,
@@ -79,8 +82,17 @@ export async function markCompleted(
     return { error: 'No se encontró tu perfil de empleado.' }
   }
 
-  if (employee.id !== appointment.employee_id) {
-    return { error: 'Solo puedes marcar como completadas tus propias citas.' }
+  if (!appointment.confirmation_status) {
+    return { error: 'Estado de confirmación inválido.' }
+  }
+
+  const transition = canMarkCompleted(
+    appointment.confirmation_status as ConfirmationStatus,
+    appointment.employee_id,
+    employee.id
+  )
+  if (!transition.allowed) {
+    return { error: transition.reason! }
   }
 
   const now = new Date().toISOString()
@@ -97,24 +109,31 @@ export async function markCompleted(
   // Get prices from appointment_services with employee override support
   const { data: appointmentServices } = await supabase
     .from('appointment_services')
-    .select('service_id, services(price)')
+    .select('service_id, services!inner(price)')
     .eq('appointment_id', appointmentId)
 
-  let basePrice = 0
-  for (const as of appointmentServices || []) {
-    // Check for employee-specific price override
-    const { data: employeeService } = await supabase
-      .from('employee_services')
-      .select('price_override')
-      .eq('employee_id', appointment.employee_id)
-      .eq('service_id', as.service_id)
-      .single()
+  const serviceIds = (appointmentServices ?? []).map(as => as.service_id)
+  let overrides: EmployeeServiceOverride[] = []
 
-    // Use override if exists, otherwise use base price
-    const price = employeeService?.price_override || as.services?.price || 0
-    basePrice += price
+  if (serviceIds.length > 0) {
+    const { data: employeeServiceRows } = await supabase
+      .from('employee_services')
+      .select('service_id, price_override')
+      .eq('employee_id', appointment.employee_id!)
+      .in('service_id', serviceIds)
+
+    overrides = (employeeServiceRows ?? []).map(es => ({
+      service_id: es.service_id,
+      price_override: es.price_override,
+    }))
   }
 
+  const servicesWithPrice: ServiceWithPrice[] = (appointmentServices ?? []).map(as => ({
+    service_id: as.service_id,
+    price: as.services.price,
+  }))
+
+  const basePrice = calculateTotal(servicesWithPrice, overrides, 0)
   const finalPrice = basePrice + (priceAdjustment || 0)
 
   const { data: log, error: logError } = await supabase

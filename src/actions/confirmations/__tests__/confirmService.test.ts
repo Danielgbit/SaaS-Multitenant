@@ -1,18 +1,9 @@
 import { describe, it, expect } from 'vitest'
-
-// Test the pure logic layer: state transitions, permission checks, and price calculations.
-// The actual Supabase integration is validated via shadow mode.
+import { canConfirm, calculateTotal } from '../helpers'
+import type { ConfirmationStatus } from '@/types/confirmations'
+import type { ServiceWithPrice, EmployeeServiceOverride } from '../helpers'
 
 describe('confirmService — state transition logic', () => {
-  type ConfirmationStatus = 'scheduled' | 'completed' | 'confirmed' | 'needs_review'
-
-  function canConfirm(status: ConfirmationStatus): { allowed: boolean; reason?: string } {
-    if (status === 'confirmed') return { allowed: false, reason: 'La cita ya está confirmada' }
-    if (status === 'scheduled') return { allowed: false, reason: 'El empleado no ha marcado completado' }
-    if (status === 'completed' || status === 'needs_review') return { allowed: true }
-    return { allowed: false, reason: 'Estado inválido' }
-  }
-
   it('allows confirm when status is completed', () => {
     expect(canConfirm('completed').allowed).toBe(true)
   })
@@ -24,17 +15,78 @@ describe('confirmService — state transition logic', () => {
   it('rejects confirm when already confirmed', () => {
     const result = canConfirm('confirmed')
     expect(result.allowed).toBe(false)
-    expect(result.reason).toContain('ya está confirmada')
+    expect(result.reason).toContain('ya fue confirmada')
   })
 
   it('rejects confirm when still scheduled (employee not done)', () => {
     const result = canConfirm('scheduled')
     expect(result.allowed).toBe(false)
-    expect(result.reason).toContain('no ha marcado')
+    expect(result.reason).toContain('no fue marcada')
+  })
+
+  it('rejects confirm when pending_confirmation (employee not done)', () => {
+    const result = canConfirm('pending_confirmation')
+    expect(result.allowed).toBe(false)
+    expect(result.reason).toContain('no fue marcada')
   })
 })
 
-describe('confirmService — authorization logic', () => {
+describe('confirmService — price calculation', () => {
+  it('total = base price + adjustment, no overrides', () => {
+    const services: ServiceWithPrice[] = [
+      { service_id: 's1', price: 50000 },
+    ]
+    const overrides: EmployeeServiceOverride[] = []
+    expect(calculateTotal(services, overrides, 10000)).toBe(60000)
+  })
+
+  it('override replaces base price', () => {
+    const services: ServiceWithPrice[] = [
+      { service_id: 's1', price: 50000 },
+    ]
+    const overrides: EmployeeServiceOverride[] = [
+      { service_id: 's1', price_override: 45000 },
+    ]
+    expect(calculateTotal(services, overrides, 0)).toBe(45000)
+  })
+
+  it('multiple services with mixed overrides', () => {
+    const services: ServiceWithPrice[] = [
+      { service_id: 's1', price: 50000 },
+      { service_id: 's2', price: 30000 },
+    ]
+    const overrides: EmployeeServiceOverride[] = [
+      { service_id: 's1', price_override: 45000 },
+    ]
+    expect(calculateTotal(services, overrides, 0)).toBe(75000)
+  })
+
+  it('total = base price when no adjustment', () => {
+    const services: ServiceWithPrice[] = [
+      { service_id: 's1', price: 50000 },
+    ]
+    expect(calculateTotal(services, [], 0)).toBe(50000)
+  })
+
+  it('adjustment can be negative (discount)', () => {
+    const services: ServiceWithPrice[] = [
+      { service_id: 's1', price: 50000 },
+    ]
+    expect(calculateTotal(services, [], -5000)).toBe(45000)
+  })
+
+  it('empty services returns 0', () => {
+    expect(calculateTotal([], [], 0)).toBe(0)
+  })
+
+  it('adjustment with empty services returns adjustment value', () => {
+    expect(calculateTotal([], [], 10000)).toBe(10000)
+  })
+})
+
+// Test-only utility: documenta qué roles pueden confirmar
+// NO usado en producción — la autorización real usa requireOrgAccess
+describe('confirmService — authorization roles (test-only)', () => {
   type Role = 'owner' | 'admin' | 'staff' | 'empleado'
 
   function canConfirmService(role: Role): boolean {
@@ -47,20 +99,7 @@ describe('confirmService — authorization logic', () => {
   it('rejects employee from confirming', () => expect(canConfirmService('empleado')).toBe(false))
 })
 
-describe('confirmService — price calculation', () => {
-  function calculateTotal(basePrice: number, adjustment: number, overrides: Array<{ serviceId: string; price?: number }>): number {
-    return basePrice + adjustment
-  }
-
-  it('total = base price + adjustment', () => {
-    expect(calculateTotal(50000, 10000, [])).toBe(60000)
-  })
-
-  it('total = base price when no adjustment', () => {
-    expect(calculateTotal(50000, 0, [])).toBe(50000)
-  })
-})
-
+// Test double para comportamiento orquestado (no es lógica pura)
 describe('confirmService — helper failure behavior', () => {
   type FinancialResult = {
     payroll: { attempted: boolean; success: boolean; error?: string }

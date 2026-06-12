@@ -7,6 +7,9 @@ import { ConfirmServiceSchema, type ConfirmServiceState } from './schemas'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
 import { createEntryFromSource } from '@/actions/cash-sessions/createEntryFromSource'
+import { canConfirm, calculateTotal } from './helpers'
+import type { ServiceWithPrice, EmployeeServiceOverride } from './helpers'
+import type { ConfirmationStatus } from '@/types/confirmations'
 
 export async function confirmService(
   prevState: ConfirmServiceState,
@@ -47,12 +50,13 @@ export async function confirmService(
     return { success: false, error: 'Cita no encontrada.' }
   }
 
-  if (appointment.confirmation_status === 'confirmed') {
-    return { success: false, error: 'Esta cita ya fue confirmada.' }
+  if (!appointment.confirmation_status) {
+    return { success: false, error: 'Estado de confirmación inválido.' }
   }
 
-  if (appointment.confirmation_status === 'scheduled') {
-    return { success: false, error: 'Esta cita aún no fue marcada por el empleado.' }
+  const statusCheck = canConfirm(appointment.confirmation_status as ConfirmationStatus)
+  if (!statusCheck.allowed) {
+    return { success: false, error: statusCheck.reason! }
   }
 
   const access = await requireOrgAccess(appointment.organization_id, ['owner', 'admin', 'staff'])
@@ -65,23 +69,32 @@ export async function confirmService(
   // Get prices from appointment_services with employee override support
   const { data: appointmentServices } = await supabase
     .from('appointment_services')
-    .select('service_id, services(price)')
+    .select('service_id, services!inner(price)')
     .eq('appointment_id', appointmentId)
 
-  let currentPrice = 0
-  for (const as of appointmentServices || []) {
-    // Check for employee-specific price override
-    const { data: employeeService } = await supabase
-      .from('employee_services')
-      .select('price_override')
-      .eq('employee_id', appointment.employee_id!)
-      .eq('service_id', as.service_id)
-      .single()
+  const serviceIds = (appointmentServices ?? []).map(as => as.service_id)
+  let overrides: EmployeeServiceOverride[] = []
 
-    // Use override if exists, otherwise use base price
-    const price = employeeService?.price_override || as.services?.price || 0
-    currentPrice += price
+  if (serviceIds.length > 0 && appointment.employee_id) {
+    const { data: employeeServiceRows } = await supabase
+      .from('employee_services')
+      .select('service_id, price_override')
+      .eq('employee_id', appointment.employee_id)
+      .in('service_id', serviceIds)
+
+    overrides = (employeeServiceRows ?? []).map(es => ({
+      service_id: es.service_id,
+      price_override: es.price_override,
+    }))
   }
+
+  const servicesWithPrice: ServiceWithPrice[] = (appointmentServices ?? []).map(as => ({
+    service_id: as.service_id,
+    price: as.services.price,
+  }))
+
+  const adjustment = appointment.price_adjustment ?? 0
+  const currentPrice = calculateTotal(servicesWithPrice, overrides, adjustment)
 
   const { data: newLog, error: logError } = await supabase
     .from('confirmation_logs')
