@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, type ReactNode } from 'react'
+import { useRef, useId, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -12,8 +12,10 @@ interface ModalProps {
   onClose: () => void
   title: string
   children: ReactNode
+  header?: ReactNode
   footer?: ReactNode
   size?: 'sm' | 'md' | 'lg'
+  scrollable?: boolean
   className?: string
 }
 
@@ -23,10 +25,9 @@ const sizeMap = {
   lg: 'max-w-lg',
 }
 
-const titleId = 'modal-title'
-
-export function Modal({ isOpen, onClose, title, children, footer, size = 'md', className }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, header, footer, size = 'md', scrollable, className }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null)
+  const titleId = useId()
 
   // Orden explícito: 1. focus trap (incluye escape + auto-focus) 2. scroll lock
   useFocusTrap(panelRef, isOpen, onClose)
@@ -51,17 +52,25 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md', c
         className={cn(
           'relative w-full rounded-2xl bg-white dark:bg-[#111827] p-6 shadow-xl transition-all duration-200',
           sizeMap[size],
+          scrollable !== false && 'max-h-[85dvh] overflow-y-auto',
           className
         )}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 id={titleId} className="text-lg font-semibold text-[#0F172A] dark:text-[#F1F5F9]">
-            {title}
-          </h2>
-          <Button variant="ghost" size="icon" aria-label="Cerrar" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+        {header ? (
+          <>
+            <h2 id={titleId} className="sr-only">{title}</h2>
+            {header}
+          </>
+        ) : (
+          <div className="flex items-center justify-between mb-4">
+            <h2 id={titleId} className="text-lg font-semibold text-[#0F172A] dark:text-[#F1F5F9]">
+              {title}
+            </h2>
+            <Button variant="ghost" size="icon" aria-label="Cerrar" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
 
         <div className="text-sm text-[#475569] dark:text-[#94A3B8]">
           {children}

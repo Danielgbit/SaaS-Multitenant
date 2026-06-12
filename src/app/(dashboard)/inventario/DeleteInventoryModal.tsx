@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertTriangle, CheckCircle } from 'lucide-react'
 import { Modal, Button } from '@/components/ui'
 import { captureError } from '@/lib/error-logger'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
