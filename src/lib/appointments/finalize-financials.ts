@@ -1,4 +1,5 @@
 import { appLog } from '@/lib/app-logger'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 export type FinancialResult = {
   payroll: {
@@ -27,7 +28,8 @@ export async function finalizeAppointmentFinancials(
   appointmentId: string,
   organizationId: string,
   employeeId: string,
-  idempotencyPrefix: string
+  idempotencyPrefix: string,
+  supabase?: SupabaseClient
 ): Promise<FinancialResult> {
   const result: FinancialResult = {
     payroll: { attempted: false, success: false },
@@ -40,7 +42,7 @@ export async function finalizeAppointmentFinancials(
     const { addAppointmentToPayroll } = await import(
       '@/actions/payroll/addAppointmentToPayroll'
     )
-    const payrollResult = await addAppointmentToPayroll(appointmentId)
+    const payrollResult = await addAppointmentToPayroll(appointmentId, supabase)
     if (payrollResult.success) {
       result.payroll.success = true
       result.payroll.data = payrollResult.data
@@ -70,7 +72,7 @@ export async function finalizeAppointmentFinancials(
       appointmentId,
       organizationId,
       idempotencyKey: accrualKey,
-    })
+    }, supabase)
     if ('success' in commissionResult) {
       result.commission.success = true
     } else {

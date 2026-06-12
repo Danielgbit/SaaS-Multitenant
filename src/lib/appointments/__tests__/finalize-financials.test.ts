@@ -206,11 +206,11 @@ describe('finalizeAppointmentFinancials', () => {
       appointmentId: aptId,
       organizationId: orgId,
       idempotencyKey: `markManually_user1_${aptId}_${empId}`,
-    })
+    }, undefined)
     expect(recordCommissionAccrual).toHaveBeenNthCalledWith(2, {
       appointmentId: aptId,
       organizationId: orgId,
       idempotencyKey: `auto_complete_cron_${aptId}_${empId}`,
-    })
+    }, undefined)
   })
 })

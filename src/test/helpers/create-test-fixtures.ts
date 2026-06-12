@@ -275,6 +275,7 @@ export async function createAppointmentWithEndTime(
 
     const { data: created, error: userErr } = await supabase.auth.admin.createUser({
       email,
+      password: 'Test12345!',
       email_confirm: true,
     })
     if (userErr) throw new Error(`createUser: ${userErr.message}`)

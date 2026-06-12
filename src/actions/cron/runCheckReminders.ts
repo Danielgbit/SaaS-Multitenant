@@ -245,7 +245,8 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
               apt.id,
               apt.organization_id,
               aptDetail.employee_id,
-              'auto_complete_cron'
+              'auto_complete_cron',
+              supabase
             )
             appLog('info', '[runCheckReminders] auto-complete financials', {
               appointmentId: apt.id,

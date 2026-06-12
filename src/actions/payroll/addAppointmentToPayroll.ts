@@ -5,6 +5,7 @@ import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 interface AddToPayrollResult {
   success: boolean
@@ -76,16 +77,17 @@ function safeRevalidate(path: string) {
 }
 
 export async function addAppointmentToPayroll(
-  appointmentId: string
+  appointmentId: string,
+  supabase?: SupabaseClient
 ): Promise<AddToPayrollResult> {
   const parsed = z.string().uuid().safeParse(appointmentId)
   if (!parsed.success) {
     return { success: false, error: 'ID de cita inválido' }
   }
 
-  const supabase = await createClient()
+  const client = supabase ?? await createClient()
 
-  const { data: appointment, error: aptErr } = await supabase
+  const { data: appointment, error: aptErr } = await client
     .from('appointments')
     .select(`
       id, organization_id, employee_id, start_time, is_commissionable, status,
@@ -118,7 +120,7 @@ export async function addAppointmentToPayroll(
   const orgId = apt.organization_id as string
   const employeeId = apt.employee_id as string
 
-  const access = await requireOrgAccess(orgId, ['owner', 'admin', 'staff'])
+  const access = await requireOrgAccess(orgId, ['owner', 'admin', 'staff'], client)
   if (!access.success) return { success: false, error: access.error }
 
   // ── Período YYYY-MM desde start_time ────────────────
@@ -157,7 +159,7 @@ export async function addAppointmentToPayroll(
   }
 
   // ── Datos del empleado ──────────────────────────────
-  const { data: employee } = await supabase
+  const { data: employee } = await client
     .from('employees')
     .select('*')
     .eq('id', employeeId)
@@ -205,7 +207,7 @@ export async function addAppointmentToPayroll(
     if (!svc || !svc.has_commission) continue
 
     const price = svc.price ?? 0
-    const rate = await getCommissionRate(supabase, employeeId, svc.id, defaultRate)
+    const rate = await getCommissionRate(client, employeeId, svc.id, defaultRate)
     const commissionAmount = Number((price * (rate / 100)).toFixed(2))
 
     const { error: insertErr } = await serviceSupabase

@@ -5,22 +5,26 @@ import { assertValidSign } from '@/lib/financial/sign-utils'
 import { appLog } from '@/lib/app-logger'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import type { SupabaseClient } from '@supabase/supabase-js'
 const InputSchema = z.object({
   appointmentId: z.string().uuid(),
   organizationId: z.string().uuid(),
   idempotencyKey: z.string().optional(),
 })
 
-export async function recordCommissionAccrual(input: z.infer<typeof InputSchema>) {
+export async function recordCommissionAccrual(
+  input: z.infer<typeof InputSchema>,
+  supabase?: SupabaseClient
+) {
   const parsed = InputSchema.safeParse(input)
   if (!parsed.success) {
     return { error: 'Datos inválidos' }
   }
 
   const { appointmentId, organizationId, idempotencyKey } = parsed.data
-  const supabase = await createClient()
+  const client = supabase ?? await createClient()
 
-  const { data: appointment } = await supabase
+  const { data: appointment } = await client
     .from('appointments')
     .select('id, employee_id, is_commissionable')
     .eq('id', appointmentId)
@@ -30,7 +34,7 @@ export async function recordCommissionAccrual(input: z.infer<typeof InputSchema>
     return { error: 'Cita no comisionable o sin empleado' }
   }
 
-  const { data: employee } = await supabase
+  const { data: employee } = await client
     .from('employees')
     .select('percentage')
     .eq('id', appointment.employee_id)
@@ -42,7 +46,7 @@ export async function recordCommissionAccrual(input: z.infer<typeof InputSchema>
     services: { id: string; name: string; price: number; has_commission: boolean } | null
   }
 
-  const { data: services } = await supabase
+  const { data: services } = await client
     .from('appointment_services')
     .select(`
       id,
@@ -51,14 +55,14 @@ export async function recordCommissionAccrual(input: z.infer<typeof InputSchema>
     `)
     .eq('appointment_id', appointmentId)
 
-  const serviceRows: ServiceJoinRow[] = (services || []) as ServiceJoinRow[]
+  const serviceRows: ServiceJoinRow[] = (services || []) as unknown as ServiceJoinRow[]
   const defaultRate = employee?.percentage ?? 60
 
   for (const row of serviceRows) {
     const svc = row.services
     if (!svc?.has_commission) continue
 
-    const { data: override } = await supabase
+    const { data: override } = await client
       .from('employee_services')
       .select('commission_rate')
       .eq('employee_id', appointment.employee_id)
@@ -74,7 +78,7 @@ export async function recordCommissionAccrual(input: z.infer<typeof InputSchema>
       ? `${idempotencyKey}_${row.id}`
       : `comm_accrued_manual_${row.id}`
 
-    const { error: txError } = await supabase
+    const { error: txError } = await client
       .from('financial_events')
       .insert({
         organization_id: organizationId,
