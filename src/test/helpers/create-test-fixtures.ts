@@ -193,3 +193,195 @@ export async function destroyFixtures(f: IntegrationFixtures): Promise<void> {
   await supabase.from('employees').delete().eq('id', empId)
   await supabase.from('organizations').delete().eq('id', orgId)
 }
+
+// =========================================================================================
+// Appointment-with-offset helper — positions appointments in/out of cron's query windows
+// =========================================================================================
+
+export type CreateAppointmentWithEndTimeInput = {
+  organizationId: string
+  employeeId: string
+  clientId: string
+  serviceId: string
+  /** Minutes from "now" for the appointment's end_time.
+   *  Positive = future, negative = past. */
+  endTimeOffsetMinutes: number
+  confirmationStatus: 'scheduled' | 'confirmed' | 'needs_review' | 'completed'
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show'
+  durationMinutes?: number
+  /** When true (default), also provisions:
+   *  1. a real auth.users row,
+   *  2. links it to the employee (employees.user_id),
+   *  3. an organization_members row with role='owner'. */
+  includeUserAndMember?: boolean
+}
+
+export type CreatedAppointmentWithEndTime = {
+  appointmentId: string
+  appointmentServiceId: string
+  userId: string
+  organizationMemberId: string
+}
+
+/**
+ * Creates an appointment whose end_time is offset by N minutes from "now",
+ * enabling tests to position the row in/out of the cron's query windows:
+ *   • endTimeOffsetMinutes ∈ [4, 5]  → reminder window (Phase 1)
+ *   • endTimeOffsetMinutes ≈ -60     → alert window (Phase 2)
+ *   • endTimeOffsetMinutes ≤ -120    → auto-complete window (Phase 3)
+ *
+ * By default (includeUserAndMember !== false), also provisions:
+ *   1. A real auth.users row
+ *   2. Links it to the employee (employees.user_id) — NOTE: overwrites any
+ *      prior user_id on the employee. If the same fixture is used in
+ *      multiple test calls, only the most recent userId is retained on
+ *      the employee; prior organization_members rows persist until
+ *      cleanupAppointmentsAndUsers removes them.
+ *   3. An organization_members row with role='owner' so the cron can
+ *      send notifications to that user.
+ *
+ * IMPORTANT — appointment_services is a pure pivot:
+ *   Columns are only (id, appointment_id, service_id). Do NOT add price.
+ *   The service price is resolved at runtime via JOIN with services.
+ */
+export async function createAppointmentWithEndTime(
+  supabase: SupabaseClient,
+  input: CreateAppointmentWithEndTimeInput
+): Promise<CreatedAppointmentWithEndTime> {
+  const {
+    organizationId,
+    employeeId,
+    clientId,
+    serviceId,
+    endTimeOffsetMinutes,
+    confirmationStatus,
+    status,
+    durationMinutes = 60,
+    includeUserAndMember = true,
+  } = input
+
+  const appointmentId = randomUUID()
+  const appointmentServiceId = randomUUID()
+  const organizationMemberId = randomUUID()
+
+  const endTime = new Date(Date.now() + endTimeOffsetMinutes * 60 * 1000)
+  const startTime = new Date(endTime.getTime() - durationMinutes * 60 * 1000)
+
+  // Optionally provision auth.users + link to employee + org member
+  let userId = ''
+
+  if (includeUserAndMember) {
+    const email = `test-${randomUUID().slice(0, 8)}@test.local`
+
+    const { data: created, error: userErr } = await supabase.auth.admin.createUser({
+      email,
+      email_confirm: true,
+    })
+    if (userErr) throw new Error(`createUser: ${userErr.message}`)
+    userId = created.user!.id
+
+    const { error: linkErr } = await supabase
+      .from('employees')
+      .update({ user_id: userId })
+      .eq('id', employeeId)
+    if (linkErr) throw new Error(`link employee.user_id: ${linkErr.message}`)
+
+    const { error: memberErr } = await supabase.from('organization_members').insert({
+      id: organizationMemberId,
+      organization_id: organizationId,
+      user_id: userId,
+      role: 'owner',
+    })
+    if (memberErr) throw new Error(`create org_member: ${memberErr.message}`)
+  }
+
+  // Insert the appointment
+  const { error: aptErr } = await supabase.from('appointments').insert({
+    id: appointmentId,
+    organization_id: organizationId,
+    employee_id: employeeId,
+    client_id: clientId,
+    status,
+    confirmation_status: confirmationStatus,
+    is_commissionable: true,
+    price_adjustment: 0,
+    start_time: startTime.toISOString(),
+    end_time: endTime.toISOString(),
+  })
+  if (aptErr) throw new Error(`create appointment: ${aptErr.message}`)
+
+  // Insert the pivot row (pure pivot, no price column)
+  const { error: aptSvcErr } = await supabase.from('appointment_services').insert({
+    id: appointmentServiceId,
+    appointment_id: appointmentId,
+    service_id: serviceId,
+  })
+  if (aptSvcErr) throw new Error(`create appointment_service: ${aptSvcErr.message}`)
+
+  return {
+    appointmentId,
+    appointmentServiceId,
+    userId,
+    organizationMemberId,
+  }
+}
+
+// =========================================================================================
+// cleanupAppointmentsAndUsers — Reverse cleanup for time-windowed appointments
+// =========================================================================================
+//
+// destroyFixtures() only knows about the 5 base appointments it created.
+// Appointments created via createAppointmentWithEndTime() live outside
+// that graph and must be torn down explicitly. Order of operations
+// (respects FK dependencies from child → parent):
+//
+//   1. period_commissions   (FK → appointments, no CASCADE)
+//   2. financial_events     (FK → appointments via entity_id, no CASCADE)
+//   3. appointments         (CASCADEs to appointment_services + confirmation_logs)
+//   4. auth.users           (CASCADEs to organization_members + notifications,
+//                            SET NULL on employees.user_id)
+//
+// Failures are logged, not thrown — cleanup must be best-effort.
+
+export async function cleanupAppointmentsAndUsers(
+  supabase: SupabaseClient,
+  appointmentIds: string[],
+  userIds: string[]
+): Promise<void> {
+  // 1. period_commissions — FK to appointments, no CASCADE.
+  for (const aptId of appointmentIds) {
+    try {
+      await supabase.from('period_commissions').delete().eq('appointment_id', aptId)
+    } catch (e) {
+      console.error(`[cleanup] period_commissions delete failed for ${aptId}:`, e)
+    }
+  }
+
+  // 2. financial_events — FK to appointments via entity_id, no CASCADE.
+  for (const aptId of appointmentIds) {
+    try {
+      await supabase.from('financial_events').delete().eq('entity_id', aptId)
+    } catch (e) {
+      console.error(`[cleanup] financial_events delete failed for ${aptId}:`, e)
+    }
+  }
+
+  // 3. appointments — CASCADEs to appointment_services + confirmation_logs.
+  for (const aptId of appointmentIds) {
+    try {
+      await supabase.from('appointments').delete().eq('id', aptId)
+    } catch (e) {
+      console.error(`[cleanup] appointment delete failed for ${aptId}:`, e)
+    }
+  }
+
+  // 4. auth.users — CASCADEs to organization_members + notifications;
+  // SET NULL on employees.user_id. Must run AFTER appointments deletion.
+  for (const userId of userIds) {
+    try {
+      await supabase.auth.admin.deleteUser(userId)
+    } catch (e) {
+      console.error(`[cleanup] deleteUser failed for ${userId}:`, e)
+    }
+  }
+}
