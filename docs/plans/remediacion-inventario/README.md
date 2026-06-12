@@ -40,7 +40,7 @@ graph LR
 | FIX-003 | Filtro lowStock roto | 1 | ✅ Completado | — |
 | FIX-004 | Acciones invisibles en touch | 1 | ✅ Completado | — |
 | FIX-005 | Venta sin validar stock (atómico) | 1 | ✅ Completado | — |
-| FIX-006 | Rollback transaccional recordInventoryPurchase/consumeInventory | 2 | ⬜ Pendiente | — |
+| FIX-006 | Rollback transaccional recordInventoryPurchase/consumeInventory | 2 | ✅ Completado | — |
 | FIX-007 | Regenerar tipos Supabase | 2 | ⬜ Pendiente | — |
 | FIX-008 | Tests Server Actions de inventario | 2 | ⬜ Pendiente | — |
 | FIX-009 | router.refresh() → actualizaciones optimistas | 2 | ⬜ Pendiente | — |

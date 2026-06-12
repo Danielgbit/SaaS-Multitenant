@@ -4265,6 +4265,43 @@ export type Database = {
           success: boolean
         }[]
       }
+      inventory_record_consumption: {
+        Args: {
+          p_cash_session_id?: string
+          p_created_by: string
+          p_estimated_cost?: number
+          p_item_id: string
+          p_notes?: string
+          p_organization_id: string
+          p_quantity: number
+        }
+        Returns: {
+          error: string
+          quantity_after: number
+          quantity_before: number
+          success: boolean
+        }[]
+      }
+      inventory_record_purchase: {
+        Args: {
+          p_cash_session_id?: string
+          p_created_by: string
+          p_item_id: string
+          p_notes?: string
+          p_organization_id: string
+          p_payment_method?: string
+          p_payment_status: string
+          p_quantity: number
+          p_total_cost: number
+          p_unit_cost: number
+        }
+        Returns: {
+          error: string
+          quantity_after: number
+          quantity_before: number
+          success: boolean
+        }[]
+      }
       inventory_set_stock: {
         Args: {
           p_item_id: string

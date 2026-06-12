@@ -2,10 +2,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
-import type { Database } from '@db/supabase'
-import { recordInventoryMovement } from '@/lib/inventory/inventory-movement'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
-import { captureError } from '@/lib/error-logger'
 
 export async function consumeInventory(input: {
   item_id: string
@@ -17,7 +14,7 @@ export async function consumeInventory(input: {
 
   const { data: item } = await supabase
     .from('inventory_items')
-    .select('id, name, quantity, organization_id')
+    .select('id, name, organization_id')
     .eq('id', input.item_id)
     .single()
 
@@ -28,53 +25,6 @@ export async function consumeInventory(input: {
 
   if (input.quantity <= 0) return { success: false, error: 'Cantidad debe ser > 0.' }
 
-  // Atomic decrement via RPC
-  const { data: rpcRaw, error: rpcError } = await supabase.rpc('inventory_decrement_stock', {
-    p_item_id: input.item_id,
-    p_quantity: input.quantity,
-    p_organization_id: item.organization_id,
-  })
-
-  const rpcResult = Array.isArray(rpcRaw) ? rpcRaw[0] : rpcRaw
-
-  if (rpcError || !rpcResult?.success) {
-    const msg = rpcResult?.error === 'insufficient_stock'
-      ? 'Stock insuficiente.'
-      : 'Error al actualizar stock.'
-    return { success: false, error: msg }
-  }
-
-  // Auditar movimiento (FIX-006: verificar retorno)
-  const movementResult = await recordInventoryMovement({
-    inventoryItemId: input.item_id,
-    organizationId: item.organization_id,
-    movementType: 'consumption',
-    quantityChange: -input.quantity,
-    quantityBefore: rpcResult.quantity_before,
-    quantityAfter: rpcResult.quantity_after,
-    reason: input.notes || undefined,
-    metadata: { estimated_cost: input.estimated_cost || null },
-    createdBy: access.context.userId,
-  })
-
-  if (!movementResult.success) {
-    const { error: compError } = await supabase.rpc('inventory_increment_stock', {
-      p_item_id: input.item_id,
-      p_quantity: input.quantity,
-      p_organization_id: item.organization_id,
-    })
-    if (compError) {
-      captureError('inventory_consumption_inconsistent_state', compError, {
-        itemId: input.item_id,
-        quantity: input.quantity,
-        organizationId: item.organization_id,
-      })
-      return { success: false, error: 'Error crítico: falló el movimiento y también la compensación.' }
-    }
-    return { success: false, error: 'Error al registrar el movimiento de inventario.' }
-  }
-
-  // Registrar consumo interno en caja (FIX-008: verificar retorno)
   const today = getTodayDateColombia()
   const { data: session } = await supabase
     .from('cash_sessions')
@@ -84,41 +34,23 @@ export async function consumeInventory(input: {
     .eq('status', 'open')
     .maybeSingle()
 
-  if (session) {
-    const entry: Database['public']['Tables']['operation_entries']['Insert'] = {
-      cash_session_id: session.id,
-      entry_type: 'inventory_out',
-      entry_group: 'inventory',
-      entry_status: 'active',
-      created_via: 'inventory_auto',
-      direction: null,
-      title: `Consumo: ${item.name} x${input.quantity}`,
-      description: input.notes || null,
-      amount: 0,
-      payment_method: null,
-      source_type: 'inventory',
-      source_id: input.item_id,
-      created_by: access.context.userId,
-      metadata: {
-        quantity: input.quantity,
-        estimated_cost: input.estimated_cost || null,
-        remaining_stock: rpcResult.quantity_after,
-      },
-    }
-    const { error: entryError } = await supabase.from('operation_entries').insert(entry)
+  const { data: rpcRaw, error: rpcError } = await supabase.rpc('inventory_record_consumption', {
+    p_item_id: input.item_id,
+    p_quantity: input.quantity,
+    p_organization_id: item.organization_id,
+    p_created_by: access.context.userId,
+    p_estimated_cost: input.estimated_cost ?? undefined,
+    p_notes: input.notes ?? undefined,
+    p_cash_session_id: session?.id ?? undefined,
+  })
 
-    if (entryError) {
-      captureError('inventory_consumption_entry_failed', entryError, {
-        itemId: input.item_id,
-        organizationId: item.organization_id,
-      })
-      await supabase.rpc('inventory_increment_stock', {
-        p_item_id: input.item_id,
-        p_quantity: input.quantity,
-        p_organization_id: item.organization_id,
-      })
-      return { success: false, error: 'Error al registrar el movimiento en caja. Se revirtió el stock.' }
-    }
+  const rpcResult = Array.isArray(rpcRaw) ? rpcRaw[0] : rpcRaw
+
+  if (rpcError || !rpcResult?.success) {
+    const msg = rpcResult?.error === 'insufficient_stock'
+      ? 'Stock insuficiente.'
+      : 'Error al consumir inventario.'
+    return { success: false, error: msg }
   }
 
   revalidatePath('/inventario')

@@ -3,8 +3,6 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTodayDateColombia } from '@/lib/utils/colombia-dates'
 import type { PaymentMethod } from '@/types/cash-sessions'
-import type { Database } from '@db/supabase'
-import { recordInventoryMovement } from '@/lib/inventory/inventory-movement'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { captureError } from '@/lib/error-logger'
 
@@ -20,7 +18,7 @@ export async function recordInventoryPurchase(input: {
 
   const { data: item } = await supabase
     .from('inventory_items')
-    .select('id, name, quantity, organization_id')
+    .select('id, name, organization_id')
     .eq('id', input.item_id)
     .single()
 
@@ -35,8 +33,7 @@ export async function recordInventoryPurchase(input: {
 
   const totalCost = input.quantity * input.unit_cost
 
-  // Validar cash session antes de modificar stock (FIX-007)
-  let cashSessionId: string | null = null
+  let cashSessionId: string | undefined
   if (input.payment_status === 'paid') {
     const today = getTodayDateColombia()
     const { data: session } = await supabase
@@ -53,80 +50,33 @@ export async function recordInventoryPurchase(input: {
     cashSessionId = session.id
   }
 
-  // Incrementar stock via RPC
-  const { data: rpcRaw, error: rpcError } = await supabase.rpc('inventory_increment_stock', {
+  const { data: rpcRaw, error: rpcError } = await supabase.rpc('inventory_record_purchase', {
     p_item_id: input.item_id,
     p_quantity: input.quantity,
     p_organization_id: item.organization_id,
+    p_created_by: access.context.userId,
+    p_unit_cost: input.unit_cost,
+    p_total_cost: totalCost,
+    p_payment_status: input.payment_status,
+    p_cash_session_id: cashSessionId,
+    p_notes: input.notes ?? undefined,
+    p_payment_method: input.payment_method ?? undefined,
   })
 
   const rpcResult = Array.isArray(rpcRaw) ? rpcRaw[0] : rpcRaw
 
   if (rpcError || !rpcResult?.success) {
-    return { success: false, error: 'Error al actualizar stock.' }
-  }
-
-  // Auditar movimiento (FIX-006: verificar retorno)
-  const movementResult = await recordInventoryMovement({
-    inventoryItemId: input.item_id,
-    organizationId: item.organization_id,
-    movementType: 'purchase',
-    quantityChange: input.quantity,
-    quantityBefore: rpcResult.quantity_before,
-    quantityAfter: rpcResult.quantity_after,
-    metadata: { unit_cost: input.unit_cost, total_cost: totalCost, payment_status: input.payment_status },
-    createdBy: access.context.userId,
-  })
-
-  if (!movementResult.success) {
-    const { error: compError } = await supabase.rpc('inventory_decrement_stock', {
-      p_item_id: input.item_id,
-      p_quantity: input.quantity,
-      p_organization_id: item.organization_id,
+    const errCode = rpcResult?.error ?? rpcError?.message ?? 'unknown'
+    captureError('inventory_purchase_rpc_failed', new Error(errCode), {
+      itemId: input.item_id,
+      organizationId: item.organization_id,
+      rpcError: errCode,
     })
-    if (compError) {
-      captureError('inventory_purchase_inconsistent_state', compError, {
-        itemId: input.item_id,
-        quantity: input.quantity,
-        organizationId: item.organization_id,
-      })
-      return { success: false, error: 'Error crítico: falló el movimiento y también la compensación.' }
-    }
-    return { success: false, error: 'Error al registrar el movimiento de inventario.' }
-  }
-
-  // Crear movimiento de caja (FIX-008: verificar retorno)
-  if (cashSessionId) {
-    const entry: Database['public']['Tables']['operation_entries']['Insert'] = {
-      cash_session_id: cashSessionId,
-      entry_type: 'inventory_purchase',
-      entry_group: 'inventory',
-      entry_status: 'active',
-      created_via: 'inventory_auto',
-      direction: 'out',
-      title: `Compra: ${item.name} x${input.quantity}`,
-      description: input.notes || null,
-      amount: totalCost,
-      payment_method: input.payment_method || null,
-      source_type: 'inventory',
-      source_id: input.item_id,
-      created_by: access.context.userId,
-      metadata: { quantity: input.quantity, unit_cost: input.unit_cost, payment_status: input.payment_status },
-    }
-    const { error: entryError } = await supabase.from('operation_entries').insert(entry)
-
-    if (entryError) {
-      captureError('inventory_purchase_entry_failed', entryError, {
-        itemId: input.item_id,
-        organizationId: item.organization_id,
-      })
-      await supabase.rpc('inventory_decrement_stock', {
-        p_item_id: input.item_id,
-        p_quantity: input.quantity,
-        p_organization_id: item.organization_id,
-      })
-      return { success: false, error: 'Error al registrar el movimiento en caja. Se revirtió el stock.' }
-    }
+    const userMsg =
+      errCode === 'item_not_found' ? 'Producto no encontrado.' :
+      errCode === 'invalid_payment_method' ? 'Método de pago inválido.' :
+      'Error al registrar la compra.'
+    return { success: false, error: userMsg }
   }
 
   revalidatePath('/inventario')
