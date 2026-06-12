@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { captureError } from '@/lib/error-logger'
+import { callGetLowStockItems } from '@/lib/inventory/inventory-rpc'
 
 export interface InventoryItem {
   id: string
@@ -43,7 +44,7 @@ export async function getInventoryItems(
   const supabase = await createClient()
 
   if (filters?.lowStock) {
-    const { data, error } = await supabase.rpc('get_low_stock_items' as any, {
+    const { data, error } = await callGetLowStockItems(supabase, {
       p_organization_id: organizationId,
       p_include_zero_min: false,
     })
@@ -137,7 +138,7 @@ export async function getLowStockItems(
   if (!access.success) return []
   const supabase = await createClient()
 
-  const { data, error } = await supabase.rpc('get_low_stock_items' as any, {
+  const { data, error } = await callGetLowStockItems(supabase, {
     p_organization_id: organizationId,
     p_include_zero_min: false,
   })

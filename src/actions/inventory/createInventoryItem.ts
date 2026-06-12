@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { z } from 'zod'
 import { captureError } from '@/lib/error-logger'
+import { callCreateItemWithLimitCheck } from '@/lib/inventory/inventory-rpc'
 
 const CreateInventoryItemSchema = z.object({
   organization_id: z.string().uuid('ID de organización inválido'),
@@ -41,7 +42,7 @@ export async function createInventoryItem(
   const access = await requireOrgAccess(organization_id, ['owner', 'admin'], supabase)
   if (!access.success) return { error: access.error }
 
-  const { data: rpcRaw, error: rpcError } = await supabase.rpc('inventory_create_item_with_limit_check' as any, {
+  const { data: rpcRaw, error: rpcError } = await callCreateItemWithLimitCheck(supabase, {
     p_organization_id: organization_id,
     p_name: name.trim(),
     p_sku: sku || null,
@@ -53,7 +54,7 @@ export async function createInventoryItem(
     p_cost_price: cost_price ?? null,
     p_unit: unit,
     p_created_by: access.context.userId,
-  }) as unknown as { data: { success: boolean; error?: string; message?: string; id?: string }[]; error: any }
+  })
 
   const rpcResult = Array.isArray(rpcRaw) ? rpcRaw[0] : rpcRaw
 
