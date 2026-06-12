@@ -25,12 +25,9 @@ export type CreateInventoryItemInput = z.infer<typeof CreateInventoryItemSchema>
 export async function createInventoryItem(
   input: CreateInventoryItemInput
 ): Promise<{ error?: string; success?: boolean; itemId?: string }> {
-  console.log('[createInventoryItem] Input:', input)
-
   const parsed = CreateInventoryItemSchema.safeParse(input)
 
   if (!parsed.success) {
-    console.log('[createInventoryItem] Validation failed:', parsed.error.issues)
     const firstError = parsed.error.issues[0]?.message
     return { error: firstError || 'Datos inválidos' }
   }
@@ -65,8 +62,6 @@ export async function createInventoryItem(
     captureError('inventory_create_rpc_error', rpcError || new Error(errorMsg), { organization_id })
     return { error: errorMsg }
   }
-
-  console.log('[createInventoryItem] Item created successfully:', rpcResult.id)
 
   revalidatePath('/inventario')
   revalidatePath('/dashboard')

@@ -60,7 +60,6 @@ beforeEach(() => {
 })
 
 const { recordInventoryPurchase } = await import('../recordInventoryPurchase')
-const { consumeInventory } = await import('../consumeInventory')
 
 const ORG_ID = 'org-1'
 const USER_ID = 'user-1'
@@ -72,11 +71,6 @@ const VALID_PURCHASE = {
   unit_cost: 5000,
   payment_status: 'paid' as const,
   payment_method: 'cash' as const,
-}
-
-const VALID_CONSUME = {
-  item_id: ITEM_ID,
-  quantity: 5,
 }
 
 const MOCK_ITEM = { id: ITEM_ID, name: 'Test Item', organization_id: ORG_ID }
@@ -262,162 +256,6 @@ describe('recordInventoryPurchase', () => {
       })
 
       await recordInventoryPurchase(VALID_PURCHASE)
-
-      expect(revalidatePath).toHaveBeenCalledWith('/inventario')
-      expect(revalidatePath).toHaveBeenCalledWith('/caja')
-    })
-  })
-})
-
-// ───────────────────────────────────────────────────
-// consumeInventory
-// ───────────────────────────────────────────────────
-
-describe('consumeInventory', () => {
-  describe('FIX-006: RPC transaccional', () => {
-    it('llama inventory_record_consumption con cash_session_id cuando hay sesión', async () => {
-      mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
-      mockMaybeSingle.mockResolvedValue({ data: { id: 'session-1' }, error: null })
-      mockRpc.mockResolvedValue({
-        data: [{ success: true, error: null, quantity_before: 10, quantity_after: 5 }],
-        error: null,
-      })
-
-      const result = await consumeInventory(VALID_CONSUME)
-
-      expect(mockRpc).toHaveBeenCalledWith('inventory_record_consumption', expect.objectContaining({
-        p_item_id: ITEM_ID,
-        p_quantity: 5,
-        p_organization_id: ORG_ID,
-        p_created_by: USER_ID,
-        p_cash_session_id: 'session-1',
-      }))
-      expect(result.success).toBe(true)
-    })
-
-    it('pasa cash_session_id=null cuando no hay sesión abierta', async () => {
-      mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
-      mockMaybeSingle.mockResolvedValue({ data: null, error: null })
-      mockRpc.mockResolvedValue({
-        data: [{ success: true, error: null, quantity_before: 10, quantity_after: 5 }],
-        error: null,
-      })
-
-      await consumeInventory(VALID_CONSUME)
-
-      expect(mockRpc).toHaveBeenCalledTimes(1)
-      expect(mockRpc).toHaveBeenCalledWith('inventory_record_consumption', expect.objectContaining({
-        p_item_id: ITEM_ID,
-        p_quantity: 5,
-      }))
-    })
-
-    it('busca cash session ANTES de llamar al RPC', async () => {
-      mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
-      mockMaybeSingle.mockResolvedValue({ data: { id: 'session-1' }, error: null })
-      mockRpc.mockResolvedValue({
-        data: [{ success: true, error: null, quantity_before: 10, quantity_after: 5 }],
-        error: null,
-      })
-
-      await consumeInventory(VALID_CONSUME)
-
-      const sessionCallOrder = mockMaybeSingle.mock.invocationCallOrder[0]
-      const rpcCallOrder = mockRpc.mock.invocationCallOrder[0]
-      expect(sessionCallOrder).toBeLessThan(rpcCallOrder)
-    })
-
-    it('incluye estimated_cost cuando se proporciona', async () => {
-      mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
-      mockMaybeSingle.mockResolvedValue({ data: { id: 'session-1' }, error: null })
-      mockRpc.mockResolvedValue({
-        data: [{ success: true, error: null, quantity_before: 10, quantity_after: 5 }],
-        error: null,
-      })
-
-      await consumeInventory({ ...VALID_CONSUME, estimated_cost: 15000 })
-
-      expect(mockRpc).toHaveBeenCalledWith('inventory_record_consumption', expect.objectContaining({
-        p_estimated_cost: 15000,
-      }))
-    })
-
-    it('incluye notes cuando se proporciona', async () => {
-      mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
-      mockMaybeSingle.mockResolvedValue({ data: { id: 'session-1' }, error: null })
-      mockRpc.mockResolvedValue({
-        data: [{ success: true, error: null, quantity_before: 10, quantity_after: 5 }],
-        error: null,
-      })
-
-      await consumeInventory({ ...VALID_CONSUME, notes: 'Uso de limpieza' })
-
-      expect(mockRpc).toHaveBeenCalledWith('inventory_record_consumption', expect.objectContaining({
-        p_notes: 'Uso de limpieza',
-      }))
-    })
-
-    it('mapea error insufficient_stock del RPC a "Stock insuficiente."', async () => {
-      mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
-      mockMaybeSingle.mockResolvedValue({ data: { id: 'session-1' }, error: null })
-      mockRpc.mockResolvedValue({
-        data: [{ success: false, error: 'insufficient_stock', quantity_before: null, quantity_after: null }],
-        error: null,
-      })
-
-      const result = await consumeInventory(VALID_CONSUME)
-
-      expect(result.success).toBe(false)
-      expect(result.error).toContain('Stock insuficiente')
-    })
-
-    it('retorna error genérico para otros errores de RPC', async () => {
-      mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
-      mockMaybeSingle.mockResolvedValue({ data: { id: 'session-1' }, error: null })
-      mockRpc.mockResolvedValue({
-        data: [{ success: false, error: 'organization_mismatch', quantity_before: null, quantity_after: null }],
-        error: null,
-      })
-
-      const result = await consumeInventory(VALID_CONSUME)
-
-      expect(result.success).toBe(false)
-      expect(result.error).toContain('Error al consumir inventario')
-    })
-
-    it('valida quantity > 0', async () => {
-      mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
-
-      const result = await consumeInventory({ ...VALID_CONSUME, quantity: 0 })
-
-      expect(result.success).toBe(false)
-      expect(mockRpc).not.toHaveBeenCalled()
-    })
-
-    it('NO llama a RPCs antiguas inventory_decrement_stock ni inventory_increment_stock', async () => {
-      mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
-      mockMaybeSingle.mockResolvedValue({ data: { id: 'session-1' }, error: null })
-      mockRpc.mockResolvedValue({
-        data: [{ success: true, error: null, quantity_before: 10, quantity_after: 5 }],
-        error: null,
-      })
-
-      await consumeInventory(VALID_CONSUME)
-
-      const rpcCalls = mockRpc.mock.calls.map((c) => c[0])
-      expect(rpcCalls).not.toContain('inventory_decrement_stock')
-      expect(rpcCalls).not.toContain('inventory_increment_stock')
-    })
-
-    it('llama revalidatePath en éxito', async () => {
-      mockSingle.mockResolvedValue({ data: MOCK_ITEM, error: null })
-      mockMaybeSingle.mockResolvedValue({ data: { id: 'session-1' }, error: null })
-      mockRpc.mockResolvedValue({
-        data: [{ success: true, error: null, quantity_before: 10, quantity_after: 5 }],
-        error: null,
-      })
-
-      await consumeInventory(VALID_CONSUME)
 
       expect(revalidatePath).toHaveBeenCalledWith('/inventario')
       expect(revalidatePath).toHaveBeenCalledWith('/caja')

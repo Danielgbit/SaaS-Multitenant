@@ -26,12 +26,9 @@ export type UpdateInventoryItemInput = z.infer<typeof UpdateInventoryItemSchema>
 export async function updateInventoryItem(
   input: UpdateInventoryItemInput
 ): Promise<{ error?: string; success?: boolean }> {
-  console.log('[updateInventoryItem] Input:', input)
-
   const parsed = UpdateInventoryItemSchema.safeParse(input)
 
   if (!parsed.success) {
-    console.log('[updateInventoryItem] Validation failed:', parsed.error.issues)
     const firstError = parsed.error.issues[0]?.message
     return { error: firstError || 'Datos inválidos' }
   }
@@ -102,8 +99,6 @@ export async function updateInventoryItem(
     captureError('inventory_update_error', updateError, { organization_id })
     return { error: 'Error al actualizar el producto. Intenta de nuevo.' }
   }
-
-  console.log('[updateInventoryItem] Item updated successfully:', id)
 
   revalidatePath('/inventario')
   revalidatePath('/dashboard')

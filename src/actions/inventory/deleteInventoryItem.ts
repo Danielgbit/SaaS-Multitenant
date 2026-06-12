@@ -16,12 +16,9 @@ type DeleteInventoryItemInput = z.infer<typeof DeleteInventoryItemSchema>
 export async function deleteInventoryItem(
   input: DeleteInventoryItemInput
 ): Promise<{ error?: string; success?: boolean }> {
-  console.log('[deleteInventoryItem] Input:', input)
-
   const parsed = DeleteInventoryItemSchema.safeParse(input)
 
   if (!parsed.success) {
-    console.log('[deleteInventoryItem] Validation failed:', parsed.error.issues)
     const firstError = parsed.error.issues[0]?.message
     return { error: firstError || 'Datos inválidos' }
   }
@@ -46,8 +43,6 @@ export async function deleteInventoryItem(
     captureError('inventory_delete_error', deleteError, { organization_id })
     return { error: 'Error al eliminar el producto. Intenta de nuevo.' }
   }
-
-  console.log('[deleteInventoryItem] Item deleted successfully:', id)
 
   revalidatePath('/inventario')
   revalidatePath('/dashboard')
