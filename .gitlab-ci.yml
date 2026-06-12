@@ -2,6 +2,7 @@ stages:
   - install
   - lint
   - typecheck
+  - test
   - quality
   - build
 
@@ -40,6 +41,18 @@ typecheck:
   needs: [install]
   script:
     - npx tsc --noEmit
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+test:integration:
+  stage: test
+  needs: [install, typecheck]
+  script:
+    - npm run test:integration
+  variables:
+    NEXT_PUBLIC_SUPABASE_URL: $NEXT_PUBLIC_SUPABASE_URL
+    SUPABASE_SERVICE_ROLE_KEY: $SUPABASE_SERVICE_ROLE_KEY
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "main"'

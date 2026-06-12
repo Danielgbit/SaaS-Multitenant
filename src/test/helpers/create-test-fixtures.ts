@@ -7,9 +7,16 @@ export type IntegrationFixtures = {
   orgId: string
   empId: string
   svcId: string
+  svc2Id: string
   clientId: string
   aptId: string
+  pendingAptId: string
+  confirmedAptId: string
+  cancelledAptId: string
+  noShowAptId: string
   aptSvcId: string
+  invItemId1: string
+  invItemId2: string
   payrollPeriodId: string
   payrollItemId: string
 }
@@ -26,6 +33,13 @@ export async function createFixtures(): Promise<IntegrationFixtures> {
   const clientId = randomUUID()
   const aptId = randomUUID()
   const aptSvcId = randomUUID()
+  const svc2Id = randomUUID()
+  const pendingAptId = randomUUID()
+  const confirmedAptId = randomUUID()
+  const cancelledAptId = randomUUID()
+  const noShowAptId = randomUUID()
+  const invItemId1 = randomUUID()
+  const invItemId2 = randomUUID()
   const now = new Date().toISOString()
   const today = now.split('T')[0]
 
@@ -49,6 +63,13 @@ export async function createFixtures(): Promise<IntegrationFixtures> {
   })
   if (svcErr) throw new Error(`create svc: ${svcErr.message}`)
 
+  const { error: svc2Err } = await supabase.from('services').insert({
+    id: svc2Id, name: 'Test Service 2', price: 75000,
+    has_commission: true, active: true, organization_id: orgId,
+    duration: 45,
+  })
+  if (svc2Err) throw new Error(`create svc2: ${svc2Err.message}`)
+
   const { error: cliErr } = await supabase.from('clients').insert({
     id: clientId, name: 'Test Client', phone: '0000000000',
     organization_id: orgId,
@@ -64,10 +85,66 @@ export async function createFixtures(): Promise<IntegrationFixtures> {
   })
   if (aptErr) throw new Error(`create apt: ${aptErr.message}`)
 
+  const { error: pendingAptErr } = await supabase.from('appointments').insert({
+    id: pendingAptId, organization_id: orgId, employee_id: empId,
+    client_id: clientId, status: 'pending',
+    confirmation_status: 'scheduled',
+    is_commissionable: true, price_adjustment: 0,
+    start_time: now, end_time: now,
+  })
+  if (pendingAptErr) throw new Error(`create pendingApt: ${pendingAptErr.message}`)
+
+  const { error: confirmedAptErr } = await supabase.from('appointments').insert({
+    id: confirmedAptId, organization_id: orgId, employee_id: empId,
+    client_id: clientId, status: 'confirmed',
+    confirmation_status: 'confirmed',
+    is_commissionable: true, price_adjustment: 0,
+    start_time: now, end_time: now,
+  })
+  if (confirmedAptErr) throw new Error(`create confirmedApt: ${confirmedAptErr.message}`)
+
+  const { error: cancelledAptErr } = await supabase.from('appointments').insert({
+    id: cancelledAptId, organization_id: orgId, employee_id: empId,
+    client_id: clientId, status: 'cancelled',
+    confirmation_status: 'scheduled',
+    is_commissionable: false, price_adjustment: 0,
+    start_time: now, end_time: now,
+  })
+  if (cancelledAptErr) throw new Error(`create cancelledApt: ${cancelledAptErr.message}`)
+
+  const { error: noShowAptErr } = await supabase.from('appointments').insert({
+    id: noShowAptId, organization_id: orgId, employee_id: empId,
+    client_id: clientId, status: 'no_show',
+    confirmation_status: 'needs_review',
+    is_commissionable: true, price_adjustment: 0,
+    start_time: now, end_time: now,
+  })
+  if (noShowAptErr) throw new Error(`create noShowApt: ${noShowAptErr.message}`)
+
   const { error: asErr } = await supabase.from('appointment_services').insert({
     id: aptSvcId, appointment_id: aptId, service_id: svcId,
   })
   if (asErr) throw new Error(`create apt_svc: ${asErr.message}`)
+
+  const { error: inv1Err } = await supabase.from('inventory_items').insert({
+    id: invItemId1, organization_id: orgId,
+    name: `TEST-Product-${invItemId1.slice(0, 8)}`,
+    sku: `TEST-SKU-${invItemId1.slice(0, 8)}`,
+    quantity: 50, min_quantity: 10,
+    price: 25.99, cost_price: 15.00,
+    unit: 'pieza', active: true,
+  })
+  if (inv1Err) throw new Error(`create invItem1: ${inv1Err.message}`)
+
+  const { error: inv2Err } = await supabase.from('inventory_items').insert({
+    id: invItemId2, organization_id: orgId,
+    name: `TEST-Product-LowStock-${invItemId2.slice(0, 8)}`,
+    sku: `TEST-SKU-LOW-${invItemId2.slice(0, 8)}`,
+    quantity: 3, min_quantity: 10,
+    price: 99.99, cost_price: 60.00,
+    unit: 'pieza', active: true, category: 'Test Category',
+  })
+  if (inv2Err) throw new Error(`create invItem2: ${inv2Err.message}`)
 
   const { data: period, error: ppErr } = await supabase
     .from('payroll_periods')
@@ -91,23 +168,28 @@ export async function createFixtures(): Promise<IntegrationFixtures> {
   if (piErr) throw new Error(`create payroll_item: ${piErr.message}`)
 
   return {
-    supabase, orgId, empId, svcId, clientId, aptId, aptSvcId,
+    supabase, orgId, empId, svcId, svc2Id, clientId, aptId,
+    pendingAptId, confirmedAptId, cancelledAptId, noShowAptId,
+    aptSvcId, invItemId1, invItemId2,
     payrollPeriodId: period.id,
     payrollItemId: item.id,
   }
 }
 
 export async function destroyFixtures(f: IntegrationFixtures): Promise<void> {
-  const { supabase, aptId, svcId, empId, orgId, clientId, payrollPeriodId } = f
+  const { supabase, aptId, pendingAptId, confirmedAptId, cancelledAptId, noShowAptId, svcId, svc2Id, empId, orgId, clientId, payrollPeriodId, invItemId1, invItemId2 } = f
 
-  await supabase.from('period_commissions').delete().eq('appointment_id', aptId)
-  await supabase.from('financial_events').delete().eq('entity_id', aptId)
+  const allAptIds = [aptId, pendingAptId, confirmedAptId, cancelledAptId, noShowAptId]
+
+  await supabase.from('period_commissions').delete().in('appointment_id', allAptIds)
+  await supabase.from('financial_events').delete().in('entity_id', allAptIds)
   await supabase.from('payroll_items').delete().eq('payroll_period_id', payrollPeriodId)
   await supabase.from('payroll_periods').delete().eq('id', payrollPeriodId)
-  await supabase.from('appointment_services').delete().eq('appointment_id', aptId)
-  await supabase.from('appointments').delete().eq('id', aptId)
+  await supabase.from('appointment_services').delete().in('appointment_id', allAptIds)
+  await supabase.from('appointments').delete().in('id', allAptIds)
   await supabase.from('clients').delete().eq('id', clientId)
-  await supabase.from('services').delete().eq('id', svcId)
+  await supabase.from('services').delete().in('id', [svcId, svc2Id])
+  await supabase.from('inventory_items').delete().in('id', [invItemId1, invItemId2])
   await supabase.from('employees').delete().eq('id', empId)
   await supabase.from('organizations').delete().eq('id', orgId)
 }
