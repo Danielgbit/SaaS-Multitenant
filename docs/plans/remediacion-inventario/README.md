@@ -41,9 +41,9 @@ graph LR
 | FIX-004 | Acciones invisibles en touch | 1 | ✅ Completado | — |
 | FIX-005 | Venta sin validar stock (atómico) | 1 | ✅ Completado | — |
 | FIX-006 | Rollback transaccional recordInventoryPurchase/consumeInventory | 2 | ✅ Completado | — |
-| FIX-007 | Regenerar tipos Supabase | 2 | ⬜ Pendiente | — |
+| FIX-007 | Regenerar tipos Supabase | 2 | ✅ Completado | — |
 | FIX-008 | Tests Server Actions de inventario | 2 | ✅ Completado | — |
-| FIX-009 | router.refresh() → actualizaciones optimistas | 2 | ⬜ Pendiente | — |
+| FIX-009 | router.refresh() → actualizaciones optimistas | 2 | ❌ No aplica | — |
 | FIX-010 | Pipeline CI | 2 | ✅ Completado | — |
 
 ## Riesgos Identificados

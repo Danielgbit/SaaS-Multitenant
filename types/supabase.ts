@@ -1684,6 +1684,7 @@ export type Database = {
           category: string | null
           cost_price: number | null
           created_at: string | null
+          created_by: string | null
           description: string | null
           id: string
           min_quantity: number | null
@@ -1700,6 +1701,7 @@ export type Database = {
           category?: string | null
           cost_price?: number | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           min_quantity?: number | null
@@ -1716,6 +1718,7 @@ export type Database = {
           category?: string | null
           cost_price?: number | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           min_quantity?: number | null
@@ -4195,6 +4198,7 @@ export type Database = {
           category: string | null
           cost_price: number | null
           created_at: string | null
+          created_by: string | null
           description: string | null
           id: string
           min_quantity: number | null
