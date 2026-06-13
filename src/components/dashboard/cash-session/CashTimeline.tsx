@@ -1,6 +1,7 @@
 'use client'
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { useDebounce } from '@/hooks/useDebounce'
 import { Search, SearchX, X, ArrowUpRight, ArrowDownRight, CircleDot, Receipt, Package, Users, Banknote } from 'lucide-react'
 import { ENTRY_TYPE_LABELS, PAYMENT_METHOD_LABELS } from '@/types/cash-sessions'
 import { Badge } from '@/components/ui/Badge'
@@ -58,15 +59,6 @@ function EmptyStateIllustration() {
       <path d="M40 12V20M40 12L35 16M40 12L45 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.25"/>
     </svg>
   )
-}
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState(value)
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedValue(value), delay)
-    return () => clearTimeout(handler)
-  }, [value, delay])
-  return debouncedValue
 }
 
 export function CashTimeline({ entries, onVoid }: { entries: any[]; onVoid?: (entry: any) => void }) {

@@ -20,6 +20,7 @@ import Link from 'next/link'
 import type { ClientAccountWithClient } from '@/types/clientAccounts'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { useDebounce } from '@/hooks/useDebounce'
 
 interface ClientAccountsClientProps {
   accounts: ClientAccountWithClient[]
@@ -106,25 +107,16 @@ export function ClientAccountsClient({
     return null
   }
   const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [sortBy, setSortBy] = useState<SortOption>('balance_desc')
   const [filterBy, setFilterBy] = useState<FilterOption>('all')
   const [showSortMenu, setShowSortMenu] = useState(false)
-  const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const sortMenuRef = useRef<HTMLDivElement>(null)
   const sortBtnRef = useRef<HTMLButtonElement>(null)
+  const debouncedQuery = useDebounce(searchQuery, 300)
 
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => setDebouncedQuery(searchQuery), 300)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [searchQuery])
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -589,7 +581,6 @@ export function ClientAccountsClient({
             <button
               onClick={() => {
                 setSearchQuery('')
-                setDebouncedQuery('')
                 setFilterBy('all')
                 setSortBy('balance_desc')
               }}
@@ -649,7 +640,6 @@ export function ClientAccountsClient({
               <button
                 onClick={() => {
                   setSearchQuery('')
-                  setDebouncedQuery('')
                   setFilterBy('all')
                 }}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white transition-all duration-200"

@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Package, Search, AlertTriangle, FolderOpen, ChevronDown, X, ArrowUpDown, LayoutGrid, List } from 'lucide-react'
-import { Spinner } from '@/components/ui'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
 import { InventoryCard } from './InventoryCard'
@@ -28,7 +27,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
   const [filter, setFilter] = useState<FilterType>('all')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [sortBy, setSortBy] = useState<SortOption>('name-asc')
   const [sortOpen, setSortOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -77,12 +75,6 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
 
     return true
   })
-
-  useEffect(() => {
-    setIsLoading(true)
-    const timer = setTimeout(() => setIsLoading(false), 300)
-    return () => clearTimeout(timer)
-  }, [query, filter, selectedCategory])
 
   useEffect(() => {
     localStorage.setItem('inventory-view-mode', viewMode)
@@ -362,11 +354,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
         </p>
       )}
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Spinner size="lg" style={{ color: COLORS.primary }} />
-        </div>
-      ) : items.length === 0 ? (
+      {items.length === 0 ? (
         <div 
           className="text-center py-16 rounded-2xl animate-in fade-in duration-300"
           style={{ 

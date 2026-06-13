@@ -5,6 +5,7 @@ import { Modal, Button } from '@/components/ui'
 import { captureError } from '@/lib/error-logger'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
 import { deleteInventoryItem } from '@/actions/inventory/deleteInventoryItem'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface DeleteInventoryModalProps {
   item: InventoryItem
@@ -18,6 +19,7 @@ export function DeleteInventoryModal({ item, organizationId, isOpen, onClose, on
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDeleted, setIsDeleted] = useState(false)
   const [error, setError] = useState('')
+  const COLORS = useThemeColors()
 
   if (!isOpen) return null
 
@@ -43,12 +45,12 @@ export function DeleteInventoryModal({ item, organizationId, isOpen, onClose, on
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isDeleted ? 'Producto eliminado' : 'Eliminar producto'}>
       {isDeleted ? (
-        <p className="text-sm text-center text-[#64748B] dark:text-[#94A3B8]">El producto ha sido eliminado correctamente.</p>
+        <p className="text-sm text-center" style={{ color: COLORS.textSecondary }}>El producto ha sido eliminado correctamente.</p>
       ) : (
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-[#F8FAFC] dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155]">
+          <div className="p-4 rounded-xl" style={{ backgroundColor: COLORS.surfaceSubtle, border: `1px solid ${COLORS.border}` }}>
             <p className="font-medium text-sm">{item.name}</p>
-            <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">SKU: {item.sku || 'N/A'} • Stock: {item.quantity}</p>
+            <p className="text-xs" style={{ color: COLORS.textSecondary }}>SKU: {item.sku || 'N/A'} • Stock: {item.quantity}</p>
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           <div className="flex gap-3">

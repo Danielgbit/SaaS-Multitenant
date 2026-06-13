@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/../types/supabase'
 import { subDays } from 'date-fns'
 import { captureError } from '@/lib/error-logger'
 
@@ -105,7 +107,7 @@ export async function getInventoryMetrics(
   }
 
   const without = allItems?.length
-    ? await countItemsWithoutMovements(supabase as any, organizationId, allItems.map(i => i.id))
+    ? await countItemsWithoutMovements(supabase, organizationId, allItems.map(i => i.id))
     : 0
 
   const total = totalItems ?? 0
@@ -116,7 +118,7 @@ export async function getInventoryMetrics(
   // ── Divergencias abiertas ──
   let openDivergencesList: OpenDivergence[] = []
   if (openDivs && openDivs.length > 0) {
-    const itemIds = [...new Set(openDivs.map((d: any) => d.inventory_item_id))]
+    const itemIds = [...new Set(openDivs.map(d => d.inventory_item_id))]
     let items: { id: string; name: string }[] | null = null
     try {
       const { data } = await supabase
@@ -130,7 +132,7 @@ export async function getInventoryMetrics(
 
     const nameMap = new Map((items || []).map(i => [i.id, i.name]))
 
-    openDivergencesList = (openDivs as any[])
+    openDivergencesList = openDivs
       .map(d => ({
         id: d.id,
         inventory_item_id: d.inventory_item_id,
@@ -165,7 +167,7 @@ export async function getInventoryMetrics(
 }
 
 async function countItemsWithoutMovements(
-  supabase: any,
+  supabase: SupabaseClient<Database>,
   orgId: string,
   itemIds: string[]
 ): Promise<number> {
@@ -182,7 +184,7 @@ async function countItemsWithoutMovements(
         .eq('organization_id', orgId)
         .in('inventory_item_id', batch)
 
-      const movedIds = new Set((movements || []).map((m: any) => m.inventory_item_id))
+      const movedIds = new Set((movements || []).map(m => m.inventory_item_id))
       count += batch.filter(id => !movedIds.has(id)).length
     } catch (error) {
       captureError('inventory_metrics_count_without_movements_error', error, { orgId })

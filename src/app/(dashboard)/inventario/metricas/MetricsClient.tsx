@@ -1,6 +1,7 @@
 'use client'
 
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { useRouter } from 'next/navigation'
 import { MetricCard } from '@/components/ui'
 import {
   Package, Activity, AlertTriangle, RefreshCw, TrendingUp, Clock, Shield,
@@ -27,6 +28,7 @@ function timeAgo(date: string): string {
 
 export function MetricsClient({ metrics, organizationId }: { metrics: InventoryMetrics; organizationId: string }) {
   const COLORS = useThemeColors()
+  const router = useRouter()
 
   return (
     <div className="space-y-6">
@@ -116,7 +118,7 @@ export function MetricsClient({ metrics, organizationId }: { metrics: InventoryM
                 key={div.id}
                 divergence={div}
                 organizationId={organizationId}
-                onResolved={() => window.location.reload()}
+                onResolved={() => router.refresh()}
               />
             ))}
           </div>

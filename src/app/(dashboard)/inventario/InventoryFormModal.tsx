@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Package, Tag, DollarSign, Boxes, AlertCircle, CheckCircle, HelpCircle } from 'lucide-react'
 import { Modal, Spinner } from '@/components/ui'
+import { Tooltip } from '@/components/ui/Tooltip'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
 import { createInventoryItem, type CreateInventoryItemInput } from '@/actions/inventory/createInventoryItem'
@@ -69,7 +70,6 @@ export function InventoryFormModal({
   const [newCategory, setNewCategory] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
-  const [showTooltip, setShowTooltip] = useState<string | null>(null)
   const COLORS = useThemeColors()
 
   const [formData, setFormData] = useState({
@@ -242,26 +242,9 @@ export function InventoryFormModal({
       <label style={labelStyle}>
         {label}
         {tooltip && (
-          <div className="relative">
-            <HelpCircle 
-              className="w-4 h-4 cursor-help"
-              style={{ color: COLORS.textMuted }}
-              onMouseEnter={() => setShowTooltip(name)}
-              onMouseLeave={() => setShowTooltip(null)}
-            />
-            {showTooltip === name && (
-              <div 
-                className="absolute left-0 top-full mt-2 w-48 p-3 rounded-lg text-xs z-10 shadow-lg"
-                style={{ 
-                  backgroundColor: COLORS.surfaceSubtle, 
-                  color: COLORS.textPrimary,
-                                zIndex: 50
-                }}
-              >
-                {tooltip}
-              </div>
-            )}
-          </div>
+          <Tooltip content={tooltip}>
+            <HelpCircle className="w-4 h-4 cursor-help" style={{ color: COLORS.textMuted }} />
+          </Tooltip>
         )}
       </label>
       {field}
@@ -572,14 +555,18 @@ export function InventoryFormModal({
               >
                 Margen de ganancia:
               </span>
-              <span 
+              <span
                 className="font-bold text-lg font-heading"
-                style={{ 
+                style={{
                   color: parseFloat(formData.price) > parseFloat(formData.cost_price) ? COLORS.success : COLORS.danger,
                 }}
               >
-                {parseFloat(formData.price) > parseFloat(formData.cost_price) ? '+' : ''}
-                {Math.round(((parseFloat(formData.price) - parseFloat(formData.cost_price)) / parseFloat(formData.cost_price)) * 100)}%
+                {parseFloat(formData.cost_price) > 0 ? (
+                  <>
+                    {parseFloat(formData.price) > parseFloat(formData.cost_price) ? '+' : ''}
+                    {Math.round(((parseFloat(formData.price) - parseFloat(formData.cost_price)) / parseFloat(formData.cost_price)) * 100)}%
+                  </>
+                ) : '—'}
               </span>
             </div>
           )}

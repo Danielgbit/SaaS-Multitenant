@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Search, Plus, X, User } from 'lucide-react'
 import { Spinner } from '@/components/ui'
+import { useDebounce } from '@/hooks/useDebounce'
 import { searchClients } from '@/services/clients/getClients'
 import { createClientAction } from '@/actions/clients/createClient'
 import { useThemeColors } from '@/hooks/useThemeColors'
@@ -38,27 +39,18 @@ export function ClientSelector({
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Buscar clientes cuando cambia el query
+  const debouncedQuery = useDebounce(query, 300)
+
   useEffect(() => {
-    const search = async () => {
-      if (query.length < 2) {
-        setClients([])
-        return
-      }
-
-      setIsLoading(true)
-      try {
-        const results = await searchClients(organizationId, query)
-        setClients(results)
-      } catch (err) {
-        console.error('Error searching:', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    const debounce = setTimeout(search, 300)
-    return () => clearTimeout(debounce)
-  }, [query, organizationId])
+    let mounted = true
+    if (debouncedQuery.length < 2) { setClients([]); return }
+    setIsLoading(true)
+    searchClients(organizationId, debouncedQuery)
+      .then(results => { if (mounted) setClients(results) })
+      .catch(err => console.error('Error searching:', err))
+      .finally(() => { if (mounted) setIsLoading(false) })
+    return () => { mounted = false }
+  }, [debouncedQuery, organizationId])
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {
