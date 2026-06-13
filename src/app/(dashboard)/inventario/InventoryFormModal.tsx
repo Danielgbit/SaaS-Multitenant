@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useActionState } from 'react'
 import { X, Package, Tag, DollarSign, Boxes, AlertCircle, CheckCircle, HelpCircle } from 'lucide-react'
 import { Modal, Spinner } from '@/components/ui'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { useConfirmClose } from '@/hooks/useConfirmClose'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
-import { createInventoryItem, type CreateInventoryItemInput } from '@/actions/inventory/createInventoryItem'
-import { updateInventoryItem, type UpdateInventoryItemInput } from '@/actions/inventory/updateInventoryItem'
+import { saveInventoryItem, type SaveInventoryItemFormState } from '@/actions/inventory/saveInventoryItem'
 
 interface InventoryFormModalProps {
   item: InventoryItem | null
@@ -18,169 +18,37 @@ interface InventoryFormModalProps {
   onSuccess: () => void
 }
 
-interface FieldErrors {
-  name?: string
-  sku?: string
-  category?: string
-  quantity?: string
-  min_quantity?: string
-  price?: string
-  cost_price?: string
-}
-
-type FormDataState = {
-  name: string
-  sku: string
-  description: string
-  category: string
-  quantity: string
-  min_quantity: string
-  price: string
-  cost_price: string
-  unit: string
-}
-
-const defaultFormData = (): FormDataState => ({
-  name: '', sku: '', description: '', category: '',
-  quantity: '0', min_quantity: '5', price: '', cost_price: '', unit: 'pieza',
-})
-
-const mapItemToFormData = (item: InventoryItem): FormDataState => ({
-  name: item.name,
-  sku: item.sku ?? '',
-  description: item.description ?? '',
-  category: item.category ?? '',
-  quantity: String(item.quantity),
-  min_quantity: String(item.min_quantity),
-  price: item.price ? String(item.price) : '',
-  cost_price: item.cost_price ? String(item.cost_price) : '',
-  unit: item.unit,
-})
-
-export function InventoryFormModal({ 
-  item, 
-  categories, 
-  organizationId, 
-  isOpen, 
-  onClose, 
-  onSuccess 
+export function InventoryFormModal({
+  item,
+  categories,
+  organizationId,
+  isOpen,
+  onClose,
+  onSuccess,
 }: InventoryFormModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState('')
-  const [newCategory, setNewCategory] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
-  const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [state, formAction, isPending] = useActionState(saveInventoryItem, { success: false })
+  const [previewPrice, setPreviewPrice] = useState(item?.price ? String(item.price) : '')
+  const [previewCost, setPreviewCost] = useState(item?.cost_price ? String(item.cost_price) : '')
+  const [isDirty, setIsDirty] = useState(false)
+  const { confirmClose } = useConfirmClose(isDirty, onClose)
   const COLORS = useThemeColors()
 
-  const [formData, setFormData] = useState({
-    name: '',
-    sku: '',
-    description: '',
-    category: '',
-    quantity: '0',
-    min_quantity: '5',
-    price: '',
-    cost_price: '',
-    unit: 'pieza',
-  })
-
   useEffect(() => {
-    setFormData(item ? mapItemToFormData(item) : defaultFormData())
+    setPreviewPrice(item?.price ? String(item.price) : '')
+    setPreviewCost(item?.cost_price ? String(item.cost_price) : '')
   }, [item])
 
-  const validateField = (name: string, value: string): string | undefined => {
-    switch (name) {
-      case 'name':
-        if (!value.trim()) return 'El nombre es requerido'
-        if (value.length > 100) return 'Máximo 100 caracteres'
-        break
-      case 'sku':
-        if (value.length > 50) return 'Máximo 50 caracteres'
-        break
-      case 'quantity':
-        const qty = parseInt(value)
-        if (isNaN(qty) || qty < 0) return 'Debe ser un número positivo'
-        break
-      case 'min_quantity':
-        const minQty = parseInt(value)
-        if (isNaN(minQty) || minQty < 0) return 'Debe ser un número positivo'
-        break
-      case 'price':
-        if (value) {
-          const price = parseFloat(value)
-          if (isNaN(price) || price < 0) return 'Debe ser un número positivo'
-        }
-        break
-      case 'cost_price':
-        if (value) {
-          const cost = parseFloat(value)
-          if (isNaN(cost) || cost < 0) return 'Debe ser un número positivo'
-        }
-        break
-    }
-    return undefined
-  }
-
-  const handleBlur = (field: string) => {
-    setTouched({ ...touched, [field]: true })
-    const error = validateField(field, formData[field as keyof typeof formData])
-    setFieldErrors({ ...fieldErrors, [field]: error })
-  }
-
-  const handleChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value })
-    if (touched[field]) {
-      const error = validateField(field, value)
-      setFieldErrors({ ...fieldErrors, [field]: error })
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    const errors: FieldErrors = {}
-    Object.keys(formData).forEach((key) => {
-      const error = validateField(key, formData[key as keyof typeof formData])
-      if (error) errors[key as keyof FieldErrors] = error
-    })
-    
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors)
-      setTouched({ name: true, sku: true, quantity: true, min_quantity: true, price: true, cost_price: true })
-      return
-    }
-
-    setIsSubmitting(true)
-    setError('')
-
-    const categoryValue = formData.category || newCategory
-
-    const data = {
-      id: item?.id,
-      organization_id: organizationId,
-      name: formData.name,
-      sku: formData.sku || undefined,
-      description: formData.description || undefined,
-      category: categoryValue || undefined,
-      quantity: parseInt(formData.quantity) || 0,
-      min_quantity: parseInt(formData.min_quantity) || 5,
-      price: formData.price ? parseFloat(formData.price) : undefined,
-      cost_price: formData.cost_price ? parseFloat(formData.cost_price) : undefined,
-      unit: formData.unit,
-    }
-
-    const result = item
-      ? await updateInventoryItem(data as UpdateInventoryItemInput)
-      : await createInventoryItem(data as CreateInventoryItemInput)
-
-    setIsSubmitting(false)
-
-    if (result.error) {
-      setError(result.error)
-    } else {
+  useEffect(() => {
+    if (state.success) {
       onSuccess()
       onClose()
     }
+  }, [state.success, onSuccess, onClose])
+
+  const serverError = (fieldName: string): string | undefined => {
+    if (!state.fieldErrors) return undefined
+    const key = fieldName as keyof typeof state.fieldErrors
+    return state.fieldErrors[key]?.[0]
   }
 
   const inputStyle = (hasError: boolean) => ({
@@ -206,18 +74,18 @@ export function InventoryFormModal({
 
   const SectionHeader = ({ icon: Icon, title, description }: { icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>, title: string, description?: string }) => (
     <div className="flex items-center gap-3 mb-4 pb-3 border-b" style={{ borderColor: COLORS.border }}>
-      <div 
+      <div
         className="w-10 h-10 rounded-xl flex items-center justify-center"
         style={{ backgroundColor: COLORS.primary + '15' }}
       >
         <Icon className="w-5 h-5" style={{ color: COLORS.primary }} />
       </div>
       <div>
-        <h3 
+        <h3
           className="font-semibold font-heading"
-          style={{ 
+          style={{
             color: COLORS.textPrimary,
-            fontSize: '18px'
+            fontSize: '18px',
           }}
         >
           {title}
@@ -237,67 +105,70 @@ export function InventoryFormModal({
     field: React.ReactNode,
     helpText?: string,
     tooltip?: string
-  ) => (
-    <div>
-      <label style={labelStyle}>
-        {label}
-        {tooltip && (
-          <Tooltip content={tooltip}>
-            <HelpCircle className="w-4 h-4 cursor-help" style={{ color: COLORS.textMuted }} />
-          </Tooltip>
+  ) => {
+    const errMsg = serverError(name)
+    return (
+      <div>
+        <label style={labelStyle}>
+          {label}
+          {tooltip && (
+            <Tooltip content={tooltip}>
+              <HelpCircle className="w-4 h-4 cursor-help" style={{ color: COLORS.textMuted }} />
+            </Tooltip>
+          )}
+        </label>
+        {field}
+        {errMsg && (
+          <p
+            className="text-xs mt-1.5 flex items-center gap-1"
+            style={{ color: COLORS.danger }}
+          >
+            <AlertCircle className="w-3 h-3" />
+            {errMsg}
+          </p>
         )}
-      </label>
-      {field}
-      {fieldErrors[name as keyof FieldErrors] && touched[name] && (
-        <p 
-          className="text-xs mt-1.5 flex items-center gap-1"
-          style={{ color: COLORS.danger }}
-        >
-          <AlertCircle className="w-3 h-3" />
-          {fieldErrors[name as keyof FieldErrors]}
-        </p>
-      )}
-      {helpText && !fieldErrors[name as keyof FieldErrors] && (
-        <p 
-          className="text-xs mt-1.5"
-          style={{ color: COLORS.textMuted }}
-        >
-          {helpText}
-        </p>
-      )}
-    </div>
-  )
+        {helpText && !errMsg && (
+          <p
+            className="text-xs mt-1.5"
+            style={{ color: COLORS.textMuted }}
+          >
+            {helpText}
+          </p>
+        )}
+      </div>
+    )
+  }
 
   const header = (
-    <div 
+    <div
       className="relative flex items-center justify-between p-6 border-b sticky top-0 z-10 overflow-hidden"
-      style={{ 
+      style={{
         borderColor: COLORS.border,
         background: COLORS.primaryGradient,
-        borderRadius: '16px 16px 0 0'
+        borderRadius: '16px 16px 0 0',
       }}
     >
       <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-      
+
       <div className="relative flex items-center gap-3">
-        <div 
+        <div
           className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/20 backdrop-blur-sm"
         >
           <Package className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 
+          <h2
             className="text-xl font-bold font-heading"
-            style={{ 
-              color: COLORS.textOnPrimary 
+            style={{
+              color: COLORS.textOnPrimary,
             }}
           >
             {item ? 'Editar producto' : 'Nuevo producto'}
           </h2>
-          <p 
+          <p
             className="text-sm"
-            style={{ 
-              color: 'rgba(255,255,255,0.8)' 
+            style={{
+              color: 'rgba(255,255,255,0.8)',
             }}
           >
             {item ? 'Actualiza la información del producto' : 'Agrega un nuevo producto al inventario'}
@@ -306,7 +177,7 @@ export function InventoryFormModal({
       </div>
       <button
         type="button"
-        onClick={onClose}
+        onClick={confirmClose}
         className="p-2 rounded-xl hover:bg-white/20 transition-colors cursor-pointer"
         aria-label="Cerrar"
       >
@@ -318,18 +189,22 @@ export function InventoryFormModal({
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={confirmClose}
       title={item ? 'Editar producto' : 'Nuevo producto'}
       header={header}
       size="lg"
       scrollable={true}
     >
       <style jsx>{`@keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }`}</style>
-      <form onSubmit={handleSubmit} className="p-0">
-        {error && (
-          <div 
+      <form action={formAction} key={item?.id ?? 'new'} className="p-0">
+        <input type="hidden" name="organization_id" value={organizationId} />
+        <input type="hidden" name="intent" value={item ? 'update' : 'create'} />
+        {item && <input type="hidden" name="id" value={item.id} />}
+
+        {state.error && (
+          <div
             className="p-4 rounded-xl text-sm mb-6 flex items-start gap-3"
-            style={{ 
+            style={{
               backgroundColor: COLORS.errorLight,
               color: COLORS.danger,
             }}
@@ -337,30 +212,29 @@ export function InventoryFormModal({
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-medium">Error al guardar</p>
-              <p className="text-sm opacity-90">{error}</p>
+              <p className="text-sm opacity-90">{state.error}</p>
             </div>
           </div>
         )}
 
         {/* Section 1: Información Básica */}
         <div className="mb-8">
-          <SectionHeader 
-            icon={Tag} 
-            title="Información básica" 
+          <SectionHeader
+            icon={Tag}
+            title="Información básica"
             description="Datos generales del producto"
           />
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {renderField(
               'name',
               'Nombre del producto *',
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-                onBlur={() => handleBlur('name')}
+                name="name"
+                defaultValue={item?.name ?? ''}
                 placeholder="Ej: Shampoo fortalecedor"
-                style={inputStyle(!!fieldErrors.name && touched.name)}
+                style={inputStyle(!!serverError('name'))}
                 className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
               />
             )}
@@ -370,11 +244,10 @@ export function InventoryFormModal({
               'Código SKU',
               <input
                 type="text"
-                value={formData.sku}
-                onChange={(e) => handleChange('sku', e.target.value)}
-                onBlur={() => handleBlur('sku')}
+                name="sku"
+                defaultValue={item?.sku ?? ''}
                 placeholder="Ej: SHM-001"
-                style={inputStyle(!!fieldErrors.sku && touched.sku)}
+                style={inputStyle(!!serverError('sku'))}
                 className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
               />,
               'Código interno de identificación'
@@ -386,14 +259,9 @@ export function InventoryFormModal({
               <div>
                 <input
                   type="text"
+                  name="category"
                   list="categories"
-                  value={formData.category}
-                  onChange={(e) => handleChange('category', e.target.value)}
-                  onBlur={(e) => {
-                    if (e.target.value && !categories.includes(e.target.value)) {
-                      setNewCategory(e.target.value)
-                    }
-                  }}
+                  defaultValue={item?.category ?? ''}
                   placeholder="Seleccionar o crear categoría"
                   style={inputStyle(false)}
                   className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
@@ -410,8 +278,8 @@ export function InventoryFormModal({
             <div>
               <label style={labelStyle}>Unidad de medida</label>
               <select
-                value={formData.unit}
-                onChange={(e) => handleChange('unit', e.target.value)}
+                name="unit"
+                defaultValue={item?.unit ?? 'pieza'}
                 style={inputStyle(false)}
                 className={`border-2 focus:outline-none transition-colors bg-white dark:bg-slate-900 ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
               >
@@ -431,8 +299,8 @@ export function InventoryFormModal({
             <div className="col-span-2">
               <label style={labelStyle}>Descripción</label>
               <textarea
-                value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
+                name="description"
+                defaultValue={item?.description ?? ''}
                 style={{ ...inputStyle(false), minHeight: '80px', resize: 'vertical' as const }}
                 className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                 placeholder="Descripción opcional del producto..."
@@ -443,23 +311,22 @@ export function InventoryFormModal({
 
         {/* Section 2: Inventario */}
         <div className="mb-8">
-          <SectionHeader 
-            icon={Boxes} 
-            title="Control de inventario" 
+          <SectionHeader
+            icon={Boxes}
+            title="Control de inventario"
             description="Gestiona el stock de tu producto"
           />
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {renderField(
               'quantity',
               'Cantidad en stock',
               <input
                 type="number"
+                name="quantity"
                 min="0"
-                value={formData.quantity}
-                onChange={(e) => handleChange('quantity', e.target.value)}
-                onBlur={() => handleBlur('quantity')}
-                style={inputStyle(!!fieldErrors.quantity && touched.quantity)}
+                defaultValue={item?.quantity?.toString() ?? '0'}
+                style={inputStyle(!!serverError('quantity'))}
                 className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
               />,
               undefined,
@@ -471,11 +338,10 @@ export function InventoryFormModal({
               'Stock mínimo',
               <input
                 type="number"
+                name="min_quantity"
                 min="0"
-                value={formData.min_quantity}
-                onChange={(e) => handleChange('min_quantity', e.target.value)}
-                onBlur={() => handleBlur('min_quantity')}
-                style={inputStyle(!!fieldErrors.min_quantity && touched.min_quantity)}
+                defaultValue={item?.min_quantity?.toString() ?? '5'}
+                style={inputStyle(!!serverError('min_quantity'))}
                 className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
               />,
               'Alerta cuando el stock llegue a este número',
@@ -486,18 +352,18 @@ export function InventoryFormModal({
 
         {/* Section 3: Precios */}
         <div className="mb-6">
-          <SectionHeader 
-            icon={DollarSign} 
-            title="Precios" 
+          <SectionHeader
+            icon={DollarSign}
+            title="Precios"
             description="Configura el precio de venta y costo"
           />
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {renderField(
               'price',
               'Precio de venta',
               <div className="relative">
-                <span 
+                <span
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium"
                   style={{ color: COLORS.textMuted }}
                 >
@@ -505,13 +371,13 @@ export function InventoryFormModal({
                 </span>
                 <input
                   type="number"
+                  name="price"
                   step="0.01"
                   min="0"
-                  value={formData.price}
-                  onChange={(e) => handleChange('price', e.target.value)}
-                  onBlur={() => handleBlur('price')}
+                  defaultValue={item?.price ? String(item.price) : ''}
+                  onChange={(e) => { setPreviewPrice(e.target.value); setIsDirty(true) }}
                   placeholder="0.00"
-                  style={{ ...inputStyle(!!fieldErrors.price && touched.price), paddingLeft: '32px' }}
+                  style={{ ...inputStyle(!!serverError('price')), paddingLeft: '32px' }}
                   className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                 />
               </div>,
@@ -522,7 +388,7 @@ export function InventoryFormModal({
               'cost_price',
               'Precio de costo',
               <div className="relative">
-                <span 
+                <span
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium"
                   style={{ color: COLORS.textMuted }}
                 >
@@ -530,13 +396,13 @@ export function InventoryFormModal({
                 </span>
                 <input
                   type="number"
+                  name="cost_price"
                   step="0.01"
                   min="0"
-                  value={formData.cost_price}
-                  onChange={(e) => handleChange('cost_price', e.target.value)}
-                  onBlur={() => handleBlur('cost_price')}
+                  defaultValue={item?.cost_price ? String(item.cost_price) : ''}
+                  onChange={(e) => { setPreviewCost(e.target.value); setIsDirty(true) }}
                   placeholder="0.00"
-                  style={{ ...inputStyle(!!fieldErrors.cost_price && touched.cost_price), paddingLeft: '32px' }}
+                  style={{ ...inputStyle(!!serverError('cost_price')), paddingLeft: '32px' }}
                   className={`border-2 focus:outline-none transition-colors ${COLORS.isDark ? 'focus:ring-sky-400' : 'focus:ring-[#0F4C5C]'}`}
                 />
               </div>,
@@ -544,12 +410,12 @@ export function InventoryFormModal({
             )}
           </div>
 
-          {formData.price && formData.cost_price && (
-            <div 
+          {previewPrice && previewCost && (
+            <div
               className="mt-4 p-4 rounded-xl flex items-center justify-between"
               style={{ backgroundColor: COLORS.surfaceSubtle }}
             >
-              <span 
+              <span
                 className="text-sm"
                 style={{ color: COLORS.textSecondary }}
               >
@@ -558,30 +424,30 @@ export function InventoryFormModal({
               <span
                 className="font-bold text-lg font-heading"
                 style={{
-                  color: parseFloat(formData.price) > parseFloat(formData.cost_price) ? COLORS.success : COLORS.danger,
+                  color: parseFloat(previewPrice) > parseFloat(previewCost) ? COLORS.success : COLORS.danger,
                 }}
               >
-                {parseFloat(formData.cost_price) > 0 ? (
+                {parseFloat(previewCost) > 0 ? (
                   <>
-                    {parseFloat(formData.price) > parseFloat(formData.cost_price) ? '+' : ''}
-                    {Math.round(((parseFloat(formData.price) - parseFloat(formData.cost_price)) / parseFloat(formData.cost_price)) * 100)}%
+                    {parseFloat(previewPrice) > parseFloat(previewCost) ? '+' : ''}
+                    {Math.round(((parseFloat(previewPrice) - parseFloat(previewCost)) / parseFloat(previewCost)) * 100)}%
                   </>
-                ) : '—'}
+                ) : '\u2014'}
               </span>
             </div>
           )}
         </div>
 
         {/* Actions */}
-        <div 
+        <div
           className="flex gap-3 pt-6 border-t"
           style={{ borderColor: COLORS.border }}
         >
           <button
             type="button"
-            onClick={onClose}
+            onClick={confirmClose}
             className="flex-1 py-3.5 px-4 rounded-xl font-medium text-base transition-all hover:opacity-90 cursor-pointer"
-            style={{ 
+            style={{
               color: COLORS.textSecondary,
               border: `1px solid ${COLORS.border}`,
               backgroundColor: COLORS.surface,
@@ -591,14 +457,14 @@ export function InventoryFormModal({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isPending}
             className="flex-1 py-3.5 px-4 rounded-xl font-medium text-base transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
-            style={{ 
+            style={{
               background: COLORS.primaryGradient,
               color: COLORS.textOnPrimary,
             }}
           >
-            {isSubmitting ? (
+            {isPending ? (
               <>
                 <Spinner size="sm" />
                 Guardando...

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-import { ArrowLeft, User, Calendar, FileText, Pencil, Trash2, Phone, Mail, MapPin, CalendarCheck2, Clock, CheckCircle2, XCircle, MessageCircle, BellOff } from 'lucide-react'
+import { ArrowLeft, User, Calendar, FileText, Pencil, Trash2, Phone, Mail, CalendarCheck2, Clock, CheckCircle2, XCircle, MessageCircle, BellOff } from 'lucide-react'
 import type { Database } from '@/../types/supabase'
 import { EditClientModal } from '../EditClientModal'
 import { DeleteClientModal } from '../DeleteClientModal'
@@ -309,6 +309,7 @@ function InfoTab({ client }: { client: Client }) {
 
       {editing && (
         <EditClientModal
+          key={client?.id ?? 'new'}
           client={client}
           organizationId={client.organization_id}
           isOpen={editing}
@@ -618,6 +619,7 @@ export function ClientTabs({ client, appointments, organizationId }: ClientTabsP
 
       {editing && (
         <EditClientModal
+          key={client?.id ?? 'new'}
           client={client}
           organizationId={organizationId}
           isOpen={editing}

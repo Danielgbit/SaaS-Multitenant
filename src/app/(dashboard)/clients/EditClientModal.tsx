@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useThemeColors } from '@/hooks/useThemeColors'
-import { Check, AlertCircle, HelpCircle, UserCircle, PhoneCall, MessageCircle, Users, User, BellOff, Phone, Mail } from 'lucide-react'
+import { useConfirmClose } from '@/hooks/useConfirmClose'
+import { Check, AlertCircle, HelpCircle, PhoneCall, User, BellOff, Phone, Mail } from 'lucide-react'
 import { Modal, Button, Spinner } from '@/components/ui'
 import type { ConfirmationMethod } from '@/types/clients'
 import { isValidPhone, getPhoneErrorMessage } from '@/lib/validators/phone'
@@ -526,6 +527,24 @@ export function EditClientModal({
   const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
+    if (isOpen && client) {
+      setName(client.name ?? '')
+      setEmail(client.email ?? '')
+      setPhone(client.phone ?? '')
+      setNotes(client.notes ?? '')
+      setConfirmationsEnabled(client.confirmations_enabled ?? true)
+      setConfirmationMethod(client.confirmation_method ?? 'whatsapp')
+    } else if (isOpen && !client) {
+      setName('')
+      setEmail('')
+      setPhone('')
+      setNotes('')
+      setConfirmationsEnabled(true)
+      setConfirmationMethod('whatsapp')
+    }
+  }, [isOpen, client])
+
+  useEffect(() => {
     if (isOpen) {
       setIsVisible(true)
       setTimeout(() => {
@@ -550,6 +569,16 @@ export function EditClientModal({
   const handleClose = () => {
     setIsClosing(true)
   }
+
+  const isDirty =
+    (name !== (client?.name ?? '')) ||
+    (email !== (client?.email ?? '')) ||
+    (phone !== (client?.phone ?? '')) ||
+    (notes !== (client?.notes ?? '')) ||
+    (confirmationsEnabled !== (client?.confirmations_enabled ?? true)) ||
+    (confirmationMethod !== (client?.confirmation_method ?? 'whatsapp'))
+
+  const { confirmClose } = useConfirmClose(isDirty, handleClose)
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '')
@@ -633,10 +662,10 @@ export function EditClientModal({
   const isLoading = isSubmitted
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={isNewClient ? 'Nuevo Cliente' : 'Editar Cliente'}
+    <Modal isOpen={isOpen} onClose={confirmClose} title={isNewClient ? 'Nuevo Cliente' : 'Editar Cliente'}
       footer={
         <>
-          <Button variant="secondary" onClick={handleClose} disabled={isLoading}>Cancelar</Button>
+          <Button variant="secondary" onClick={confirmClose} disabled={isLoading}>Cancelar</Button>
           <Button variant="primary" type="submit" form="edit-client-form" disabled={isLoading} loading={isLoading}>
             {isNewClient ? 'Crear cliente' : 'Guardar cambios'}
           </Button>
@@ -756,7 +785,7 @@ export function EditClientModal({
           <div className="flex gap-3 pt-2">
             <button
               type="button"
-              onClick={handleClose}
+              onClick={confirmClose}
               disabled={isLoading}
               style={{
                 borderRadius: COLORS.radius.md,

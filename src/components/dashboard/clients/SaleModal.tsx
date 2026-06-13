@@ -6,6 +6,7 @@ import { Modal, Button } from '@/components/ui'
 import type { InventoryItemWithStock, SalePaymentMethod } from '@/types/clientAccounts'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
+import { useConfirmClose } from '@/hooks/useConfirmClose'
 
 interface SaleModalProps {
   products: InventoryItemWithStock[]
@@ -27,6 +28,8 @@ export function SaleModal({ products, onRecord, onClose }: SaleModalProps) {
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState('')
   const COLORS = useThemeColors()
+  const isDirty = selectedProducts.length > 0
+  const { confirmClose } = useConfirmClose(isDirty, onClose)
 
   const addProduct = (product: InventoryItemWithStock) => {
     if (product.quantity <= 0) return
@@ -64,10 +67,10 @@ export function SaleModal({ products, onRecord, onClose }: SaleModalProps) {
   }
 
   return (
-    <Modal isOpen={true} onClose={onClose} title="Registrar Venta"
+    <Modal isOpen={true} onClose={confirmClose} title="Registrar Venta"
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button variant="secondary" onClick={confirmClose}>Cancelar</Button>
           <Button variant="primary" onClick={handleSubmit} disabled={loading || selectedProducts.length === 0} loading={loading}>
             Registrar Venta
           </Button>

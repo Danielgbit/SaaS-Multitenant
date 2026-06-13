@@ -21,28 +21,36 @@ export interface InventoryMovement {
   created_at: string
 }
 
+export type GetInventoryMovementsOptions = {
+  limit?: number
+  offset?: number
+}
+
 export async function getInventoryMovements(
   itemId: string,
   organizationId: string,
-  limit = 20
-): Promise<InventoryMovement[]> {
+  options: GetInventoryMovementsOptions = {}
+): Promise<{ data: InventoryMovement[]; total: number }> {
   const access = await requireOrgAccess(organizationId)
-  if (!access.success) return []
+  if (!access.success) return { data: [], total: 0 }
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  const limit = options.limit ?? 20
+  const offset = options.offset ?? 0
+
+  const { data, error, count } = await supabase
     .from('inventory_movements')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('inventory_item_id', itemId)
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
-    .limit(limit)
+    .range(offset, offset + limit - 1)
 
   if (error) {
     captureError('inventory_movements_error', error, { itemId, organizationId })
-    return []
+    return { data: [], total: 0 }
   }
 
-  return (data as unknown as InventoryMovement[]) ?? []
+  return { data: (data as unknown as InventoryMovement[]) ?? [], total: count ?? 0 }
 }
