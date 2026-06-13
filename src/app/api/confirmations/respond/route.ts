@@ -120,6 +120,7 @@ export async function POST(request: Request) {
         .from('appointments')
         .update({
           status: 'cancelled',
+          confirmation_status: 'completed',
         })
         .eq('id', tokenData.appointmentId)
 
@@ -184,20 +185,24 @@ async function notifyOrganization(
 
   if (!members || members.length === 0) return
 
-  const notifications = members.map(m => ({
-    organization_id: organizationId,
-    user_id: m.user_id,
-    type: 'confirmation_sent' as const,
-    title: action === 'confirm' ? 'Cita confirmada por cliente' : 'Cita cancelada por cliente',
-    message: action === 'confirm'
-      ? `El cliente confirmó su cita`
-      : `El cliente canceló su cita`,
-    metadata: {
-      appointment_id: appointment.id,
-      action,
-      channel: 'confirmation_link',
-    },
-  }))
+  const notifications = members
+    .filter(m => m.user_id)
+    .map(m => ({
+      organization_id: organizationId,
+      user_id: m.user_id,
+      type: 'confirmation_sent' as const,
+      title: action === 'confirm' ? 'Cita confirmada por cliente' : 'Cita cancelada por cliente',
+      message: action === 'confirm'
+        ? `El cliente confirmó su cita`
+        : `El cliente canceló su cita`,
+      metadata: {
+        appointment_id: appointment.id,
+        action,
+        channel: 'confirmation_link',
+      },
+    }))
 
-  await supabase.from('notifications').insert(notifications as any)
+  if (notifications.length > 0) {
+    await supabase.from('notifications').insert(notifications)
+  }
 }

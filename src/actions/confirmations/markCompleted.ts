@@ -172,6 +172,31 @@ export async function markCompleted(
     return { error: 'Error al actualizar la cita. Intenta de nuevo.' }
   }
 
+  // Crear appointment_confirmations si no existe
+  {
+    const { data: existingConf } = await supabase
+      .from('appointment_confirmations')
+      .select('id')
+      .eq('appointment_id', appointmentId)
+      .maybeSingle()
+
+    if (!existingConf) {
+      await supabase
+        .from('appointment_confirmations')
+        .insert({
+          organization_id: appointment.organization_id,
+          employee_id: appointment.employee_id,
+          appointment_id: appointmentId,
+          services: [],
+          total_amount: finalPrice,
+          status: 'pending_reception',
+          confirmation_status: 'pending_reception',
+          employee_confirmed_at: now,
+          notes: notes || null,
+        })
+    }
+  }
+
   const { data: assistants, error: asstError } = await supabase
     .from('organization_members')
     .select('user_id')
@@ -179,18 +204,19 @@ export async function markCompleted(
     .in('role', ['owner', 'admin', 'staff'])
 
   if (!asstError && assistants && assistants.length > 0) {
+    const clientInfo = appointment.clients as { name?: string; phone?: string } | null
     const notifications = assistants.map((a: { user_id: string }) => ({
       organization_id: appointment.organization_id,
       user_id: a.user_id,
       type: 'service_ready' as const,
       title: 'Servicio completado',
-      message: `${employee.name} completó un servicio${(appointment.clients as any)?.name ? ` - ${(appointment.clients as any).name}` : ''}`,
+      message: `${employee.name} completó un servicio${clientInfo?.name ? ` - ${clientInfo.name}` : ''}`,
       metadata: {
         appointment_id: appointmentId,
         employee_id: employee.id,
         employee_name: employee.name,
-        client_name: (appointment.clients as any)?.name || null,
-        client_phone: (appointment.clients as any)?.phone || null,
+        client_name: clientInfo?.name || null,
+        client_phone: clientInfo?.phone || null,
         log_id: log.id,
         price: finalPrice,
       },

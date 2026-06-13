@@ -133,6 +133,33 @@ export async function confirmService(
     return { success: false, error: 'Error al confirmar la cita. Intenta de nuevo.' }
   }
 
+  // Crear appointment_confirmations si no existe
+  {
+    const { data: existingConf } = await supabase
+      .from('appointment_confirmations')
+      .select('id')
+      .eq('appointment_id', appointmentId)
+      .maybeSingle()
+
+    if (!existingConf) {
+      await supabase
+        .from('appointment_confirmations')
+        .insert({
+          organization_id: appointment.organization_id,
+          employee_id: appointment.employee_id,
+          appointment_id: appointmentId,
+          services: [],
+          total_amount: currentPrice,
+          status: 'completed',
+          confirmation_status: 'confirmed',
+          employee_confirmed_at: now,
+          reception_confirmed_at: now,
+          payment_method: paymentMethod || null,
+          notes: notes || null,
+        })
+    }
+  }
+
   if (appointment.completed_by) {
     await supabase
       .from('notifications')

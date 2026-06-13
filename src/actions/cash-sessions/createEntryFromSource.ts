@@ -21,7 +21,7 @@ interface CreateEntryFromSourceInput {
 export async function createEntryFromSource(input: CreateEntryFromSourceInput) {
   const supabase = await createClient()
 
-  const { data: session } = await (supabase as any)
+  const { data: session } = await supabase
     .from('cash_sessions')
     .select('id')
     .eq('organization_id', input.organization_id)
@@ -34,7 +34,7 @@ export async function createEntryFromSource(input: CreateEntryFromSourceInput) {
     return { success: false, error: 'No hay caja abierta hoy' }
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('operation_entries')
     .insert({
       cash_session_id: session.id,

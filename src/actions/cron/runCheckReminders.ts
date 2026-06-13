@@ -44,7 +44,6 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
       .gte('end_time', fourMinutesLater.toISOString())
       .lte('end_time', fiveMinutesLater.toISOString())
       .in('confirmation_status', ['scheduled'])
-      .eq('status', 'confirmed')
 
     if (!reminderError && reminderAppointments && reminderAppointments.length > 0) {
       for (const apt of reminderAppointments) {
@@ -122,7 +121,6 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
       `)
       .lte('end_time', sixtyMinutesAgo.toISOString())
       .eq('confirmation_status', 'scheduled')
-      .eq('status', 'confirmed')
 
     if (!unmarkedError && unmarkedAppointments && unmarkedAppointments.length > 0) {
       for (const apt of unmarkedAppointments) {
@@ -208,6 +206,41 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
               price_after: null,
               notes: 'Auto-completado por el sistema después de 120 min',
             })
+
+          // Crear appointment_confirmations si no existe
+          try {
+            const { data: empData } = await supabase
+              .from('appointments')
+              .select('employee_id')
+              .eq('id', apt.id)
+              .single()
+
+            const { data: existingConf } = await supabase
+              .from('appointment_confirmations')
+              .select('id')
+              .eq('appointment_id', apt.id)
+              .maybeSingle()
+
+            if (!existingConf) {
+              await supabase
+                .from('appointment_confirmations')
+                .insert({
+                  organization_id: apt.organization_id,
+                  employee_id: empData?.employee_id,
+                  appointment_id: apt.id,
+                  services: [],
+                  total_amount: 0,
+                  confirmation_type: 'scheduled',
+                  status: 'completed',
+                  confirmation_status: 'completed',
+                  employee_confirmed_at: now.toISOString(),
+                  reception_confirmed_at: now.toISOString(),
+                  notes: 'Auto-completado por el sistema',
+                })
+            }
+          } catch (e) {
+            console.error('[runCheckReminders] appointment_confirmations insert error:', e)
+          }
 
           // Notify assistants
           const { data: assistants } = await supabase

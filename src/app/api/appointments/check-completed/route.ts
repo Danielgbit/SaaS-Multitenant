@@ -34,7 +34,7 @@ export async function POST(request: Request) {
             phone
           )
         `)
-        .eq('status', 'confirmed')
+        .in('status', ['confirmed', 'pending'])
         .lt('end_time', now)
 
       if (fetchError) {
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       let processed = 0
 
       for (const apt of appointments) {
-        const { data: existingConfirmation } = await (supabase as any)
+        const { data: existingConfirmation } = await supabase
           .from('appointment_confirmations')
           .select('id')
           .eq('appointment_id', apt.id)
@@ -70,16 +70,16 @@ export async function POST(request: Request) {
           `)
           .eq('appointment_id', apt.id)
 
-        const services = (appointmentServices || []).map((as: any) => ({
+        const services = (appointmentServices || []).map((as: { service_id: string; services: { name: string; price: number } | null }) => ({
           service_id: as.service_id,
           service_name: as.services?.name || 'Servicio',
           price: as.services?.price || 0,
           performed: true,
         }))
 
-        const total = services.reduce((sum: number, s: any) => sum + s.price, 0)
+        const total = services.reduce((sum: number, s: { price: number }) => sum + s.price, 0)
 
-        const { error: insertError } = await (supabase as any)
+        const { error: insertError } = await supabase
           .from('appointment_confirmations')
           .insert({
             appointment_id: apt.id,

@@ -67,7 +67,7 @@ export async function finalizeAppointmentFinancials(
     const { recordCommissionAccrual } = await import(
       '@/actions/financial/recordCommissionAccrual'
     )
-    const accrualKey = `${idempotencyPrefix}_${appointmentId}_${employeeId}`
+    const accrualKey = `commission_accrued_${appointmentId}_${employeeId}`
     const commissionResult = await recordCommissionAccrual({
       appointmentId,
       organizationId,

@@ -58,6 +58,9 @@ describeDb('CRON-DB: runCheckReminders integration', () => {
 
   describe('CRON-DB-LIFECYCLE: reminder → auto-complete end-to-end', () => {
     it('executes full lifecycle in a single test run', async () => {
+      // Flush stale fixtures before creating test appointments
+      await runCheckReminders(f.supabase)
+
       // ── PHASE 1: reminder (5 min before) ─────────────────────────
       const reminderApt = await createAppointmentWithEndTime(f.supabase, {
         organizationId: f.orgId,

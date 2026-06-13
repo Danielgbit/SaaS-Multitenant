@@ -273,6 +273,7 @@ export async function cancelPublicBooking(
     .from('appointments')
     .update({
       status: 'cancelled',
+      confirmation_status: 'completed',
     })
     .eq('id', appointment.id)
 

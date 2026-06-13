@@ -70,6 +70,7 @@ export async function cancelConfirmation(
     .from('appointments')
     .update({
       status: 'cancelled',
+      confirmation_status: 'completed',
     })
     .eq('id', appointmentId)
 
