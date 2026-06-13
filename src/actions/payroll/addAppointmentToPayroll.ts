@@ -120,7 +120,9 @@ export async function addAppointmentToPayroll(
   const orgId = apt.organization_id as string
   const employeeId = apt.employee_id as string
 
-  const access = await requireOrgAccess(orgId, ['owner', 'admin', 'staff'], client)
+  const access = await requireOrgAccess(orgId, ['owner', 'admin', 'staff'], client, {
+    systemContext: true,
+  })
   if (!access.success) return { success: false, error: access.error }
 
   // ── Período YYYY-MM desde start_time ────────────────

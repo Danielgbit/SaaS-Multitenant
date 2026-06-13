@@ -28,10 +28,24 @@ export type AuthResult =
 export async function requireOrgAccess(
   organizationId: string,
   requiredRoles?: string[],
-  supabase?: SupabaseClient
+  supabase?: SupabaseClient,
+  options?: { systemContext?: boolean }
 ): Promise<AuthResult> {
   const client = supabase ?? await createClient()
 
+  // ---- EARLY RETURN PARA SYSTEM CONTEXT (CRON) ----
+  // System operation (cron) — skip auth + membership check.
+  // CRON_SECRET already verified at route handler level.
+  // requiredRoles are intentionally bypassed: the cron job
+  // operates with system-level access across all organizations.
+  if (options?.systemContext) {
+    return {
+      success: true,
+      context: { userId: '', organizationId, role: 'system' },
+    }
+  }
+
+  // ---- FLUJO NORMAL (HTTP request con sesión de usuario) ----
   const { data: { user } } = await client.auth.getUser()
   if (!user) return { success: false, error: 'No autorizado.' }
 

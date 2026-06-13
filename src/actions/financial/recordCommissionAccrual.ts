@@ -111,8 +111,16 @@ export async function recordCommissionAccrual(
     }
   }
 
-  revalidatePath('/nomina')
-  revalidatePath(`/nomina/empleado/${appointment.employee_id}`)
+  try {
+    revalidatePath('/nomina')
+  } catch (e) {
+    console.warn('[recordCommissionAccrual] revalidatePath /nomina error:', e)
+  }
+  try {
+    revalidatePath(`/nomina/empleado/${appointment.employee_id}`)
+  } catch (e) {
+    console.warn('[recordCommissionAccrual] revalidatePath /nomina/empleado error:', e)
+  }
 
   return { success: true }
 }
