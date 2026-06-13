@@ -38,8 +38,8 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
         employee_id,
         end_time,
         confirmation_status,
-        employees!employees_id(user_id, name),
-        clients!clients_id(name)
+        employees!employee_id(user_id, name),
+        clients!client_id(name)
       `)
       .gte('end_time', fourMinutesLater.toISOString())
       .lte('end_time', fiveMinutesLater.toISOString())
@@ -74,15 +74,15 @@ export async function runCheckReminders(supabaseClient?: Awaited<ReturnType<type
             continue // Ya se envió reminder recientemente
           }
 
-          if (apt.employees?.[0]?.user_id) {
-            const clientName = apt.clients?.[0]?.name || 'Cliente'
+          if (apt.employees?.user_id) {
+            const clientName = apt.clients?.name || 'Cliente'
             const reminderNumber = (existingReminders || 0) + 1
 
             await supabase
               .from('notifications')
               .insert({
                 organization_id: apt.organization_id,
-                user_id: apt.employees[0].user_id!,
+                user_id: apt.employees.user_id!,
                 type: 'reminder',
                 title: reminderNumber === 1
                   ? 'Servicio por terminar'

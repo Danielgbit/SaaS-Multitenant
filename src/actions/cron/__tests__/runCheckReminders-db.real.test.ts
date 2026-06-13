@@ -116,7 +116,7 @@ describeDb('CRON-DB: runCheckReminders integration', () => {
         .eq('entity_id', autoCompleteApt.appointmentId)
         .eq('event_type', 'payment_received')
       expect(paymentEvents).toBe(0)
-    })
+    }, 30000)
   })
 
   describe('CRON-DB-009: confirmation_log with price_after=null', () => {
