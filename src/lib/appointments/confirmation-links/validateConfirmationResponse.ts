@@ -22,12 +22,12 @@ const AppointmentSchema = z.object({
     .array(
       z.object({
         service_id: z.string(),
-            services: z
-              .object({
-                name: z.string(),
-                duration: z.number(),
-              })
-              .nullable(),
+        services: z
+          .object({
+            name: z.string(),
+            duration: z.number(),
+          })
+          .nullable(),
       }),
     )
     .nullable(),
