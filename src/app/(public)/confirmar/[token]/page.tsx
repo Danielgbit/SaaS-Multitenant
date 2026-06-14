@@ -21,6 +21,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { decideViewState } from "@/lib/appointments/confirmation-links/decideViewState";
 import type { Database } from "@db/supabase";
 import {
   AlertCircle,
@@ -101,30 +102,14 @@ export default function ConfirmarPage() {
         .eq("token", token)
         .single();
 
-      if (tokenError || !tokenData) {
-        setViewState("invalid");
+      // Early state check using token data only (preserves perf: skips appointment query for terminal states)
+      const earlyState = decideViewState(tokenData, null, tokenError);
+      if (earlyState !== "valid") {
+        setViewState(earlyState);
         return;
       }
 
-      // Order: expired → used → invalidated (must match tokens.ts:62-76)
-      const now = new Date();
-      const expiresAt = new Date(tokenData.expires_at);
-
-      if (now > expiresAt) {
-        setViewState("expired");
-        return;
-      }
-
-      if (tokenData.used_at) {
-        setViewState("used");
-        return;
-      }
-
-      if (tokenData.invalidated_at) {
-        setViewState("cancelled");
-        return;
-      }
-
+      // Only fetch appointment if token is valid
       const { data: appt, error: apptError } = await supabase
         .from("appointments")
         .select(
@@ -143,21 +128,14 @@ export default function ConfirmarPage() {
           )
         `,
         )
-        .eq("id", tokenData.appointment_id)
-        .single();
+        .eq("id", tokenData!.appointment_id)
+        .maybeSingle();
 
-      if (apptError || !appt) {
-        setViewState("error");
-        return;
-      }
-
-      if (appt.status === "cancelled") {
-        setViewState("cancelled");
-        return;
-      }
-
-      setAppointment(appt as AppointmentDetails);
-      setViewState("valid");
+      const finalState = decideViewState(tokenData, appt, apptError);
+      // TODO Fase 2A: replace with Zod parse once server action is in place
+      if (finalState === "valid" && appt)
+        setAppointment(appt as AppointmentDetails);
+      setViewState(finalState);
     } catch (e) {
       console.error("[ConfirmarPage] Error:", e);
       setViewState("error");
