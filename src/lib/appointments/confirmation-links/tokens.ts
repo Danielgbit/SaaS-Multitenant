@@ -1,78 +1,90 @@
-'use server'
+"use server";
 
-import { createClient } from '@/lib/supabase/server'
-import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import type { ConfirmationTokenAction, ConfirmationToken } from '@/types/notifications'
+import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import type {
+  ConfirmationTokenAction,
+  ConfirmationToken,
+} from "@/types/notifications";
 
-const TOKEN_EXPIRY_HOURS = 72
+/**
+ * Token state machine.
+ *
+ * Canonical ordering: expired → used → invalidated.
+ * Must match the order in /confirmar/[token]/page.tsx (Fase 1A reordering).
+ *
+ * 72h expiry chosen to cover weekend gaps: confirm sent Friday → valid through Monday.
+ * Revisit if the no-show rate climbs.
+ */
+const TOKEN_EXPIRY_HOURS = 72;
 
 export async function generateConfirmationToken(
   appointmentId: string,
   organizationId: string,
-  action: ConfirmationTokenAction = 'confirm'
+  action: ConfirmationTokenAction = "confirm",
 ): Promise<{ success: boolean; token?: string; error?: string }> {
-  const supabase = await createServiceRoleClient()
+  const supabase = await createServiceRoleClient();
 
   try {
-    const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000).toISOString()
-    const token = crypto.randomUUID()
+    const expiresAt = new Date(
+      Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000,
+    ).toISOString();
+    const token = crypto.randomUUID();
 
     const { error } = await (supabase as any)
-      .from('confirmation_tokens')
+      .from("confirmation_tokens")
       .insert({
         appointment_id: appointmentId,
         organization_id: organizationId,
         token,
         action,
         expires_at: expiresAt,
-      })
+      });
 
     if (error) {
-      console.error('[generateConfirmationToken] Error:', error)
-      return { success: false, error: 'Error al generar token' }
+      console.error("[generateConfirmationToken] Error:", error);
+      return { success: false, error: "Error al generar token" };
     }
 
-    return { success: true, token }
+    return { success: true, token };
   } catch (error) {
-    console.error('[generateConfirmationToken] Fatal error:', error)
-    return { success: false, error: 'Error inesperado' }
+    console.error("[generateConfirmationToken] Fatal error:", error);
+    return { success: false, error: "Error inesperado" };
   }
 }
 
-export async function validateConfirmationToken(
-  token: string
-): Promise<{
-  success: boolean
-  valid?: boolean
-  reason?: string
-  tokenData?: ConfirmationToken
+export async function validateConfirmationToken(token: string): Promise<{
+  success: boolean;
+  valid?: boolean;
+  reason?: string;
+  tokenData?: ConfirmationToken;
 }> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   try {
     const { data, error } = await (supabase as any)
-      .from('confirmation_tokens')
-      .select('*')
-      .eq('token', token)
-      .single()
+      .from("confirmation_tokens")
+      .select("*")
+      .eq("token", token)
+      .single();
 
     if (error || !data) {
-      return { success: false, valid: false, reason: 'Token no encontrado' }
+      return { success: false, valid: false, reason: "Token no encontrado" };
     }
 
-    const now = new Date()
-    const expiresAt = new Date(data.expires_at)
+    const now = new Date();
+    const expiresAt = new Date(data.expires_at);
 
     if (now > expiresAt) {
-      return { success: true, valid: false, reason: 'Token expirado' }
+      return { success: true, valid: false, reason: "Token expirado" };
     }
 
     if (data.used_at) {
-      return { success: true, valid: false, reason: 'Token ya usado' }
+      return { success: true, valid: false, reason: "Token ya usado" };
     }
 
     if (data.invalidated_at) {
-      return { success: true, valid: false, reason: 'Token invalidado' }
+      return { success: true, valid: false, reason: "Token invalidado" };
     }
 
     return {
@@ -90,94 +102,101 @@ export async function validateConfirmationToken(
         invalidatedReason: data.invalidated_reason || undefined,
         createdAt: data.created_at,
       },
-    }
+    };
   } catch (error) {
-    console.error('[validateConfirmationToken] Fatal error:', error)
-    return { success: false, reason: 'Error al validar token' }
+    console.error("[validateConfirmationToken] Fatal error:", error);
+    return { success: false, reason: "Error al validar token" };
   }
 }
 
 export async function useConfirmationToken(
   token: string,
-  action: ConfirmationTokenAction
+  action: ConfirmationTokenAction,
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createServiceRoleClient()
+  const supabase = await createServiceRoleClient();
 
   try {
     const { data: tokenData, error: fetchError } = await (supabase as any)
-      .from('confirmation_tokens')
-      .select('*')
-      .eq('token', token)
-      .single()
+      .from("confirmation_tokens")
+      .select("*")
+      .eq("token", token)
+      .single();
 
     if (fetchError || !tokenData) {
-      return { success: false, error: 'Token no encontrado' }
+      return { success: false, error: "Token no encontrado" };
     }
 
     if (tokenData.action !== action) {
-      return { success: false, error: `Esta acción no es válida para este token. Se esperaba: ${tokenData.action}` }
+      return {
+        success: false,
+        error: `Esta acción no es válida para este token. Se esperaba: ${tokenData.action}`,
+      };
     }
 
     const { error: updateError } = await (supabase as any)
-      .from('confirmation_tokens')
+      .from("confirmation_tokens")
       .update({ used_at: new Date().toISOString() })
-      .eq('id', tokenData.id)
-      .is('used_at', null)
+      .eq("id", tokenData.id)
+      .is("used_at", null);
 
     if (updateError) {
-      return { success: false, error: 'Token ya fue utilizado previamente' }
+      return { success: false, error: "Token ya fue utilizado previamente" };
     }
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error('[useConfirmationToken] Fatal error:', error)
-    return { success: false, error: 'Error inesperado' }
+    console.error("[useConfirmationToken] Fatal error:", error);
+    return { success: false, error: "Error inesperado" };
   }
 }
 
 export async function invalidateConfirmationTokens(
   appointmentId: string,
-  reason: string = 'appointment_cancelled'
+  reason: string = "appointment_cancelled",
 ): Promise<{ success: boolean; invalidated: number; error?: string }> {
-  const supabase = await createServiceRoleClient()
+  const supabase = await createServiceRoleClient();
 
   try {
     const { data, error } = await (supabase as any)
-      .from('confirmation_tokens')
+      .from("confirmation_tokens")
       .update({
         invalidated_at: new Date().toISOString(),
         invalidated_reason: reason,
       })
-      .eq('appointment_id', appointmentId)
-      .is('used_at', null)
-      .select('id')
+      .eq("appointment_id", appointmentId)
+      .is("used_at", null)
+      .select("id");
 
     if (error) {
-      console.error('[invalidateConfirmationTokens] Error:', error)
-      return { success: false, invalidated: 0, error: 'Error al invalidar tokens' }
+      console.error("[invalidateConfirmationTokens] Error:", error);
+      return {
+        success: false,
+        invalidated: 0,
+        error: "Error al invalidar tokens",
+      };
     }
 
-    return { success: true, invalidated: data?.length || 0 }
+    return { success: true, invalidated: data?.length || 0 };
   } catch (error) {
-    console.error('[invalidateConfirmationTokens] Fatal error:', error)
-    return { success: false, invalidated: 0, error: 'Error inesperado' }
+    console.error("[invalidateConfirmationTokens] Fatal error:", error);
+    return { success: false, invalidated: 0, error: "Error inesperado" };
   }
 }
 
 export async function getConfirmationTokensByAppointment(
-  appointmentId: string
+  appointmentId: string,
 ): Promise<{ success: boolean; tokens?: ConfirmationToken[]; error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   try {
     const { data, error } = await (supabase as any)
-      .from('confirmation_tokens')
-      .select('*')
-      .eq('appointment_id', appointmentId)
-      .order('created_at', { ascending: false })
+      .from("confirmation_tokens")
+      .select("*")
+      .eq("appointment_id", appointmentId)
+      .order("created_at", { ascending: false });
 
     if (error) {
-      return { success: false, error: 'Error al cargar tokens' }
+      return { success: false, error: "Error al cargar tokens" };
     }
 
     const tokens: ConfirmationToken[] = (data || []).map((t: any) => ({
@@ -191,11 +210,11 @@ export async function getConfirmationTokensByAppointment(
       invalidatedAt: t.invalidated_at || undefined,
       invalidatedReason: t.invalidated_reason || undefined,
       createdAt: t.created_at,
-    }))
+    }));
 
-    return { success: true, tokens }
+    return { success: true, tokens };
   } catch (error) {
-    console.error('[getConfirmationTokensByAppointment] Fatal error:', error)
-    return { success: false, error: 'Error inesperado' }
+    console.error("[getConfirmationTokensByAppointment] Fatal error:", error);
+    return { success: false, error: "Error inesperado" };
   }
 }

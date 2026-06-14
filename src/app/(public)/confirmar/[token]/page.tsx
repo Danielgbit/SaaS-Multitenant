@@ -1,9 +1,27 @@
 "use client";
 
+/**
+ * Public appointment confirmation page.
+ *
+ * This is a Client Component because the form needs local state for the
+ * submit action. Data is fetched in useEffect on mount and re-validated
+ * on token change.
+ *
+ * Defense in depth: token validation runs in BOTH this page and the server
+ * route /api/confirmations/respond. Both implementations must use the same
+ * canonical order: expired → used → invalidated.
+ *
+ * Scheduled for Server Component refactor in Fase 2A:
+ * - Move data fetch to server action (uses service-role client)
+ * - Render the page in RSC, ship only the 2 buttons as a client island
+ * - Bundle size reduction: ~60-80% for this route
+ */
+
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import type { Database } from "@db/supabase";
 import {
   AlertCircle,
   Clock,
@@ -16,28 +34,36 @@ import {
   Loader2,
 } from "lucide-react";
 
-interface AppointmentDetails {
-  id: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  confirmation_status: string;
-  organizations: {
-    name: string;
-  } | null;
-  appointment_services?: Array<{
+export type AppointmentDetails = Pick<
+  Database["public"]["Tables"]["appointments"]["Row"],
+  "id" | "start_time" | "end_time" | "status" | "confirmation_status"
+> & {
+  organizations: { name: string } | null;
+  appointment_services: Array<{
     service_id: string;
-    services: { name: string; duration: number | null } | null;
+    services: Pick<
+      Database["public"]["Tables"]["services"]["Row"],
+      "name" | "duration"
+    > | null;
   }> | null;
-  employees: {
-    name: string;
-  } | null;
-  clients: {
-    name: string;
-    phone: string | null;
-  } | null;
-}
+  employees: { name: string } | null;
+  clients: { name: string; phone: string | null } | null;
+};
 
+/**
+ * View states for the confirmation modal.
+ *
+ * - loading: initial, token being validated
+ * - valid: form is shown, user can confirm or cancel
+ * - invalid: token does not exist
+ * - expired: token's 72h window has passed
+ * - used: token was already used by a previous response
+ * - success: user just confirmed
+ * - cancelled: user cancelled or staff invalidated
+ * - error: network or fetch failure (recoverable)
+ *
+ * Order: transient (loading) → form (valid) → terminal (success/cancelled/used/expired/invalid) → error
+ */
 type ViewState =
   | "loading"
   | "valid"
@@ -80,8 +106,12 @@ export default function ConfirmarPage() {
         return;
       }
 
-      if (tokenData.invalidated_at && !tokenData.used_at) {
-        setViewState("cancelled");
+      // Order: expired → used → invalidated (must match tokens.ts:62-76)
+      const now = new Date();
+      const expiresAt = new Date(tokenData.expires_at);
+
+      if (now > expiresAt) {
+        setViewState("expired");
         return;
       }
 
@@ -90,11 +120,8 @@ export default function ConfirmarPage() {
         return;
       }
 
-      const now = new Date();
-      const expiresAt = new Date(tokenData.expires_at);
-
-      if (now > expiresAt) {
-        setViewState("expired");
+      if (tokenData.invalidated_at) {
+        setViewState("cancelled");
         return;
       }
 
