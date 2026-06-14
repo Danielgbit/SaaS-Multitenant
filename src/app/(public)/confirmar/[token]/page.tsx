@@ -19,9 +19,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { decideViewState } from "@/lib/appointments/confirmation-links/decideViewState";
+import { validateConfirmationResponse } from "@/lib/appointments/confirmation-links/validateConfirmationResponse";
 import { ViewStateRenderer } from "./ViewStateRenderer";
 import type { AppointmentDetails } from "@/types/appointments";
 import {
@@ -77,48 +76,10 @@ export default function ConfirmarPage() {
 
   async function validateAndFetch() {
     try {
-      const supabase = createClient();
-
-      const { data: tokenData, error: tokenError } = await supabase
-        .from("confirmation_tokens")
-        .select("*")
-        .eq("token", token)
-        .single();
-
-      // Early state check using token data only (preserves perf: skips appointment query for terminal states)
-      const earlyState = decideViewState(tokenData, null, tokenError);
-      if (earlyState !== "valid") {
-        setViewState(earlyState);
-        return;
-      }
-
-      // Only fetch appointment if token is valid
-      const { data: appt, error: apptError } = await supabase
-        .from("appointments")
-        .select(
-          `
-          id,
-          start_time,
-          end_time,
-          status,
-          confirmation_status,
-          organizations!inner(name),
-          employees!inner(name),
-          clients!inner(name, phone),
-          appointment_services!inner(
-            service_id,
-            services!inner(name, duration)
-          )
-        `,
-        )
-        .eq("id", tokenData!.appointment_id)
-        .maybeSingle();
-
-      const finalState = decideViewState(tokenData, appt, apptError);
-      // TODO Fase 2A: replace with Zod parse once server action is in place
-      if (finalState === "valid" && appt)
-        setAppointment(appt as AppointmentDetails);
-      setViewState(finalState);
+      const { viewState: next, appointment: appt } =
+        await validateConfirmationResponse(token);
+      if (appt) setAppointment(appt);
+      setViewState(next);
     } catch (e) {
       console.error("[ConfirmarPage] Error:", e);
       setViewState("error");
