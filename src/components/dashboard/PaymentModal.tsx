@@ -339,7 +339,7 @@ export function PaymentModal({
                     {
                       color: COLORS.textMuted,
                       "--btn-hover-bg": COLORS.surfaceHover,
-                    } as any
+                    } as React.CSSProperties
                   }
                 >
                   <X className="w-5 h-5" />
