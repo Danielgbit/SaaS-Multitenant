@@ -31,15 +31,13 @@ export async function generateConfirmationToken(
     ).toISOString();
     const token = crypto.randomUUID();
 
-    const { error } = await (supabase as any)
-      .from("confirmation_tokens")
-      .insert({
-        appointment_id: appointmentId,
-        organization_id: organizationId,
-        token,
-        action,
-        expires_at: expiresAt,
-      });
+    const { error } = await supabase.from("confirmation_tokens").insert({
+      appointment_id: appointmentId,
+      organization_id: organizationId,
+      token,
+      action,
+      expires_at: expiresAt,
+    });
 
     if (error) {
       console.error("[generateConfirmationToken] Error:", error);
@@ -62,7 +60,7 @@ export async function validateConfirmationToken(token: string): Promise<{
   const supabase = await createClient();
 
   try {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("confirmation_tokens")
       .select("*")
       .eq("token", token)
@@ -95,12 +93,14 @@ export async function validateConfirmationToken(token: string): Promise<{
         appointmentId: data.appointment_id,
         organizationId: data.organization_id,
         token: data.token,
+        // invariant: DB stores text, but only valid ConfirmationTokenAction values
+        // are written by generateConfirmationToken
         action: data.action as ConfirmationTokenAction,
         expiresAt: data.expires_at,
         usedAt: data.used_at || undefined,
         invalidatedAt: data.invalidated_at || undefined,
         invalidatedReason: data.invalidated_reason || undefined,
-        createdAt: data.created_at,
+        createdAt: data.created_at!,
       },
     };
   } catch (error) {
@@ -116,7 +116,7 @@ export async function useConfirmationToken(
   const supabase = await createServiceRoleClient();
 
   try {
-    const { data: tokenData, error: fetchError } = await (supabase as any)
+    const { data: tokenData, error: fetchError } = await supabase
       .from("confirmation_tokens")
       .select("*")
       .eq("token", token)
@@ -133,7 +133,7 @@ export async function useConfirmationToken(
       };
     }
 
-    const { error: updateError } = await (supabase as any)
+    const { error: updateError } = await supabase
       .from("confirmation_tokens")
       .update({ used_at: new Date().toISOString() })
       .eq("id", tokenData.id)
@@ -157,7 +157,7 @@ export async function invalidateConfirmationTokens(
   const supabase = await createServiceRoleClient();
 
   try {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("confirmation_tokens")
       .update({
         invalidated_at: new Date().toISOString(),
@@ -189,7 +189,7 @@ export async function getConfirmationTokensByAppointment(
   const supabase = await createClient();
 
   try {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("confirmation_tokens")
       .select("*")
       .eq("appointment_id", appointmentId)
@@ -199,17 +199,19 @@ export async function getConfirmationTokensByAppointment(
       return { success: false, error: "Error al cargar tokens" };
     }
 
-    const tokens: ConfirmationToken[] = (data || []).map((t: any) => ({
+    const tokens: ConfirmationToken[] = (data || []).map((t) => ({
       id: t.id,
       appointmentId: t.appointment_id,
       organizationId: t.organization_id,
       token: t.token,
+      // invariant: DB stores text, but only valid ConfirmationTokenAction values
+      // are written by generateConfirmationToken
       action: t.action as ConfirmationTokenAction,
       expiresAt: t.expires_at,
       usedAt: t.used_at || undefined,
       invalidatedAt: t.invalidated_at || undefined,
       invalidatedReason: t.invalidated_reason || undefined,
-      createdAt: t.created_at,
+      createdAt: t.created_at!,
     }));
 
     return { success: true, tokens };
