@@ -202,7 +202,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
                 borderRadius: '10px',
                 padding: '10px 16px',
                 backgroundColor: filter === 'all' ? COLORS.primary : 'transparent',
-                color: filter === 'all' ? '#FFFFFF' : COLORS.textSecondary,
+                color: filter === 'all' ? COLORS.textOnPrimary : COLORS.textSecondary,
                 border: filter === 'all' ? 'none' : `1px solid ${COLORS.border}`,
               }}
               className="text-sm font-medium transition-all duration-200 flex items-center gap-2"
@@ -213,7 +213,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
                 className="ml-1 px-1.5 py-0.5 rounded-full text-xs"
                 style={{
                   backgroundColor: filter === 'all' ? 'rgba(255,255,255,0.2)' : COLORS.surfaceSubtle,
-                  color: filter === 'all' ? '#FFFFFF' : COLORS.textSecondary,
+                  color: filter === 'all' ? COLORS.textOnPrimary : COLORS.textSecondary,
                 }}
               >
                 {stats.total}
@@ -228,7 +228,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
                 borderRadius: '10px',
                 padding: '10px 16px',
                 backgroundColor: filter === 'lowStock' ? COLORS.warning : 'transparent',
-                color: filter === 'lowStock' ? '#FFFFFF' : COLORS.warning,
+                color: filter === 'lowStock' ? COLORS.textOnWarning : COLORS.warning,
                 border: filter === 'lowStock' ? 'none' : `1px solid ${COLORS.warning}40`,
               }}
               className="text-sm font-medium transition-all duration-200 flex items-center gap-2"
@@ -240,7 +240,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
                   className="ml-1 px-1.5 py-0.5 rounded-full text-xs"
                   style={{
                     backgroundColor: filter === 'lowStock' ? 'rgba(255,255,255,0.2)' : COLORS.warningLight,
-                    color: filter === 'lowStock' ? '#FFFFFF' : COLORS.warning,
+                    color: filter === 'lowStock' ? COLORS.textOnWarning : COLORS.warning,
                   }}
                 >
                   {stats.lowStock}
@@ -256,7 +256,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
                 borderRadius: '10px',
                 padding: '10px 16px',
                 backgroundColor: filter === 'criticalStock' ? COLORS.error : 'transparent',
-                color: filter === 'criticalStock' ? '#FFFFFF' : COLORS.error,
+                color: filter === 'criticalStock' ? COLORS.textOnError : COLORS.error,
                 border: filter === 'criticalStock' ? 'none' : `1px solid ${COLORS.error}40`,
               }}
               className="text-sm font-medium transition-all duration-200 flex items-center gap-2"
@@ -268,7 +268,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
                   className="ml-1 px-1.5 py-0.5 rounded-full text-xs"
                   style={{
                     backgroundColor: filter === 'criticalStock' ? 'rgba(255,255,255,0.2)' : COLORS.errorLight,
-                    color: filter === 'criticalStock' ? '#FFFFFF' : COLORS.error,
+                    color: filter === 'criticalStock' ? COLORS.textOnError : COLORS.error,
                   }}
                 >
                   {stats.criticalStock}
@@ -422,7 +422,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
                   className="p-1.5 transition-colors duration-200 cursor-pointer"
                   style={{
                     backgroundColor: viewMode === 'grid' ? COLORS.primary : 'transparent',
-                    color: viewMode === 'grid' ? '#FFFFFF' : COLORS.textMuted,
+                    color: viewMode === 'grid' ? COLORS.textOnPrimary : COLORS.textMuted,
                   }}
                   aria-label="Vista cuadricula"
                 >
@@ -435,7 +435,7 @@ export function InventoryClient({ items, categories, organizationId }: Inventory
                   className="p-1.5 transition-colors duration-200 cursor-pointer"
                   style={{
                     backgroundColor: viewMode === 'list' ? COLORS.primary : 'transparent',
-                    color: viewMode === 'list' ? '#FFFFFF' : COLORS.textMuted,
+                    color: viewMode === 'list' ? COLORS.textOnPrimary : COLORS.textMuted,
                   }}
                   aria-label="Vista lista"
                 >

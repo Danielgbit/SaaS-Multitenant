@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Plus, Trash2, AlertTriangle } from 'lucide-react'
 import { Modal, Button } from '@/components/ui'
-import type { InventoryItemWithStock, SalePaymentMethod } from '@/types/clientAccounts'
+import { SALE_PAYMENT_METHODS, type InventoryItemWithStock, type SalePaymentMethod } from '@/types/clientAccounts'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import { useConfirmClose } from '@/hooks/useConfirmClose'
@@ -147,8 +147,15 @@ export function SaleModal({ products, onRecord, onClose }: SaleModalProps) {
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: COLORS.textSecondary }}>Método de pago</label>
-                <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as SalePaymentMethod)}
-                  className="w-full px-3 py-2.5 rounded-xl text-sm border" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface }}>
+                <select
+                  value={paymentMethod}
+                  onChange={e => {
+                    const method = SALE_PAYMENT_METHODS.find(m => m === e.target.value)
+                    if (method) setPaymentMethod(method)
+                  }}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm border"
+                  style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface }}
+                >
                   {PAYMENT_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}

@@ -1,6 +1,10 @@
 'use client'
 import { useState, useCallback, type ReactNode } from 'react'
 
+const TOOLTIP_BG = 'rgba(15, 23, 42, 0.95)'
+const TOOLTIP_TEXT = '#FFFFFF'
+// TODO: migrate to design system tokens (DESIGN-TOOLTIP)
+
 interface TooltipProps {
   content: ReactNode
   children: ReactNode
@@ -31,7 +35,7 @@ export function Tooltip({ content, children, side = 'bottom' }: TooltipProps) {
               ? 'top-full left-1/2 -translate-x-1/2 mt-2'
               : 'bottom-full left-1/2 -translate-x-1/2 mb-2'
           }`}
-          style={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', color: '#fff' }}
+          style={{ backgroundColor: TOOLTIP_BG, color: TOOLTIP_TEXT }}
         >
           {content}
         </div>

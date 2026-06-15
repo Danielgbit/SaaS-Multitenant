@@ -4,7 +4,8 @@
 
 export type TransactionType = 'sale' | 'payment' | 'credit' | 'refund' | 'adjustment'
 export type PaymentMethodType = 'cash' | 'qr' | 'transfer' | 'card' | 'credit' | 'other'
-export type SalePaymentMethod = 'cash' | 'qr' | 'transfer' | 'card' | 'credit'
+export const SALE_PAYMENT_METHODS = ['cash', 'qr', 'transfer', 'card', 'credit'] as const
+export type SalePaymentMethod = (typeof SALE_PAYMENT_METHODS)[number]
 
 export type ClientAccount = {
   id: string
