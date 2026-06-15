@@ -29,7 +29,7 @@ export function SaleModal({ products, onRecord, onClose }: SaleModalProps) {
   const [serverError, setServerError] = useState('')
   const COLORS = useThemeColors()
   const isDirty = selectedProducts.length > 0
-  const { confirmClose } = useConfirmClose(isDirty, onClose)
+  const { confirmClose, dialog: closeDialog } = useConfirmClose(isDirty, onClose)
 
   const addProduct = (product: InventoryItemWithStock) => {
     if (product.quantity <= 0) return
@@ -158,6 +158,7 @@ export function SaleModal({ products, onRecord, onClose }: SaleModalProps) {
           </div>
         )}
       </div>
+      {closeDialog}
     </Modal>
   )
 }

@@ -114,7 +114,7 @@ export function InventoryMovementModal({ itemId, organizationId, isOpen, onClose
           Historial de movimientos
         </h2>
       </div>
-      <button type="button" onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer" aria-label="Cerrar">
+      <button type="button" onClick={onClose} className="p-2 rounded-xl transition-colors cursor-pointer" style={{ backgroundColor: 'transparent' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.surfaceHover }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }} aria-label="Cerrar">
         <X className="w-5 h-5" style={{ color: COLORS.textSecondary }} />
       </button>
     </div>

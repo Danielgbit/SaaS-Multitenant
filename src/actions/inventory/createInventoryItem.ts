@@ -7,16 +7,19 @@ import { z } from 'zod'
 import { captureError } from '@/lib/error-logger'
 import { callCreateItemWithLimitCheck } from '@/lib/inventory/inventory-rpc'
 
+const emptyToUndefined = (val: unknown) =>
+  val === '' || val === null ? undefined : val
+
 const CreateInventoryItemSchema = z.object({
-  organization_id: z.string().uuid('ID de organización inválido'),
+  organization_id: z.string().uuid('ID de organizacion invalido'),
   name: z.string().min(1, 'El nombre es requerido').max(100),
   sku: z.string().max(50).optional().or(z.literal('')),
   description: z.string().max(500).optional().or(z.literal('')),
   category: z.string().max(50).optional().or(z.literal('')),
   quantity: z.number().int().min(0, 'La cantidad no puede ser negativa').default(0),
   min_quantity: z.number().int().min(0).default(5),
-  price: z.number().positive('El precio debe ser positivo').optional().nullable(),
-  cost_price: z.number().positive('El costo debe ser positivo').optional().nullable(),
+  price: z.preprocess(emptyToUndefined, z.number().positive('El precio debe ser positivo').optional().nullable()),
+  cost_price: z.preprocess(emptyToUndefined, z.number().positive('El costo debe ser positivo').optional().nullable()),
   unit: z.string().max(20).default('pieza'),
 })
 
@@ -29,7 +32,7 @@ export async function createInventoryItem(
 
   if (!parsed.success) {
     const firstError = parsed.error.issues[0]?.message
-    return { error: firstError || 'Datos inválidos' }
+    return { error: firstError || 'Datos invalidos' }
   }
 
   const { organization_id, name, sku, description, category, quantity, min_quantity, price, cost_price, unit } = parsed.data
@@ -57,7 +60,7 @@ export async function createInventoryItem(
 
   if (rpcError || !rpcResult?.success) {
     const errorMsg = rpcResult?.error === 'limit_exceeded'
-      ? rpcResult?.message || `Límite alcanzado. Máximo productos en tu plan.`
+      ? rpcResult?.message || 'Limite alcanzado. Maximo productos en tu plan.'
       : 'Error al crear el producto. Intenta de nuevo.'
     captureError('inventory_create_rpc_error', rpcError || new Error(errorMsg), { organization_id })
     return { error: errorMsg }
@@ -119,10 +122,10 @@ export async function createInventoryItemForm(
   }
 
   const result = await createInventoryItem(parsed.data)
-  
+
   if (result.error) {
     return { success: false, error: result.error }
   }
-  
+
   return { success: true }
 }

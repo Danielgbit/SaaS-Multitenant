@@ -2,11 +2,17 @@
 
 import { useTheme } from 'next-themes'
 import { Sun, Moon } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
 
-  if (!theme) {
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
     return (
       <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
     )

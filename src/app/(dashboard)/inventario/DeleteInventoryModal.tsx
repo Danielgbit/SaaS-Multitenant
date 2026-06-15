@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Modal, Button } from '@/components/ui'
 import { captureError } from '@/lib/error-logger'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
@@ -20,6 +20,15 @@ export function DeleteInventoryModal({ item, organizationId, isOpen, onClose, on
   const [isDeleted, setIsDeleted] = useState(false)
   const [error, setError] = useState('')
   const COLORS = useThemeColors()
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current)
+      if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current)
+    }
+  }, [])
 
   if (!isOpen) return null
 
@@ -33,7 +42,11 @@ export function DeleteInventoryModal({ item, organizationId, isOpen, onClose, on
         setIsDeleting(false)
       } else {
         setIsDeleted(true)
-        setTimeout(() => { onSuccess(); onClose(); setTimeout(() => setIsDeleted(false), 300) }, 800)
+        successTimeoutRef.current = setTimeout(() => {
+          onSuccess()
+          onClose()
+          resetTimeoutRef.current = setTimeout(() => setIsDeleted(false), 300)
+        }, 800)
       }
     } catch (error) {
       captureError('inventory_delete_modal_error', error, { itemId: item.id, organizationId })

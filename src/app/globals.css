@@ -69,7 +69,13 @@
   @media (prefers-reduced-motion: reduce) {
     .animate-fade-in,
     .animate-fade-in-up,
-    .animate-scale-in-95 {
+    .animate-scale-in-95,
+    .animate-in,
+    .fade-in,
+    .slide-in-from-bottom-2,
+    .slide-in-from-bottom-3,
+    .slide-in-from-bottom-4,
+    .zoom-in-95 {
       animation: none;
       opacity: 1;
       transform: none;

@@ -14,14 +14,13 @@ interface InventoryCardProps {
 
 export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const COLORS = useThemeColors()
 
   const isCriticalStock = item.quantity === 0
   const isLowStock = item.quantity > 0 && item.quantity <= item.min_quantity
   const hasMargin = item.price && item.cost_price && item.price > item.cost_price
-  const marginPercent = hasMargin 
+  const marginPercent = hasMargin
     ? Math.round(((item.price! - item.cost_price!) / item.cost_price!) * 100)
     : 0
 
@@ -34,11 +33,6 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
   const status = getStockStatus()
   const StatusIcon = status.icon
 
-  const handleDelete = () => {
-    setIsDeleting(true)
-    onDelete(item)
-  }
-
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
@@ -47,113 +41,81 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
       style={{
         backgroundColor: COLORS.surfaceGlass,
         borderRadius: COLORS.radius.card,
-        border: `1px solid ${isHovered ? COLORS.primary + '40' : COLORS.border}`,
+        border: `1px solid ${isHovered ? `${COLORS.primary}40` : COLORS.border}`,
         overflow: 'hidden',
         ...(isHovered && { transform: 'translateY(-2px)' }),
         boxShadow: isHovered ? COLORS.shadow.tealMd : COLORS.shadow.tealSm,
         backdropFilter: 'blur(12px)',
       }}
     >
-      {/* Header */}
-      <div 
+      <div
         className="relative px-5 pt-5 pb-3"
         style={{
-          background: isHovered 
-            ? `linear-gradient(135deg, ${COLORS.primary}08 0%, transparent 100%)` 
-            : 'transparent'
+          background: isHovered
+            ? `linear-gradient(135deg, ${COLORS.primary}08 0%, transparent 100%)`
+            : 'transparent',
         }}
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0 pr-2">
-            <h3
-              className="font-semibold text-lg truncate leading-tight font-heading"
-              style={{ color: COLORS.textPrimary }}
-            >
+            <h3 className="font-semibold text-lg truncate leading-tight font-heading" style={{ color: COLORS.textPrimary }}>
               {item.name}
             </h3>
             {item.sku && (
-              <p
-                className="text-xs mt-1"
-                style={{ color: COLORS.textMuted }}
-              >
+              <p className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
                 SKU: {item.sku}
               </p>
             )}
           </div>
 
-          <div
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium shrink-0"
-            style={{ backgroundColor: status.bg, color: status.color }}
-          >
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium shrink-0" style={{ backgroundColor: status.bg, color: status.color }}>
             {StatusIcon && <StatusIcon className="w-3 h-3" />}
             {status.label}
           </div>
         </div>
 
         {item.category && (
-          <div
-            className="text-xs font-medium inline-block px-2.5 py-1 rounded-lg"
-            style={{ backgroundColor: COLORS.accentTealSubtle, color: COLORS.textSecondary }}
-          >
+          <div className="text-xs font-medium inline-block px-2.5 py-1 rounded-lg" style={{ backgroundColor: COLORS.accentTealSubtle, color: COLORS.textSecondary }}>
             {item.category}
           </div>
         )}
       </div>
 
-      {/* Stock & Price Section */}
       <div className="px-5 py-4">
         <div className="flex items-end justify-between">
           <div className="flex-1">
-            <p
-              className="text-xs font-medium uppercase tracking-wide"
-              style={{ color: COLORS.textMuted }}
-            >
+            <p className="text-xs font-medium uppercase tracking-wide" style={{ color: COLORS.textMuted }}>
               Stock actual
             </p>
             <div className="flex items-baseline gap-2 mt-1">
-              <p
-                className="text-3xl font-bold font-heading"
-                style={{ color: isCriticalStock ? COLORS.error : isLowStock ? COLORS.warning : COLORS.textPrimary }}
-              >
+              <p className="text-3xl font-bold font-heading" style={{ color: isCriticalStock ? COLORS.error : isLowStock ? COLORS.warning : COLORS.textPrimary }}>
                 {item.quantity}
               </p>
-              <span
-                className="text-sm font-medium"
-                style={{ color: COLORS.textSecondary }}
-              >
+              <span className="text-sm font-medium" style={{ color: COLORS.textSecondary }}>
                 {item.unit}
               </span>
             </div>
-            <div 
-              className="h-1.5 rounded-full mt-2 overflow-hidden"
-              style={{ backgroundColor: COLORS.surfaceSubtle }}
-            >
-              <div 
+            <div className="h-1.5 rounded-full mt-2 overflow-hidden" style={{ backgroundColor: COLORS.surfaceSubtle }}>
+              <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ 
+                style={{
                   width: `${Math.min((item.quantity / (item.min_quantity * 3)) * 100, 100)}%`,
-                  backgroundColor: isCriticalStock ? COLORS.error : isLowStock ? COLORS.warning : COLORS.success
+                  backgroundColor: isCriticalStock ? COLORS.error : isLowStock ? COLORS.warning : COLORS.success,
                 }}
               />
             </div>
             {isLowStock && (
               <p className="text-xs mt-1" style={{ color: COLORS.warning }}>
-                Mín: {item.min_quantity} {item.unit}
+                Min: {item.min_quantity} {item.unit}
               </p>
             )}
           </div>
 
           <div className="text-right">
-            <p
-              className="text-xs font-medium uppercase tracking-wide"
-              style={{ color: COLORS.textMuted }}
-            >
+            <p className="text-xs font-medium uppercase tracking-wide" style={{ color: COLORS.textMuted }}>
               Precio
             </p>
-            <p
-              className="text-2xl font-bold font-heading"
-              style={{ color: COLORS.primary }}
-            >
+            <p className="text-2xl font-bold font-heading" style={{ color: COLORS.primary }}>
               {item.price ? `$${item.price.toLocaleString('es-CO')}` : '-'}
             </p>
             {hasMargin && (
@@ -163,42 +125,32 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
                 ) : (
                   <TrendingDown className="w-3 h-3" style={{ color: COLORS.error }} />
                 )}
-                <span
-                  className="text-xs font-medium"
-                  style={{ color: marginPercent > 0 ? COLORS.success : COLORS.error }}
-                >
+                <span className="text-xs font-medium" style={{ color: marginPercent > 0 ? COLORS.success : COLORS.error }}>
                   {marginPercent > 0 ? '+' : ''}{marginPercent}%
                 </span>
               </div>
             )}
             {item.cost_price && (
-              <p
-                className="text-xs"
-                style={{ color: COLORS.textMuted, textDecoration: 'line-through' }}
-              >
+              <p className="text-xs" style={{ color: COLORS.textMuted, textDecoration: 'line-through' }}>
                 Costo: ${item.cost_price.toLocaleString('es-CO')}
               </p>
             )}
           </div>
         </div>
 
-          {item.description && (
-            <p
-              className="text-sm mt-4 line-clamp-2 leading-relaxed"
-              style={{ color: COLORS.textSecondary }}
-            >
-              {item.description}
-            </p>
-          )}
+        {item.description && (
+          <p className="text-sm mt-4 line-clamp-2 leading-relaxed" style={{ color: COLORS.textSecondary }}>
+            {item.description}
+          </p>
+        )}
       </div>
 
-      {/* Actions */}
-      <div 
+      <div
         className="flex gap-2 px-5 py-3 border-t"
-        style={{ 
+        style={{
           borderColor: COLORS.border,
-          backgroundColor: isHovered ? COLORS.surfaceSubtle + '80' : 'transparent',
-          transition: 'background-color 0.2s ease'
+          backgroundColor: isHovered ? `${COLORS.surfaceSubtle}80` : 'transparent',
+          transition: 'background-color 0.2s ease',
         }}
       >
         <button
@@ -214,20 +166,19 @@ export function InventoryCard({ item, onEdit, onDelete }: InventoryCardProps) {
           type="button"
           onClick={() => setShowHistory(true)}
           className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
-          style={{ color: COLORS.primary, backgroundColor: COLORS.primary + '15' }}
+          style={{ color: COLORS.primary, backgroundColor: `${COLORS.primary}15` }}
         >
           <History className="w-4 h-4" />
           Historial
         </button>
         <button
           type="button"
-          onClick={handleDelete}
-          disabled={isDeleting}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer disabled:opacity-50"
+          onClick={() => onDelete(item)}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
           style={{ color: COLORS.error, backgroundColor: COLORS.errorLight }}
         >
           <Trash2 className="w-4 h-4" />
-          {isDeleting ? 'Eliminando...' : 'Eliminar'}
+          Eliminar
         </button>
       </div>
 

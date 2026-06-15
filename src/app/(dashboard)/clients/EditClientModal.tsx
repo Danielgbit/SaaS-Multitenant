@@ -578,7 +578,7 @@ export function EditClientModal({
     (confirmationsEnabled !== (client?.confirmations_enabled ?? true)) ||
     (confirmationMethod !== (client?.confirmation_method ?? 'whatsapp'))
 
-  const { confirmClose } = useConfirmClose(isDirty, handleClose)
+  const { confirmClose, dialog: closeDialog } = useConfirmClose(isDirty, handleClose)
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '')
@@ -828,6 +828,7 @@ export function EditClientModal({
             </button>
           </div>
         </form>
+        {closeDialog}
       </Modal>
   )
 }

@@ -7,17 +7,20 @@ import { z } from 'zod'
 import { captureError } from '@/lib/error-logger'
 import { recordInventoryMovement } from '@/lib/inventory/inventory-movement'
 
+const emptyToUndefined = (val: unknown) =>
+  val === '' || val === null ? undefined : val
+
 const UpdateInventoryItemSchema = z.object({
-  id: z.string().uuid('ID de producto inválido'),
-  organization_id: z.string().uuid('ID de organización inválido'),
+  id: z.string().uuid('ID de producto invalido'),
+  organization_id: z.string().uuid('ID de organizacion invalido'),
   name: z.string().min(1, 'El nombre es requerido').max(100),
   sku: z.string().max(50).optional().or(z.literal('')),
   description: z.string().max(500).optional().or(z.literal('')),
   category: z.string().max(50).optional().or(z.literal('')),
   quantity: z.number().int().min(0, 'La cantidad no puede ser negativa'),
   min_quantity: z.number().int().min(0),
-  price: z.number().positive('El precio debe ser positivo').optional().nullable(),
-  cost_price: z.number().positive('El costo debe ser positivo').optional().nullable(),
+  price: z.preprocess(emptyToUndefined, z.number().positive('El precio debe ser positivo').optional().nullable()),
+  cost_price: z.preprocess(emptyToUndefined, z.number().positive('El costo debe ser positivo').optional().nullable()),
   unit: z.string().max(20),
 })
 
@@ -30,7 +33,7 @@ export async function updateInventoryItem(
 
   if (!parsed.success) {
     const firstError = parsed.error.issues[0]?.message
-    return { error: firstError || 'Datos inválidos' }
+    return { error: firstError || 'Datos invalidos' }
   }
 
   const { id, organization_id, name, sku, description, category, quantity, min_quantity, price, cost_price, unit } = parsed.data
@@ -74,7 +77,7 @@ export async function updateInventoryItem(
         quantityBefore,
         quantityAfter: quantity,
       })
-      return { error: 'Error al registrar el movimiento de inventario. No se actualizó el stock.' }
+      return { error: 'Error al registrar el movimiento de inventario. No se actualizo el stock.' }
     }
   }
 
@@ -157,10 +160,10 @@ export async function updateInventoryItemForm(
   }
 
   const result = await updateInventoryItem(parsed.data)
-  
+
   if (result.error) {
     return { success: false, error: result.error }
   }
-  
+
   return { success: true }
 }

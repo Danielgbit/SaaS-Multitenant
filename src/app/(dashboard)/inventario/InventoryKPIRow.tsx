@@ -5,6 +5,7 @@ import { Package, AlertTriangle, AlertCircle, DollarSign } from 'lucide-react'
 import { MetricCard } from '@/components/ui/MetricCard'
 import { useThemeColors } from '@/hooks/useThemeColors'
 import type { InventoryItem } from '@/actions/inventory/getInventoryItems'
+import { computeInventoryStats } from '@/lib/inventory/inventory-stats'
 
 interface InventoryKPIRowProps {
   items: InventoryItem[]
@@ -13,17 +14,7 @@ interface InventoryKPIRowProps {
 export function InventoryKPIRow({ items }: InventoryKPIRowProps) {
   const COLORS = useThemeColors()
 
-  const kpis = useMemo(() => {
-    const total = items.length
-    const lowStock = items.filter(i => i.quantity > 0 && i.quantity <= i.min_quantity).length
-    const criticalStock = items.filter(i => i.quantity === 0).length
-    const totalValue = items.reduce((sum, i) => {
-      if (i.cost_price == null) return sum
-      return sum + (i.quantity * i.cost_price)
-    }, 0)
-
-    return { total, lowStock, criticalStock, totalValue }
-  }, [items])
+  const kpis = useMemo(() => computeInventoryStats(items), [items])
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
