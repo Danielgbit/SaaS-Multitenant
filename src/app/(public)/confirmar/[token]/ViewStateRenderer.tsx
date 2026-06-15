@@ -1,6 +1,10 @@
 "use client";
 
 import { useThemeColors } from "@/hooks/useThemeColors";
+import {
+  pageBg as createPageBg,
+  subtleBg as createSubtleBg,
+} from "@/lib/appointments/confirmation-links/styles";
 import type { ViewState } from "@/lib/appointments/confirmation-links/decideViewState";
 import type { AppointmentDetails } from "@/types/appointments";
 import {
@@ -26,12 +30,12 @@ interface Props {
 export function ViewStateRenderer({ state, appointment, error }: Props) {
   const colors = useThemeColors();
 
-  const pageBg = { background: colors.primaryGradient };
+  const pageBg = createPageBg(colors);
   const cardStyle = {
     backgroundColor: colors.surface,
     boxShadow: colors.shadow.xl,
   };
-  const subtleBg = { backgroundColor: colors.surfaceSubtle };
+  const subtleBg = createSubtleBg(colors);
 
   if (state === "loading") {
     return <LoadingView colors={colors} pageBg={pageBg} />;

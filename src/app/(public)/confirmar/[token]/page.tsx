@@ -20,6 +20,10 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import {
+  pageBg as createPageBg,
+  subtleBg as createSubtleBg,
+} from "@/lib/appointments/confirmation-links/styles";
 import { validateConfirmationResponse } from "@/lib/appointments/confirmation-links/validateConfirmationResponse";
 import {
   formatDate,
@@ -94,8 +98,8 @@ export default function ConfirmarPage() {
     }
   }
 
-  const pageBg = { background: colors.primaryGradient };
-  const subtleBg = { backgroundColor: colors.surfaceSubtle };
+  const pageBg = createPageBg(colors);
+  const subtleBg = createSubtleBg(colors);
 
   // Render non-form view states (loading, invalid, error, expired, used, cancelled, success)
   if (viewState !== "valid") {
