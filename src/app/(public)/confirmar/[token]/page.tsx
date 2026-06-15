@@ -21,8 +21,13 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { validateConfirmationResponse } from "@/lib/appointments/confirmation-links/validateConfirmationResponse";
+import {
+  formatDate,
+  formatTime,
+} from "@/lib/appointments/confirmation-links/formatDateTime";
 import { ViewStateRenderer } from "./ViewStateRenderer";
 import type { AppointmentDetails } from "@/types/appointments";
+import type { ViewState } from "@/lib/appointments/confirmation-links/decideViewState";
 import {
   Calendar,
   Clock,
@@ -32,30 +37,6 @@ import {
   Scissors,
   Loader2,
 } from "lucide-react";
-
-/**
- * View states for the confirmation modal.
- *
- * - loading: initial, token being validated
- * - valid: form is shown, user can confirm or cancel
- * - invalid: token does not exist
- * - expired: token's 72h window has passed
- * - used: token was already used by a previous response
- * - success: user just confirmed
- * - cancelled: user cancelled or staff invalidated
- * - error: network or fetch failure (recoverable)
- *
- * Order: transient (loading) → form (valid) → terminal (success/cancelled/used/expired/invalid) → error
- */
-type ViewState =
-  | "loading"
-  | "valid"
-  | "invalid"
-  | "expired"
-  | "used"
-  | "success"
-  | "cancelled"
-  | "error";
 
 export default function ConfirmarPage() {
   const params = useParams();
@@ -111,26 +92,6 @@ export default function ConfirmarPage() {
     } finally {
       setSubmitting(false);
     }
-  }
-
-  function formatDate(dateStr: string): string {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("es-CO", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: "America/Bogota",
-    });
-  }
-
-  function formatTime(dateStr: string): string {
-    const date = new Date(dateStr);
-    return date.toLocaleTimeString("es-CO", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "America/Bogota",
-    });
   }
 
   const pageBg = { background: colors.primaryGradient };

@@ -3,6 +3,10 @@
 import { useThemeColors } from "@/hooks/useThemeColors";
 import type { ViewState } from "@/lib/appointments/confirmation-links/decideViewState";
 import type { AppointmentDetails } from "@/types/appointments";
+import {
+  formatDate,
+  formatTime,
+} from "@/lib/appointments/confirmation-links/formatDateTime";
 import { AlertCircle, Ban, CheckCircle2, Clock, Loader2 } from "lucide-react";
 
 interface Props {
@@ -297,24 +301,4 @@ function SuccessView({
       </div>
     </div>
   );
-}
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("es-CO", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "America/Bogota",
-  });
-}
-
-function formatTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleTimeString("es-CO", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "America/Bogota",
-  });
 }
