@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getTemplateWithRender } from '@/lib/notifications/template-engine'
+import { getTemplateWithRender, renderTemplate } from '@/lib/notifications/template-engine'
 import { logger } from '@/lib/notifications/logger'
 import {
   type AutomationTrigger,
@@ -172,24 +172,33 @@ export async function NotificationOrchestrator(
 
         const variables = buildTemplateVariables(appointment, links?.confirmationLink, links?.cancellationLink, links?.rescheduleLink)
 
-        const template = await getTemplateWithRender(
-          appointment.organization_id,
-          rule.channel,
-          rule.template_id ? null : (trigger as string),
-          variables
-        )
+        let renderedBody = ''
+        let renderedSubject: string | undefined
 
-        if (!template && !rule.template_id) {
-          errors.push(`No template found for ${rule.channel}/${trigger}`)
-          continue
+        if (rule.template_id) {
+          const rendered = await renderTemplate(rule.template_id, variables)
+          if (!rendered) {
+            errors.push(`Template ${rule.template_id} not found or inactive for ${rule.channel}/${trigger}`)
+            continue
+          }
+          renderedBody = rendered.body
+          renderedSubject = rendered.subject
+        } else {
+          const template = await getTemplateWithRender(
+            appointment.organization_id,
+            rule.channel,
+            trigger as string,
+            variables
+          )
+          if (!template) {
+            errors.push(`No template found for ${rule.channel}/${trigger}`)
+            continue
+          }
+          renderedBody = template.body
+          renderedSubject = template.subject
         }
 
         const templateId = rule.template_id || ''
-        // TODO(follow-up): cuando rule.template_id está set, rendered_body queda vacío.
-        // El downstream consumer debe renderizar el template desde template_id + variables.
-        // Fix completo: llamar renderTemplate(rule.template_id, variables) en este branch.
-        const renderedBody = template?.body || ''
-        const renderedSubject = template?.subject
 
         const toAddress = getRecipientAddress(appointment, rule.channel)
         if (!toAddress) {

@@ -142,11 +142,22 @@ beforeEach(() => {
 })
 
 describe('orchestrator — template_id branch (F-007 / C4)', () => {
-  it('when rule.template_id is set: passes null as type to getTemplateWithRender (early return)', async () => {
+  it('when rule.template_id is set: renders template via renderTemplate and populates rendered_body', async () => {
     const mock = createSupabaseMock()
     mock.queueResult('booking_settings', { data: { timezone: 'America/Bogota', reminder_hours_before: 24 }, error: null })
     mock.queueResult('automation_rules', { data: [buildRuleFixture({ template_id: 'tmpl-custom' })], error: null })
     mock.queueResult('notification_providers', { data: { id: 'prov-1', provider: 'meta' }, error: null })
+    mock.queueResult('message_templates', {
+      data: {
+        id: 'tmpl-custom',
+        body: 'Hola {{clientName}}, tu cita de {{serviceName}} es el {{appointmentDate}} a las {{appointmentTime}}',
+        subject: 'Recordatorio: {{serviceName}}',
+        is_active: true,
+        channel: 'whatsapp',
+        type: 'appointment_reminder',
+      },
+      error: null,
+    })
 
     const fixture = buildAppointmentFixture()
     vi.mocked(supabaseModule.createClient).mockResolvedValue(mock as unknown as SupabaseClient<Database>)
@@ -156,15 +167,34 @@ describe('orchestrator — template_id branch (F-007 / C4)', () => {
     expect(result.success).toBe(true)
     expect(result.errors).toEqual([])
 
-    // Verify the orchestrator reached the insert step (queue was created with template_id)
     const insertCall = mock.inserts.find((i) => i.table === 'notification_queue')
     expect(insertCall).toBeDefined()
-    const payload = insertCall?.payload as { template_id: string | null; rendered_body: string }
+    const payload = insertCall?.payload as { template_id: string | null; rendered_body: string; subject: string | null }
     expect(payload).toBeDefined()
     expect(payload.template_id).toBe('tmpl-custom')
-    // TODO(follow-up): rendered_body is empty when template_id is set
-    // This is the known gap that the downstream consumer must fix.
-    expect(payload.rendered_body).toBe('')
+    expect(payload.rendered_body).toContain('Hola Test Client')
+    expect(payload.rendered_body).toContain('Corte')
+    expect(payload.subject).toBe('Recordatorio: {{serviceName}}')
+  })
+
+  it('when rule.template_id is set but renderTemplate returns null: error reported, no insert', async () => {
+    const mock = createSupabaseMock()
+    mock.queueResult('booking_settings', { data: { timezone: 'America/Bogota', reminder_hours_before: 24 }, error: null })
+    mock.queueResult('automation_rules', { data: [buildRuleFixture({ template_id: 'tmpl-missing' })], error: null })
+    mock.queueResult('notification_providers', { data: { id: 'prov-1', provider: 'meta' }, error: null })
+    mock.queueResult('message_templates', { data: null, error: { code: 'PGRST116', message: 'not found' } })
+
+    const fixture = buildAppointmentFixture()
+    vi.mocked(supabaseModule.createClient).mockResolvedValue(mock as unknown as SupabaseClient<Database>)
+
+    const result = await NotificationOrchestrator('appointment_reminder', fixture.id, fixture)
+
+    expect(result.success).toBe(true)
+    expect(result.queued).toBe(0)
+    expect(result.errors).toContain('Template tmpl-missing not found or inactive for whatsapp/appointment_reminder')
+
+    const insertCall = mock.inserts.find((i) => i.table === 'notification_queue')
+    expect(insertCall).toBeUndefined()
   })
 
   it('when rule.template_id is null and no template found: error reported, no insert', async () => {
@@ -195,6 +225,17 @@ describe('orchestrator — template_id branch (F-007 / C4)', () => {
     mock.queueResult('booking_settings', { data: { timezone: 'America/Bogota', reminder_hours_before: 24 }, error: null })
     mock.queueResult('automation_rules', { data: [buildRuleFixture()], error: null })
     mock.queueResult('notification_providers', { data: { id: 'prov-1', provider: 'meta' }, error: null })
+    mock.queueResult('message_templates', {
+      data: {
+        id: 'tmpl-custom',
+        body: 'Body {{clientName}}',
+        subject: 'Subject',
+        is_active: true,
+        channel: 'whatsapp',
+        type: 'appointment_reminder',
+      },
+      error: null,
+    })
 
     const fixture = buildAppointmentFixture()
     vi.mocked(supabaseModule.createClient).mockResolvedValue(mock as unknown as SupabaseClient<Database>)
