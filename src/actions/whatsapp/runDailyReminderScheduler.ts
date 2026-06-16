@@ -1,12 +1,23 @@
 /**
+ * WhatsApp daily reminder scheduler.
+ *
+ * - V1 orgs: dispatch via sendWhatsAppReminder (legacy pathway)
+ * - V2 orgs: dispatch via orchestrator (NotificationOrchestrator / dispatchAppointmentReminder)
+ *
+ * NOTA: Email scheduler (runEmailReminderScheduler.ts) skip V2 orgs por completo.
+ * Esta asimetría es intencional durante Fase A del cutover V2.
+ * WhatsApp V2 está operativo; email V2 se implementa en fases posteriores.
+ *
  * @deprecated V1 pathway
- * TODO post-MVP: migrate to NotificationOrchestrator
+ * TODO post-MVP: migrate entirely to NotificationOrchestrator
  */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import { sendWhatsAppReminder } from './sendWhatsAppReminder'
+import { dispatchAppointmentReminder } from '@/lib/notifications/orchestrator'
 import { getWhatsappProviderOrgs } from '@/lib/notifications/providers'
+import { isV2EnabledForOrg } from '@/actions/notifications/v2-feature-flag'
 import { appLog } from '@/lib/app-logger'
 import { setRequestContext } from '@/lib/request-context'
 
@@ -47,7 +58,7 @@ export async function runDailyReminderScheduler(): Promise<{
 
     const { data: appointments, error: aptsError } = await supabase
       .from('appointments')
-      .select('id')
+      .select('id, organization_id')
       .in('organization_id', orgIds)
       .gte('start_time', tomorrow.toISOString())
       .lte('start_time', tomorrowEnd.toISOString())
@@ -59,12 +70,29 @@ export async function runDailyReminderScheduler(): Promise<{
     }
 
     for (const apt of appointments) {
-      const result = await sendWhatsAppReminder({ appointmentId: apt.id })
-      if (result.success) {
-        sent++
-      } else {
+      try {
+        const useV2 = await isV2EnabledForOrg(apt.organization_id)
+
+        if (useV2) {
+          const result = await dispatchAppointmentReminder(apt.id)
+          if (result.success) {
+            sent++
+          } else {
+            failed++
+            errors.push(`Cita ${apt.id}: ${result.errors.join('; ')}`)
+          }
+        } else {
+          const result = await sendWhatsAppReminder({ appointmentId: apt.id })
+          if (result.success) {
+            sent++
+          } else {
+            failed++
+            errors.push(`Cita ${apt.id}: ${result.error}`)
+          }
+        }
+      } catch (e) {
         failed++
-        errors.push(`Cita ${apt.id}: ${result.error}`)
+        errors.push(`Cita ${apt.id}: ${String(e)}`)
       }
     }
 

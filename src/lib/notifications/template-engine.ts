@@ -90,9 +90,11 @@ export async function getDefaultTemplate(
 export async function getTemplateWithRender(
   organizationId: string,
   channel: string,
-  type: string,
+  type: string | null,
   variables: Record<string, string>
 ): Promise<{ subject?: string; body: string } | null> {
+  if (type === null) return null
+
   const template = await getDefaultTemplate(organizationId, channel, type)
 
   if (!template) {

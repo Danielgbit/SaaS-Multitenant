@@ -175,7 +175,7 @@ export async function NotificationOrchestrator(
         const template = await getTemplateWithRender(
           appointment.organization_id,
           rule.channel,
-          rule.template_id ? '' : (trigger as string),
+          rule.template_id ? null : (trigger as string),
           variables
         )
 
@@ -185,6 +185,9 @@ export async function NotificationOrchestrator(
         }
 
         const templateId = rule.template_id || ''
+        // TODO(follow-up): cuando rule.template_id está set, rendered_body queda vacío.
+        // El downstream consumer debe renderizar el template desde template_id + variables.
+        // Fix completo: llamar renderTemplate(rule.template_id, variables) en este branch.
         const renderedBody = template?.body || ''
         const renderedSubject = template?.subject
 
@@ -294,7 +297,7 @@ async function fetchAppointment(
       confirmation_status,
        clients!inner(name, phone, email, confirmation_method, confirmations_enabled, preferred_contact),
        employees!inner(name, user_id),
-       organizations!inner(name)
+       organizations!inner(name, phone)
     `)
     .eq('id', appointmentId)
     .single()
