@@ -67,6 +67,27 @@ export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
 }
 
+export function normalizePhoneToE164(phone: string, country: 'CO' | 'US' = 'CO'): string | null {
+  if (!phone) return null
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 0) return null
+
+  if (country === 'CO') {
+    if (digits.length === 10) return `+57${digits}`
+    if (digits.length === 12 && digits.startsWith('57')) return `+${digits}`
+    if (digits.length === 13 && digits.startsWith('57')) return `+${digits}`
+    return `+${digits}`
+  }
+
+  if (country === 'US') {
+    if (digits.length === 10) return `+1${digits}`
+    if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`
+    return `+${digits}`
+  }
+
+  return `+${digits}`
+}
+
 export function getPhoneErrorMessage(phone: string): string | null {
   if (!phone || phone.trim() === '') {
     return null
