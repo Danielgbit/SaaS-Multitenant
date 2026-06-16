@@ -85,7 +85,7 @@ export async function markManually(
     .single()
 
   if (logError) {
-    console.error('[markManually] Log error:', logError)
+    appLog('error', '[markManually] Log error', { flow: 'markManually', operation: 'logInsert', error: logError })
     return { error: 'Error al registrar la acción. Intenta de nuevo.' }
   }
 
@@ -100,7 +100,7 @@ export async function markManually(
     .eq('id', appointmentId)
 
   if (updateError) {
-    console.error('[markManually] Update error:', updateError)
+    appLog('error', '[markManually] Update error', { flow: 'markManually', operation: 'appointmentUpdate', error: updateError })
     return { error: 'Error al marcar la cita. Intenta de nuevo.' }
   }
 
@@ -124,7 +124,7 @@ export async function markManually(
     .single()
 
   if (confError) {
-    console.error('[markManually] Confirmation insert error:', confError)
+    appLog('error', '[markManually] Confirmation insert error', { flow: 'markManually', operation: 'confirmationInsert', error: confError })
     // Don't return error - the appointment was already updated
   }
 
@@ -151,7 +151,7 @@ export async function markManually(
       }).select('id')
     }
   } catch (e) {
-    console.error('[markManually] financial auto-add error:', e)
+    appLog('error', '[markManually] financial auto-add error', { flow: 'markManually', operation: 'financialAutoAdd', error: e })
   }
 
   // Auto-registrar movimiento de caja
@@ -169,10 +169,10 @@ export async function markManually(
       created_via: 'appointment_auto',
     })
     if (!entryResult.success) {
-      console.error('[markManually] cash entry error:', entryResult.error)
+      appLog('error', '[markManually] cash entry error', { flow: 'markManually', operation: 'cashEntry', error: entryResult.error })
     }
   } catch (e) {
-    console.error('[markManually] cash entry exception:', e)
+    appLog('error', '[markManually] cash entry exception', { flow: 'markManually', operation: 'cashEntry', error: e })
   }
 
   // Auto-registrar payroll y comision

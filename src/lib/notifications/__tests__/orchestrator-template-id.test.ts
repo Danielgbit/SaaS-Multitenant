@@ -119,7 +119,7 @@ function buildAppointmentFixture(overrides: Record<string, unknown> = {}) {
     employees: { name: 'Test Employee', user_id: 'user-1' },
     services: { name: 'Corte' },
     organizations: { name: 'Test Business', phone: '+5712345678' },
-    booking_settings: { timezone: 'America/Bogota', reminder_hours_before: 24 },
+    booking_settings: { timezone: 'America/Bogota', reminder_hours_before: 24, use_notification_v2: false },
     ...overrides,
   }
 }

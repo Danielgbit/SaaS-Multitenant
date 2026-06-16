@@ -4,6 +4,7 @@ import { revalidateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { AdjustPriceSchema, type AdjustPriceState } from './schemas'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
+import { appLog } from '@/lib/app-logger'
 
 export async function adjustPrice(
   prevState: AdjustPriceState,
@@ -60,7 +61,7 @@ export async function adjustPrice(
     .single()
 
   if (logError) {
-    console.error('[adjustPrice] Log error:', logError)
+    appLog('error', '[adjustPrice] Log error', { flow: 'adjustPrice', operation: 'logInsert', error: logError })
     return { error: 'Error al registrar el ajuste. Intenta de nuevo.' }
   }
 
@@ -70,7 +71,7 @@ export async function adjustPrice(
     .eq('id', appointmentId)
 
   if (updateError) {
-    console.error('[adjustPrice] Update error:', updateError)
+    appLog('error', '[adjustPrice] Update error', { flow: 'adjustPrice', operation: 'appointmentUpdate', error: updateError })
     return { error: 'Error al ajustar el precio. Intenta de nuevo.' }
   }
 

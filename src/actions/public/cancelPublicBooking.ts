@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { getWhatsappProvider } from '@/lib/notifications/providers'
+import { normalizePhoneToE164 } from '@/lib/validators/phone'
 import { appLog } from '@/lib/app-logger'
 import { setRequestContext } from '@/lib/request-context'
 
@@ -20,6 +21,17 @@ const CancelPublicBookingSchema = z.object({
 })
 
 type CancelPublicBookingInput = z.infer<typeof CancelPublicBookingSchema>
+
+interface CancellableAppointment {
+  id: string
+  status: string
+  confirmation_status: string | null
+  start_time: string
+  client_id: string
+  organization_id: string
+  created_at: string
+  clients: { name: string; email: string | null; phone: string | null } | null
+}
 
 // =============================================================================
 // TIPOS DE RESULTADO
@@ -85,9 +97,7 @@ function validateClientIdentity(
 
   // Siempre verificar por teléfono (más confiable)
   if (inputPhone) {
-    // Normalizar teléfonos (solo números)
-    const normalizePhone = (p: string) => p.replace(/\D/g, '')
-    return normalizePhone(appointmentClientPhone) === normalizePhone(inputPhone)
+    return normalizePhoneToE164(appointmentClientPhone, 'CO') === normalizePhoneToE164(inputPhone, 'CO')
   }
 
   return false
@@ -154,16 +164,6 @@ export async function cancelPublicBooking(
   }
 
   // 4. Buscar la cita
-  interface CancellableAppointment {
-    id: string
-    status: string
-    confirmation_status: string | null
-    start_time: string
-    client_id: string
-    organization_id: string
-    created_at: string
-    clients: { name: string; email: string | null; phone: string | null } | null
-  }
   let appointment: CancellableAppointment | null = null
 
   if (appointmentId) {

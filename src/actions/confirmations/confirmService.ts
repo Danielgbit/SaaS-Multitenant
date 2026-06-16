@@ -114,7 +114,7 @@ export async function confirmService(
     .single()
 
   if (logError) {
-    console.error('[confirmService] Log error:', logError)
+    appLog('error', '[confirmService] Log error', { flow: 'confirmService', operation: 'logInsert', error: logError })
     return { success: false, error: 'Error al registrar la confirmación. Intenta de nuevo.' }
   }
 
@@ -130,7 +130,7 @@ export async function confirmService(
     .eq('id', appointmentId)
 
   if (updateError) {
-    console.error('[confirmService] Update error:', updateError)
+    appLog('error', '[confirmService] Update error', { flow: 'confirmService', operation: 'appointmentUpdate', error: updateError })
     return { success: false, error: 'Error al confirmar la cita. Intenta de nuevo.' }
   }
 
@@ -234,10 +234,10 @@ export async function confirmService(
       created_via: 'appointment_auto',
     })
     if (!entryResult.success) {
-      console.error('[confirmService] cash entry error:', entryResult.error)
+      appLog('error', '[confirmService] cash entry error', { flow: 'confirmService', operation: 'cashEntry', error: entryResult.error })
     }
   } catch (e) {
-    console.error('[confirmService] cash entry exception:', e)
+    appLog('error', '[confirmService] cash entry exception', { flow: 'confirmService', operation: 'cashEntry', error: e })
   }
 
   return { success: true, appointmentId }

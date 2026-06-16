@@ -60,13 +60,13 @@ export async function createAppointment(
   const [clientData, employeeData, orgData, whatsappSettings, emailSettings, bookingSettingsData] = await Promise.all([
     supabase.from('clients').select('name, phone, email').eq('id', client_id).single().then(r => r.data),
     supabase.from('employees').select('name').eq('id', employee_id).single().then(r => r.data),
-    supabase.from('organizations').select('name, phone, address').eq('id', organization_id).single().then(r => r.data),
+    supabase.from('organizations').select('name, phone, address').eq('id', organization_id).single().then(r => r.data as { name: string; phone: string | null; address: string | null } | null),
     getWhatsappProvider(organization_id),
-    supabase.from('email_settings').select('enabled, send_confirmation').eq('organization_id', organization_id).single().then((r: any) => r.data),
-    supabase.from('booking_settings').select('timezone, reminder_hours_before, use_notification_v2').eq('organization_id', organization_id).single().then((r: any) => r.data),
+    supabase.from('email_settings').select('enabled, send_confirmation').eq('organization_id', organization_id).single().then(r => r.data as { enabled: boolean; send_confirmation: boolean } | null),
+    supabase.from('booking_settings').select('timezone, reminder_hours_before, use_notification_v2').eq('organization_id', organization_id).single().then(r => r.data as { timezone: string; reminder_hours_before: number; use_notification_v2: boolean } | null),
   ])
 
-  const useNotificationV2 = (bookingSettingsData as any)?.use_notification_v2 === true
+  const useNotificationV2 = bookingSettingsData?.use_notification_v2 === true
 
   // Generar confirmation token
   const appUrl = clientEnv?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -91,12 +91,9 @@ export async function createAppointment(
         clients: clientData || null,
         employees: employeeData ? { name: employeeData.name, user_id: '' } : null,
         services: null,
-        organizations: orgData || null,
-        booking_settings: bookingSettingsData || undefined,
-      // TODO(BOOKING-DEBT): Remove this as any when booking_settings type is aligned
-      // with AppointmentData. The field use_notification_v2 exists in the query but
-      // is not part of AppointmentData['booking_settings'] yet.
-      } as any, { confirmationLink })
+        organizations: orgData ? { name: orgData.name, phone: orgData.phone ?? undefined, address: orgData.address ?? undefined } : null,
+        booking_settings: bookingSettingsData || null,
+      }, { confirmationLink })
     } catch (orchestratorError) {
       appLog('error', 'orchestrator failed', {
         flow: 'createAppointment',
@@ -133,7 +130,7 @@ export async function createAppointment(
           emailType: 'appointment_confirmation',
           to: clientData.email,
           variables: {
-            businessName: (orgData as any)?.name || 'Negocio',
+            businessName: orgData?.name || 'Negocio',
             clientName: clientData.name,
             serviceName: service.name || 'Servicio',
             employeeName: employeeData?.name || 'Profesional',

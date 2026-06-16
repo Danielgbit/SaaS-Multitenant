@@ -7,6 +7,7 @@ import { MarkCompletedSchema, type MarkCompletedState } from './schemas'
 import { canMarkCompleted, calculateTotal } from './helpers'
 import type { ServiceWithPrice, EmployeeServiceOverride } from './helpers'
 import type { ConfirmationStatus } from '@/types/confirmations'
+import { appLog } from '@/lib/app-logger'
 
 export async function markCompleted(
   prevState: MarkCompletedState,
@@ -143,7 +144,7 @@ export async function markCompleted(
     .single()
 
   if (logError) {
-    console.error('[markCompleted] Log error:', logError)
+    appLog('error', '[markCompleted] Log error', { flow: 'markCompleted', operation: 'logInsert', error: logError })
     return { error: 'Error al registrar la acción. Intenta de nuevo.' }
   }
 
@@ -159,7 +160,7 @@ export async function markCompleted(
     .eq('id', appointmentId)
 
   if (updateError) {
-    console.error('[markCompleted] Update error:', updateError)
+    appLog('error', '[markCompleted] Update error', { flow: 'markCompleted', operation: 'appointmentUpdate', error: updateError })
     return { error: 'Error al actualizar la cita. Intenta de nuevo.' }
   }
 

@@ -77,7 +77,7 @@ export async function confirmByReception(
     .eq('id', confirmation_id)
 
   if (updateError) {
-    console.error('[confirmByReception] Update error:', updateError)
+    appLog('error', '[confirmByReception] Update error', { flow: 'confirmByReception', operation: 'appointmentUpdate', error: updateError })
     return { success: false, error: 'Error al actualizar. Intenta de nuevo.' }
   }
 
@@ -139,7 +139,7 @@ export async function confirmByReception(
         }
       }
     } catch (e) {
-      console.error('[confirmByReception] financial auto-add error:', e)
+      appLog('error', '[confirmByReception] financial auto-add error', { flow: 'confirmByReception', operation: 'financialAutoAdd', error: e })
     }
   }
 
@@ -181,10 +181,10 @@ export async function confirmByReception(
         created_via: 'appointment_auto',
       })
       if (!entryResult.success) {
-        console.error('[confirmByReception] cash entry error:', entryResult.error)
+        appLog('error', '[confirmByReception] cash entry error', { flow: 'confirmByReception', operation: 'cashEntry', error: entryResult.error })
       }
     } catch (e) {
-      console.error('[confirmByReception] cash entry exception:', e)
+      appLog('error', '[confirmByReception] cash entry exception', { flow: 'confirmByReception', operation: 'cashEntry', error: e })
     }
   }
 
@@ -223,7 +223,7 @@ export async function confirmByReceptionForm(
 
     return { success: true }
   } catch (e) {
-    console.error('[confirmByReceptionForm] Error:', e)
+    appLog('error', '[confirmByReceptionForm] Error', { flow: 'confirmByReception', operation: 'formHandler', error: e })
     return { success: false, error: 'Error al procesar la solicitud.' }
   }
 }

@@ -44,6 +44,7 @@ interface AppointmentData {
   booking_settings?: {
     timezone: string
     reminder_hours_before: number
+    use_notification_v2: boolean
   } | null
 }
 

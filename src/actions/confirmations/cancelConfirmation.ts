@@ -4,6 +4,7 @@ import { revalidateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { z } from 'zod'
+import { appLog } from '@/lib/app-logger'
 
 const CancelConfirmationSchema = z.object({
   appointmentId: z.string().uuid('ID de cita inválido'),
@@ -66,7 +67,7 @@ export async function cancelConfirmation(
     .eq('id', appointmentId)
 
   if (updateError) {
-    console.error('[cancelConfirmation] Update error:', updateError)
+    appLog('error', '[cancelConfirmation] Update error', { flow: 'cancelConfirmation', operation: 'appointmentUpdate', error: updateError })
     return { error: 'Error al cancelar la cita. Intenta de nuevo.' }
   }
 
