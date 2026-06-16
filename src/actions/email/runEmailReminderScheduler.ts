@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { queueEmailMessage } from './queueEmailMessage'
+import { appLog } from '@/lib/app-logger'
 import { formatCurrencyCOP } from '@/lib/billing/utils'
 
 export async function runEmailReminderScheduler(): Promise<{
@@ -52,12 +53,20 @@ export async function runEmailReminderScheduler(): Promise<{
     )
 
     const v1OrgIds = orgIds.filter((id: string) => !v2Orgs.has(id))
+    const skippedCount = orgIds.length - v1OrgIds.length
 
-    if (v1OrgIds.length === 0) {
-      return { success: true, processed: 0, sent: 0, failed: 0, skippedV2: orgIds.length, errors: [] }
+    if (skippedCount > 0) {
+      appLog('info', '[runEmailReminderScheduler] Skipped V2 organizations', {
+        skippedV2: skippedCount,
+        totalOrgs: orgIds.length,
+      })
     }
 
-    skippedV2 = orgIds.length - v1OrgIds.length
+    if (v1OrgIds.length === 0) {
+      return { success: true, processed: 0, sent: 0, failed: 0, skippedV2: skippedCount, errors: [] }
+    }
+
+    skippedV2 = skippedCount
 
     const { data: appointments, error: aptsError } = await supabase
       .from('appointments')
