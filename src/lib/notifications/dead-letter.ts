@@ -63,7 +63,7 @@ export async function replayFromDeadLetter(dlqId: string): Promise<void> {
     .single()
 
   if (findError || !dlqItem) {
-    throw new Error('DLQ item no encontrado o ya procesado')
+    throw new Error('DLQ item not found or already processed')
   }
 
   const { error: insertError } = await (supabase as any)

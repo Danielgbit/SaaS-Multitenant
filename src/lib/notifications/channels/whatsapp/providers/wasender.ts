@@ -18,7 +18,7 @@ export class WasenderProvider implements WhatsAppProvider {
 
   async sendMessage(params: WhatsAppSendParams): Promise<SendResult> {
     if (!this.baseUrl || !this.instanceId) {
-      return { success: false, error: 'Wasender baseUrl/instanceId no configurados', retryable: false }
+      return { success: false, error: 'Wasender baseUrl/instanceId not configured', retryable: false }
     }
 
     const payload = {
@@ -105,7 +105,7 @@ export class WasenderProvider implements WhatsAppProvider {
 
       return {
         success: false,
-        error: err.name === 'AbortError' ? 'Timeout enviando a Wasender (30s)' : err.message,
+        error: err.name === 'AbortError' ? 'Timeout sending to Wasender (30s)' : err.message,
         retryable: true,
         errorType,
         httpRequest,

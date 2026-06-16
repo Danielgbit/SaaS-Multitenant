@@ -15,11 +15,11 @@ export class ResendEmailChannel implements NotificationChannelAdapter {
 
   async send(message: NotificationMessage): Promise<SendResult> {
     if (!message.subject) {
-      return { success: false, error: 'Email sin subject', retryable: false }
+      return { success: false, error: 'Email without subject', retryable: false }
     }
 
     if (!message.toAddress || !message.toAddress.includes('@')) {
-      return { success: false, error: 'Email inválido', retryable: false }
+      return { success: false, error: 'Invalid email', retryable: false }
     }
 
     const result = await sendEmail({

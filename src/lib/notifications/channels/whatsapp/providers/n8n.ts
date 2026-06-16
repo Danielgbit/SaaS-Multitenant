@@ -108,7 +108,7 @@ export class N8NProvider implements WhatsAppProvider {
 
       return {
         success: false,
-        error: err.name === 'AbortError' ? 'Timeout enviando a N8N (30s)' : err.message,
+        error: err.name === 'AbortError' ? 'Timeout sending to N8N (30s)' : err.message,
         retryable: true,
         errorType,
         httpRequest,
