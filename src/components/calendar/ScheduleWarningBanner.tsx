@@ -21,7 +21,7 @@ export function ScheduleWarningBanner({
     <div
       className="relative rounded-xl overflow-hidden animate-in fade-in duration-200"
       style={{
-        backgroundColor: COLORS.isDark ? '#451A0320' : COLORS.warningLight,
+        backgroundColor: COLORS.isDark ? `${COLORS.warning}20` : COLORS.warningLight,
         border: `1px solid ${COLORS.isDark ? COLORS.warning + '40' : COLORS.warningLight}`,
         borderLeft: `4px solid ${COLORS.warning}`,
       }}
@@ -41,7 +41,7 @@ export function ScheduleWarningBanner({
             <div className="flex items-center justify-between gap-2">
               <h4
                 className="font-semibold text-sm"
-                style={{ color: COLORS.isDark ? '#FBBF24' : COLORS.warning }}
+                style={{ color: COLORS.isDark ? COLORS.amber : COLORS.warning }}
               >
                 Sin horarios configurados
               </h4>
@@ -59,7 +59,7 @@ export function ScheduleWarningBanner({
 
             <p
               className="text-sm mt-1"
-              style={{ color: COLORS.isDark ? '#FCD34D' : '#B45309' }}
+              style={{ color: COLORS.isDark ? COLORS.amber : COLORS.warning }}
             >
               <span className="font-medium">{employeeName}</span> no tiene horarios configurados. Necesita configurar su disponibilidad para poder recibir citas.
             </p>

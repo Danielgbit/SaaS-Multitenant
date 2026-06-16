@@ -124,6 +124,7 @@ const OVS_WHITELIST: OVSWhitelistEntry[] = [
       'CalendarView.tsx',
       'AppointmentClusterCard.tsx',
       'AppointmentCardV2.tsx',
+      'constants.ts',
     ],
   },
   {

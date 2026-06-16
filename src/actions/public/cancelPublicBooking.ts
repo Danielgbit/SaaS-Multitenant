@@ -154,7 +154,17 @@ export async function cancelPublicBooking(
   }
 
   // 4. Buscar la cita
-  let appointment: any = null
+  interface CancellableAppointment {
+    id: string
+    status: string
+    confirmation_status: string | null
+    start_time: string
+    client_id: string
+    organization_id: string
+    created_at: string
+    clients: { name: string; email: string | null; phone: string | null } | null
+  }
+  let appointment: CancellableAppointment | null = null
 
   if (appointmentId) {
     // Búsqueda directa por ID
@@ -169,7 +179,7 @@ export async function cancelPublicBooking(
         client_id,
         organization_id,
         created_at,
-        clients!inner(email, phone)
+        clients!inner(name, email, phone)
       `
       )
       .eq('id', appointmentId)
@@ -192,7 +202,7 @@ export async function cancelPublicBooking(
         client_id,
         organization_id,
         created_at,
-        clients!inner(email, phone)
+        clients!inner(name, email, phone)
       `
       )
       .eq('organization_id', organization.id)
@@ -291,17 +301,6 @@ export async function cancelPublicBooking(
     }
   }
 
-  // Shadow Mode: fire-and-forget validation
-  const shadowSeed = {
-    appointmentId: appointment.id,
-    observedUpdatedAt: appointment.created_at,
-    initialStatus: appointment.status,
-    initialConfirmationStatus: appointment.confirmation_status || 'scheduled',
-    correlationId: crypto.randomUUID(),
-  }
-
-  import('@/lib/shadow').catch(() => {})
-
   // 11. Encolar notificación de cancelación
   try {
     const clientData = appointment.clients
@@ -315,7 +314,7 @@ export async function cancelPublicBooking(
         organizationId: organization.id,
         appointmentId: appointment.id,
         phone: clientData.phone,
-        template: 'appointment_cancelled' as any,
+        template: 'appointment_cancelled',
         variables: {
           date: startTime.toLocaleDateString('es-ES', {
             weekday: 'long',
@@ -332,18 +331,19 @@ export async function cancelPublicBooking(
 
     // Email
     if (clientData?.email) {
-      const { data: emailSettings } = await supabase
+      const { data: emailSettingsData } = await supabase
         .from('email_settings')
-        .select('enabled, send_cancellation' as unknown as string)
+        .select('enabled, send_post_appointment')
         .eq('organization_id', organization.id)
-        .single() as unknown as { data: { enabled: boolean; send_cancellation: boolean } | null; error: unknown }
+        .single()
+      const emailSettings = emailSettingsData as { enabled: boolean; send_post_appointment: boolean } | null
 
-      if (emailSettings?.enabled && emailSettings?.send_cancellation) {
+      if (emailSettings?.enabled && emailSettings?.send_post_appointment) {
         const { queueEmailMessage } = await import('@/actions/email/queueEmailMessage')
         await queueEmailMessage({
           organizationId: organization.id,
           appointmentId: appointment.id,
-          emailType: 'appointment_cancelled' as any,
+          emailType: 'appointment_cancelled',
           to: clientData.email,
           variables: {
             businessName: organization.name,
@@ -360,7 +360,7 @@ export async function cancelPublicBooking(
               minute: '2-digit',
             }),
             duration: '60',
-          } as any,
+          },
         })
       }
     }

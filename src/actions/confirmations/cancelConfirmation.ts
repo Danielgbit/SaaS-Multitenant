@@ -57,15 +57,6 @@ export async function cancelConfirmation(
 
   const now = new Date().toISOString()
 
-  // Shadow Mode: capture seed BEFORE mutation
-  const shadowSeed = {
-    appointmentId,
-    observedUpdatedAt: appointment.created_at,
-    initialStatus: appointment.status,
-    initialConfirmationStatus: appointment.confirmation_status,
-    correlationId: crypto.randomUUID(),
-  }
-
   const { error: updateError } = await supabase
     .from('appointments')
     .update({
@@ -89,9 +80,6 @@ export async function cancelConfirmation(
   } catch (e) {
     console.warn('[cancelConfirmation] revalidateTag error:', e)
   }
-
-  // Shadow Mode: fire-and-forget validation (does not affect production)
-  import('@/lib/shadow').catch(() => {})
 
   return { success: true }
 }

@@ -3,6 +3,7 @@
 import React from 'react'
 import { Clock, Building2 } from 'lucide-react'
 import type { AppointmentWithDetails, CalendarColors } from '@/types/calendar'
+import { DEFAULT_EMPLOYEE_COLORS } from '@/lib/calendar/constants'
 
 interface AppointmentCardV2Props {
   apt: AppointmentWithDetails
@@ -12,15 +13,6 @@ interface AppointmentCardV2Props {
   onClick: () => void
   showEmployeeDot?: boolean
   employeeColors?: Record<string, string>
-}
-
-const DEFAULT_EMPLOYEE_COLORS = [
-  '#0F4C5C', '#38BDF8', '#16A34A', '#EA580C', '#8B5CF6',
-  '#EC4899', '#F59E0B', '#06B6D4', '#84CC16', '#F43F5E'
-]
-
-function getEmployeeColor(employeeId: string, index: number): string {
-  return DEFAULT_EMPLOYEE_COLORS[index % DEFAULT_EMPLOYEE_COLORS.length]
 }
 
 export const AppointmentCardV2 = React.memo(function AppointmentCardV2({

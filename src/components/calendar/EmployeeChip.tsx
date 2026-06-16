@@ -12,13 +12,6 @@ interface EmployeeChipProps {
   COLORS: CalendarColors
 }
 
-const WORKLOAD_COLORS = {
-  low: { bg: '#D1FAE5', text: '#16A34A', border: '#16A34A' },
-  normal: { bg: '#F1F5F9', text: '#5A6B70', border: '#E8ECEE' },
-  busy: { bg: '#FFF7ED', text: '#EA580C', border: '#EA580C' },
-  overloaded: { bg: '#FEE2E2', text: '#DC2626', border: '#DC2626' }
-}
-
 export const EmployeeChip = React.memo(function EmployeeChip({
   employee,
   isSelected,
@@ -26,6 +19,12 @@ export const EmployeeChip = React.memo(function EmployeeChip({
   variant,
   COLORS
 }: EmployeeChipProps) {
+  const WORKLOAD_COLORS = {
+    low: { bg: COLORS.successLight, text: COLORS.success, border: COLORS.success },
+    normal: { bg: COLORS.surfaceHover, text: COLORS.textSecondary, border: COLORS.border },
+    busy: { bg: COLORS.orangeLight, text: COLORS.orange, border: COLORS.orange },
+    overloaded: { bg: COLORS.errorLight, text: COLORS.error, border: COLORS.error },
+  }
   const workloadColors = WORKLOAD_COLORS[employee.workloadLevel]
   const initial = employee.name.charAt(0).toUpperCase()
 

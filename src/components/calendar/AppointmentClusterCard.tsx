@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import type { AppointmentWithDetails, CalendarColors } from '@/types/calendar'
 import type { ClusterGroup } from '@/hooks/useAppointmentClusters'
+import { DEFAULT_EMPLOYEE_COLORS } from '@/lib/calendar/constants'
 
 interface AppointmentClusterCardProps {
   cluster: ClusterGroup
@@ -13,11 +14,6 @@ interface AppointmentClusterCardProps {
   onAppointmentClick: (apt: AppointmentWithDetails) => void
   employeeColors: Record<string, string>
 }
-
-const DEFAULT_EMPLOYEE_COLORS = [
-  '#0F4C5C', '#38BDF8', '#16A34A', '#EA580C', '#8B5CF6',
-  '#EC4899', '#F59E0B', '#06B6D4', '#84CC16', '#F43F5E'
-]
 
 function getEmployeeInitials(name: string | undefined): string {
   if (!name) return 'N/A'
@@ -119,8 +115,8 @@ export function AppointmentClusterCard({
             <span
               className="px-1.5 sm:px-2 py-0.5 rounded-full text-body-xs font-medium flex items-center gap-0.5 sm:gap-1"
               style={{
-                backgroundColor: COLORS.isDark ? '#38BDF820' : '#38BDF810',
-                color: COLORS.isDark ? '#38BDF8' : '#0F4C5C',
+                backgroundColor: COLORS.isDark ? `${COLORS.primary}20` : `${COLORS.primary}10`,
+                color: COLORS.primary,
               }}
             >
               +{otherCount}

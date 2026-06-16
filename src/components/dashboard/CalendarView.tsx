@@ -33,6 +33,7 @@ import { useCalendarModals } from '@/hooks/calendar/useCalendarModals'
 import { useCalendarMutations } from '@/hooks/calendar/useCalendarMutations'
 import { useAppointmentForm } from '@/hooks/calendar/useAppointmentForm'
 import { ConfirmActionModal } from '@/components/calendar/ConfirmActionModal'
+import { DEFAULT_EMPLOYEE_COLORS } from '@/lib/calendar/constants'
 
 const NewAppointmentWizard = dynamic(
   () => import('@/components/calendar/wizard/NewAppointmentWizard').then(m => ({ default: m.NewAppointmentWizard })),
@@ -70,11 +71,6 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
     cancelled: { color: COLORS.error, bg: COLORS.errorLight || '', label: 'Cancelada', icon: <XCircle className="w-3.5 h-3.5" /> },
     completed: { color: COLORS.textSecondary, bg: COLORS.borderLight || '', label: 'Completada', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
   }), [COLORS])
-
-  const EMPLOYEE_COLORS = [
-    '#0F4C5C', '#38BDF8', '#16A34A', '#EA580C', '#8B5CF6',
-    '#EC4899', '#F59E0B', '#06B6D4', '#84CC16', '#F43F5E'
-  ]
 
   const modals = useCalendarModals()
   const form = useAppointmentForm(organizationId)
@@ -114,7 +110,7 @@ export function CalendarView({ organizationId, userRole }: CalendarViewProps) {
   const employeeColorMap = useMemo(() => {
     const map: Record<string, string> = {}
     employees.forEach((emp, idx) => {
-      map[emp.id] = EMPLOYEE_COLORS[idx % EMPLOYEE_COLORS.length]
+      map[emp.id] = DEFAULT_EMPLOYEE_COLORS[idx % DEFAULT_EMPLOYEE_COLORS.length]
     })
     return map
   }, [employees])

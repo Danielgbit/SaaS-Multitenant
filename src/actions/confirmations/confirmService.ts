@@ -7,6 +7,7 @@ import { ConfirmServiceSchema, type ConfirmServiceState } from './schemas'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
 import { createEntryFromSource } from '@/actions/cash-sessions/createEntryFromSource'
+import { mapPaymentMethod } from '@/lib/appointments/payment-method-mapper'
 import { canConfirm, calculateTotal } from './helpers'
 import type { ServiceWithPrice, EmployeeServiceOverride } from './helpers'
 import type { ConfirmationStatus } from '@/types/confirmations'
@@ -227,7 +228,7 @@ export async function confirmService(
       entry_type: 'income',
       direction: 'in',
       amount: currentPrice,
-      payment_method: paymentMethod as any,
+      payment_method: mapPaymentMethod(paymentMethod),
       title: `Pago servicio`,
       created_by: userId,
       created_via: 'appointment_auto',

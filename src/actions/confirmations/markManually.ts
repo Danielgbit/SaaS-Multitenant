@@ -7,6 +7,7 @@ import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { MarkManuallySchema, type MarkManuallyState } from './schemas'
 import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
 import { createEntryFromSource } from '@/actions/cash-sessions/createEntryFromSource'
+import { mapPaymentMethod } from '@/lib/appointments/payment-method-mapper'
 
 export async function markManually(
   prevState: MarkManuallyState,
@@ -46,15 +47,6 @@ export async function markManually(
   const { userId } = access.context
 
   const now = new Date().toISOString()
-
-  // Shadow Mode: capture seed BEFORE mutation (for drift detection)
-  const shadowSeed = {
-    appointmentId,
-    observedUpdatedAt: appointment.created_at,
-    initialStatus: appointment.status,
-    initialConfirmationStatus: appointment.confirmation_status,
-    correlationId: crypto.randomUUID(),
-  }
 
   // Get prices from appointment_services with employee override support
   const { data: appointmentServices } = await supabase
@@ -138,11 +130,10 @@ export async function markManually(
 
   // Auto-registrar transaccion financiera (client accounts)
   try {
-    const apt = appointment as unknown as { payment_method?: string; client_id?: string }
     const { data: account } = await supabase
       .from('client_accounts')
       .select('id, balance')
-      .eq('client_id', apt.client_id!)
+      .eq('client_id', appointment.client_id!)
       .single()
 
     if (account) {
@@ -153,7 +144,7 @@ export async function markManually(
         transaction_type: 'payment',
         amount: currentPrice,
         balance_after: balance + currentPrice,
-        payment_method: apt.payment_method || 'cash',
+        payment_method: appointment.payment_method || 'cash',
         appointment_id: appointmentId,
         notes: reason ? `Marcado manual: ${reason}` : 'Marcado manual',
         created_by: userId,
@@ -172,7 +163,7 @@ export async function markManually(
       entry_type: 'income',
       direction: 'in',
       amount: currentPrice,
-      payment_method: (appointment.payment_method || 'cash') as any,
+      payment_method: mapPaymentMethod(appointment.payment_method || 'cash'),
       title: `Marcado manual`,
       created_by: userId,
       created_via: 'appointment_auto',
@@ -251,20 +242,6 @@ export async function markManually(
   } catch (e) {
     console.warn('[markManually] revalidatePath /calendar error:', e)
   }
-
-  // Shadow Mode: capture context for fire-and-forget validation
-  const shadowContext = {
-    appointmentId,
-    organizationId: appointment.organization_id,
-    correlationId: shadowSeed.correlationId,
-    actorId: userId,
-    timestamp: now,
-    notes: reason,
-    seed: shadowSeed,
-  }
-
-  // Fire-and-forget shadow validation (does not affect production)
-  import('@/lib/shadow').catch(() => {})
 
   return { success: true, logId: log.id }
 }

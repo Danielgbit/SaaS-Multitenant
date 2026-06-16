@@ -97,15 +97,6 @@ export async function markCompleted(
 
   const now = new Date().toISOString()
 
-  // Shadow Mode: capture seed BEFORE mutation (for drift detection)
-  const shadowSeed = {
-    appointmentId,
-    observedUpdatedAt: appointment.created_at,
-    initialStatus: appointment.status,
-    initialConfirmationStatus: appointment.confirmation_status,
-    correlationId: crypto.randomUUID(),
-  }
-
   // Get prices from appointment_services with employee override support
   const { data: appointmentServices } = await supabase
     .from('appointment_services')
@@ -237,21 +228,6 @@ export async function markCompleted(
   } catch (e) {
     console.warn('[markCompleted] revalidateTag error:', e)
   }
-
-  // Shadow Mode: capture context for fire-and-forget validation
-  const shadowContext = {
-    appointmentId,
-    organizationId: appointment.organization_id,
-    correlationId: shadowSeed.correlationId,
-    actorId: user.id,
-    timestamp: now,
-    priceAdjustment,
-    notes,
-    seed: shadowSeed,
-  }
-
-  // Fire-and-forget shadow validation (does not affect production)
-  import('@/lib/shadow').catch(() => {})
 
   return { success: true, logId: log.id }
 }

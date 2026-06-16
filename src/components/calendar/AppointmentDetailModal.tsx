@@ -31,7 +31,7 @@ export function AppointmentDetailModal({
 }: AppointmentDetailModalProps) {
   if (!appointment) return null
 
-  const st = (STATUS_CONFIG as any)[appointment.status] || {
+  const st = STATUS_CONFIG[appointment.status] || {
     color: COLORS.textSecondary, bg: COLORS.borderLight,
     label: appointment.status, icon: <Circle className="w-3.5 h-3.5" />,
   }

@@ -93,6 +93,9 @@ export async function createAppointment(
         services: null,
         organizations: orgData || null,
         booking_settings: bookingSettingsData || undefined,
+      // TODO(BOOKING-DEBT): Remove this as any when booking_settings type is aligned
+      // with AppointmentData. The field use_notification_v2 exists in the query but
+      // is not part of AppointmentData['booking_settings'] yet.
       } as any, { confirmationLink })
     } catch (orchestratorError) {
       appLog('error', 'orchestrator failed', {
@@ -185,11 +188,6 @@ export async function updateAppointmentStatus(
 
   const { error: updateError } = await updateAppointmentStatusInDb(supabase, appointment_id, status)
   if (updateError) return { error: updateError }
-
-  // Shadow Mode (deprecated — no-op stub)
-  if (status === 'cancelled') {
-    import('@/lib/shadow').catch(() => {})
-  }
 
   // Email para cambios de estado críticos
   if (status === 'cancelled' || status === 'completed' || status === 'no_show') {

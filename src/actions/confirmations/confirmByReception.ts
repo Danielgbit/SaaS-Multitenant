@@ -8,6 +8,7 @@ import { devLog } from '@/lib/logger'
 import { finalizeAppointmentFinancials } from '@/lib/appointments/finalize-financials'
 import { requireOrgAccess } from '@/lib/auth/require-org-access'
 import { createEntryFromSource } from '@/actions/cash-sessions/createEntryFromSource'
+import { mapPaymentMethod } from '@/lib/appointments/payment-method-mapper'
 
 const ConfirmReceptionSchema = z.object({
   confirmation_id: z.string().uuid('ID de confirmación inválido'),
@@ -62,31 +63,6 @@ export async function confirmByReception(
 
   if (confError || !confirmation) {
     return { success: false, error: 'Confirmación no encontrada.' }
-  }
-
-  // Shadow Mode: capture seed BEFORE mutation (if we have appointment_id)
-  let shadowSeed: {
-    appointmentId: string
-    observedUpdatedAt: string
-    initialStatus: string
-    initialConfirmationStatus: string
-    correlationId: string
-  } | null = null
-  if (confirmation.appointment_id) {
-    const { data: apt } = await supabase
-      .from('appointments')
-      .select('created_at, status, confirmation_status')
-      .eq('id', confirmation.appointment_id)
-      .single()
-    if (apt) {
-      shadowSeed = {
-        appointmentId: confirmation.appointment_id,
-        observedUpdatedAt: apt.created_at,
-        initialStatus: apt.status,
-        initialConfirmationStatus: apt.confirmation_status!,
-        correlationId: crypto.randomUUID(),
-      }
-    }
   }
 
   // Actualizar confirmación
@@ -189,15 +165,6 @@ export async function confirmByReception(
     }
   }
 
-  // Shadow Mode: fire-and-forget validation
-  if (shadowSeed) {
-    if (action === 'complete') {
-      import('@/lib/shadow').catch(() => {})
-    } else if (action === 'not_performed') {
-      import('@/lib/shadow').catch(() => {})
-    }
-  }
-
   // Auto-registrar movimiento de caja
   if (action === 'complete' && payment_method) {
     try {
@@ -208,7 +175,7 @@ export async function confirmByReception(
         entry_type: 'income',
         direction: 'in',
         amount: confirmation.total_amount || 0,
-        payment_method: payment_method as any,
+        payment_method: mapPaymentMethod(payment_method),
         title: `Pago recepción`,
         created_by: userId,
         created_via: 'appointment_auto',
