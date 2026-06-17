@@ -36,5 +36,5 @@
 
 - [ ] Tests unitarios pasan (`npm test`)
 - [ ] Architecture guard (`npm run guard`)
-- [ ] Documentación generada (`pnpm docs:gen`)
-- [ ] `pnpm docs:check` sin errores
+- [ ] Documentación generada (`npm run docs:gen`)
+- [ ] `npm run docs:check` sin errores
